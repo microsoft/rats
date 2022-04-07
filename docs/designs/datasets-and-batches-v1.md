@@ -98,6 +98,8 @@ Processors need to declare what inputs they expect and what outputs they provide
 
 Processors also declare what (if any) dimensions they are independent of (here independent means associative and commutative).
 
+TBD: Aggregators, PartialAggregators, ...
+
 Most processors process *Batch*es, i.e. loaded data.
 
 Some process *Datasets*.
@@ -109,8 +111,18 @@ Examples:
 ```python
 class FET(BatchProcessor):
     independent_dimensions: List[str] = ["TCR"]
-    input_properties: Dict[str, List[str]] = dict(indicators= ["repertoire", "TCR"])
-    output_properties: Dict[str, List[str]] = dict(pvalues= ["TCR"])
+    input_properties: Dict[str, List[str]] = dict(indicators=["repertoire", "TCR"])
+    output_properties: Dict[str, List[str]] = dict(pvalues=["TCR"])
+
+    def process() -> None:
+        ...
+```
+
+```python
+class SumRows(BatchProcessor):
+    independent_dimensions: List[str] = []
+    input_properties: Dict[str, List[str]] = dict(matrix=["*SAMPLE_DIMENSION*", "*FEATURE_DIMENSION*"])
+    output_properties: Dict[str, List[str]] = dict(matrix_sum=["*SAMPLE_DIMENSION*"])
 
     def process() -> None:
         ...
@@ -126,4 +138,10 @@ class LinearRegression(BatchProcessor):
         ...
 ```
 
+### Dataset level processors
+
+TBD
+
 ## Metadata
+
+TBD
