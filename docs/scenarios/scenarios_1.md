@@ -50,13 +50,15 @@ indices.
 
 1. Generate HLA mask matrix showing which TCRs have HLA overlap with which repertoires.
 
-    1. Assign HLAs to repertoires using `x_inferred_hlas` or sideloaded RUO HLA assignments,
+   1. Assign HLAs to repertoires using `x_inferred_hlas` or sideloaded RUO HLA assignments,
        yielding binary matrix $RH$.
-    1. Compute TCR-HLA association using FET or Mann-Whitney.
-    1. Binarize TCR-HLA assocation by p-value threshold or FDR, yielding binary matrix $TH$.
-    1. Compute binary mask matrix $M = RH \cdot TH^T > 0$
-    1. Filter TCRs to those that are associated with at least one repertoire $\{j | \sum_i M_{ij} > 0\}$,
+   1. Compute TCR-HLA association using FET or Mann-Whitney.
+   1. Binarize TCR-HLA assocation by p-value threshold or FDR, yielding binary matrix $TH$.
+   1. Compute binary mask matrix $M = RH \cdot TH^T > 0$
+   1. Filter TCRs to those that are associated with at least one repertoire $F = \{j | \sum_i M_{ij} > 0\}$,
        typically $\approx$ 20k-100k
+
+1. Filter $X$ using $F$.
 
 1. Optimize PyTorch Sparse Projective NMF model to get component matrix $V \ge 0$
    so that $X \cdot V^T \cdot V \approx X$ subject to various side constraints.
@@ -110,8 +112,8 @@ This is an example of an iterative meta-estimator.
 ## Wraps over
 
 1. Initializer $a$.  Examples:
-1. 1. Take given labels, filter out unlabeled samples.
-1. 1. Assign repertoire labels by mapping MIRA to repertoire TCRs.
+   1. Take given labels, filter out unlabeled samples.
+   1. Assign repertoire labels by mapping MIRA to repertoire TCRs.
 
 1. Internal estimator $e$.  Any process that learns a predictor given labeled samples.
 
@@ -127,8 +129,8 @@ Any sampleset with (some) missing labels.  Call it $s$.
 
 1. $s' = a(s)$
 1. Iterate until $c(s, s')$ says stop.
-1. 1. $p = e(f(s'))$ where $f$ is a sampleset filter that returns only labeled samples.
-1. 1. $s' = l(p(s))$
+   1. $p = e(f(s'))$ where $f$ is a sampleset filter that returns only labeled samples.
+   1. $s' = l(p(s))$
 1. Return $p$
 
 Monitor iteration process as it proceeds.
