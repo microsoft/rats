@@ -29,6 +29,62 @@ indices.
 1. Train pytorch model, using training and validation datasets.  Single machine.  Monitor training
    as it proceeds. Store trained model.
 
+# Scenario: train and validate P2 models
+
+1. Filter MIRA data for training & validation using m1a/m2a, other filters
+
+1. Combine binders, non-binders, and other binders, and partition into folds by antigen, label, etc.
+
+1. Train models & generate predictions using cross-fold validation on generated slices
+
+1. Gather prediction metrics by antigen
+
+*see immunoshare.mira.modeling.p2.data*
+
+
+# Scenario: Sparse NMF models for TACC
+
+1. Select repertoire-TCR feature matrix (e.g. `upr_counts`). Filter to TCRs that occur in at least $k$ repertoires, where $k \approx 5-20$.
+
+1. Apply Pearson residual transform to regularize matrix along both axes. Filter to top $k$ TCRs by variance, where $k \approx 10^5-10^6$ to get feature matrix $X$.
+
+1. Generate HLA mask matrix showing which TCRs have HLA overlap with which repertoires.
+
+    1. Assign HLAs to repertoires using `x_inferred_hlas` or sideloaded RUO HLA assignments,
+       yielding binary matrix $RH$.
+    1. Compute TCR-HLA association using FET or Mann-Whitney.
+    1. Binarize TCR-HLA assocation by p-value threshold or FDR, yielding binary matrix $TH$.
+    1. Compute binary mask matrix $M = RH \cdot TH^T > 0$
+    1. Filter TCRs to those that are associated with at least one repertoire $\{j | \sum_i M_{ij} > 0\}$,
+       typically $\approx$ 20k-100k
+
+1. Optimize PyTorch Sparse Projective NMF model to get component matrix $V \ge 0$
+   so that $X \cdot V^T \cdot V \approx X$ subject to various side constraints.
+
+1. Create TACC clusters from V, e.g. $cluster_k =\{ j | V_{kj} >= \epsilon \}$
+
+1. Analyze TACC clusters as below.
+
+# Scenario: HLAdb clustering for TACCs
+
+1. For each HLA $h$ retrieve set of TCRs $HLAdb_h = \{j\}$ associated with $h$.
+
+1. Filter to set of repertoires $\{i\}$ that have HLA $h$.
+
+1. Create repertoire-TCR indicator matrix $X$
+
+1. Find top $k$ clusters $cluster_k = \{j\}$ using `sklearn` clustering algorithms e.g. spectral co-clustering,
+   Wards clustering, etc.
+
+1. Analyze clustering results against MIRA data
+
+   1. MIRA antigen / taxon purity vs. overlap
+
+1. Analyze clustering results against ES from diagnostic models for Lyme, COVID, Parvo, etc.
+
+   1. Purity vs. overlap
+
+
 # Scenario: train on lots of TCRs
 
 When training sequence models, we'll need 100Ms or 1Gs TCRs.
