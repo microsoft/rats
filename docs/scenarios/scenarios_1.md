@@ -31,18 +31,53 @@ indices.
 
 # Scenario: train and validate P2 models
 
-1. Filter MIRA data for training & validation using m1a/m2a, other filters
+1. For each of ~200 antigens
 
-1. Combine binders, non-binders, and other binders, and partition into folds by antigen, label, etc.
+1. Filter MIRA data for training & validation using m1a/m2a, other filters.
+   MIRA datasets currently behind an API developed by Katie that loads
+   either across all diseases or adds disease-specific metadata (e.g. COVID
+   genome coordinates)
 
-1. Train models & generate predictions using cross-fold validation on generated slices
+1. Combine binders, non-binders, and other binders (TCRs that bind other antigens),
+   and partition into folds, typically <100k TCRs total
 
-1. Gather prediction metrics by antigen
+1. Train models & generate predictions using cross-fold validation on generated slices. Compute-intensive - hours of GPU time per antigen.
+
+1. Gather prediction metrics by antigen, either by cross-fold validation or on holdout
 
 *see immunoshare.mira.modeling.p2.data*
 
+# Scenario: train and evaluate P6 models
 
-# Scenario: Sparse NMF models for TACC
+TBD
+
+# Scenario: TCR-Antigen Co-Clustering (TACC) on HLAdb
+
+1. For each HLA $h$ retrieve set of TCRs $HLAdb_h = \{j\}$ associated with $h$.
+   Currently filter to top $k$ TCRs by p-value, currently $k \approx 2000$.
+
+   1. Filter to set of repertoires $\{i\}$ that have HLA $h$.
+
+   1. Create repertoire-TCR indicator matrix $X$
+
+    1. Find top $k$ clusters $cluster_k = \{j\}$ using `sklearn` clustering algorithms e.g. spectral co-clustering,
+   Wards clustering, etc.
+
+1. Gather clusters from all HLAs together for analysis.
+
+1. Evaluate clustering results against MIRA data
+
+   - MIRA antigen / taxon purity vs. overlap
+
+1. Evaluate clustering results against ES from diagnostic models for Lyme, COVID, Parvo, etc.
+
+   - Purity vs. overlap
+
+1. Evaluate by using clusters as seeds for pseudolabeling.
+
+# Scenario: Sparse NMF models for disease diagnostics or TACC
+
+1. Can start with an ExperimentConfig or a set of unlabeled repertoires
 
 1. Select repertoire-TCR feature matrix (e.g. `upr_counts`). Filter to TCRs that occur in at least $k$ repertoires, where $k \approx 5-20$.
 
@@ -58,32 +93,20 @@ indices.
     1. Filter TCRs to those that are associated with at least one repertoire $\{j | \sum_i M_{ij} > 0\}$,
        typically $\approx$ 20k-100k
 
-1. Optimize PyTorch Sparse Projective NMF model to get component matrix $V \ge 0$
-   so that $X \cdot V^T \cdot V \approx X$ subject to various side constraints.
+1. Optimize PyTorch Sparse Projective NMF model to yield component matrix $V \ge 0$
+   so that $X \cdot V^T \cdot V \approx X$ subject to mask $M$ and various side constraints
+   like regularization, orthogonality, etc.
 
-1. Create TACC clusters from V, e.g. $cluster_k =\{ j | V_{kj} >= \epsilon \}$
+1. Save component matrix $V$ for downstream applications
 
-1. Analyze TACC clusters as below.
+1. For disease diagnostics, project processed features $X$ onto components $V$
+   and use in regularized logistic regression to predict labels $Y$
 
-# Scenario: HLAdb clustering for TACCs
+1. For TACC
 
-1. For each HLA $h$ retrieve set of TCRs $HLAdb_h = \{j\}$ associated with $h$.
+   1. Create TACC clusters from V, e.g. $cluster_k =\{ j | V_{kj} >= \epsilon \}$
 
-1. Filter to set of repertoires $\{i\}$ that have HLA $h$.
-
-1. Create repertoire-TCR indicator matrix $X$
-
-1. Find top $k$ clusters $cluster_k = \{j\}$ using `sklearn` clustering algorithms e.g. spectral co-clustering,
-   Wards clustering, etc.
-
-1. Analyze clustering results against MIRA data
-
-   1. MIRA antigen / taxon purity vs. overlap
-
-1. Analyze clustering results against ES from diagnostic models for Lyme, COVID, Parvo, etc.
-
-   1. Purity vs. overlap
-
+   1. Analyze TACC clusters as above.
 
 # Scenario: train on lots of TCRs
 
