@@ -19,11 +19,11 @@ indices.
 1. Define training, validation, and holdout samplesets.  Samples are multi-labeled repertoires.  Samplesets contain large fractions of all AMP repertoires.
 
 1. Preprocess, mostly to filter TCRs to the 10K region.  Examples:
-1. 1. calculate $\max_i U_{i,j}$, then threshold.
-1. 1. calculate $\max_i U_{i,j}$, then take top K.
-1. 1. calculate $\max_k \text{robust\_fet} (\{U_{i,j}\}_i, \{L_{i,k}\}_i, \{M_i\}_i)$, then
+   1. calculate $\max_i U_{i,j}$, then threshold.
+   1. calculate $\max_i U_{i,j}$, then take top K.
+   1. calculate $\max_k \text{robust\_fet} (\{U_{i,j}\}_i, \{L_{i,k}\}_i, \{M_i\}_i)$, then
       threshold.
-1. 1. calculate $\text{robust\_fet} (\{U_{i,j}\}_i, \{L_{i,k}\}_i, \{M_i\}_i)$ for each $k$, take
+   1. calculate $\text{robust\_fet} (\{U_{i,j}\}_i, \{L_{i,k}\}_i, \{M_i\}_i)$ for each $k$, take
       top K for each $k$, then union.
 
 1. Train pytorch model, using training and validation datasets.  Single machine.  Monitor training
