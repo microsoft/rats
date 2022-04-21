@@ -120,7 +120,7 @@ class FET(BatchProcessor):
 
 ```python
 class SumRows(BatchProcessor):
-    independent_dimensions: List[str] = []
+    independent_dimensions: List[str] = ["*SAMPLE_DIMENSION*"]
     input_properties: Dict[str, List[str]] = dict(matrix=["*SAMPLE_DIMENSION*", "*FEATURE_DIMENSION*"])
     output_properties: Dict[str, List[str]] = dict(matrix_sum=["*SAMPLE_DIMENSION*"])
 
