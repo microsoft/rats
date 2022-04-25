@@ -75,6 +75,10 @@ TBD
 
 1. Evaluate by using clusters as seeds for pseudolabeling.
 
+1. Evaluate cluster quality by internal metrics, referencing training data
+
+   - Average Spearman Rho (ASR) of TCR feature vectors within or across clusters
+
 # Scenario: Sparse NMF models for disease diagnostics or TACC
 
 1. Can start with an ExperimentConfig or a set of unlabeled repertoires

@@ -24,6 +24,8 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
+hydra-core = "^1.1.2"
+omegaconf = "*"
 python = "^3.8.10"
 
 # These are only needed during development
