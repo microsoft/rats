@@ -3,6 +3,5 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="oneml-app" />
   </component>
 </module>
