@@ -25,6 +25,7 @@ class SearchSpace(UserDict[str, Distribution]):
     data: Dict[str, Distribution]
 
 
+@dataclass
 class Objective:
     pipeline: PipelineStep
     metric: List[str]
@@ -47,3 +48,19 @@ class HPOStep(PipelineStep, ABC):
     @abstractmethod
     def execute(self) -> None:
         pass
+
+
+class OptunaStep(HPOStep):
+    pass
+
+
+class KatibStep(HPOStep):
+    pass
+
+
+class HyperoptStep(HPOStep):
+    pass
+
+
+class RayTuneStep(HPOStep):
+    pass
