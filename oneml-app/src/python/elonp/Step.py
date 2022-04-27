@@ -18,7 +18,7 @@ class DataIdentifier:
 
 
 class ComputeRequirements:
-    """"""
+    pass
 
 class Step:
     def execute(**input_name_to_value: Any) -> Dict[str, Any]:
@@ -28,7 +28,12 @@ class Step:
         """To be called by client environment, using data identifiers that are outputs of previous steps."""
 
     def get_compute_requirements() -> ComputeRequirements:
-        """To be called by scheduling environment."""
+        """Get the compute requirements needed to execute this step.
+        
+        Specified by client environment, and could be a requirement to run in the same python process as the client environment.
+
+        To be called by scheduling environment.
+        """
 
 
 class StepForScheduling:
