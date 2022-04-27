@@ -3,9 +3,10 @@
 from abc import ABC, abstractmethod
 from collections import UserDict
 from dataclasses import dataclass
+from functools import partial
 from typing import Any, Dict, List
 
-from ..lorenzo.pipelines import PipelineStep, PipelineStorage
+from ...oneml.lorenzo.pipelines import PipelineStep, PipelineStorage
 
 
 @dataclass(frozen=True)
@@ -27,8 +28,12 @@ class SearchSpace(UserDict[str, Distribution]):
 
 @dataclass
 class Objective:
-    pipeline: PipelineStep
+    pipeline: partial[PipelineStep]
     metric: List[str]
+
+    def __call__(self, config: Dict[str, Any]) -> Any:
+        pipeline = self.pipeline(**config)
+        pipeline.execute()
 
 
 class HPOStep(PipelineStep, ABC):
@@ -37,7 +42,7 @@ class HPOStep(PipelineStep, ABC):
         num_trials: int,
         search_space: Dict[str, Distribution],
         algorithm: str,
-        objective: PipelineStorage,
+        objective: Objective,
     ) -> None:
         super().__init__()
         self.num_trials = num_trials
