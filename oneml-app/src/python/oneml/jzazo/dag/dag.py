@@ -139,14 +139,27 @@ class DAGRunner:
     def run(self) -> None:
         pending = deque(self._nodes.keys())
         completed: Set[TaskName] = set()
+        removed: Set[TaskName] = set()
 
         while pending:
             name = pending.popleft()
-            if name in completed:
+            if name in completed or name in removed:
                 continue
 
             task = self.get_node(name)
-            if task.dependencies <= completed and task.conditions:
-                task.run()
-                completed.add(name)
-                pending.extendleft(self._injections[name])
+            if task.dependencies <= completed:
+                if task.conditions:
+                    task.run()
+                    completed.add(name)
+                    pending.extendleft(self._injections[name])
+                else:
+                    removed |= self._branch_tasks(name)
+
+    def _branch_tasks(self, name: TaskName) -> Set[TaskName]:
+        branch_tasks = set()
+        injections = deque([name])
+        while injections:
+            downstream = injections.popleft()
+            branch_tasks.add(downstream)
+            injections.extend(self._injections[downstream])
+        return branch_tasks
