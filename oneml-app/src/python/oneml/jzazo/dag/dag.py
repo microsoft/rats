@@ -73,8 +73,6 @@ class DAG(Task):
         for task, other in edges:
             self._add_dependency(task, other)  # task does not need to belong to the dag
 
-        self._dependencies = set(nodes.keys())  # dag depends on all dag.nodes
-
     def _add_dependency(self, task: TaskName, other: TaskName) -> None:
         self.get_node(other).add_dependency(task)
 
