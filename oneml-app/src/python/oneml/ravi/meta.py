@@ -50,7 +50,8 @@ class HyperGridSearch(Step):
     @property
     def _schema(self):
         """schema is dynamic based on sub-steps"""
-        return merge_schemas(inputs=[self.modeler, self.metric], outputs=[self.modeler])
+        # return merge_schemas(inputs=[self.modeler, self.metric], outputs=[self.modeler])
+        return self.modeler._schema
 
     def _run(self, result: Result) -> None:
         # for now use just single train, val split for simplicity; real impl would be k-fold
@@ -60,7 +61,7 @@ class HyperGridSearch(Step):
         parametrizations = cartesian_product(self.parameters)
         for p in parametrizations:
             # train modeler on train split
-            est_i = self._runner.schedule(assign_inputs(self.modeler, train, self))
+            est_i = self._runner.schedule(assign_inputs(self.modeler._assign(**p), train, self))
             # predict results on validation split
             fitted_i = self._runner.schedule(assign_inputs(est_i.fitted, val, self))
             # calculate metrics
@@ -76,4 +77,4 @@ class HyperGridSearch(Step):
         set_outputs(result, best)
         # report resulting artifacts
         result.parametrizations = parametrizations
-        result.metris = metrics
+        result.metrics = metrics
