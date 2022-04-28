@@ -1,6 +1,5 @@
 from .hpo import (
-    Algorithm,
-    Distribution,
+    CategoricalDistribution,
     HyperoptStep,
     KatibStep,
     Objective,
