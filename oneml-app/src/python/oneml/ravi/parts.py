@@ -62,7 +62,7 @@ class Part:
         for k, v in kwargs:
             if '.' in k:
                 k0, kn = k.split('.', 1)
-                result[k0] = self[k0].assign(kn, v)
+                result[k0] = result[k0].assign(kn, v)
             else:
                 result[k] = v
         return result
