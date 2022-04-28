@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Set, Tuple
 
@@ -40,6 +40,9 @@ class Task:
     def add_dependency(self, dependency: TaskName) -> None:
         return self._dependencies.add(dependency)
 
+    def run(self) -> None:
+        pass
+
     @property
     def dependencies(self) -> Set[str]:
         return self._dependencies
@@ -56,21 +59,21 @@ class DAG(Task):
 
     def __init__(
         self,
+        name: TaskName,
         nodes: Dict[TaskName, Task],
         edges: Set[Tuple[TaskName, TaskName]],
-        name: TaskName,
         resources: Resources,
     ) -> None:
-        assert all(name == task.name for name, task in nodes.items())
+        assert all(task_name == task.name for task_name, task in nodes.items())
         assert len(edges) == len(set(edges))
         super().__init__(name=name, step=None, resources=resources)
         self._nodes = nodes
         self._edges = edges
 
         for task, other in edges:
-            self._add_dependency(task, other)  # task needs not belong to the dag
+            self._add_dependency(task, other)  # task does not need to belong to the dag
 
-        self._dependencies = self._dependencies & set(nodes.keys())  # dag depends on all dag.nodes
+        self._dependencies = set(nodes.keys())  # dag depends on all dag.nodes
 
     def _add_dependency(self, task: TaskName, other: TaskName) -> None:
         self.get_node(other).add_dependency(task)
@@ -100,8 +103,7 @@ class DAGRunner:
     dag: DAG
 
     _nodes: Dict[TaskName, Task]
-    _injections: Dict[TaskName, List[TaskName]]
-    _completed: Set[TaskName]
+    _injections: Dict[TaskName, List[TaskName]]  # downstream tasks
 
     def __init__(self, dag: DAG) -> None:
         self.dag = dag
@@ -112,8 +114,9 @@ class DAGRunner:
     def _infer_nodes(self, dag: DAG) -> Dict[TaskName, Task]:
         nodes: Dict[TaskName, Task] = {}
         visited = set()
-        queue = [(name, task) for name, task in dag.nodes.items()]
-        for name, task in queue:
+        queue = deque((name, task) for name, task in dag.nodes.items())
+        while queue:
+            name, task = queue.pop()  # breadth-first
             nodes[name] = task
             if isinstance(task, DAG):
                 queue.extend([(n, t) for n, t in dag.nodes.items() if t not in visited])
@@ -127,12 +130,23 @@ class DAGRunner:
                 injections[dependency].append(name)
         return injections
 
-    def _validate() -> None:
+    def _validate(self) -> None:
         pass
 
     def get_node(self, name: TaskName) -> Task:
         return self._nodes[name]
 
-    def run(self):
-        # some logic with executing nodes, mark them as completed, when ask is completed notify
-        # the injection nodes, check dependencies in completed tasks and conditions, then run task
+    def run(self) -> None:
+        pending = deque(self._nodes.keys())
+        completed: Set[TaskName] = set()
+
+        while pending:
+            name = pending.popleft()
+            if name in completed:
+                continue
+
+            task = self.get_node(name)
+            if task.dependencies <= completed and task.conditions:
+                task.run()
+                completed.add(name)
+                pending.extendleft(self._injections[name])
