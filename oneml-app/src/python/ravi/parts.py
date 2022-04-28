@@ -132,7 +132,6 @@ class Runner:
     def run(self, step: Step, **kwargs: Dict[str, Any]) -> Step:
         """schedule and run a step, returning a copy with outputs assigned"""
         # assign additional params/inputs
-        # todo: this is 
         step_out = step._assign(**kwargs)
         # validate input types etc.
         step_out._validate_inputs()
@@ -142,7 +141,7 @@ class Runner:
         # assign result values to step object
         step_out = step_out._assign(**result)
         # validate output schemas etc.
-        self._validate_outputs(step_out)
+        step_out._validate_outputs()
         # return updated step object
         return step_out
 
