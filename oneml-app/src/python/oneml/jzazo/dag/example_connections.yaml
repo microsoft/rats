@@ -1,0 +1,17 @@
+train_standardization:
+  X: input.X
+
+train_logistic_regression:
+  X: predict_standardization.Z
+  Y: input.Y
+
+predict_standardization:
+  X: input.X
+  mean: train_standardization.mean
+  scale: train_standardization.scale
+
+predict_logistic_regression:
+  X: predict_standardization.Z
+  Y: input.Y
+  weight: train_logistic_regression.weight
+  bias: train_logistic_regression.bias
