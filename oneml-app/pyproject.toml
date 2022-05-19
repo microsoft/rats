@@ -42,6 +42,10 @@ flake8-isort = { version = "*", optional = true }
 black = { version = "*", optional = true }
 optuna = "^2.10.0"
 hera-workflows = "^3.2.0"
+numpy = "^1.22.3"
+munch = "^2.5.0"
+networkx = "^2.8.1"
+sklearn = "^0.0"
 
 [tool.poetry.extras]
 dev = [
