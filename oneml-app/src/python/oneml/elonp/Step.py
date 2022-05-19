@@ -7,7 +7,7 @@ Steps need to interact with three environments:
 """
 
 from __future__ import annotations
-from typing import Iterable, Any, Dict
+from typing import Iterable, Any, Dict, Tuple
 from abc import ABC, abstractmethod
 
 class DataIdentifier(ABC):
@@ -66,8 +66,18 @@ class ScheduledStep(ABC):
         """
 
     @abstractmethod
+    def execute(**inputs: Any) -> Iterable[Tuple[str, Any]]:
+        """Process the inputs, generating outputs.  Output elements should be tuples of output name to output value.
+        
+        To be called by compute environment.
+        """
+
+    @abstractmethod
     def wait() -> CompletedStep:
-        """Wait until step outputs are ready."""
+        """Wait until step outputs are ready.
+        
+        
+        """
 
 
 class CompletedStep(ABC):
