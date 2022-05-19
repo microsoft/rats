@@ -1,11 +1,11 @@
-from typing import Dict, Type, Any
 import logging
+from typing import Any, Dict, Type
 
 from ._pipeline_storage import (
-    PipelineStorage,
     DataType,
     DuplicateStorageKeyError,
-    StorageKeyNotFoundError
+    PipelineStorage,
+    StorageKeyNotFoundError,
 )
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ class InMemoryStorage(PipelineStorage):
 
     _data: Dict[Type[Any], Any]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._data = {}
 
     def save(self, key: Type[DataType], value: DataType) -> None:
