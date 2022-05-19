@@ -21,3 +21,6 @@
 
 # Draw.io tmp files
 **/*.drawio.dtmp
+
+# outputs
+**/outputs
