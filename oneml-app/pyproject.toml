@@ -26,7 +26,7 @@ metadata = false
 [tool.poetry.dependencies]
 hydra-core = "^1.1.2"
 omegaconf = "*"
-python = "^3.8.10"
+python = ">=3.8.10,<3.11"
 
 # These are only needed during development
 flake8 = { version = "*", optional = true }
@@ -41,6 +41,7 @@ isort = { version = "*", optional = true }
 flake8-isort = { version = "*", optional = true }
 black = { version = "*", optional = true }
 optuna = "^2.10.0"
+hera-workflows = "^3.2.0"
 numpy = "^1.22.3"
 munch = "^2.5.0"
 networkx = "^2.8.1"
