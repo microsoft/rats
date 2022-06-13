@@ -1,4 +1,4 @@
-from typing import Tuple, Callable, List
+from typing import Callable, List, Tuple
 
 from ._pipeline_step import PipelineStep
 

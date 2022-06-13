@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Any, Tuple, Callable, Type, List
+from typing import Any, Callable, List, Tuple, Type
 
-from oneml.lorenzo.pipelines import InMemoryStorage, TypeNamespaceClient, PipelineStep
+from oneml.lorenzo.pipelines import InMemoryStorage, PipelineStep, TypeNamespaceClient
 from oneml.lorenzo.pipelines._example_oneml._hyperparameter_search import HyperparameterSearchStep
-from oneml.lorenzo.pipelines._example_oneml._input_data import InputLabelsStep, InputDataStep
-from oneml.lorenzo.pipelines._example_oneml._logistic_regression_train import \
-    LogisticRegressionTrainStep
+from oneml.lorenzo.pipelines._example_oneml._input_data import InputDataStep, InputLabelsStep
+from oneml.lorenzo.pipelines._example_oneml._logistic_regression_train import (
+    LogisticRegressionTrainStep,
+)
 from oneml.lorenzo.pipelines._example_oneml._matrix import RealsMatrix
 from oneml.lorenzo.pipelines._example_oneml._pipeline import StandardizedLogisticRegressionPipeline
 from oneml.lorenzo.pipelines._example_oneml._search_space import TrainerParameterSearchSpace

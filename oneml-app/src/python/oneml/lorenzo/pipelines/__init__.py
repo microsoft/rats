@@ -1,21 +1,14 @@
+from ._deferred_step import DeferredChain, DeferredChainBuilder, DeferredStep
 from ._memory_storage import InMemoryStorage
-from ._namespaced_storage import (
-    NamespacedStorage,
-    TypeNamespace,
-    TypeNamespaceClient
-)
+from ._namespaced_storage import NamespacedStorage, TypeNamespace, TypeNamespaceClient
+from ._pipeline_output import OutputType, PipelineOutput
 from ._pipeline_step import PipelineStep, SimplePipeline
 from ._pipeline_storage import (
+    DuplicateStorageKeyError,
     PipelineDataReader,
     PipelineDataWriter,
     PipelineStorage,
-    DuplicateStorageKeyError,
-    StorageKeyNotFoundError
-)
-from ._deferred_step import (
-    DeferredStep,
-    DeferredChain,
-    DeferredChainBuilder,
+    StorageKeyNotFoundError,
 )
 
 __all__ = [
@@ -33,4 +26,6 @@ __all__ = [
     "DeferredStep",
     "DeferredChain",
     "DeferredChainBuilder",
+    "PipelineOutput",
+    "OutputType",
 ]

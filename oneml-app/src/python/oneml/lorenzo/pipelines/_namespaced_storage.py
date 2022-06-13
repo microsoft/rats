@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Type
 
-from ._pipeline_storage import PipelineStorage, DataType
+from ._pipeline_storage import DataType, PipelineStorage
 
 
 class TypeNamespace:

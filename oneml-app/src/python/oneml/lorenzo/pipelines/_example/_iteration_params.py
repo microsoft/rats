@@ -1,8 +1,8 @@
+from dataclasses import dataclass
 from typing import Tuple
 
-from dataclasses import dataclass
+from oneml.lorenzo.pipelines import PipelineDataWriter, PipelineStep
 
-from oneml.lorenzo.pipelines import PipelineStep, PipelineDataWriter
 from ._fake_samples import FakeSamplesStepConfig
 
 

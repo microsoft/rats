@@ -1,10 +1,11 @@
 from oneml.lorenzo.pipelines import (
+    DeferredChainBuilder,
+    NamespacedStorage,
     PipelineStep,
     PipelineStorage,
     TypeNamespaceClient,
-    NamespacedStorage,
-    DeferredChainBuilder
 )
+
 from ._iteration_params import IterationParameters, IterationParametersStep
 from ._pipeline_iteration import ExamplePipelineIteration
 

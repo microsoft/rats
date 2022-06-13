@@ -1,4 +1,5 @@
-from oneml.lorenzo.pipelines import PipelineStep, PipelineDataWriter
+from oneml.lorenzo.pipelines import PipelineDataWriter, PipelineStep
+
 from ._matrix import RealsMatrix
 from ._vector import RealsVector
 

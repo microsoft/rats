@@ -1,13 +1,14 @@
 from oneml.lorenzo.pipelines import (
-    TypeNamespaceClient,
     NamespacedStorage,
     PipelineStep,
-    PipelineStorage
+    PipelineStorage,
+    TypeNamespaceClient,
 )
+
 from ._input_data import InputDataStep, InputLabelsStep
-from ._logistic_regression_train import LogisticRegressionTrainStep, LogisticRegressionParams
+from ._logistic_regression_train import LogisticRegressionParams, LogisticRegressionTrainStep
 from ._matrix import RealsMatrix
-from ._standardization_train import StandardizationTrainStep, StandardizationParams
+from ._standardization_train import StandardizationParams, StandardizationTrainStep
 from ._vector import RealsVector
 
 

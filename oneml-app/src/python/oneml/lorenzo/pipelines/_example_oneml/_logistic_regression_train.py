@@ -1,11 +1,13 @@
 import logging
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Tuple
-import numpy as np
-from dataclasses import dataclass
 
-from oneml.lorenzo.pipelines import PipelineStep, PipelineDataWriter
+import numpy as np
+
+from oneml.lorenzo.pipelines import PipelineDataWriter, PipelineStep
+
 from ._matrix import RealsMatrix
 from ._vector import RealsVector
 

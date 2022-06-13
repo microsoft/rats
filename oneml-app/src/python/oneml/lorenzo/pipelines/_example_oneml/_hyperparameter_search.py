@@ -1,12 +1,13 @@
 from functools import partial
 
 from oneml.lorenzo.pipelines import (
-    PipelineStep,
-    TypeNamespaceClient,
     NamespacedStorage,
-    PipelineStorage
+    PipelineStep,
+    PipelineStorage,
+    TypeNamespaceClient,
 )
-from ._search_space import TrainerParameterSearchSpace, TrainerHyperparameters
+
+from ._search_space import TrainerHyperparameters, TrainerParameterSearchSpace
 
 
 class HyperparameterSearchStep(PipelineStep):

@@ -1,9 +1,9 @@
+from dataclasses import dataclass
 from functools import lru_cache
 from typing import Dict, Tuple
 
-from dataclasses import dataclass
+from oneml.lorenzo.pipelines import PipelineDataWriter, PipelineStep
 
-from oneml.lorenzo.pipelines import PipelineStep, PipelineDataWriter
 from ._sample import ExampleSamplesCollection
 
 

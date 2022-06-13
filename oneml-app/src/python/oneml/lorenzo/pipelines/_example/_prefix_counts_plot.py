@@ -1,6 +1,7 @@
 from matplotlib import pyplot
 
-from oneml.lorenzo.pipelines import PipelineStep, PipelineDataWriter
+from oneml.lorenzo.pipelines import PipelineDataWriter, PipelineStep
+
 from ._prefix_counts import SamplePrefixCounts
 
 

@@ -1,9 +1,15 @@
-from oneml.lorenzo.pipelines import PipelineStep, PipelineStorage, TypeNamespaceClient, DeferredChainBuilder
+from oneml.lorenzo.pipelines import (
+    DeferredChainBuilder,
+    PipelineStep,
+    PipelineStorage,
+    TypeNamespaceClient,
+)
+
 from ._fake_samples import FakeSamplesStep
-from ._sample import ExampleSamplesCollection
-from ._prefix_counts import SamplePrefixCounts, SampleLetterCountStep
-from ._prefix_counts_plot import SamplePrefixCountPlotStep
 from ._iteration_params import IterationParameters
+from ._prefix_counts import SampleLetterCountStep, SamplePrefixCounts
+from ._prefix_counts_plot import SamplePrefixCountPlotStep
+from ._sample import ExampleSamplesCollection
 
 
 class ExamplePipelineIteration(PipelineStep):

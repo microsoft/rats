@@ -1,12 +1,12 @@
 import random
 import string
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Tuple
 
-from dataclasses import dataclass
+from oneml.lorenzo.pipelines import PipelineDataWriter, PipelineStep
 
-from oneml.lorenzo.pipelines import PipelineStep, PipelineDataWriter
-from ._sample import ExampleSamplesCollection, ExampleSample
+from ._sample import ExampleSample, ExampleSamplesCollection
 
 
 @dataclass(frozen=True)
