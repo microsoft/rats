@@ -1,11 +1,3 @@
 # @package _global_
 defaults:
-  - /step@pipeline.stzlr: standardized_logistic_regression_train
-
-pipeline:
-  stzlr:
-    batch_size: 32
-    learning_rate: 0.01
-    storage:
-      namespace:
-        name: stzlr
+  - /step@pipeline.stz_lr: standardized_logistic_regression_train

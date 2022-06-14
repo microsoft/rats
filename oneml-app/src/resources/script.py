@@ -13,6 +13,7 @@ schemata.register_configs(cs)
 @hydra.main(config_path="conf", config_name="config")
 def my_app(cfg: schemata.Config) -> None:
     print(OmegaConf.to_yaml(cfg))
+    print(cfg.pipeline.stzlr.storage.namespace.name)
     print(instantiate(cfg.pipeline))
 
 

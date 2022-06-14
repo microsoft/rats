@@ -1,8 +1,7 @@
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 from typing import Any
 
 from hydra.core.config_store import ConfigStore
-from omegaconf import MISSING
 
 
 @dataclass
@@ -13,7 +12,7 @@ class InMemoryStorageConf:
 @dataclass
 class TypeNamespaceConf:
     _target_: str = "oneml.lorenzo.pipelines._namespaced_storage.TypeNamespace"
-    name: str = MISSING
+    name: str = "${step_name:}"
 
 
 @dataclass
