@@ -1,0 +1,6 @@
+name: oneml
+applications:
+  - name: oneml-app
+libraries:
+  - name: oneml-pipelines
+  - name: oneml-processors

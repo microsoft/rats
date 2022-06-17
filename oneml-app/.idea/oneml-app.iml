@@ -5,8 +5,10 @@
       <sourceFolder url="file://$MODULE_DIR$/src/python" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/python" isTestSource="true" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Poetry (oneml-app)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="oneml-pipelines" />
+    <orderEntry type="module" module-name="oneml-processors" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />

@@ -3,6 +3,8 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="oneml-pipelines" />
+    <orderEntry type="module" module-name="oneml-processors" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />

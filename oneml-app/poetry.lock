@@ -232,7 +232,7 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "colorama"
-version = "0.4.4"
+version = "0.4.5"
 description = "Cross-platform colored terminal text."
 category = "main"
 optional = false
@@ -355,7 +355,7 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "hera-workflows"
-version = "3.4.0"
+version = "3.5.0"
 description = "Hera is a Python framework for constructing and submitting Argo Workflows. The main goal of Hera is to make Argo Workflows more accessible by abstracting away some setup that is typically necessary for constructing Argo workflows."
 category = "main"
 optional = false
@@ -416,7 +416,7 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "importlib-resources"
-version = "5.7.1"
+version = "5.8.0"
 description = "Read resources from Python packages"
 category = "main"
 optional = false
@@ -600,7 +600,7 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "networkx"
-version = "2.8.3"
+version = "2.8.4"
 description = "Python package for creating and manipulating graphs and networks"
 category = "main"
 optional = false
@@ -609,7 +609,7 @@ python-versions = ">=3.8"
 [package.extras]
 default = ["numpy (>=1.19)", "scipy (>=1.8)", "matplotlib (>=3.4)", "pandas (>=1.3)"]
 developer = ["pre-commit (>=2.19)", "mypy (>=0.960)"]
-doc = ["sphinx (>=4.5)", "pydata-sphinx-theme (>=0.8.1)", "sphinx-gallery (>=0.10)", "numpydoc (>=1.3)", "pillow (>=9.1)", "nb2plots (>=0.6)", "texext (>=0.6.6)"]
+doc = ["sphinx (>=5)", "pydata-sphinx-theme (>=0.9)", "sphinx-gallery (>=0.10)", "numpydoc (>=1.4)", "pillow (>=9.1)", "nb2plots (>=0.6)", "texext (>=0.6.6)"]
 extra = ["lxml (>=4.6)", "pygraphviz (>=1.9)", "pydot (>=1.4.2)", "sympy (>=1.10)"]
 test = ["pytest (>=7.1)", "pytest-cov (>=3.0)", "codecov (>=2.1)"]
 
@@ -647,6 +647,41 @@ PyYAML = ">=5.1.0"
 type = "legacy"
 url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
 reference = "immunomics-artifacts"
+
+[[package]]
+name = "oneml-pipelines"
+version = "0.0.0"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.8.10,<3.11"
+develop = true
+
+[package.extras]
+dev = ["flake8", "flake8-formatter-junit-xml", "pytest", "mypy", "coverage", "pytest-cov", "pytest-nunit", "autopep8", "isort", "flake8-isort", "black"]
+
+[package.source]
+type = "directory"
+url = "../oneml-pipelines"
+
+[[package]]
+name = "oneml-processors"
+version = "0.0.0"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.8.10,<3.11"
+develop = true
+
+[package.dependencies]
+oneml-pipelines = "*"
+
+[package.extras]
+dev = ["flake8", "flake8-formatter-junit-xml", "pytest", "mypy", "coverage", "pytest-cov", "pytest-nunit", "autopep8", "isort", "flake8-isort", "black"]
+
+[package.source]
+type = "directory"
+url = "../oneml-processors"
 
 [[package]]
 name = "optuna"
@@ -1262,7 +1297,7 @@ dev = ["flake8", "flake8-formatter-junit-xml", "pytest", "mypy", "coverage", "py
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "da56e3f97c89004397ba85b3e8958a2370180e973895bf52dd4281719f9260c7"
+content-hash = "804550209021abfd0c5087b1acff0e79344ad9ffa3c32942a7a777a7acf21f7c"
 
 [metadata.files]
 alembic = [
@@ -1338,8 +1373,8 @@ cmd2 = [
     {file = "cmd2-2.4.1.tar.gz", hash = "sha256:f3b0467daca18fca0dc7838de7726a72ab64127a018a377a86a6ed8ebfdbb25f"},
 ]
 colorama = [
-    {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
-    {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+    {file = "colorama-0.4.5-py2.py3-none-any.whl", hash = "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da"},
+    {file = "colorama-0.4.5.tar.gz", hash = "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"},
 ]
 colorlog = [
     {file = "colorlog-6.6.0-py2.py3-none-any.whl", hash = "sha256:351c51e866c86c3217f08e4b067a7974a678be78f07f85fc2d55b8babde6d94e"},
@@ -1458,8 +1493,8 @@ greenlet = [
     {file = "greenlet-1.1.2.tar.gz", hash = "sha256:e30f5ea4ae2346e62cedde8794a56858a67b878dd79f7df76a0767e356b1744a"},
 ]
 hera-workflows = [
-    {file = "hera-workflows-3.4.0.tar.gz", hash = "sha256:75450c4cbe5d19b0f16ee9b2bbe5b581057b8fe1699656bf12f016e21eb1227b"},
-    {file = "hera_workflows-3.4.0-py3-none-any.whl", hash = "sha256:05dd9335200a2203a73b0af63dbee67f3cc177630765b249e81729f317044d16"},
+    {file = "hera-workflows-3.5.0.tar.gz", hash = "sha256:cb1e8e1649e37a9209f7a125cf88d3399404a5a2894467aedccf7bb09f4c3b74"},
+    {file = "hera_workflows-3.5.0-py3-none-any.whl", hash = "sha256:2ddd6b9c332a55a4405ff52a747ba275cb403da04eafebf8bc2297161d42eb22"},
 ]
 hydra-core = [
     {file = "hydra-core-1.2.0.tar.gz", hash = "sha256:4990721ce4ac69abafaffee566d6b63a54faa6501ecce65b338d3251446ff634"},
@@ -1470,8 +1505,8 @@ importlib-metadata = [
     {file = "importlib_metadata-4.11.4.tar.gz", hash = "sha256:5d26852efe48c0a32b0509ffbc583fda1a2266545a78d104a6f4aff3db17d700"},
 ]
 importlib-resources = [
-    {file = "importlib_resources-5.7.1-py3-none-any.whl", hash = "sha256:e447dc01619b1e951286f3929be820029d48c75eb25d265c28b92a16548212b8"},
-    {file = "importlib_resources-5.7.1.tar.gz", hash = "sha256:b6062987dfc51f0fcb809187cffbd60f35df7acb4589091f154214af6d0d49d3"},
+    {file = "importlib_resources-5.8.0-py3-none-any.whl", hash = "sha256:7952325ffd516c05a8ad0858c74dff2c3343f136fe66a6002b2623dd1d43f223"},
+    {file = "importlib_resources-5.8.0.tar.gz", hash = "sha256:568c9f16cb204f9decc8d6d24a572eeea27dacbb4cee9e6b03a8025736769751"},
 ]
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
@@ -1571,8 +1606,8 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
 networkx = [
-    {file = "networkx-2.8.3-py3-none-any.whl", hash = "sha256:f151edac6f9b0cf11fecce93e236ac22b499bb9ff8d6f8393b9fef5ad09506cc"},
-    {file = "networkx-2.8.3.tar.gz", hash = "sha256:67fab04a955a73eb660fe7bf281b6fa71a003bc6e23a92d2f6227654c5223dbe"},
+    {file = "networkx-2.8.4-py3-none-any.whl", hash = "sha256:6933b9b3174a0bdf03c911bb4a1ee43a86ce3edeb813e37e1d4c553b3f4a2c4f"},
+    {file = "networkx-2.8.4.tar.gz", hash = "sha256:5e53f027c0d567cf1f884dbb283224df525644e43afd1145d64c9d88a3584762"},
 ]
 numpy = [
     {file = "numpy-1.22.4-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:ba9ead61dfb5d971d77b6c131a9dbee62294a932bf6a356e48c75ae684e635b3"},
@@ -1602,6 +1637,8 @@ omegaconf = [
     {file = "omegaconf-2.2.2-py3-none-any.whl", hash = "sha256:556917181487fb66fe832d3c7b324f51b2f4c8adc373dd5091be921501b7d420"},
     {file = "omegaconf-2.2.2.tar.gz", hash = "sha256:65c85b2a84669a570c70f2df00de3cebcd9b47a8587d3c53b1aa5766bb096f77"},
 ]
+oneml-pipelines = []
+oneml-processors = []
 optuna = [
     {file = "optuna-2.10.1-py3-none-any.whl", hash = "sha256:d57dc1fd911d20697098bdef83836f8078387a3be2a5400ab26db15f8341e1f4"},
     {file = "optuna-2.10.1.tar.gz", hash = "sha256:8a12009b57757c1070b3bff2261c24824d6430c22926dd1e2ace33b3deff555f"},
