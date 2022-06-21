@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from .dag import Inputs, Nodes
 from .processor import Processor, ProcessorProvider
@@ -42,4 +42,19 @@ class HPO(Processor):
         self.num_trials = num_trials
 
     def process(self, X: Matrix, Y: Vector) -> Output:
+        pass
+
+
+class XVal(Processor):
+    def __init__(self, processor: Processor, num_folds: int) -> None:
+        super().__init__()
+        self.processor = processor
+        self.num_folds = num_folds
+
+    def process(self, X: Matrix, Y: Vector) -> Output:
+        for i, (Xs, Ys) in enumerate(self._split_ds(X, Y, self.num_folds)):
+            result = self.processor(Xs, Ys)
+        return result
+
+    def _split_ds(self, X: Matrix, Y: Vector, num_folds: int) -> Tuple[Matrix, Vector]:
         pass
