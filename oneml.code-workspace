@@ -1,0 +1,80 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "docs"
+        },
+        {
+            "path": "oneml-app"
+        },
+        {
+            "path": "oneml-pipelines"
+        },
+        {
+            "path": "oneml-processors"
+        },
+    ],
+    "settings": {
+        "files.exclude": {
+            // de-duplicate paths added as workspace roots above
+            "docs": true,
+            "oneml-app": true,
+            "oneml-pipelines": true,
+            "oneml-processors": true,
+            // tool-generated dirs/files
+            ".tox": true,
+            ".tox.docker": true,
+            ".mypy_cache": true,
+            ".pytest_cache": true,
+            ".coverage": true,
+            "**/tags": true,
+            "**/build": true,
+            // other editor/ide settings
+            "**/.idea": true
+        },
+        // settings to apply to all workspace roots
+        "editor.rulers": [
+            99
+        ],
+        "python.languageServer": "Pylance",
+        // direnv should activate the environment, and often more correctly than vscode will
+        "python.terminal.activateEnvironment": false,
+        // turn off Pylance native typechecking (leaves MyPy intact as Pylance treats it as a linter)
+        "python.analysis.typeCheckingMode": "off",
+        "python.linting.pylintEnabled": false,
+        "python.linting.mypyEnabled": true,
+        "python.linting.mypyArgs": [
+            // vscode lints files on save by calling `mypy <some/single/file-you-just-saved.py>`.
+            // but on a single file, mypy discovers the source file twice, once via the absolute
+            // path vscode passes explicitly, and once via the `mypy_path` in `mypy.ini`. but because
+            // the latter uses `namespace_packages = True`, mypy sees the same file as being under
+            // two different module names, one namespaced and one not, which makes mypy blow up,
+            // but vscode doesn't surface that very obviously, it just fails to highlight type errors.
+            // so, we tell vscode to pass `--explicit-package-base`, so that mypy will locate the
+            // nearest parent directory that is a member of the mypy_path config, and then use the
+            // relative path to determine the fully qualified module name, to be consistent.
+            "--explicit-package-bases",
+            // default mypyArgs are wrong for us anyway (ignore missing imports, etc)
+        ],
+        "python.linting.flake8Enabled": true,
+        "python.workspaceSymbols.ctagsPath": "ctags",
+        "python.workspaceSymbols.enabled": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
+        "python.formatting.blackArgs": [
+            "--line-length",
+            "99"
+        ],
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "python.envFile": "${workspaceFolder}/.envrc",
+        "search.exclude": {
+            "**/build": true,
+            "**/.tmp": true,
+            "**/outputs": true
+        }
+    }
+}

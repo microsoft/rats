@@ -10,7 +10,7 @@
 
 # ignore personal workspace files
 **/*.code-workspace
-!immunodata.code-workspace
+!oneml.code-workspace
 
 **/.vscode/
 
