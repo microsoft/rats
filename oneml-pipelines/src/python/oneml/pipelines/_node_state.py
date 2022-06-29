@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from enum import Enum, auto
+from threading import RLock
 from typing import Dict, Protocol, Tuple
 
 from ._nodes import PipelineNode
@@ -48,25 +49,21 @@ class PipelineNodeState(Enum):
 class ILocatePipelineNodeState(Protocol):
     @abstractmethod
     def get_node_state(self, node: PipelineNode) -> PipelineNodeState:
-        """
-        """
+        """ """
 
     @abstractmethod
     def get_nodes_by_state(self, state: PipelineNodeState) -> Tuple[PipelineNode, ...]:
-        """
-        """
+        """ """
 
 
 class ISetPipelineNodeState(Protocol):
     @abstractmethod
     def set_node_state(self, node: PipelineNode, state: PipelineNodeState) -> None:
-        """
-        """
+        """ """
 
 
 class IManagePipelineNodeState(ILocatePipelineNodeState, ISetPipelineNodeState, Protocol):
-    """
-    """
+    """ """
 
 
 class PipelineNodeStateClient(IManagePipelineNodeState):
@@ -75,17 +72,21 @@ class PipelineNodeStateClient(IManagePipelineNodeState):
 
     def __init__(self):
         self._node_states = {}
+        self._lock = RLock()
 
     def set_node_state(self, node: PipelineNode, state: PipelineNodeState) -> None:
-        self._node_states[node] = state
+        with self._lock:
+            self._node_states[node] = state
 
     def get_node_state(self, node: PipelineNode) -> PipelineNodeState:
-        return self._node_states[node]
+        with self._lock:
+            return self._node_states[node]
 
     def get_nodes_by_state(self, state: PipelineNodeState) -> Tuple[PipelineNode, ...]:
-        matches = []
-        for node, node_state in self._node_states.items():
-            if node_state == state:
-                matches.append(node)
+        with self._lock:
+            matches = []
+            for node, node_state in self._node_states.items():
+                if node_state == state:
+                    matches.append(node)
 
         return tuple(matches)

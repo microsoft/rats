@@ -59,8 +59,6 @@
             // default mypyArgs are wrong for us anyway (ignore missing imports, etc)
         ],
         "python.linting.flake8Enabled": true,
-        "python.workspaceSymbols.ctagsPath": "ctags",
-        "python.workspaceSymbols.enabled": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": true
         },

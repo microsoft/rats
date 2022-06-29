@@ -39,6 +39,10 @@ autopep8 = { version = "*", optional = true }
 isort = { version = "*", optional = true }
 flake8-isort = { version = "*", optional = true }
 black = { version = "*", optional = true }
+numpy = { version = "*", optional = true }
+munch = "^2.5.0"
+networkx = "^2.8.4"
+dill = "^0.3.5"
 
 [tool.poetry.extras]
 dev = [
@@ -53,6 +57,7 @@ dev = [
     "isort",
     "flake8-isort",
     "black",
+    "numpy",
 ]
 
 [tool.poetry.dev-dependencies]
@@ -60,6 +65,7 @@ dev = [
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 
 [tool.poetry.scripts]
+run-processor = "oneml.processors_script.run_processor:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

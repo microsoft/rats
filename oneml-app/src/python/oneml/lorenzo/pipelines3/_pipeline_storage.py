@@ -56,12 +56,12 @@ class StorageClient(IManageStorageItems):
 
     def get_storage_item(self, key: IProvideStorageItemKeys[OutputType]) -> OutputType:
         if key.get() not in self._items:
-            raise RuntimeError(f"Node output key not found: {key}")
+            raise RuntimeError(f"Node output key not found: {key.get()}")
 
         return self._items[key.get()].value
 
     def publish_storage_item(self, item: StorageItem) -> None:
-        if item.key in self._items:
-            raise RuntimeError(f"Duplicate key found: {item.key}")
+        if item.key.get() in self._items:
+            raise RuntimeError(f"Duplicate key found: {item.key.get()}")
 
         self._items[item.key.get()] = item

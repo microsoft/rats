@@ -6,6 +6,7 @@ description = ""
 authors = []
 packages = [
     {include = "oneml", from = "src/python"},
+    {include = "oneml/py.typed", from = "src/python"},
 ]
 
 [[tool.poetry.source]]

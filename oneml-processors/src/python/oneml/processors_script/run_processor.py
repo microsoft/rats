@@ -1,0 +1,42 @@
+#!/usr/bin/env python3
+
+import sys
+from typing import List
+
+from oneml.processors import NodeName, Processor, RunContext, TopologicalSortDAGRunner
+from oneml.processors_script.deserialize import deserialize_processor
+
+
+def verify_processor(processor: Processor) -> None:
+    if processor.get_input_schema() != {} or processor.get_output_schema() != {}:
+        raise ValueError(
+            f"Expected a processor with no inputs and no outputs. "
+            f"Got the following input schema: {processor.get_input_schema()}. "
+            f"and the following output schema: {processor.get_output_schema()}."
+        )
+
+
+def get_run_context(address: NodeName) -> RunContext:
+    return RunContext(dag_runner=TopologicalSortDAGRunner(), identifier=address)
+
+
+def main(argv: List[str] = sys.argv) -> None:
+    if len(argv) != 3:
+        raise ValueError(
+            f"Expected two commandline arguments: <NodeName> <SerializedProcessor>."
+            f"Found: <{argv}>."
+        )
+    run_context = get_run_context(NodeName(argv[1]))
+    processor = deserialize_processor(argv[2])
+    verify_processor(processor)
+    processor.process(run_context)
+
+
+if __name__ == "__main__":
+    main(
+        [
+            "",
+            "/d2",
+            "gASVygkAAAAAAACMFG9uZW1sLnByb2Nlc3NvcnMuZGFnlIwDREFHlJOUKYGUfZQojAVub2Rlc5R9lCiMGW9uZW1sLnByb2Nlc3NvcnMuYmFzZV9kYWeUjA5TaW1wbGVOb2RlTmFtZZSTlIwJcHJvY2Vzc29ylIWUgZRoAimBlH2UKGgFfZQoaAmMDG11bHRpcGx5X2FfYpSFlIGUjCxvbmVtbC5hc3NvcnRlZF9wcm9jZXNzb3JzLnRlc3RpbmdfcHJvY2Vzc29yc5SMD0FycmF5RG90UHJvZHVjdJSTlCmBlGgJjAxtdWx0aXBseV9iX2OUhZSBlGgVKYGUaAmMDGNvbmNhdGVuYXRvcpSFlIGUaBOMEUFycmF5Q29uY2F0ZW5hdG9ylJOUKYGUfZSMCm51bV9pbnB1dHOUSwJzYnWMC2lucHV0X2VkZ2VzlH2UKGgHjBBJbnB1dFBvcnRBZGRyZXNzlJOUjBFtdWx0aXBseV9hX2IubGVmdJSFlIGUfZQojAxfb2JqZWN0X25hbWWUaAeMCE5vZGVOYW1llJOUjAxtdWx0aXBseV9hX2KUhZSBlIwMX21lbWJlcl9uYW1llIwab25lbWwucHJvY2Vzc29ycy5wcm9jZXNzb3KUjA1JbnB1dFBvcnROYW1llJOUjARsZWZ0lIWUgZR1Ymg0jAFhlIWUgZRoJowSbXVsdGlwbHlfYV9iLnJpZ2h0lIWUgZR9lChoK2gtjAxtdWx0aXBseV9hX2KUhZSBlGgxaDSMBXJpZ2h0lIWUgZR1Ymg0jAFilIWUgZRoJowRbXVsdGlwbHlfYl9jLmxlZnSUhZSBlH2UKGgraC2MDG11bHRpcGx5X2JfY5SFlIGUaDFoNIwEbGVmdJSFlIGUdWJoNIwBYpSFlIGUaCaMEm11bHRpcGx5X2JfYy5yaWdodJSFlIGUfZQoaCtoLYwMbXVsdGlwbHlfYl9jlIWUgZRoMWg0jAVyaWdodJSFlIGUdWJoNIwBY5SFlIGUdYwMb3V0cHV0X2VkZ2VzlH2UaDKMDk91dHB1dFBvcnROYW1llJOUjAZyZXN1bHSUhZSBlGgHjBFPdXRwdXRQb3J0QWRkcmVzc5STlIwTY29uY2F0ZW5hdG9yLm91dHB1dJSFlIGUfZQoaCtoLYwMY29uY2F0ZW5hdG9ylIWUgZRoMWg0jAZvdXRwdXSUhZSBlHVic4wFZWRnZXOUfZQoaCaME2NvbmNhdGVuYXRvci5pbnB1dDCUhZSBlH2UKGgraC2MDGNvbmNhdGVuYXRvcpSFlIGUaDFoNIwGaW5wdXQwlIWUgZR1YmhqjBNtdWx0aXBseV9hX2Iub3V0cHV0lIWUgZR9lChoK2gtjAxtdWx0aXBseV9hX2KUhZSBlGgxaDSMBm91dHB1dJSFlIGUdWJoJowTY29uY2F0ZW5hdG9yLmlucHV0MZSFlIGUfZQoaCtoLYwMY29uY2F0ZW5hdG9ylIWUgZRoMWg0jAZpbnB1dDGUhZSBlHViaGqME211bHRpcGx5X2JfYy5vdXRwdXSUhZSBlH2UKGgraC2MDG11bHRpcGx5X2JfY5SFlIGUaDFoNIwGb3V0cHV0lIWUgZR1YnWMDV9pbnB1dF9zY2hlbWGUfZQoaDqMCV9vcGVyYXRvcpSMB2dldGl0ZW2Uk5SMBnR5cGluZ5SMBVVuaW9ulJOUKGijjBhudW1weS50eXBpbmcuX2FycmF5X2xpa2WUjA5fU3VwcG9ydHNBcnJheZSTlIwFbnVtcHmUjAVkdHlwZZSTlIaUUpRoo4wdbnVtcHkudHlwaW5nLl9uZXN0ZWRfc2VxdWVuY2WUjA9fTmVzdGVkU2VxdWVuY2WUk5Roo2ipaKyGlFKUhpRSlIwKZGlsbC5fZGlsbJSMCl9sb2FkX3R5cGWUk5SMBGJvb2yUhZRSlGi4jANpbnSUhZRSlGi4jAVmbG9hdJSFlFKUaLiMB2NvbXBsZXiUhZRSlGi4jANzdHKUhZRSlGi4jAVieXRlc5SFlFKUaKNosWijaKYoaLtovmjBaMRox2jKdJSGlFKUhpRSlHSUhpRSlGhHaNJoYWjSdYwOX291dHB1dF9zY2hlbWGUfZRoaGjSc3ViaAmMBnJlYWQ6YZSFlIGUjCJvbmVtbC5wcm9jZXNzb3JzLnJ1bl9pbl9zdWJwcm9jZXNzlIwNUmVhZFByb2Nlc3NvcpSTlCmBlH2UKIwNaW5wdXRQb3J0TmFtZZRoOowEcGF0aJSMHy90bXAvdVhMcjl5QURUYnU3eHpFV2p4ZkpLdz09L2GUjAlkYXRhX3R5cGWUaNJ1YmgJjAZyZWFkOmKUhZSBlGjaKYGUfZQoaN1oR2jejB8vdG1wL3VYTHI5eUFEVGJ1N3h6RVdqeGZKS3c9PS9ilGjgaNJ1YmgJjAZyZWFkOmOUhZSBlGjaKYGUfZQoaN1oYWjejB8vdG1wL3VYTHI5eUFEVGJ1N3h6RVdqeGZKS3c9PS9jlGjgaNJ1YmgJjAx3cml0ZTpyZXN1bHSUhZSBlGjYjA5Xcml0ZVByb2Nlc3NvcpSTlCmBlH2UKIwOb3V0cHV0UG9ydE5hbWWUaGho3owkL3RtcC91WExyOXlBRFRidTd4ekVXanhmSkt3PT0vcmVzdWx0lGjgaNJ1YnVoI32UaGJ9lGh1fZQoaCaMC3Byb2Nlc3Nvci5hlIWUgZR9lChoK2gtjAlwcm9jZXNzb3KUhZSBlGgxaDSMAWGUhZSBlHViaGqMDXJlYWQ6YS5vdXRwdXSUhZSBlH2UKGgraC2MBnJlYWQ6YZSFlIGUaDFoNIwGb3V0cHV0lIWUgZR1YmgmjAtwcm9jZXNzb3IuYpSFlIGUfZQoaCtoLYwJcHJvY2Vzc29ylIWUgZRoMWg0jAFilIWUgZR1YmhqjA1yZWFkOmIub3V0cHV0lIWUgZR9lChoK2gtjAZyZWFkOmKUhZSBlGgxaDSMBm91dHB1dJSFlIGUdWJoJowLcHJvY2Vzc29yLmOUhZSBlH2UKGgraC2MCXByb2Nlc3NvcpSFlIGUaDFoNIwBY5SFlIGUdWJoaowNcmVhZDpjLm91dHB1dJSFlIGUfZQoaCtoLYwGcmVhZDpjlIWUgZRoMWg0jAZvdXRwdXSUhZSBlHViaCaMEndyaXRlOnJlc3VsdC5pbnB1dJSFlIGUfZQoaCtoLYwMd3JpdGU6cmVzdWx0lIWUgZRoMWg0jAVpbnB1dJSFlIGUdWJoaowQcHJvY2Vzc29yLnJlc3VsdJSFlIGUfZQoaCtoLYwJcHJvY2Vzc29ylIWUgZRoMWg0jAZyZXN1bHSUhZSBlHVidWiffZRo032UdWIu",
+        ]
+    )

@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Callable, Dict, Tuple
+from typing import Callable, Mapping, Tuple
 
 from ._close_frame_commands import ClosePipelineFrameCommand
 from ._executable import DeferredExecutable, IExecutable
@@ -47,8 +47,8 @@ class MlPipeline(ITickablePipeline):
 
 @dataclass(frozen=True)
 class MlPipelineConfig:
-    dependencies_provider: Callable[[], Dict[PipelineNode, Tuple[PipelineNode, ...]]]
-    executables_provider: Callable[[], Dict[PipelineNode, Callable[[], IExecutable]]]
+    dependencies_provider: Callable[[], Mapping[PipelineNode, Tuple[PipelineNode, ...]]]
+    executables_provider: Callable[[], Mapping[PipelineNode, Callable[[], IExecutable]]]
     session_provider: Callable[[], IManagePipelines]
 
     def nodes(self) -> Tuple[PipelineNode, ...]:
