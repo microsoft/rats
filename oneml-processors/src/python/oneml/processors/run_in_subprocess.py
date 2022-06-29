@@ -13,7 +13,7 @@ from .data_annotation import Data
 from .processor import InputPortName, OutputPortName, Processor
 from .processor_decorators import processor
 from .run_context import RunContext
-from .serialization import load_data, save_data, serialize_processor
+from .serialization import load_data, save_data, save_processor
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +22,10 @@ logger = logging.getLogger(__name__)
 class RunInSubProcess:
     def __init__(self, wrapped_processor: Processor):
         self.wrapped_processor = wrapped_processor
-        self.serialized_processor = serialize_processor(wrapped_processor)
         self.scratch_path = os.path.join(
             tempfile.gettempdir(), base64.urlsafe_b64encode(uuid.uuid4().bytes).decode("UTF-8")
         )
+        self.processor_path = os.path.join(self.scratch_path, "processor")
         self.input_path = os.path.join(self.scratch_path, "inputs")
         self.output_path = os.path.join(self.scratch_path, "outputs")
 
@@ -35,12 +35,15 @@ class RunInSubProcess:
     def get_output_schema(self) -> Dict[OutputPortName, Type[Data]]:
         return self.wrapped_processor.get_output_schema()
 
+    def _write_processor(self) -> None:
+        os.makedirs(self.scratch_path)
+        save_processor(self.processor_path, self.wrapped_processor)
+
     def _write_inputs(self, inputs: Dict[InputPortName, Data]) -> None:
         def write_for_port(port_name: InputPortName, value: Data) -> None:
             path = os.path.join(self.input_path, port_name)
             save_data(path, value)
 
-        os.makedirs(self.scratch_path)
         for input_port_name in self.get_input_schema().keys():
             input_value = inputs[input_port_name]
             write_for_port(input_port_name, input_value)
@@ -62,7 +65,7 @@ class RunInSubProcess:
         cmd = [
             run_processor_cmd,
             run_context.identifier,
-            self.serialized_processor,
+            self.processor_path,
             self.input_path,
             self.output_path,
         ]
@@ -71,6 +74,7 @@ class RunInSubProcess:
         logger.debug("Completed run command: %s", cmd)
 
     def process(self, run_context: RunContext, **inputs: Data) -> Dict[OutputPortName, Data]:
+        self._write_processor()
         self._write_inputs(cast(Dict[InputPortName, Data], inputs))
         self._run_process(run_context)
         outputs = self._read_outputs()

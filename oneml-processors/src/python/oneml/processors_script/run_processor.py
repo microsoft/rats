@@ -12,7 +12,7 @@ from oneml.processors import (
     RunContext,
     SimpleNodeName,
     TopologicalSortDAGRunner,
-    deserialize_processor,
+    load_processor,
 )
 
 from .input_output import ReadProcessor, WriteProcessor
@@ -58,11 +58,11 @@ def get_run_context(address: NodeName) -> RunContext:
 def main(argv: List[str] = sys.argv) -> None:
     if len(argv) != 5:
         raise ValueError(
-            f"Expected four commandline arguments: <NodeName> <SerializedProcessor> <input_path> "
+            f"Expected four commandline arguments: <NodeName> <processor_path> <input_path> "
             f"<output_path>. Found: <{argv}>."
         )
     run_context = get_run_context(NodeName(argv[1]))
-    processor = deserialize_processor(argv[2])
+    processor = load_processor(argv[2])
     input_path = argv[3]
     output_path = argv[4]
     dag = build_wrapping_dag(processor, input_path, output_path)

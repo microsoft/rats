@@ -30,6 +30,22 @@ def serialize_processor(processor: Processor) -> str:
     return str
 
 
+def load_processor(path: str) -> Processor:
+    with open(path, "r") as fle:
+        s = fle.read()
+    processor = deserialize_processor(s)
+    logger.debug("read processor from %s.", path)
+    return processor
+
+
+def save_processor(path: str, processor: Processor) -> None:
+    s = serialize_processor(processor)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as fle:
+        fle.write(s)
+    logger.debug("wrote processor to %s.", path)
+
+
 def load_data(path: str) -> Data:
     with open(path, "rb") as fle:
         o = pickle.load(fle)

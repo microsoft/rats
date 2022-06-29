@@ -5,7 +5,14 @@ from .processor import InputPortName, OutputPortName, Processor
 from .processor_decorators import processor, processor_using_signature
 from .return_annotation import Output
 from .run_context import RunContext
-from .serialization import deserialize_processor, load_data, save_data, serialize_processor
+from .serialization import (
+    deserialize_processor,
+    load_data,
+    load_processor,
+    save_data,
+    save_processor,
+    serialize_processor,
+)
 from .topological_sort_dag_runner import TopologicalSortDAGRunner
 
 __all__ = [
@@ -25,6 +32,8 @@ __all__ = [
     "TopologicalSortDAGRunner",
     "serialize_processor",
     "deserialize_processor",
+    "save_processor",
+    "load_processor",
     "load_data",
     "save_data",
     "Output",
