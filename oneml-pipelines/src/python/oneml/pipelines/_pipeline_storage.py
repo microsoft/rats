@@ -1,7 +1,4 @@
-import base64
 import logging
-import os
-import pickle
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, Generic, Protocol, TypeVar
@@ -57,23 +54,3 @@ class StorageClient(IManageStorageItems):
             raise RuntimeError(f"Duplicate key found: {item.key}")
 
         self._items[item.key.name] = item
-
-
-class LocalDiskStorageClient(IManageStorageItems):
-    def __init__(self, base_path: str) -> None:
-        self._base_path = base_path
-
-    def _key_to_path(self, key: StorageItemKey[OutputType]) -> str:
-        filename = base64.urlsafe_b64encode(key.name.encode("UTF-8")).decode("UTF-8")
-        path = os.path.join(self._base_path, filename)
-        return path
-
-    def get_storage_item(self, key: StorageItemKey[OutputType]) -> OutputType:
-        path = self._key_to_path(key)
-        with open(path, "rb") as fle:
-            return pickle.load(fle)
-
-    def publish_storage_item(self, item: StorageItem[Any]) -> None:
-        path = self._key_to_path(item.key)
-        with open(path, "wb") as fle:
-            pickle.dump(item.value, fle)

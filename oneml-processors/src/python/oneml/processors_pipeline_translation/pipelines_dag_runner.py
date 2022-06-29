@@ -5,7 +5,6 @@ from munch import munchify
 
 from oneml.pipelines import (
     IManageStorageItems,
-    LocalDiskStorageClient,
     MlPipelineConfig,
     MlPipelineProvider,
     NullPipeline,
@@ -24,16 +23,8 @@ logger = logging.getLogger(__name__)
 
 
 class PipelinesDAGRunner(DAGRunner):
-    def __init__(self, remote_mode: str) -> None:
-        self._storage_factory: Callable[[], IManageStorageItems]
-        if remote_mode == "thread":
-            self._storage_factory = lambda: StorageClient()
-        elif remote_mode == "process":
-            self._storage_factory = lambda: LocalDiskStorageClient("/tmp")
-        else:
-            raise ValueError(
-                f"remote_mode should be one of <thread, process>. It was: <{remote_mode}>."
-            )
+    def __init__(self) -> None:
+        self._storage_factory: Callable[[], IManageStorageItems] = lambda: StorageClient()
 
     def run(self, dag: DAG, run_context: RunContext, **inputs: Any) -> Dict[OutputPortName, Any]:
 

@@ -57,5 +57,4 @@ class TestExecutePipelineFrameCommand:
         self._state_client.set_node_state(node2, PipelineNodeState.QUEUED)
         self._state_client.set_node_state(node3, PipelineNodeState.QUEUED)
 
-        with pytest.raises(RuntimeError):
-            self._command.execute()
+        self._command.execute()

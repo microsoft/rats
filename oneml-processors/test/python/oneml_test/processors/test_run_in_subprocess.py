@@ -18,7 +18,7 @@ def dag_runner(request):
     if request.param == "topological":
         return TopologicalSortDAGRunner()
     elif request.param == "pipelines":
-        return PipelinesDAGRunner(remote_mode="thread")
+        return PipelinesDAGRunner()
     else:
         assert False
 

@@ -40,7 +40,6 @@ from ._pipeline_storage import (
     ILocateStorageItems,
     IManageStorageItems,
     IPublishStorageItems,
-    LocalDiskStorageClient,
     OutputType,
     StorageClient,
     StorageItem,
@@ -107,7 +106,6 @@ __all__ = [
     "IPublishStorageItems",
     "IManageStorageItems",
     "StorageClient",
-    "LocalDiskStorageClient",
     # Node Storage
     "NodeStorageClient",
     "NodeStorageClientFactory",
