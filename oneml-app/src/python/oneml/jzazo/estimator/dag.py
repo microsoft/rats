@@ -1,8 +1,9 @@
 import re
+from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from inspect import signature
-from typing import Any, Dict, List, Pattern, Type, Union
+from typing import Any, Dict, List, Pattern, Tuple, Type, Union
 
 from omegaconf import DictConfig
 
@@ -59,46 +60,39 @@ class Inputs2Eval:
             mod_inputs[input] = ".".join(res)
         return mod_inputs
 
-    def convert(self, inputs: Dict[str, Dict[str, str]]) -> Dict[str, Dict[str, str]]:
-        eval_inputs = inputs.copy()
-        for node, inputs in eval_inputs.items():
-            mod_node = self._sub_or_append_eval_to_node(node)
-            mod_inputs = self._sub_or_append_eval_to_input_values(inputs)
-            eval_inputs[mod_node] = mod_inputs
-        return eval_inputs
+    def convert(self, node: str, inputs: Dict[str, Dict[str, str]]) -> Tuple[str, Dict[str, str]]:
+        eval_node = self._sub_or_append_eval_to_node(node)
+        eval_inputs = self._sub_or_append_eval_to_input_values(inputs)
+        return eval_node, eval_inputs
 
 
-class Runner:
-    inputs: DictConfig
-    pipeline: Dict[str, Processor]
+class DAGExtender:
+    nodes: Dict[str, Processor]
+    edges: Dict[str, Dict[str, str]]
+
+    _inputs2eval: Inputs2Eval = Inputs2Eval()
 
     def __init__(
         self,
-        inputs: DictConfig,
-        pipeline: Dict[str, Processor],
-        storage: Storage,
+        nodes: Dict[str, Processor],
+        edges: DictConfig,
     ) -> None:
-        self.inputs = inputs
-        self.pipeline = pipeline
-        self.storage = storage
+        self.nodes = nodes
+        self.edges = edges
 
     def run(self) -> None:
-        expanded_pipeline = self.pipeline.copy()
-        for name, processor in self.pipeline.items():
-            proc_inputs = self.inputs[name]
-            args = self.storage.load(proc_inputs)
-            results = processor.process(**args)
-            self.storage.save(results)
+        extended_nodes = self.nodes.copy()
+        extended_edges = deepcopy(self.edges)
 
+        for name, processor in self.nodes.items():
             if isinstance(processor, Estimator):
-                partial_transformer = processor._transformer_provider.partial
-                input_params = self._get_eval_params(partial_transformer, results)
-                eval_transformer = partial_transformer(input_params)
+                input_names = processor.transformer_provider.inputs & processor.outputs
+                eval_transformer = processor.transformer_provider
             else:
-                eval_transformer = processor
-            expanded_pipeline.append(eval_transformer)
+                input_names = self.edges[name]
+                eval_transformer = processor  # what if DAG?
+            eval_node, eval_inputs = self._inputs2eval.convert(input_names)
+            extended_edges[eval_node] = eval_inputs
+            extended_nodes[eval_node] = eval_transformer
 
-    def _get_eval_params(
-        self, partial_transformer: partial[Transformer], results: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        return {k: results[v] for k, v in signature(partial_transformer).parameters}
+        return extended_nodes, extended_edges
