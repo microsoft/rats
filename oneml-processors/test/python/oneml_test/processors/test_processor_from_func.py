@@ -6,7 +6,7 @@ import pytest
 from munch import Munch
 
 from oneml.processors.processor import Processor
-from oneml.processors.processor_decorators import processor_using_signature
+from oneml.processors.processor_using_signature_decorator import processor_using_signature
 from oneml.processors.return_annotation import Output
 from oneml.processors.run_context import RunContext
 

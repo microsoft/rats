@@ -5,8 +5,14 @@ from dataclasses import dataclass
 from typing import Any, Dict, Union
 
 from oneml.pipelines import IExecutable, IManageStorageItems, StorageItem, StorageItemKey
-from oneml.processors import NodeName, OutputPortAddress, Processor, RunContext
-from oneml.processors.processor import InputPortName, OutputPortName
+from oneml.processors import (
+    InputPortName,
+    NodeName,
+    OutputPortAddress,
+    OutputPortName,
+    Processor,
+    RunContext,
+)
 
 logger = logging.getLogger(__name__)
 

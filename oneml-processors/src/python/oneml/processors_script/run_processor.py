@@ -26,12 +26,12 @@ def build_wrapping_dag(processor: Processor, input_path: str, output_path: str) 
 
     read_nodes: List[ReadProcessor] = []
     write_nodes: List[WriteProcessor] = []
-    for inputPortName, inputPortDataType in processor.get_input_schema().items():
-        read_node_name = SimpleNodeName(f"read:{inputPortName}")
-        read_node = ReadProcessor(input_path, inputPortName, inputPortDataType)
+    for input_port_name, inputPortDataType in processor.get_input_schema().items():
+        read_node_name = SimpleNodeName(f"read:{input_port_name}")
+        read_node = ReadProcessor(input_path, input_port_name, inputPortDataType)
         nodes[read_node_name] = read_node
         read_nodes.append(read_node)
-        edges[InputPortAddress(processor_node_name, inputPortName)] = OutputPortAddress(
+        edges[InputPortAddress(processor_node_name, input_port_name)] = OutputPortAddress(
             read_node_name, "output"
         )
     for outputPortName, outputPortDataType in processor.get_output_schema().items():

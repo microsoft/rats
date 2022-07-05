@@ -1,12 +1,14 @@
 import inspect
 import logging
 import sys
+from abc import abstractmethod
 from functools import wraps
 from types import FunctionType
 from typing import Dict, Optional, Type, TypeVar, Union, cast
 
 from .data_annotation import Data
-from .processor import OutputPortName, Processor, ProcessorUsingSignature
+from .node import InputPortName, OutputPortName
+from .processor import Processor
 from .run_context import RunContext
 
 logger = logging.getLogger(__name__)
@@ -14,16 +16,22 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-def processor(cls: type) -> type:
-    if Processor in cls.__mro__:
-        raise TypeError(
-            f"Do not list <Processor> as a base class when decorating a class using the "
-            f"<processor> decorator.  The decorator will do it for you."
-        )
+class ProcessorUsingSignature(Processor):
+    input_schema: Dict[InputPortName, Type[Data]]
+    output_schema: Dict[OutputPortName, Type[Data]]
 
-    clsname = cls.__name__
-    bases = (cls, Processor)
-    return type(clsname, bases, {})
+    def get_input_schema(self) -> Dict[InputPortName, Type[Data]]:
+        return self.__class__.input_schema
+
+    def get_output_schema(self) -> Dict[OutputPortName, Type[Data]]:
+        return self.__class__.output_schema
+
+    @abstractmethod
+    def _process(self, run_context: RunContext, **inputs: Data) -> Dict[OutputPortName, Data]:
+        ...
+
+    def process(self, run_context: RunContext, **inputs: Data) -> Dict[OutputPortName, Data]:
+        return self._process(run_context, **inputs)
 
 
 def processor_using_signature(cls: type) -> Type[Processor]:

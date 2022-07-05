@@ -10,8 +10,9 @@ from typing import Dict, Type, cast
 from oneml.processors_script import run_processor_cmd
 
 from .data_annotation import Data
-from .processor import InputPortName, OutputPortName, Processor
-from .processor_decorators import processor
+from .node import InputPortName, OutputPortName
+from .processor import Processor
+from .processor_decorator import processor
 from .run_context import RunContext
 from .serialization import load_data, save_data, save_processor
 

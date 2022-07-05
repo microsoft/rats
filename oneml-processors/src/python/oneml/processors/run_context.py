@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict
 
 from .assignable import Assignable
+from .dag_flattener import DAGFlattener
 from .identifiers import ObjectIdentifier
 from .processor import OutputPortName
 
@@ -17,12 +18,19 @@ if TYPE_CHECKING:
 
 
 class RunContext(Assignable):
-    def __init__(self, dag_runner: DAGRunner, identifier: ObjectIdentifier = ObjectIdentifier("")):
+    def __init__(
+        self,
+        dag_runner: DAGRunner,
+        dag_flattener: DAGFlattener = DAGFlattener(),
+        identifier: ObjectIdentifier = ObjectIdentifier(""),
+    ):
         self._dag_runner = dag_runner
+        self.dag_flattener = dag_flattener
         self.identifier = identifier
 
     def run_dag(self, dag: DAG, **inputs: Any) -> Dict[OutputPortName, Any]:
-        return self._dag_runner.run(dag, self, **inputs)
+        flattened_dag = self.dag_flattener.flatten(dag)
+        return self._dag_runner.run(flattened_dag, self, **inputs)
 
     def add_identifier_level(self, level: str) -> RunContext:
         identifier = self.identifier + ObjectIdentifier(level)

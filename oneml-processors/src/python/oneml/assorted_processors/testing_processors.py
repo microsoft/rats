@@ -4,11 +4,15 @@ import numpy as np
 import numpy.typing as npt
 from munch import munchify
 
-from ..processors.data_annotation import Data
-from ..processors.processor import InputPortName, OutputPortName
-from ..processors.processor_decorators import processor, processor_using_signature
-from ..processors.return_annotation import Output
-from ..processors.run_context import RunContext
+from ..processors import (
+    Data,
+    InputPortName,
+    Output,
+    OutputPortName,
+    RunContext,
+    processor,
+    processor_using_signature,
+)
 
 
 @processor_using_signature

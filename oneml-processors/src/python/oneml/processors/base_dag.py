@@ -9,7 +9,8 @@ from typing import Dict, Generic, Optional, Type, TypeVar, overload
 
 from .data_annotation import Data
 from .identifiers import Address, ObjectIdentifier, SimpleObjectIdentifier, _member_separator
-from .processor import InputPortName, OutputPortName, Processor
+from .node import InputPortName, Node, OutputPortName
+from .processor import Processor
 
 
 class NodeName(ObjectIdentifier):
@@ -94,7 +95,7 @@ NodeNameT = TypeVar("NodeNameT", NodeName, SimpleNodeName)
 
 
 @dataclass
-class BaseDAG(Generic[NodeNameT]):
+class BaseDAG(Generic[NodeNameT], Node):
     nodes: Dict[NodeNameT, Processor]
     input_edges: Dict[InputPortAddress, InputPortName]
     output_edges: Dict[OutputPortName, OutputPortAddress]
@@ -138,8 +139,8 @@ class BaseDAG(Generic[NodeNameT]):
                         f"Input port <{port_name}> of node <{node_name}> is not connect to any edge."
                     )
         self._input_schema = {}
-        for input_port_address, inputPortName in self.input_edges.items():
-            self._input_schema[inputPortName] = self.nodes[
+        for input_port_address, input_port_name in self.input_edges.items():
+            self._input_schema[input_port_name] = self.nodes[
                 input_port_address.node
             ].get_input_schema()[input_port_address.port]
         self._output_schema = {
@@ -158,3 +159,7 @@ class BaseDAG(Generic[NodeNameT]):
 
     def get_output_schema(self) -> Dict[OutputPortName, Type[Data]]:
         return self._output_schema
+
+    def is_dag(self) -> bool:
+        """Whether this node holds a dag internally.  Used by DAGFlattener."""
+        return True

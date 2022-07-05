@@ -16,10 +16,10 @@ from oneml.processors import (
 @processor_using_signature
 class ReadProcessor:
     def __init__(
-        self, base_path: str, inputPortName: InputPortName, data_type: Type[Data]
+        self, base_path: str, input_port_name: InputPortName, data_type: Type[Data]
     ) -> None:
-        self.inputPortName = inputPortName
-        self.path = os.path.join(base_path, inputPortName)
+        self.input_port_name = input_port_name
+        self.path = os.path.join(base_path, input_port_name)
         self.data_type = data_type
 
     def get_input_schema(self) -> Dict[InputPortName, Type[Data]]:

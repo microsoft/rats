@@ -7,7 +7,7 @@ from typing import Type
 from .base_dag import BaseDAG, NodeName
 
 
-class _FlatDAG(BaseDAG[NodeName]):
+class FlatDAG(BaseDAG[NodeName]):
     """A flat DAG of processors.  Not to be used by clients external to processors package."""
 
     def __post_init__(self) -> None:

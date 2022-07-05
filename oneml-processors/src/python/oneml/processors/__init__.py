@@ -1,8 +1,13 @@
-from .dag import DAG, InputPortAddress, NodeName, OutputPortAddress, SimpleNodeName
+from .base_dag import InputPortAddress, NodeName, OutputPortAddress, SimpleNodeName
+from .dag import DAG
+from .dag_flattener import DAGFlattener
 from .dag_runner import DAGRunner
 from .data_annotation import Data
-from .processor import InputPortName, OutputPortName, Processor
-from .processor_decorators import processor, processor_using_signature
+from .flat_dag import FlatDAG
+from .node import InputPortName, OutputPortName
+from .processor import Processor
+from .processor_decorator import processor
+from .processor_using_signature_decorator import processor_using_signature
 from .return_annotation import Output
 from .run_context import RunContext
 from .serialization import (
@@ -26,8 +31,10 @@ __all__ = [
     "OutputPortName",
     "InputPortAddress",
     "OutputPortAddress",
+    "FlatDAG",
     "DAG",
     "RunContext",
+    "DAGFlattener",
     "DAGRunner",
     "TopologicalSortDAGRunner",
     "serialize_processor",

@@ -7,10 +7,10 @@ import numpy.typing as npt
 import pytest
 
 from oneml.assorted_processors.testing_processors import ArrayConcatenator, ArrayDotProduct
+from oneml.processors import dag
 from oneml.processors.dag import DAG
-from oneml.processors.data_annotation import Data
-from oneml.processors.processor import Processor
-from oneml.processors.processor_decorators import processor_using_signature
+from oneml.processors.dag_flattener import DAGFlattener
+from oneml.processors.processor_using_signature_decorator import processor_using_signature
 from oneml.processors.return_annotation import Output
 from oneml.processors.run_context import RunContext
 from oneml.processors.topological_sort_dag_runner import TopologicalSortDAGRunner
@@ -42,12 +42,17 @@ class ArrayWriter:
         return dict()
 
 
+@pytest.fixture
+def dag_flattener():
+    return DAGFlattener()
+
+
 @pytest.fixture(params=["topological", "pipelines"])
-def dag_runner(request):
+def dag_runner(request, dag_flattener):
     if request.param == "topological":
-        return TopologicalSortDAGRunner()
+        return TopologicalSortDAGRunner(dag_flattener=dag_flattener)
     elif request.param == "pipelines":
-        return PipelinesDAGRunner()
+        return PipelinesDAGRunner(dag_flattener=dag_flattener)
     else:
         assert False
 
@@ -108,18 +113,21 @@ def complex_dag(storage, simple_dag):
     return dag
 
 
-def test_simple_dag(simple_dag: DAG, run_context: RunContext, storage: Dict[str, Any]):
+def test_flatten_simple_dag(simple_dag: DAG, dag_flattener: DAGFlattener):
     assert simple_dag.get_input_schema() == dict(
         right=npt.ArrayLike,
     )
     assert simple_dag.get_output_schema() == dict(result=npt.ArrayLike)
-    flattened = simple_dag._flatten()
+    flattened = dag_flattener.flatten(simple_dag)
     assert simple_dag.nodes == flattened.nodes
     assert simple_dag.input_edges == flattened.input_edges
     assert simple_dag.output_edges == flattened.output_edges
     assert simple_dag.edges == flattened.edges
     assert simple_dag.get_input_schema() == flattened.get_input_schema()
     assert simple_dag.get_output_schema() == flattened.get_output_schema()
+
+
+def test_process_simple_dag(simple_dag: DAG, run_context: RunContext, storage: Dict[str, Any]):
     outputs = simple_dag.process(
         run_context=run_context,
         right=np.array([-1, -2, -3]),
@@ -129,12 +137,10 @@ def test_simple_dag(simple_dag: DAG, run_context: RunContext, storage: Dict[str,
     assert storage["r"] is outputs["result"]
 
 
-def test_complex_dag(
-    simple_dag: DAG, complex_dag: DAG, run_context: RunContext, storage: Dict[str, Any]
-):
+def test_flatten_complex_dag(simple_dag: DAG, complex_dag: DAG, dag_flattener: DAGFlattener):
     assert complex_dag.get_input_schema() == dict()
     assert complex_dag.get_output_schema() == dict()
-    flattened = complex_dag._flatten()
+    flattened = dag_flattener.flatten(complex_dag)
     assert flattened.nodes == {
         "load_right": complex_dag.nodes["load_right"],
         "d1/load_left": simple_dag.nodes["load_left"],
@@ -166,6 +172,9 @@ def test_complex_dag(
         "concatenator.input2": "d3/multiply.output",
         "write.input": "concatenator.output",
     }
+
+
+def test_process_complex_dag(complex_dag: DAG, run_context: RunContext, storage: Dict[str, Any]):
     outputs = complex_dag.process(
         run_context=run_context,
     )
