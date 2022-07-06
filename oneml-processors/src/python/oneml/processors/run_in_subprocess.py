@@ -71,9 +71,9 @@ class RunInSubProcess:
             self.input_path,
             self.output_path,
         ]
-        logger.debug("Forking to run command: %s", cmd)
+        logger.info("Forking to run command: %s", cmd)
         subprocess.run(cmd, check=True)
-        logger.debug("Completed run command: %s", cmd)
+        logger.info("Completed run command: %s", cmd)
 
     def process(self, run_context: RunContext, **inputs: Data) -> Dict[OutputPortName, Data]:
         self._write_processor()
