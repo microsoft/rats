@@ -62,7 +62,7 @@ class FlatDAGToExecutablesDAG:
         for input_port_address, output_port_address in self.flat_dag.edges.items():
             port_d = self.input_mappings.setdefault(input_port_address.node, dict())
             port_d[input_port_address.port] = output_port_address
-        logger.debug("Input mappings: %.", self.input_mappings)
+        logger.debug("Input mappings: %s.", self.input_mappings)
 
     def get_executable(self, node_name: NodeName) -> ExecutableWrappingProcessingNode:
         node = self.flat_dag.nodes[node_name]

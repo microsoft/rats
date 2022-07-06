@@ -27,24 +27,24 @@ class ExecutableWrappingProcessingNode(IExecutable):
 
     def _load(self, key: str) -> Any:
         value: Any = self.storage.get_storage_item(StorageItemKey(key))
-        logger.debug(f"Loaded input {self.node_key}.{key}.")
+        logger.debug("Loaded input <%s.%s>.", self.node_key, key)
         return value
 
     def _save(self, key: str, value: Any) -> Any:
         self.storage.publish_storage_item(StorageItem(StorageItemKey(key), value))
-        logger.debug(f"Saved output {self.node_key}.{key}.")
+        logger.debug("Saved output <%s.%s>.", self.node_key, key)
 
     def execute(self) -> None:
-        logger.debug(f"Executing {self.node_key}.")
+        logger.debug("Executing <%s>.", self.node_key)
         inputs = {
             key: self._load(self.input_mappings[key])
             for key in self.node.get_input_schema().keys()
         }
-        logger.debug(f"Executing {self.node_key}.  Loaded inputs.")
+        logger.debug("Executing <%s>.  Loaded inputs.", self.node_key)
         outputs: Dict[OutputPortName, Any] = self.node.process(
             self.run_context, **inputs
         )  # type:ignore [misc]
-        logger.debug(f"Executing {self.node_key}.  Calculated outputs {outputs.keys()}.")
+        logger.debug("Executing <%s>.  Calculated outputs <%s>.", self.node_key, outputs.keys())
         for port_name, value in outputs.items():
             self._save(OutputPortAddress(self.node_key, port_name), value)
-        logger.debug(f"Executing {self.node_key}.  Done.")
+        logger.debug("Executing <%s>.  Done.", self.node_key)

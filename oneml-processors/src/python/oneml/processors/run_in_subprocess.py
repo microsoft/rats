@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 @processor
 class RunInSubProcess:
-    def __init__(self, wrapped_processor: Processor):
+    def __init__(self, wrapped_processor: Processor, run_processor_cmd: str = run_processor_cmd):
         self.wrapped_processor = wrapped_processor
         self.scratch_path = os.path.join(
             tempfile.gettempdir(), base64.urlsafe_b64encode(uuid.uuid4().bytes).decode("UTF-8")
@@ -29,6 +29,7 @@ class RunInSubProcess:
         self.processor_path = os.path.join(self.scratch_path, "processor")
         self.input_path = os.path.join(self.scratch_path, "inputs")
         self.output_path = os.path.join(self.scratch_path, "outputs")
+        self.command_prefix = run_processor_cmd.split()
 
     def get_input_schema(self) -> Dict[InputPortName, Type[Data]]:
         return self.wrapped_processor.get_input_schema()
@@ -64,7 +65,7 @@ class RunInSubProcess:
 
     def _run_process(self, run_context: RunContext) -> None:
         cmd = [
-            run_processor_cmd,
+            *self.command_prefix,
             run_context.identifier,
             self.processor_path,
             self.input_path,
