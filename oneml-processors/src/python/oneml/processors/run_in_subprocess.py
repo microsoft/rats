@@ -14,15 +14,21 @@ from .node import InputPortName, OutputPortName
 from .processor import Processor
 from .processor_decorator import processor
 from .run_context import RunContext
-from .serialization import load_data, save_data, save_processor
+from .serialization import load_data, save_data, save_serialized_processor, serialize_processor
 
 logger = logging.getLogger(__name__)
 
 
 @processor
 class RunInSubProcess:
-    def __init__(self, wrapped_processor: Processor, run_processor_cmd: str = run_processor_cmd):
+    def __init__(
+        self,
+        process_id: str,
+        wrapped_processor: Processor,
+        run_processor_cmd: str = run_processor_cmd,
+    ):
         self.wrapped_processor = wrapped_processor
+        self.serialized_wrapped_processor = serialize_processor(wrapped_processor)
         self.scratch_path = os.path.join(
             tempfile.gettempdir(), base64.urlsafe_b64encode(uuid.uuid4().bytes).decode("UTF-8")
         )
@@ -39,7 +45,7 @@ class RunInSubProcess:
 
     def _write_processor(self) -> None:
         os.makedirs(self.scratch_path)
-        save_processor(self.processor_path, self.wrapped_processor)
+        save_serialized_processor(self.processor_path, self.serialized_wrapped_processor)
 
     def _write_inputs(self, inputs: Dict[InputPortName, Data]) -> None:
         def write_for_port(port_name: InputPortName, value: Data) -> None:

@@ -5,6 +5,8 @@ from typing import Dict, List
 
 from oneml.processors import (
     DAG,
+    DAGFlattener,
+    DAGRunner,
     InputPortAddress,
     NodeName,
     OutputPortAddress,
@@ -51,8 +53,16 @@ def build_wrapping_dag(processor: Processor, input_path: str, output_path: str) 
     return dag
 
 
+def get_dag_flattener() -> DAGFlattener:
+    return DAGFlattener()
+
+
+def get_dag_runner() -> DAGRunner:
+    return TopologicalSortDAGRunner(dag_modifiers=[get_dag_flattener().flatten])
+
+
 def get_run_context(address: NodeName) -> RunContext:
-    return RunContext(dag_runner=TopologicalSortDAGRunner(), identifier=address)
+    return RunContext(dag_runner=get_dag_runner(), identifier=address)
 
 
 def main(argv: List[str] = sys.argv) -> None:

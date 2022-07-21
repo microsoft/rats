@@ -1,24 +1,36 @@
 from __future__ import annotations
 
+import subprocess
+
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
 from oneml.assorted_processors.testing_processors import ArrayConcatenator, ArrayDotProduct
-from oneml.processors.dag import DAG
-from oneml.processors.processor import Processor
-from oneml.processors.run_context import RunContext
-from oneml.processors.run_in_subprocess import RunInSubProcess
-from oneml.processors.topological_sort_dag_runner import TopologicalSortDAGRunner
+from oneml.processors import (
+    DAG,
+    AssignProcessorsToComputeUsingMarkers,
+    DAGFlattener,
+    Processor,
+    RunContext,
+    RunInSubProcessMarker,
+    TopologicalSortDAGRunner,
+)
 from oneml.processors_pipeline_translation import PipelinesDAGRunner
 
 
+@pytest.fixture
+def dag_flattener():
+    return DAGFlattener()
+
+
 @pytest.fixture(params=["topological", "pipelines"])
-def dag_runner(request):
+def dag_runner(request, dag_flattener):
+    computer_assigner = AssignProcessorsToComputeUsingMarkers(dag_flattener)
     if request.param == "topological":
-        return TopologicalSortDAGRunner()
+        return TopologicalSortDAGRunner(dag_modifiers=[dag_flattener.flatten, computer_assigner])
     elif request.param == "pipelines":
-        return PipelinesDAGRunner()
+        return PipelinesDAGRunner(dag_modifiers=[dag_flattener.flatten, computer_assigner])
     else:
         assert False
 
@@ -52,19 +64,26 @@ def simple_dag():
 
 
 @pytest.fixture(params=["no-subprocesses", "subprocesses"])
-def complex_dag(request, simple_dag):
+def use_sub_processes(request):
     if request.param == "no-subprocesses":
+        return False
+    elif request.param == "subprocesses":
+        return True
+    else:
+        assert False
+
+
+@pytest.fixture
+def complex_dag(use_sub_processes, simple_dag):
+    if use_sub_processes:
+
+        def wrap(processor: Processor) -> Processor:
+            return RunInSubProcessMarker(processor)
+
+    else:
 
         def wrap(processor: Processor) -> Processor:
             return processor
-
-    elif request.param == "subprocesses":
-
-        def wrap(processor: Processor) -> Processor:
-            return RunInSubProcess(processor)
-
-    else:
-        assert False
 
     dag = DAG(
         nodes=dict(
@@ -110,7 +129,17 @@ def complex_dag(request, simple_dag):
     return dag
 
 
-def test_complex_dag(complex_dag: DAG, run_context: RunContext):
+class track_calls:
+    def __init__(self, f):
+        self._f = f
+        self._calls = []
+
+    def __call__(self, *args, **kwargs):
+        self._calls.append((args, kwargs))
+        return self._f(*args, **kwargs)
+
+
+def test_complex_dag(monkeypatch, use_sub_processes, complex_dag: DAG, run_context: RunContext):
     rng = np.random.RandomState(34659120)
     a1 = rng.rand(4)
     b1 = rng.rand(4)
@@ -134,18 +163,25 @@ def test_complex_dag(complex_dag: DAG, run_context: RunContext):
 
     concat2 = np.hstack((m12, m13, m23))
 
-    outputs = complex_dag.process(
-        run_context=run_context,
-        a1=a1,
-        a2=a2,
-        a3=a3,
-        b1=b1,
-        b2=b2,
-        b3=b3,
-        c1=c1,
-        c2=c2,
-        c3=c3,
-    )
+    with monkeypatch.context() as m:
+        patch_subprocess_run = track_calls(subprocess.run)
+        m.setattr(subprocess, "run", patch_subprocess_run)
+        outputs = complex_dag.process(
+            run_context=run_context,
+            a1=a1,
+            a2=a2,
+            a3=a3,
+            b1=b1,
+            b2=b2,
+            b3=b3,
+            c1=c1,
+            c2=c2,
+            c3=c3,
+        )
     assert len(outputs) == 2
     assert_array_almost_equal(outputs.concat1, concat1)
     assert_array_almost_equal(outputs.concat2, concat2)
+    if use_sub_processes:
+        assert len(patch_subprocess_run._calls) == 4
+    else:
+        assert len(patch_subprocess_run._calls) == 0

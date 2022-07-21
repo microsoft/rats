@@ -38,12 +38,16 @@ def load_processor(path: str) -> Processor:
     return processor
 
 
-def save_processor(path: str, processor: Processor) -> None:
-    s = serialize_processor(processor)
+def save_serialized_processor(path, serialized_processor: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as fle:
-        fle.write(s)
+        fle.write(serialized_processor)
     logger.debug("wrote processor to %s.", path)
+
+
+def save_processor(path: str, processor: Processor) -> None:
+    s = serialize_processor(processor)
+    save_serialized_processor(path, s)
 
 
 def load_data(path: str) -> Data:

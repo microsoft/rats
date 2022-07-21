@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Type
 
 from .base_dag import BaseDAG, NodeName
 
 
+@dataclass
 class FlatDAG(BaseDAG[NodeName]):
     """A flat DAG of processors.  Not to be used by clients external to processors package."""
 

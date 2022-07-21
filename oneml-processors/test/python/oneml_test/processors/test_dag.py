@@ -42,6 +42,16 @@ class ArrayWriter:
         return dict()
 
 
+@pytest.fixture(params=["no_flatten_roundtrip", "flatten_roundtrip"])
+def test_flatten_roundtrip(request):
+    if request.param == "no_flatten_roundtrip":
+        return False
+    elif request.param == "flatten_roundtrip":
+        return True
+    else:
+        assert False
+
+
 @pytest.fixture
 def dag_flattener():
     return DAGFlattener()
@@ -50,9 +60,9 @@ def dag_flattener():
 @pytest.fixture(params=["topological", "pipelines"])
 def dag_runner(request, dag_flattener):
     if request.param == "topological":
-        return TopologicalSortDAGRunner(dag_flattener=dag_flattener)
+        return TopologicalSortDAGRunner(dag_modifiers=[dag_flattener.flatten])
     elif request.param == "pipelines":
-        return PipelinesDAGRunner(dag_flattener=dag_flattener)
+        return PipelinesDAGRunner(dag_modifiers=[dag_flattener.flatten])
     else:
         assert False
 
@@ -76,13 +86,12 @@ def simple_dag(storage):
         nodes=dict(
             load_left=ArrayReader(storage, "a"),
             multiply=ArrayDotProduct(),
-            write=ArrayWriter(storage, "r"),
         ),
         input_edges={
             "multiply.right": "right",
         },
         output_edges={"result": "multiply.output"},
-        edges={"multiply.left": "load_left.output", "write.input": "multiply.output"},
+        edges={"multiply.left": "load_left.output"},
     )
     return dag
 
@@ -98,11 +107,13 @@ def complex_dag(storage, simple_dag):
             concatenator=ArrayConcatenator(3),
             write=ArrayWriter(storage, "r"),
         ),
-        input_edges={},
-        output_edges={},
+        input_edges={"d2.right": "c"},
+        output_edges={
+            "output3": "d3.result",
+            "output": "concatenator.output",
+        },
         edges={
             "d1.right": "load_right.output",
-            "d2.right": "load_right.output",
             "d3.right": "load_right.output",
             "concatenator.input0": "d1.result",
             "concatenator.input1": "d2.result",
@@ -113,12 +124,15 @@ def complex_dag(storage, simple_dag):
     return dag
 
 
-def test_flatten_simple_dag(simple_dag: DAG, dag_flattener: DAGFlattener):
+def test_flatten_simple_dag(test_flatten_roundtrip, simple_dag: DAG, dag_flattener: DAGFlattener):
     assert simple_dag.get_input_schema() == dict(
         right=npt.ArrayLike,
     )
     assert simple_dag.get_output_schema() == dict(result=npt.ArrayLike)
     flattened = dag_flattener.flatten(simple_dag)
+    if test_flatten_roundtrip:
+        unflattened = dag_flattener.unflatten(flattened)
+        flattened = dag_flattener.flatten(unflattened)
     assert simple_dag.nodes == flattened.nodes
     assert simple_dag.input_edges == flattened.input_edges
     assert simple_dag.output_edges == flattened.output_edges
@@ -134,40 +148,45 @@ def test_process_simple_dag(simple_dag: DAG, run_context: RunContext, storage: D
     )
     assert len(outputs) == 1
     assert outputs["result"] == -140
-    assert storage["r"] is outputs["result"]
 
 
-def test_flatten_complex_dag(simple_dag: DAG, complex_dag: DAG, dag_flattener: DAGFlattener):
-    assert complex_dag.get_input_schema() == dict()
-    assert complex_dag.get_output_schema() == dict()
+def test_flatten_complex_dag(
+    test_flatten_roundtrip, simple_dag: DAG, complex_dag: DAG, dag_flattener: DAGFlattener
+):
+    assert complex_dag.get_input_schema() == dict(
+        c=npt.ArrayLike,
+    )
+    assert complex_dag.get_output_schema() == dict(
+        output3=npt.ArrayLike,
+        output=npt.ArrayLike,
+    )
     flattened = dag_flattener.flatten(complex_dag)
+    if test_flatten_roundtrip:
+        unflattened = dag_flattener.unflatten(flattened)
+        flattened = dag_flattener.flatten(unflattened)
     assert flattened.nodes == {
         "load_right": complex_dag.nodes["load_right"],
         "d1/load_left": simple_dag.nodes["load_left"],
         "d1/multiply": simple_dag.nodes["multiply"],
-        "d1/write": simple_dag.nodes["write"],
         "d2/load_left": simple_dag.nodes["load_left"],
         "d2/multiply": simple_dag.nodes["multiply"],
-        "d2/write": simple_dag.nodes["write"],
         "d3/load_left": simple_dag.nodes["load_left"],
         "d3/multiply": simple_dag.nodes["multiply"],
-        "d3/write": simple_dag.nodes["write"],
         "concatenator": complex_dag.nodes["concatenator"],
         "write": complex_dag.nodes["write"],
     }
-    assert flattened.input_edges == {}
-    assert flattened.output_edges == {}
+    assert flattened.input_edges == {"d2/multiply.right": "c"}
+    assert flattened.output_edges == {
+        "output3": "d3/multiply.output",
+        "output": "concatenator.output",
+    }
     assert flattened.edges == {
         "d1/multiply.left": "d1/load_left.output",
-        "d1/write.input": "d1/multiply.output",
         "d1/multiply.right": "load_right.output",
         "concatenator.input0": "d1/multiply.output",
         "d2/multiply.left": "d2/load_left.output",
-        "d2/write.input": "d2/multiply.output",
-        "d2/multiply.right": "load_right.output",
         "concatenator.input1": "d2/multiply.output",
         "d3/multiply.left": "d3/load_left.output",
-        "d3/write.input": "d3/multiply.output",
         "d3/multiply.right": "load_right.output",
         "concatenator.input2": "d3/multiply.output",
         "write.input": "concatenator.output",
@@ -175,8 +194,8 @@ def test_flatten_complex_dag(simple_dag: DAG, complex_dag: DAG, dag_flattener: D
 
 
 def test_process_complex_dag(complex_dag: DAG, run_context: RunContext, storage: Dict[str, Any]):
-    outputs = complex_dag.process(
-        run_context=run_context,
-    )
-    assert len(outputs) == 0
-    assert (storage["r"] == np.array([-600, -600, -600])).all()
+    outputs = complex_dag.process(run_context=run_context, c=np.array([-1.0, 2.0, -3.0]))
+    assert len(outputs) == 2
+    assert (storage["r"] == np.array([-600, -60, -600])).all()
+    assert outputs.output3 == -600
+    assert (outputs.output == np.array([-600, -60, -600])).all()

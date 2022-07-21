@@ -95,12 +95,15 @@ NodeNameT = TypeVar("NodeNameT", NodeName, SimpleNodeName)
 
 
 @dataclass
-class BaseDAG(Generic[NodeNameT], Node):
+class UnverifiedBaseDag(Generic[NodeNameT]):
     nodes: Dict[NodeNameT, Processor]
     input_edges: Dict[InputPortAddress, InputPortName]
     output_edges: Dict[OutputPortName, OutputPortAddress]
     edges: Dict[InputPortAddress, OutputPortAddress]
 
+
+@dataclass
+class BaseDAG(UnverifiedBaseDag[NodeNameT], Node):
     def __post_init__(self) -> None:
         # Consider: Move this to a seperate DAG_validation class (client)?  Initialize a default validator in the DAG's __init__?
         node_name_class = self._node_name_class()

@@ -21,16 +21,13 @@ class RunContext(Assignable):
     def __init__(
         self,
         dag_runner: DAGRunner,
-        dag_flattener: DAGFlattener = DAGFlattener(),
         identifier: ObjectIdentifier = ObjectIdentifier(""),
     ):
         self._dag_runner = dag_runner
-        self.dag_flattener = dag_flattener
         self.identifier = identifier
 
     def run_dag(self, dag: DAG, **inputs: Any) -> Dict[OutputPortName, Any]:
-        flattened_dag = self.dag_flattener.flatten(dag)
-        return self._dag_runner.run(flattened_dag, self, **inputs)
+        return self._dag_runner.run(dag, self, **inputs)
 
     def add_identifier_level(self, level: str) -> RunContext:
         identifier = self.identifier + ObjectIdentifier(level)

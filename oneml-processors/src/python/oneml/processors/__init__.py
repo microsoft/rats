@@ -1,3 +1,4 @@
+from .assign_processor_to_compute_using_markers import AssignProcessorsToComputeUsingMarkers
 from .base_dag import InputPortAddress, NodeName, OutputPortAddress, SimpleNodeName
 from .dag import DAG
 from .dag_flattener import DAGFlattener
@@ -10,7 +11,7 @@ from .processor_decorator import processor
 from .processor_using_signature_decorator import processor_using_signature
 from .return_annotation import Output
 from .run_context import RunContext
-from .run_in_subprocess import RunInSubProcess
+from .run_in_subprocess_marker import RunInSubProcessMarker
 from .serialization import (
     deserialize_processor,
     load_data,
@@ -45,5 +46,6 @@ __all__ = [
     "load_data",
     "save_data",
     "Output",
-    "RunInSubProcess",
+    "RunInSubProcessMarker",
+    "AssignProcessorsToComputeUsingMarkers",
 ]
