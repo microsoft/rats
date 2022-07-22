@@ -121,22 +121,49 @@ class PersistSubgraphForInputPorts:
 
 
 class Estimator(DAG):
-    """A TrainAndPredict pipeline that outputs a DAG encoding the trained prediction pipeline.
+    """A FitAndEvaluate pipeline that outputs a DAG encoding the trained evaluation pipeline.
 
     Args:
-        train_and_predict: a DAG with two sets of input ports and two sets of output ports
+        fit_and_evaluate: a DAG with two sets of input ports and two sets of output ports
         * train input/output ports whose names start with "train_"
         * holdout input/output ports whose names start with "holdout_"
         train output ports are not allowed to be downstream from holdout input ports.
 
-    The Estimator would hold a copy of the given train_and_predict DAG, with an additional node
-    that creates a predictor DAG at run time, outputed from the "predictor" output port of the
-    Estimator.  The predictor DAG captures the trained values and is guaranteed to be functionally
-    equivalent to the holdout predict path of the given train_and_predict.
+    The estimator is functionally equivalent to the given fit_and_evalute, except it has one more
+    output port, called "evaluator".  The output of that port will be a Processor that is
+    functionally equivalent to the holdout evaluation path of the original fit_and_predict.
 
+    That outputed evaluator can be persisted and used in the future.
+
+    For example:
+        Assume fit_and_evaluate takes as inputs train_X, train_Y, and holdout_X and outputs
+        train_Y_hat and holdout_Y_hat.
+        Assume we have datasets X0, Y0, X1, X2.
+        estimator = Estimator(fit_and_evaluate) would take the same inputs, and produce the same
+        outputs plus an output called evaluator.
+
+        Because the holdout inputs are not allowed to effect the train subgraph of fit_and_predict,
+        the following two invokations we produce the same train_Y_hat and evaluator:
+
+        result_1 = estimator(train_X=X0, train_Y=Y0, holdout_X=X1)
+        result_2 = estimator(train_X=X0, train_Y=Y0, holdout_X=X2)
+        assert result_1.train_Y_hat == result_2.train_Y_hat
+        assert result_1.evaluator == result_2.evaluator
+
+        Because the evaluator output is equivalent to the holdout evaluation path, calling it will
+        produce the same Y_hat as the corresponding holdout_Y_hat:
+
+        result_1_1 = result1.evaluator(X=X1)
+        result_1_2 = result1.evaluator(X=X2)
+        result_2_1 = result2.evaluator(X=X1)
+        result_2_2 = result2.evaluator(X=X2)
+        assert result1.holdout_Y_hat == result_1_1.Y_hat
+        assert result1.holdout_Y_hat == result_2_1.Y_hat
+        assert result2.holdout_Y_hat == result_1_2.Y_hat
+        assert result2.holdout_Y_hat == result_2_2.Y_hat
     """
 
-    def __init__(self, train_and_predict: Processor):
+    def __init__(self, fit_and_evaluate: Processor):
         def rename_holdout_port(port_name: str) -> str:
             if port_name.startswith("holdout_"):
                 l = len("holdout_")
@@ -145,16 +172,18 @@ class Estimator(DAG):
                 return None
 
         dag_flattener = DAGFlattener()
-        flat_estimator = dag_flattener.flatten(train_and_predict)
+        flat_estimator = dag_flattener.flatten(fit_and_evaluate)
         persister = PersistSubgraphForInputPorts(flat_estimator, rename_holdout_port)
         nodes = flat_estimator.nodes.copy()
         input_edges = flat_estimator.input_edges.copy()
         edges = flat_estimator.edges.copy()
         output_edges = flat_estimator.output_edges.copy()
-        nodes["produce_predictor"] = persister
+        nodes["capture_evaluation_pipeline"] = persister
         for output_port_address, input_port_name in persister.addresses_to_capture.items():
-            edges[InputPortAddress("produce_predictor", input_port_name)] = output_port_address
-        output_edges["predictor"] = OutputPortAddress("produce_predictor", "processor")
+            edges[
+                InputPortAddress("capture_evaluation_pipeline", input_port_name)
+            ] = output_port_address
+        output_edges["evaluator"] = OutputPortAddress("capture_evaluation_pipeline", "processor")
         flat_estimator = FlatDAG(
             nodes=nodes, input_edges=input_edges, edges=edges, output_edges=output_edges
         )
