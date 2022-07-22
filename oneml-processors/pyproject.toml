@@ -43,6 +43,7 @@ numpy = { version = "*", optional = true }
 munch = "^2.5.0"
 networkx = "^2.8.4"
 dill = "^0.3.5"
+pydot = "^1.4.2"
 
 [tool.poetry.extras]
 dev = [
