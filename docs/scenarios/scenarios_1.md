@@ -29,6 +29,11 @@ indices.
 1. Train pytorch model, using training and validation datasets.  Single machine.  Monitor training
    as it proceeds. Store trained model.
 
+### OneML key features
+
+* Scatter / gather distributed processing for scale (e.g. parallel FET calculation)
+* Future: Use Spark for scale in early stages of preprocessing, then transform to numpy matrices or Pandas dataframes
+
 # Scenario: train and validate P2 models
 
 1. For each of ~200 antigens
@@ -46,6 +51,12 @@ indices.
 1. Gather prediction metrics by antigen, either by cross-fold validation or on holdout
 
 *see immunoshare.mira.modeling.p2.data*
+
+### OneML key features
+
+* Multiple inputs and outputs from Processors, with varied schemas
+* Distributed processing for training separate models for each antigen
+* Scatter/gather to apply P2 prediction model to millions of TCRs in repertoires
 
 # Scenario: train and evaluate P6 models
 
@@ -78,6 +89,10 @@ TBD
 1. Evaluate cluster quality by internal metrics, referencing training data
 
    - Average Spearman Rho (ASR) of TCR feature vectors within or across clusters
+
+### OneML key features
+
+* Multiple inputs and outputs from Processors, with varied schemas
 
 # Scenario: Sparse NMF models for disease diagnostics or TACC
 
@@ -114,11 +129,15 @@ TBD
 
    1. Analyze TACC clusters as above.
 
+### OneML key features
+
+* Large-scale matrix operations, e.g. using Dask
+* Multiple inputs and outputs from Processors, with varied schemas
+
 # Scenario: train on lots of TCRs
 
 When training sequence models, we'll need 100Ms or 1Gs TCRs.
 
-We'll need to support multi node pytorch training.
 
 ## Variation 1
 
@@ -131,6 +150,10 @@ Sequence model as the initial layers of a repertoire model.  E.g. integrate a se
 ## Variation 3
 
 Pre-trained sequence model as the initial layers of a repertoire model.
+
+### OneML key features
+
+* Multi node pytorch training.
 
 # Scenario: Pseudo-labeling
 
@@ -162,13 +185,18 @@ Any sampleset with (some) missing labels.  Call it $s$.
 
 Monitor iteration process as it proceeds.
 
+### OneML key features
+
+* Composition of components to enable meta-Processors
+* Multiple inputs and outputs from Processors, with varied schemas and types
+
 # Scenario: score any sampleset using any compatible trained model.
 
 Inputs:
 * Sampleset
 * Trained model
 
-Output:
+Outputs:
 * Predictions
 
 # Scenario: Calculate metrics given scores and labels
@@ -177,6 +205,7 @@ Inputs:
 * Scores per sample
 * Labels per sample
 * Metric function
+
 Outputs:
 * Metric
 
@@ -185,6 +214,11 @@ Outputs:
 Should be a generic procedure that can wrap over any training procedure + evaluation criteria.
 
 Should expose the API of a training procedure.
+
+### OneML key features
+
+* Composition of components to enable meta-Processors
+* Distributed & parallel execution of multiple folds and experiments
 
 ## Hyperparameter assignments to explore
 Could be fixed, allowing us to know in advance what tasks we will be running
