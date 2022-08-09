@@ -1,7 +1,6 @@
-import logging
-
 import inspect
-from typing import Type, Dict, Any, Protocol, runtime_checkable
+import logging
+from typing import Any, Dict, Protocol, Type, runtime_checkable
 
 logger = logging.getLogger(__name__)
 

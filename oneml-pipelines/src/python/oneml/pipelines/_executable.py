@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Callable, Protocol
+from typing import Protocol
 
 
 class IExecutable(Protocol):
@@ -10,10 +10,16 @@ class IExecutable(Protocol):
         """
 
 
-class DeferredExecutable(IExecutable):
-    _callback: Callable[[], IExecutable]
+class ICallableExecutableProvider(Protocol):
+    @abstractmethod
+    def __call__(self) -> IExecutable:
+        pass
 
-    def __init__(self, callback: Callable[[], IExecutable]):
+
+class DeferredExecutable(IExecutable):
+    _callback: ICallableExecutableProvider
+
+    def __init__(self, callback: ICallableExecutableProvider):
         self._callback = callback
 
     def execute(self) -> None:

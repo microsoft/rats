@@ -42,7 +42,7 @@ class PipelineNodeClient(IManagePipelineNodes):
 
     _nodes: Dict[str, PipelineNode]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._nodes = {}
 
     def register_node(self, node: PipelineNode) -> None:

@@ -64,6 +64,7 @@ dev = [
 [tool.poetry.dev-dependencies]
 # Dev dependencies are used to overwrite configuration of local dependencies to be editable
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
+oneml-devtools = { path = "../oneml-devtools/", develop = true }
 
 [tool.poetry.scripts]
 run-processor = "oneml.processors_script.run_processor:main"

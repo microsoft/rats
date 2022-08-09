@@ -1,0 +1,181 @@
+external_dataset_storage_accounts:
+  - storage_account_name: "ampdatasets01"
+    identity_name: "msft.immunodata-adpt-habitat"
+  - storage_account_name: "ampdatasetsdev01"
+    identity_name: "msft.immunodata-adpt-habitat"
+  - storage_account_name: "jupyterscratch01"
+    identity_name: "msft.immunodata-adpt-habitat"
+identity:
+  identity_vault:
+    key_vault_name: "platinum-vault"
+    resource_group_name: "AnalyticsWorkbenchIACTest"
+    subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    key_rotation_user_group_object_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
+  default_azure_identity_name: default
+  azure_identities:
+  # Default credential used when wanting to authenticate as the local user (us or managed identity)
+  - name: "default"
+    type: "local"
+  - name: "azure-cli.msft"
+    type: "azure-cli"
+    azure_cli_config:
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+  - name: "azure-cli.adpt"
+    type: "azure-cli"
+    azure_cli_config:
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+      subscription_id: "2c3047b5-a922-4ad0-9319-851026c53797"
+  - name: "azure-cli.adaptiveanalyticsworkbench"
+    type: "azure-cli"
+    azure_cli_config:
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+  # A service principal given to msft for them to push data into the adpt tenant
+  # This identity is not used for any API calls on the adpt habitat
+  - name: "adpt-export"
+    type: "client-secret"
+    client_secret_config:
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      client_id: "9aa27dd4-f083-4cd2-b865-6ecf7620ffe6"
+      key_vault_name: "platinum-vault"
+      # Convention is "{identity-name}-identity-secret"
+      key_vault_secret: "adpt-export-identity-secret"
+  # A service principal from MSFT exported to ADPT as credentials to access MSFT resources
+  - name: "msft.immunodata-adpt-habitat"
+    type: "external-client-secret"
+    external_client_secret_config:
+      # Identity provisioned by the MSFT SW team
+      # https://ms.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/c89b5a0b-153c-4c79-a9ac-97e442b43aab/isMSAApp/
+      client_id: "c89b5a0b-153c-4c79-a9ac-97e442b43aab"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      external_key_vault_name: "immunodata-msft-adpt"
+      external_key_vault_secret: "immunodata-msft-adpt-secret"
+      key_vault_name: "platinum-vault"
+      key_vault_secret: "msft-immunodata-adpt-habitat-identity-secret"
+  - name: "jupyter-lab"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-lab"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-lab"
+        kubernetes_namespace: "jupyter"
+  - name: "jupyter-kernel"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-kernel"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-kernel"
+        kubernetes_namespace: "jupyter-kernels"
+  - name: "workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-workflows"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      kubernetes_binding:
+        azure_identity_crd_name: "workflows"
+        kubernetes_namespace: "workflows"
+  - name: "development-workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-development-workflows"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      kubernetes_binding:
+        azure_identity_crd_name: "development-workflows"
+        kubernetes_namespace: "development-workflows"
+kubernetes:
+  namespaces:
+    - "jupyter-kernels"
+    - "jupyter"
+    - "workflows"
+    - "development-workflows"
+  infrastructure:
+    cluster_name: "platinum"
+    location: "westus2"
+    kubernetes_version: "1.21.9"
+    resource_group_name: "AnalyticsWorkbenchIACTest"
+    subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    agent_pool_profiles:
+      - name: "common1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 3
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 50
+        vm_size: "Standard_D8_v4"
+        node_labels:
+          purpose: "common"
+      - name: "jupytercore1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 5
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 50
+        vm_size: "Standard_D8_v4"
+        node_labels:
+          purpose: "jupyter-core"
+      - name: "kernels1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 10
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 50
+        vm_size: "Standard_E64s_v4"
+        node_labels:
+          purpose: "jupyter-kernels"
+      - name: "workflows1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 5
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 50
+        vm_size: "Standard_E64s_v4"
+        node_labels:
+          purpose: "workflows"
+      - name: "system1"
+        count: 3
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "System"
+        os_disk_size_gb: 50
+        vm_size: "Standard_D4_v4"
+        node_taints:
+          - "CriticalAddonsOnly=true:NoSchedule"
+    log_analytics:
+      workspace_name: "platinum-log"
+      retention_in_days: 30
+    network:
+      service_cidr: "10.11.0.0/16"
+      dns_service_ip: "10.11.0.10"
+      docker_bridge_cidr: "10.12.0.1/16"
+    public_ip:
+      name: "platinum-public-ip"
+    tags:
+      "application": "immunodata"
+      "environment": "production"
+    vnet:
+      name: "platinum-vnet"
+      address_prefix: "10.10.0.0/16"
+      subnet:
+        name: "platinum-subnet"
+        address_prefix: "10.10.128.0/17"
+traefik:
+  load_balancer_ip: "10.10.210.20"
+  image_tag: "traefik:v2.1"
+  helm_namespace: "helm-releases"

@@ -1,7 +1,7 @@
 import logging
 from abc import abstractmethod
 from threading import Event
-from typing import Callable, Protocol, Tuple
+from typing import Protocol, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -9,29 +9,25 @@ logger = logging.getLogger(__name__)
 class ITickablePipeline(Protocol):
     @abstractmethod
     def tick(self) -> None:
-        """
-        """
+        """"""
 
 
 class IRunPipelines(Protocol):
     @abstractmethod
     def run_pipeline(self) -> None:
-        """
-        """
+        """"""
 
 
 class IStopPipelines(Protocol):
     @abstractmethod
     def stop_pipeline(self) -> None:
-        """
-        """
+        """"""
 
 
 class ISetPipelines(Protocol):
     @abstractmethod
     def set_pipeline(self, pipeline: ITickablePipeline) -> None:
-        """
-        """
+        """"""
 
 
 class IProvidePipelines(Protocol):
@@ -87,11 +83,17 @@ class PipelineChain(ITickablePipeline):
             pipeline.tick()
 
 
+class ICallablePipelineProvider(Protocol):
+    @abstractmethod
+    def __call__(self) -> ITickablePipeline:
+        pass
+
+
 class DeferredPipeline(ITickablePipeline):
 
-    _provider: Callable[[], ITickablePipeline]
+    _provider: ICallablePipelineProvider
 
-    def __init__(self, provider: Callable[[], ITickablePipeline]):
+    def __init__(self, provider: ICallablePipelineProvider):
         self._provider = provider
 
     def tick(self) -> None:

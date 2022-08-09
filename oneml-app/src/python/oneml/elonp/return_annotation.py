@@ -1,8 +1,8 @@
 import logging
-from typing import Type, Any, Protocol, runtime_checkable
-from types import new_class
-from pickle import dumps
 from base64 import b32encode
+from pickle import dumps
+from types import new_class
+from typing import Any, Protocol, Type, runtime_checkable
 
 logger = logging.getLogger(__name__)
 

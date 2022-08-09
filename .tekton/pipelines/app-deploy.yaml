@@ -1,0 +1,224 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: helm-deploy-app-oneml
+  namespace: ci-builds
+spec:
+  params:
+    - name: docker-image-app-builder
+      type: string
+      description: The docker image containing the project's build context.
+    - name: docker-image-build-context
+      type: string
+    - name: component
+      type: string
+      description: component where helm chart is located
+    - name: driver-component
+      type: string
+      description: component where command to run
+    - name: version
+      type: string
+      description: docker image version for immunodata.azurecr.io/component:version
+    - name: user
+      type: string
+      description: user email of person submitting this task
+    - name: release-name
+      type: string
+      default: ""
+      description: helm release name
+    - name: release-uri
+      type: string
+      default: ""
+      description: the uri path for a helm deployment
+    - name: environment
+      type: string
+      default: "staging"
+      description: production or staging to deploy the helm chart
+  tasks:
+    - name: clone
+      taskSpec:
+        metadata:
+          labels:
+            aadpodidbinding: tekton-pipeline
+        params:
+          - name: docker-image-build-context
+            type: string
+            description: The docker image containing the project's build context.
+        steps:
+          - name: clone
+            image: "$(params.docker-image-build-context)"
+            script: |
+              cp -r /code/. "$(workspaces.code.path)"
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      params:
+        - name: docker-image-build-context
+          value: "$(params.docker-image-build-context)"
+      workspaces:
+        - name: code
+          workspace: code
+    - name: poetry-install-helm-driver-component
+      taskSpec:
+        metadata:
+          labels:
+            aadpodidbinding: tekton-pipeline
+        params:
+          - name: docker-image-app-builder
+            type: string
+            default: immunodata.azurecr.io/immunodata-app-builder:2022-04-06.11-26-39
+            description: The docker image for the app builder.
+          - name: component
+            type: string
+            description: component to install packages for
+        steps:
+          - name: poetry-install
+            image: "$(params.docker-image-app-builder)"
+            script: |
+              #!/usr/bin/env bash
+
+              # Fail on anything weird.
+              set -euo pipefail
+
+              source /root/.sourced_values
+
+              export DEVOPS_PYPI_UN="immunomics-artifacts"
+              export DEVOPS_PYPI_PW=$PYTHON_ARTIFACTS_PAT
+              export DEVOPS_PYPI_DOMAIN="pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+              export DEVOPS_PYPI_URL="https://$DEVOPS_PYPI_UN:$DEVOPS_PYPI_PW@$DEVOPS_PYPI_DOMAIN"
+
+              export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=$DEVOPS_PYPI_PW
+
+              export PIPENV_VENV_IN_PROJECT=t
+              export PYENV_SHELL=bash
+              export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
+
+              poetry config virtualenvs.in-project true
+              immunocli-next -vvv ci poetry-install --component $(params.component) --path "$(workspaces.code.path)"
+            resources:
+              limits:
+                memory: "10Gi"
+                cpu: "4"
+              requests:
+                memory: "10Gi"
+                cpu: "4"
+            env:
+              - name: PYTHON_ARTIFACTS_PAT
+                valueFrom:
+                  secretKeyRef:
+                    name: python-artifacts-pat
+                    key: pat
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      runAfter:
+        - clone
+      params:
+        - name: docker-image-app-builder
+          value: "$(params.docker-image-app-builder)"
+        - name: component
+          value: "$(params.driver-component)"
+      workspaces:
+        - name: code
+          workspace: code
+    - name: helm-deploy
+      taskSpec:
+        metadata:
+          labels:
+            aadpodidbinding: tekton-pipeline
+        params:
+          - name: docker-image-app-builder
+            type: string
+            description: The docker image for the app builder.
+          - name: component
+            type: string
+            description: component where helm chart is located
+          - name: driver-component
+            type: string
+            description: component where command to run
+          - name: version
+            type: string
+            description: docker image version for immunodata.azurecr.io/component:version
+          - name: user
+            type: string
+            description: user email of person submitting this task
+          - name: release-name
+            type: string
+            default: ""
+            description: helm release name
+          - name: release-uri
+            type: string
+            default: ""
+            description: the uri path for a helm deployment
+          - name: environment
+            type: string
+            default: "staging"
+            description: production or staging to deploy the helm chart
+        steps:
+          - name: helm-deploy-app
+            image: "$(params.docker-image-app-builder)"
+            script: |
+              #!/usr/bin/env bash
+
+              # Fail on anything weird.
+              set -euo pipefail
+
+              source /root/.sourced_values
+
+              cd "$(workspaces.code.path)/$(params.driver-component)"
+
+              export PROJECT_PATH="$(workspaces.code.path)"
+              export APP_NAME=$(params.driver-component)
+              export APP_PATH="${PROJECT_PATH}/${APP_NAME}"
+              export PATH="$PWD/.venv/bin:$PATH"
+
+              export PIPENV_VENV_IN_PROJECT=t
+              export PYENV_SHELL=bash
+              export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
+
+              poetry config virtualenvs.in-project true
+              poetry run immunocli-next helm deploy \
+                  --path $(workspaces.code.path) \
+                  --component-name $(params.component) \
+                  --release-name $(params.release-name) \
+                  --release-uri $(params.release-uri) \
+                  --image-tag $(params.version) \
+                  --user $(params.user) \
+                  --environment $(params.environment)
+            resources:
+              limits:
+                memory: "4Gi"
+                cpu: "2"
+              requests:
+                memory: "2Gi"
+                cpu: "1"
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      runAfter:
+        - poetry-install-helm-driver-component
+      params:
+        - name: docker-image-app-builder
+          value: "$(params.docker-image-app-builder)"
+        - name: component
+          value: "$(params.component)"
+        - name: driver-component
+          value: "$(params.driver-component)"
+        - name: version
+          value: "$(params.version)"
+        - name: user
+          value: "$(params.user)"
+        - name: release-name
+          value: "$(params.release-name)"   
+        - name: release-uri
+          value: "$(params.release-uri)"   
+        - name: environment
+          value: "$(params.environment)"
+      workspaces:
+        - name: code
+          workspace: code
+  workspaces:
+    - name: code
+      description: The folder that stores the repo

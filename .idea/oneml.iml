@@ -5,6 +5,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="oneml-pipelines" />
     <orderEntry type="module" module-name="oneml-processors" />
+    <orderEntry type="module" module-name="oneml-devtools" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />

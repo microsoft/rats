@@ -39,7 +39,7 @@ class MlPipeline(ITickablePipeline):
         self._execute_frame_command = execute_frame_command
         self._close_frame_command = close_frame_command
 
-    def tick(self):
+    def tick(self) -> None:
         self._open_frame_command.execute()
         self._execute_frame_command.execute()
         self._close_frame_command.execute()

@@ -7,8 +7,10 @@ Steps need to interact with three environments:
 """
 
 from __future__ import annotations
-from typing import Iterable, Any, Dict, Tuple
+
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Iterable, Tuple
+
 
 class DataIdentifier(ABC):
     """Identifies step inputs and outputs.

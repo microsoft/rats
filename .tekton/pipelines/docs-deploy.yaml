@@ -1,0 +1,325 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: docs-deploy-oneml
+  namespace: ci-builds
+spec:
+  params:
+    - name: docker-image-build-context
+      type: string
+      description: The docker image containing the project's build context.
+    - name: docker-image-app-builder
+      type: string
+      default: immunodata.azurecr.io/immunodata-app-builder:2022-04-06.11-26-39
+      description: The docker image for the app builder.
+    - name: driver-component
+      type: string
+      description: component where command to run
+    - name: version
+      type: string
+      description: documentation version for immunodata.azurecr.io/oneml.docs
+    - name: user
+      type: string
+      description: user email of person submitting this task
+    - name: helm-flags
+      type: string
+      default: ""
+      description: additional flags to provide to the helm-deploy command
+  tasks:
+    - name: clone
+      taskSpec:
+        metadata:
+          labels:
+            aadpodidbinding: tekton-pipeline
+        params:
+          - name: docker-image-build-context
+            type: string
+            description: The docker image containing the project's build context.
+        steps:
+          - name: clone
+            image: "$(params.docker-image-build-context)"
+            script: |
+              cp -r /code/. "$(workspaces.code.path)"
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      params:
+        - name: docker-image-build-context
+          value: "$(params.docker-image-build-context)"
+      workspaces:
+        - name: code
+          workspace: code
+    - name: mkdocs-build
+      taskSpec:
+        metadata:
+          labels:
+            aadpodidbinding: tekton-pipeline
+        params:
+          - name: docker-image-app-builder
+            type: string
+            default: immunodata.azurecr.io/immunodata-app-builder:2022-04-06.11-26-39
+            description: The docker image for the app builder.
+          - name: driver-component
+            type: string
+            description: component where command to run
+        steps:
+          - name: mkdocs-build
+            image: "$(params.docker-image-app-builder)"
+            script: |
+              #!/usr/bin/env bash
+
+              # Fail on anything weird.
+              set -euo pipefail
+
+              source /root/.sourced_values
+
+              cd "$(workspaces.code.path)/$(params.driver-component)"
+
+              export PROJECT_PATH="$(workspaces.code.path)"
+              export APP_NAME=$(params.driver-component)
+              export APP_PATH="${PROJECT_PATH}/${APP_NAME}"
+              export PATH="$PWD/.venv/bin:$PATH"
+
+              export PIPENV_VENV_IN_PROJECT=t
+              export PYENV_SHELL=bash
+              export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
+
+              poetry config virtualenvs.in-project true
+              poetry run immunocli-next docs mkdocs-build
+            resources:
+              limits:
+                memory: "10Gi"
+                cpu: "1"
+              requests:
+                memory: "10Gi"
+                cpu: "1"
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      runAfter:
+      params:
+        - name: docker-image-app-builder
+          value: "$(params.docker-image-app-builder)"
+        - name: driver-component
+          value: "$(params.driver-component)"
+      workspaces:
+        - name: code
+          workspace: code
+    - name: sphinx-build
+      taskSpec:
+        metadata:
+          labels:
+            aadpodidbinding: tekton-pipeline
+        params:
+          - name: docker-image-app-builder
+            type: string
+            default: immunodata.azurecr.io/immunodata-app-builder:2022-04-06.11-26-39
+            description: The docker image for the app builder.
+          - name: driver-component
+            type: string
+            description: component where command to run
+        steps:
+          - name: sphinx-build
+            image: "$(params.docker-image-app-builder)"
+            script: |
+              #!/usr/bin/env bash
+
+              # Fail on anything weird.
+              set -euo pipefail
+
+              source /root/.sourced_values
+
+              cd "$(workspaces.code.path)/$(params.driver-component)"
+
+              export PROJECT_PATH="$(workspaces.code.path)"
+              export APP_NAME=$(params.driver-component)
+              export APP_PATH="${PROJECT_PATH}/${APP_NAME}"
+              export PATH="$PWD/.venv/bin:$PATH"
+
+              export PIPENV_VENV_IN_PROJECT=t
+              export PYENV_SHELL=bash
+              export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
+
+              poetry config virtualenvs.in-project true
+              poetry run immunocli-next docs sphinx-build --all-components
+            resources:
+              limits:
+                memory: "20Gi"
+                cpu: "10"
+              requests:
+                memory: "20Gi"
+                cpu: "10"
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      runAfter:
+        - mkdocs-build
+      params:
+        - name: docker-image-app-builder
+          value: "$(params.docker-image-app-builder)"
+        - name: driver-component
+          value: "$(params.driver-component)"
+      workspaces:
+        - name: code
+          workspace: code
+    - name: docker-build-push
+      taskSpec:
+        metadata:
+          labels:
+            aadpodidbinding: tekton-pipeline
+        params:
+          - name: docker-image-app-builder
+            type: string
+            default: immunodata.azurecr.io/immunodata-app-builder:2022-04-06.11-26-39
+            description: The docker image for the app builder.
+          - name: driver-component
+            type: string
+            description: component where command to run
+          - name: version
+            type: string
+            description: documentation version for immunodata.azurecr.io/immunodata.docs
+        steps:
+          - name: docker-build-prepare
+            image: "$(params.docker-image-app-builder)"
+            script: |
+              #!/usr/bin/env bash
+              # We need to generate the Dockerfile in one step and build in another
+
+              set -euo pipefail
+
+              source /root/.sourced_values
+
+              cd "$(workspaces.code.path)/$(params.driver-component)"
+              export PIPENV_VENV_IN_PROJECT=t
+
+              export PROJECT_PATH="$(workspaces.code.path)"
+              export APP_NAME=$(params.driver-component)
+              export APP_PATH="${PROJECT_PATH}/${APP_NAME}"
+              export PATH="$PWD/.venv/bin:$PATH"
+
+              export PIPENV_VENV_IN_PROJECT=t
+              export PYENV_SHELL=bash
+              export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
+
+              poetry config virtualenvs.in-project true
+              poetry run immunocli-next docs docker-build --prepare-only
+            resources:
+              limits:
+                memory: "1Gi"
+                cpu: "1"
+              requests:
+                memory: "1Gi"
+                cpu: "1"
+          - name: docker-build-image-build
+            image: gcr.io/kaniko-project/executor:v1.8.0
+            args:
+              - "--context=dir://$(workspaces.code.path)/.tmp/docs-build/docker"
+              - "--destination=immunodata.azurecr.io/oneml.docs:$(params.version)"
+              - "--dockerfile=Dockerfile"
+            volumeMounts:
+              - mountPath: /kaniko/.docker
+                name: docker-config
+            resources:
+              limits:
+                memory: "1Gi"
+                cpu: "1"
+              requests:
+                memory: "1Gi"
+                cpu: "1"
+        volumes:
+          - name: docker-config
+            emptyDir: { }
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      runAfter:
+        - sphinx-build
+      params:
+        - name: docker-image-app-builder
+          value: "$(params.docker-image-app-builder)"
+        - name: driver-component
+          value: "$(params.driver-component)"
+        - name: version
+          value: "$(params.version)"
+      workspaces:
+        - name: code
+          workspace: code
+    - name: helm-deploy
+      taskSpec:
+        params:
+          - name: docker-image-app-builder
+            type: string
+            default: immunodata.azurecr.io/immunodata-app-builder:2022-04-06.11-26-39
+            description: The docker image for the app builder.
+          - name: driver-component
+            type: string
+            description: component where command to run
+          - name: version
+            type: string
+            description: documentation version for immunodata.azurecr.io/immunodata.docs
+          - name: user
+            type: string
+            description: user email of person submitting this task
+          - name: helm-flags
+            type: string
+            default: ""
+            description: additional flags to provide to the helm-deploy command
+        steps:
+          - name: helm-deploy
+            image: "$(params.docker-image-app-builder)"
+            script: |
+              #!/usr/bin/env bash
+
+              set -euo pipefail
+
+              source /root/.sourced_values
+
+              cd "$(workspaces.code.path)/$(params.driver-component)"
+
+              export PROJECT_PATH="$(workspaces.code.path)"
+              export APP_NAME=$(params.driver-component)
+              export APP_PATH="${PROJECT_PATH}/${APP_NAME}"
+              export PATH="$PWD/.venv/bin:$PATH"
+
+              export PIPENV_VENV_IN_PROJECT=t
+              export PYENV_SHELL=bash
+              export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
+
+              poetry config virtualenvs.in-project true
+              poetry run immunocli-next docs helm-deploy \
+                  --image-tag $(params.version) \
+                  $(params.helm-flags) \
+                  --user $(params.user)
+            resources:
+              limits:
+                memory: "2Gi"
+                cpu: "1"
+              requests:
+                memory: "2Gi"
+                cpu: "1"
+        workspaces:
+          - name: code
+            description: The folder that stores the repo
+      runAfter:
+        - docker-build-push
+      params:
+        - name: docker-image-app-builder
+          value: "$(params.docker-image-app-builder)"
+        - name: driver-component
+          value: "$(params.driver-component)"
+        - name: version
+          value: "$(params.version)"
+        - name: user
+          value: "$(params.user)"
+        - name: helm-flags
+          value: "$(params.helm-flags)"
+      workspaces:
+        - name: code
+          workspace: code
+  workspaces:
+    - name: code
+      description: The folder that stores the repo

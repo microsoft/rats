@@ -1,6 +1,4 @@
-from typing import List, Tuple
-
-import pytest
+from typing import List
 
 from oneml.pipelines import (
     ExecutePipelineFrameCommand,

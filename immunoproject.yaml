@@ -1,6 +1,11 @@
 name: oneml
 applications:
   - name: oneml-app
+    python_dependency_tool: poetry
+  - name: oneml-devtools
+    python_dependency_tool: poetry
 libraries:
   - name: oneml-pipelines
+    python_dependency_tool: poetry
   - name: oneml-processors
+    python_dependency_tool: poetry

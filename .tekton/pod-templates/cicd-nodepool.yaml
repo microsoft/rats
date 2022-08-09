@@ -1,0 +1,13 @@
+# This specifies details of the pods that are spun up as part of a Tekton PipelineRun that are
+# tied to the underlying Pod resource, and aren't exposed via the normal Pipeline spec
+# https://tekton.dev/docs/pipelines/podtemplates/
+# since we're using the tkn cli tool to run these, this needs to be specified as
+# --pod-template .tekton/pod-templates/cicd-nodepool.yaml
+
+nodeSelector:
+  purpose: cicd
+tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    effect: "NoSchedule"
+    value: "cicd"

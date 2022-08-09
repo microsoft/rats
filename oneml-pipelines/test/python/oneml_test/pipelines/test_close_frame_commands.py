@@ -55,4 +55,3 @@ class TestClosePipelineFrameCommand:
         assert self._session.calls == 0
         self._command.execute()
         assert self._session.calls == 0
-

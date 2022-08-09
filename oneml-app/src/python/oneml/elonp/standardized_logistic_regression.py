@@ -1,10 +1,12 @@
 from dataclasses import dataclass
-from munch import Munch
+
 import numpy.typing as npt
 import sklearn.linear_model
+from munch import Munch
 
-from .processors import processor_from_func, ProcessingFunc
+from .processors import ProcessingFunc, processor_from_func
 from .return_annotation import return_annotation
+
 
 @processor_from_func
 @dataclass

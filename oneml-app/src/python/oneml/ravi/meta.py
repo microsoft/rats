@@ -1,6 +1,8 @@
-from .parts import Step, Result, Out
-from typing import List, Any, Dict
+from typing import Any, Dict, List
+
 import numpy as np
+
+from .parts import Out, Result, Step
 
 
 def assign_inputs(target: Step, *sources: List[Step]) -> Step:

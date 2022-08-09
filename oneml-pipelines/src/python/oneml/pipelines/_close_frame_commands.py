@@ -1,7 +1,6 @@
 import logging
 
 from ._executable import IExecutable
-from ._node_execution import IExecutePipelineNodes
 from ._node_state import IManagePipelineNodeState, PipelineNodeState
 from ._pipelines import IStopPipelines
 

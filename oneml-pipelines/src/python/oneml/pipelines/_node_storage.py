@@ -15,11 +15,11 @@ class NodeStorageClient(IManageStorageItems):
     def get_storage_item(self, key: StorageItemKey[OutputType]) -> OutputType:
         return self._parent_client.get_storage_item(self._namespaced_key(key))
 
-    def publish_storage_item(self, item: StorageItem) -> None:
+    def publish_storage_item(self, item: StorageItem[OutputType]) -> None:
         self._parent_client.publish_storage_item(self._namespaced_item(item))
 
     @lru_cache()
-    def _namespaced_item(self, output: StorageItem) -> StorageItem:
+    def _namespaced_item(self, output: StorageItem[OutputType]) -> StorageItem[OutputType]:
         return StorageItem(
             key=self._namespaced_key(output.key),
             value=output.value,

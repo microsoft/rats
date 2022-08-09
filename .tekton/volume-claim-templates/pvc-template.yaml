@@ -1,0 +1,18 @@
+# This volume claim template can be used to define a workspace according to the following docs:
+# https://tekton.dev/docs/pipelines/workspaces/#using-persistentvolumeclaims-as-volumesource
+# https://tekton.dev/docs/pipelines/workspaces/#specifying-workspace-order-in-a-pipeline-and-affinity-assistants
+# since we're using the tkn cli tool to run these, this needs to be specified as
+# --workspace name=code,volumeClaimTemplateFile=.tekton/volume-claim-templates/pvc-template.yaml
+
+metadata:
+  name: docs-deploy-oneml-pvc
+  namespace: ci-builds
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # the current cluster uses the "default" storage class to provision Azure Disk based volumes
+  storageClassName: default
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 30Gi

@@ -1,0 +1,17 @@
+image_registry: "adaptiveanalyticsworkbench.azurecr.io"
+image_registry_cli_identity_name: "azure-cli.adpt"
+external_registries:
+  - identity_name: "msft.immunodata-adpt-habitat"
+    cli_identity_name: "azure-cli.msft"
+    registry_name: "immunodata.azurecr.io"
+    secret_name: "immunodata-pull-secret"
+infrastructure:
+  contributor_user_group_object_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
+  identity_name: "azure-cli.adaptiveanalyticsworkbench"
+  management_resource_group_name: "AnalyticsWorkbenchIACMGMTTest"
+  management_subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+  state_storage_account_name: "adptinternalinfra"
+  state_storage_account_container_name: "pulumi"
+#    secrets_encryption_key_vault_name: "adpt-internal-pulumi"
+  secrets_encryption_key_vault_name: "platinum-vault"
+  secrets_encryption_key_vault_secret: "platform-infrastructure-encryption-secret"

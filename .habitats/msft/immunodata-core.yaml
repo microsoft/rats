@@ -1,0 +1,265 @@
+identity:
+  identity_vault:
+    key_vault_name: "immunodata-infra"
+    resource_group_name: "immunodata.aks"
+    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    key_rotation_user_group_object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
+  default_azure_identity_name: default
+  azure_identities:
+  # Default credential used when wanting to authenticate as the local user (us or managed identity)
+  - name: "default"
+    type: "local"
+  - name: "azure-cli.msft"
+    type: "azure-cli"
+    azure_cli_config:
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+  # A service principal used when we export data from msft to adpt subscriptions
+  - name: "adpt-export"
+    type: "client-secret"
+    client_secret_config:
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      client_id: "9aa27dd4-f083-4cd2-b865-6ecf7620ffe6"
+      key_vault_name: "immunodata-infra"
+      key_vault_secret: "adpt-export-identity-secret"
+  # An identity from MSFT used to generate secrets
+  - name: "msft.immunodata-adpt-habitat"
+    type: "client-secret"
+    client_secret_config:
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      client_id: "c89b5a0b-153c-4c79-a9ac-97e442b43aab"
+      key_vault_name: "immunodata-msft-adpt"
+      key_vault_secret: "immunodata-msft-adpt-secret"
+  - name: "jupyter-lab"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-lab"
+      resource_group_name: "immunodata.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-lab"
+        kubernetes_namespace: "jupyter"
+  - name: "jupyter-kernel"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-kernel"
+      resource_group_name: "immunodata.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-kernel"
+        kubernetes_namespace: "jupyter-kernels"
+  - name: "workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-workflows"
+      resource_group_name: "immunodata.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "workflows"
+        kubernetes_namespace: "workflows"
+  - name: "development-workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-development-workflows"
+      resource_group_name: "immunodata.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "development-workflows"
+        kubernetes_namespace: "development-workflows"
+kubernetes:
+  namespaces:
+    - "jupyter-kernels"
+    - "jupyter"
+    - "workflows"
+    - "development-workflows"
+  infrastructure:
+    cluster_name: "immunodata-v2"
+    location: "eastus"
+    kubernetes_version: "1.21.9"
+    resource_group_name: "immunodata.aks"
+    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    agent_pool_profiles:
+      - name: "cicd1a"
+        count: 5
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "cicd"
+        # TODO - add taint to this node ("dedicated=cicd:NoSchedule")
+        # node_taints:
+        #   dedicated: "cicd:NoSchedule"
+      - name: "common1a"
+        count: 3
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "common"
+      - name: "jupytercor1a"
+        count: 2
+        enable_auto_scaling: true
+        min_count: 2
+        max_count: 30
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "jupyter-core"
+      - name: "jupytercore1"
+        count: 12
+        enable_auto_scaling: true
+        min_count: 2
+        max_count: 30
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 2048
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "jupyter-core"
+      - name: "kernels1a"
+        count: 1
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 100
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "jupyter-kernels"
+        # TODO - add taint to this node ("dedicated=jupyterKernels:NoSchedule")
+        # node_taints:
+        #   dedicated: "jupyterKernels:NoSchedule"
+      - name: "kernels2a"
+        count: 2
+        enable_auto_scaling: true
+        min_count: 2
+        max_count: 40
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "jupyter-kernels"
+        # TODO - add taint to this node ("dedicated=jupyterKernelsHighMem:NoSchedule")
+        # node_taints:
+        #   dedicated: "jupyterKernelsHighMem:NoSchedule"
+      - name: "kernels3"
+        count: 7
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 36
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_NC24_Promo"
+        node_labels:
+          purpose: "jupyter-kernels"
+        # TODO - add taint to this node ("dedicated=jupyterKernelsGpu:NoSchedule")
+        # node_taints:
+        #   dedicated: "jupyterKernelsGpu:NoSchedule"
+      - name: "kernels4"
+        count: 1
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 28
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 2048
+        vm_size: "Standard_NC24s_v3"
+        node_labels:
+          purpose: "jupyter-kernels"
+        # TODO - add taint to this node ("dedicated=jupyterKernelsGpuNc24v3:NoSchedule")
+        # node_taints:
+        #   dedicated: "jupyterKernelsGpuNc24v3:NoSchedule"
+      - name: "kernelscom1a"
+        count: 24
+        enable_auto_scaling: true
+        min_count: 10
+        max_count: 99
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "jupyter-kernels"
+      - name: "system1a"
+        count: 1
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "System"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+      - name: "workflows1"
+        count: 1
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 37
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_NC24_Promo"
+        node_labels:
+          purpose: "workflows"
+        # TODO - add taint to this node ("dedicated=jupyterKernelsGpuNc24v3:NoSchedule")
+        # node_taints:
+        #   dedicated: "workflowsGpu:NoSchedule"
+      - name: "workflows2a"
+        count: 20
+        enable_auto_scaling: true
+        min_count: 20
+        max_count: 70
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_NC24_Promo"
+        node_labels:
+          purpose: "workflows"
+      - name: "workflows3"
+        count: 0
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 20
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_NC24s_v3"
+        node_labels:
+          purpose: "workflows"
+        # TODO - add taint to this node ("dedicated=jupyterKernelsGpuNc24v3:NoSchedule")
+        # node_taints:
+        #   dedicated: "workflowsGpu:NoSchedule"
+    log_analytics:
+      workspace_name: "immunodata-monitoring"
+      retention_in_days: 30
+    network:
+      service_cidr: "10.11.0.0/16"
+      dns_service_ip: "10.11.0.10"
+      docker_bridge_cidr: "10.12.0.1/16"
+    # TODO - can we delete this?
+    public_ip:
+      name: "platinum-public-ip"
+    tags:
+      "application": "immunodata-aks"
+      "environment": "production"
+      "role": "immunodata.aks.production"
+      "service": "immunodata-platform"
+    # TODO - ensure address prefix is sync'd
+    vnet:
+      name: "immunodata-test"
+      address_prefix: "10.10.0.0/16"
+      subnet:
+        name: "immunodata.aks-v2-test"
+        address_prefix: "10.10.128.0/17"
+traefik:
+  load_balancer_ip: "10.10.210.20"
+  image_tag: "traefik:v2.1"
+  helm_namespace: "helm-releases"

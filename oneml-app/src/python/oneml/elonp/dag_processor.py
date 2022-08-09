@@ -1,11 +1,11 @@
 import logging
-
-from dataclasses import dataclass
-from typing import Dict, Sequence, Tuple, Type, List, Union, Any
 from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any, Dict, List, Sequence, Tuple, Type, Union
+
+from munch import munchify
 from networkx import DiGraph
 from networkx.algorithms.dag import topological_sort
-from munch import munchify
 
 from .processors import Processor
 

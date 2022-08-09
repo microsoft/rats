@@ -54,7 +54,7 @@ class PipelineNodeExecutableRegistry(
 
     _executables: Dict[PipelineNode, IExecutable]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._executables = {}
 
     def register_node_executable(self, node: PipelineNode, executable: IExecutable) -> None:

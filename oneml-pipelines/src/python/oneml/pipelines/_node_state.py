@@ -17,7 +17,7 @@ class PipelineNodeState(Enum):
     REGISTERED = auto()
     """
     REGISTERED nodes have been registered on the current session's tick.
-    
+
     A REGISTERED node can have other parts of the sistem adjust certain settings, like the node's
     dependencies, or runtime configuration.
     """
@@ -70,7 +70,7 @@ class PipelineNodeStateClient(IManagePipelineNodeState):
 
     _node_states: Dict[PipelineNode, PipelineNodeState]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._node_states = {}
         self._lock = RLock()
 
