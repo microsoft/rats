@@ -6,6 +6,7 @@
     <orderEntry type="module" module-name="oneml-pipelines" />
     <orderEntry type="module" module-name="oneml-processors" />
     <orderEntry type="module" module-name="oneml-devtools" />
+    <orderEntry type="module" module-name="oneml-adocli" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />

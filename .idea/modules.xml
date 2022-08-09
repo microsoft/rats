@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/oneml.iml" filepath="$PROJECT_DIR$/.idea/oneml.iml" />
+      <module fileurl="file://$PROJECT_DIR$/oneml-adocli/.idea/oneml-adocli.iml" filepath="$PROJECT_DIR$/oneml-adocli/.idea/oneml-adocli.iml" />
       <module fileurl="file://$PROJECT_DIR$/oneml-app/.idea/oneml-app.iml" filepath="$PROJECT_DIR$/oneml-app/.idea/oneml-app.iml" />
       <module fileurl="file://$PROJECT_DIR$/oneml-devtools/.idea/oneml-devtools.iml" filepath="$PROJECT_DIR$/oneml-devtools/.idea/oneml-devtools.iml" />
       <module fileurl="file://$PROJECT_DIR$/oneml-pipelines/.idea/oneml-pipelines.iml" filepath="$PROJECT_DIR$/oneml-pipelines/.idea/oneml-pipelines.iml" />

@@ -1,0 +1,957 @@
+[[package]]
+name = "atomicwrites"
+version = "1.4.1"
+description = "Atomic file writes."
+category = "main"
+optional = true
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "attrs"
+version = "22.1.0"
+description = "Classes Without Boilerplate"
+category = "main"
+optional = true
+python-versions = ">=3.5"
+
+[package.extras]
+dev = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope.interface", "furo", "sphinx", "sphinx-notfound-page", "pre-commit", "cloudpickle"]
+docs = ["furo", "sphinx", "zope.interface", "sphinx-notfound-page"]
+tests = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "zope.interface", "cloudpickle"]
+tests_no_zope = ["coverage[toml] (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "mypy (>=0.900,!=0.940)", "pytest-mypy-plugins", "cloudpickle"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "autopep8"
+version = "1.6.0"
+description = "A tool that automatically formats Python code to conform to the PEP 8 style guide"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.dependencies]
+pycodestyle = ">=2.8.0"
+toml = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "azure-devops"
+version = "6.0.0b4"
+description = "Python wrapper around the Azure DevOps 6.x APIs"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+msrest = ">=0.6.0,<0.7.0"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "certifi"
+version = "2022.6.15"
+description = "Python package for providing Mozilla's CA Bundle."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "charset-normalizer"
+version = "2.1.0"
+description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
+category = "main"
+optional = false
+python-versions = ">=3.6.0"
+
+[package.extras]
+unicode_backport = ["unicodedata2"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "colorama"
+version = "0.4.5"
+description = "Cross-platform colored terminal text."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "colorlog"
+version = "6.6.0"
+description = "Add colours to the output of Python's logging module."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+
+[package.extras]
+development = ["black", "flake8", "mypy", "pytest", "types-colorama"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "coverage"
+version = "6.4.2"
+description = "Code coverage measurement for Python"
+category = "main"
+optional = true
+python-versions = ">=3.7"
+
+[package.dependencies]
+tomli = {version = "*", optional = true, markers = "python_full_version <= \"3.11.0a6\" and extra == \"toml\""}
+
+[package.extras]
+toml = ["tomli"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "flake8"
+version = "4.0.1"
+description = "the modular source code checker: pep8 pyflakes and co"
+category = "main"
+optional = true
+python-versions = ">=3.6"
+
+[package.dependencies]
+mccabe = ">=0.6.0,<0.7.0"
+pycodestyle = ">=2.8.0,<2.9.0"
+pyflakes = ">=2.4.0,<2.5.0"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "flake8-formatter-junit-xml"
+version = "0.0.6"
+description = "JUnit XML Formatter for flake8"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.dependencies]
+flake8 = ">3.0.0"
+junit-xml = ">=1.8"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "flake8-isort"
+version = "4.1.2.post0"
+description = "flake8 plugin that integrates isort ."
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.dependencies]
+flake8 = ">=3.2.1,<5"
+isort = ">=4.3.5,<6"
+
+[package.extras]
+test = ["pytest-cov"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "idna"
+version = "3.3"
+description = "Internationalized Domain Names in Applications (IDNA)"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "iniconfig"
+version = "1.1.1"
+description = "iniconfig: brain-dead simple config-ini parsing"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "isodate"
+version = "0.6.1"
+description = "An ISO 8601 date/time/duration parser and formatter"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "isort"
+version = "5.10.1"
+description = "A Python utility / library to sort Python imports."
+category = "main"
+optional = true
+python-versions = ">=3.6.1,<4.0"
+
+[package.extras]
+colors = ["colorama (>=0.4.3,<0.5.0)"]
+requirements_deprecated_finder = ["pip-api", "pipreqs"]
+pipfile_deprecated_finder = ["pipreqs", "requirementslib"]
+plugins = ["setuptools"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "junit-xml"
+version = "1.9"
+description = "Creates JUnit XML test result documents that can be read by tools such as Jenkins"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.dependencies]
+six = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "mccabe"
+version = "0.6.1"
+description = "McCabe checker, plugin for flake8"
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "msrest"
+version = "0.6.21"
+description = "AutoRest swagger generator Python client runtime."
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+certifi = ">=2017.4.17"
+isodate = ">=0.6.0"
+requests = ">=2.16,<3.0"
+requests-oauthlib = ">=0.5.0"
+
+[package.extras]
+async = ["aiohttp (>=3.0)", "aiodns"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "mypy"
+version = "0.971"
+description = "Optional static typing for Python"
+category = "main"
+optional = true
+python-versions = ">=3.6"
+
+[package.dependencies]
+mypy-extensions = ">=0.4.3"
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
+typing-extensions = ">=3.10"
+
+[package.extras]
+dmypy = ["psutil (>=4.0)"]
+python2 = ["typed-ast (>=1.4.0,<2)"]
+reports = ["lxml"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "mypy-extensions"
+version = "0.4.3"
+description = "Experimental type system extensions for programs checked with the mypy typechecker."
+category = "main"
+optional = true
+python-versions = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "oauthlib"
+version = "3.2.0"
+description = "A generic, spec-compliant, thorough implementation of the OAuth request-signing logic"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+rsa = ["cryptography (>=3.0.0)"]
+signals = ["blinker (>=1.4.0)"]
+signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "oneml-pipelines"
+version = "0.0.0"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.8.10,<3.11"
+develop = true
+
+[package.extras]
+dev = ["flake8", "flake8-formatter-junit-xml", "pytest", "mypy", "coverage", "pytest-cov", "pytest-nunit", "autopep8", "isort", "flake8-isort", "black"]
+
+[package.source]
+type = "directory"
+url = "../oneml-pipelines"
+
+[[package]]
+name = "packaging"
+version = "21.3"
+description = "Core utilities for Python packages"
+category = "main"
+optional = true
+python-versions = ">=3.6"
+
+[package.dependencies]
+pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pluggy"
+version = "1.0.0"
+description = "plugin and hook calling mechanisms for python"
+category = "main"
+optional = true
+python-versions = ">=3.6"
+
+[package.extras]
+dev = ["pre-commit", "tox"]
+testing = ["pytest", "pytest-benchmark"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "py"
+version = "1.11.0"
+description = "library with cross-python path, ini-parsing, io, code, log facilities"
+category = "main"
+optional = true
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pycodestyle"
+version = "2.8.0"
+description = "Python style guide checker"
+category = "main"
+optional = true
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pydot"
+version = "1.4.2"
+description = "Python interface to Graphviz's Dot"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[package.dependencies]
+pyparsing = ">=2.1.4"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pyflakes"
+version = "2.4.0"
+description = "passive checker of Python programs"
+category = "main"
+optional = true
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pygame"
+version = "2.1.2"
+description = "Python Game Development"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pyparsing"
+version = "3.0.9"
+description = "pyparsing module - Classes and methods to define and execute parsing grammars"
+category = "main"
+optional = false
+python-versions = ">=3.6.8"
+
+[package.extras]
+diagrams = ["railroad-diagrams", "jinja2"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pytest"
+version = "7.1.2"
+description = "pytest: simple powerful testing with Python"
+category = "main"
+optional = true
+python-versions = ">=3.7"
+
+[package.dependencies]
+atomicwrites = {version = ">=1.0", markers = "sys_platform == \"win32\""}
+attrs = ">=19.2.0"
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+iniconfig = "*"
+packaging = "*"
+pluggy = ">=0.12,<2.0"
+py = ">=1.8.2"
+tomli = ">=1.0.0"
+
+[package.extras]
+testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pytest-cov"
+version = "3.0.0"
+description = "Pytest plugin for measuring coverage."
+category = "main"
+optional = true
+python-versions = ">=3.6"
+
+[package.dependencies]
+coverage = {version = ">=5.2.1", extras = ["toml"]}
+pytest = ">=4.6"
+
+[package.extras]
+testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "pytest-nunit"
+version = "1.0.1"
+description = "A pytest plugin for generating NUnit3 test result XML output"
+category = "main"
+optional = true
+python-versions = ">=3.6"
+
+[package.dependencies]
+attrs = "*"
+pytest = ">=4.6.0"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "requests"
+version = "2.28.1"
+description = "Python HTTP for Humans."
+category = "main"
+optional = false
+python-versions = ">=3.7, <4"
+
+[package.dependencies]
+certifi = ">=2017.4.17"
+charset-normalizer = ">=2,<3"
+idna = ">=2.5,<4"
+urllib3 = ">=1.21.1,<1.27"
+
+[package.extras]
+socks = ["PySocks (>=1.5.6,!=1.5.7)"]
+use_chardet_on_py3 = ["chardet (>=3.0.2,<6)"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "requests-oauthlib"
+version = "1.3.1"
+description = "OAuthlib authentication support for Requests."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[package.dependencies]
+oauthlib = ">=3.0.0"
+requests = ">=2.0.0"
+
+[package.extras]
+rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "six"
+version = "1.16.0"
+description = "Python 2 and 3 compatibility utilities"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "toml"
+version = "0.10.2"
+description = "Python Library for Tom's Obvious, Minimal Language"
+category = "main"
+optional = true
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "tomli"
+version = "2.0.1"
+description = "A lil' TOML parser"
+category = "main"
+optional = true
+python-versions = ">=3.7"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "typing-extensions"
+version = "4.3.0"
+description = "Backported and Experimental Type Hints for Python 3.7+"
+category = "main"
+optional = true
+python-versions = ">=3.7"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "urllib3"
+version = "1.26.11"
+description = "HTTP library with thread-safe connection pooling, file post, and more."
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*, <4"
+
+[package.extras]
+brotli = ["brotlicffi (>=0.8.0)", "brotli (>=1.0.9)", "brotlipy (>=0.6.0)"]
+secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[extras]
+dev = ["flake8", "flake8-formatter-junit-xml", "pytest", "mypy", "coverage", "pytest-cov", "pytest-nunit", "autopep8", "isort", "flake8-isort"]
+
+[metadata]
+lock-version = "1.1"
+python-versions = ">=3.8.10,<3.11"
+content-hash = "49dca829f0dc7f6833d094fdb09db1a0936dc6aa9025737a187e8a3b47e134b6"
+
+[metadata.files]
+atomicwrites = [
+    {file = "atomicwrites-1.4.1.tar.gz", hash = "sha256:81b2c9071a49367a7f770170e5eec8cb66567cfbbc8c73d20ce5ca4a8d71cf11"},
+]
+attrs = [
+    {file = "attrs-22.1.0-py2.py3-none-any.whl", hash = "sha256:86efa402f67bf2df34f51a335487cf46b1ec130d02b8d39fd248abfd30da551c"},
+    {file = "attrs-22.1.0.tar.gz", hash = "sha256:29adc2665447e5191d0e7c568fde78b21f9672d344281d0c6e1ab085429b22b6"},
+]
+autopep8 = [
+    {file = "autopep8-1.6.0-py2.py3-none-any.whl", hash = "sha256:ed77137193bbac52d029a52c59bec1b0629b5a186c495f1eb21b126ac466083f"},
+    {file = "autopep8-1.6.0.tar.gz", hash = "sha256:44f0932855039d2c15c4510d6df665e4730f2b8582704fa48f9c55bd3e17d979"},
+]
+azure-devops = [
+    {file = "azure-devops-6.0.0b4.tar.gz", hash = "sha256:96a4fc2a24a85087d4971d6f177b5c91e961cb7dd47fa98f99f0071459f80ebb"},
+    {file = "azure_devops-6.0.0b4-py2-none-any.whl", hash = "sha256:a22d4d899c26324fdda89e97112a19b3579073b7b45fa72470141ebf588e97c0"},
+]
+certifi = [
+    {file = "certifi-2022.6.15-py3-none-any.whl", hash = "sha256:fe86415d55e84719d75f8b69414f6438ac3547d2078ab91b67e779ef69378412"},
+    {file = "certifi-2022.6.15.tar.gz", hash = "sha256:84c85a9078b11105f04f3036a9482ae10e4621616db313fe045dd24743a0820d"},
+]
+charset-normalizer = [
+    {file = "charset-normalizer-2.1.0.tar.gz", hash = "sha256:575e708016ff3a5e3681541cb9d79312c416835686d054a23accb873b254f413"},
+    {file = "charset_normalizer-2.1.0-py3-none-any.whl", hash = "sha256:5189b6f22b01957427f35b6a08d9a0bc45b46d3788ef5a92e978433c7a35f8a5"},
+]
+colorama = [
+    {file = "colorama-0.4.5-py2.py3-none-any.whl", hash = "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da"},
+    {file = "colorama-0.4.5.tar.gz", hash = "sha256:e6c6b4334fc50988a639d9b98aa429a0b57da6e17b9a44f0451f930b6967b7a4"},
+]
+colorlog = [
+    {file = "colorlog-6.6.0-py2.py3-none-any.whl", hash = "sha256:351c51e866c86c3217f08e4b067a7974a678be78f07f85fc2d55b8babde6d94e"},
+    {file = "colorlog-6.6.0.tar.gz", hash = "sha256:344f73204009e4c83c5b6beb00b3c45dc70fcdae3c80db919e0a4171d006fde8"},
+]
+coverage = [
+    {file = "coverage-6.4.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:a9032f9b7d38bdf882ac9f66ebde3afb8145f0d4c24b2e600bc4c6304aafb87e"},
+    {file = "coverage-6.4.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:e0524adb49c716ca763dbc1d27bedce36b14f33e6b8af6dba56886476b42957c"},
+    {file = "coverage-6.4.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d4548be38a1c810d79e097a38107b6bf2ff42151900e47d49635be69943763d8"},
+    {file = "coverage-6.4.2-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f23876b018dfa5d3e98e96f5644b109090f16a4acb22064e0f06933663005d39"},
+    {file = "coverage-6.4.2-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6fe75dcfcb889b6800f072f2af5a331342d63d0c1b3d2bf0f7b4f6c353e8c9c0"},
+    {file = "coverage-6.4.2-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:2f8553878a24b00d5ab04b7a92a2af50409247ca5c4b7a2bf4eabe94ed20d3ee"},
+    {file = "coverage-6.4.2-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:d774d9e97007b018a651eadc1b3970ed20237395527e22cbeb743d8e73e0563d"},
+    {file = "coverage-6.4.2-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:d56f105592188ce7a797b2bd94b4a8cb2e36d5d9b0d8a1d2060ff2a71e6b9bbc"},
+    {file = "coverage-6.4.2-cp310-cp310-win32.whl", hash = "sha256:d230d333b0be8042ac34808ad722eabba30036232e7a6fb3e317c49f61c93386"},
+    {file = "coverage-6.4.2-cp310-cp310-win_amd64.whl", hash = "sha256:5ef42e1db047ca42827a85e34abe973971c635f83aed49611b7f3ab49d0130f0"},
+    {file = "coverage-6.4.2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:25b7ec944f114f70803d6529394b64f8749e93cbfac0fe6c5ea1b7e6c14e8a46"},
+    {file = "coverage-6.4.2-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:7bb00521ab4f99fdce2d5c05a91bddc0280f0afaee0e0a00425e28e209d4af07"},
+    {file = "coverage-6.4.2-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:2dff52b3e7f76ada36f82124703f4953186d9029d00d6287f17c68a75e2e6039"},
+    {file = "coverage-6.4.2-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:147605e1702d996279bb3cc3b164f408698850011210d133a2cb96a73a2f7996"},
+    {file = "coverage-6.4.2-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:422fa44070b42fef9fb8dabd5af03861708cdd6deb69463adc2130b7bf81332f"},
+    {file = "coverage-6.4.2-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:8af6c26ba8df6338e57bedbf916d76bdae6308e57fc8f14397f03b5da8622b4e"},
+    {file = "coverage-6.4.2-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:5336e0352c0b12c7e72727d50ff02557005f79a0b8dcad9219c7c4940a930083"},
+    {file = "coverage-6.4.2-cp37-cp37m-win32.whl", hash = "sha256:0f211df2cba951ffcae210ee00e54921ab42e2b64e0bf2c0befc977377fb09b7"},
+    {file = "coverage-6.4.2-cp37-cp37m-win_amd64.whl", hash = "sha256:a13772c19619118903d65a91f1d5fea84be494d12fd406d06c849b00d31bf120"},
+    {file = "coverage-6.4.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:f7bd0ffbcd03dc39490a1f40b2669cc414fae0c4e16b77bb26806a4d0b7d1452"},
+    {file = "coverage-6.4.2-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:0895ea6e6f7f9939166cc835df8fa4599e2d9b759b02d1521b574e13b859ac32"},
+    {file = "coverage-6.4.2-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d4e7ced84a11c10160c0697a6cc0b214a5d7ab21dfec1cd46e89fbf77cc66fae"},
+    {file = "coverage-6.4.2-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:80db4a47a199c4563d4a25919ff29c97c87569130375beca3483b41ad5f698e8"},
+    {file = "coverage-6.4.2-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3def6791adf580d66f025223078dc84c64696a26f174131059ce8e91452584e1"},
+    {file = "coverage-6.4.2-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:4f89d8e03c8a3757aae65570d14033e8edf192ee9298303db15955cadcff0c63"},
+    {file = "coverage-6.4.2-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:6d0b48aff8e9720bdec315d67723f0babd936a7211dc5df453ddf76f89c59933"},
+    {file = "coverage-6.4.2-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:2b20286c2b726f94e766e86a3fddb7b7e37af5d0c635bdfa7e4399bc523563de"},
+    {file = "coverage-6.4.2-cp38-cp38-win32.whl", hash = "sha256:d714af0bdba67739598849c9f18efdcc5a0412f4993914a0ec5ce0f1e864d783"},
+    {file = "coverage-6.4.2-cp38-cp38-win_amd64.whl", hash = "sha256:5f65e5d3ff2d895dab76b1faca4586b970a99b5d4b24e9aafffc0ce94a6022d6"},
+    {file = "coverage-6.4.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:a697977157adc052284a7160569b36a8bbec09db3c3220642e6323b47cec090f"},
+    {file = "coverage-6.4.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:c77943ef768276b61c96a3eb854eba55633c7a3fddf0a79f82805f232326d33f"},
+    {file = "coverage-6.4.2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:54d8d0e073a7f238f0666d3c7c0d37469b2aa43311e4024c925ee14f5d5a1cbe"},
+    {file = "coverage-6.4.2-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f22325010d8824594820d6ce84fa830838f581a7fd86a9235f0d2ed6deb61e29"},
+    {file = "coverage-6.4.2-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:24b04d305ea172ccb21bee5bacd559383cba2c6fcdef85b7701cf2de4188aa55"},
+    {file = "coverage-6.4.2-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:866ebf42b4c5dbafd64455b0a1cd5aa7b4837a894809413b930026c91e18090b"},
+    {file = "coverage-6.4.2-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:e36750fbbc422c1c46c9d13b937ab437138b998fe74a635ec88989afb57a3978"},
+    {file = "coverage-6.4.2-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:79419370d6a637cb18553ecb25228893966bd7935a9120fa454e7076f13b627c"},
+    {file = "coverage-6.4.2-cp39-cp39-win32.whl", hash = "sha256:b5e28db9199dd3833cc8a07fa6cf429a01227b5d429facb56eccd765050c26cd"},
+    {file = "coverage-6.4.2-cp39-cp39-win_amd64.whl", hash = "sha256:edfdabe7aa4f97ed2b9dd5dde52d2bb29cb466993bb9d612ddd10d0085a683cf"},
+    {file = "coverage-6.4.2-pp36.pp37.pp38-none-any.whl", hash = "sha256:e2618cb2cf5a7cc8d698306e42ebcacd02fb7ef8cfc18485c59394152c70be97"},
+    {file = "coverage-6.4.2.tar.gz", hash = "sha256:6c3ccfe89c36f3e5b9837b9ee507472310164f352c9fe332120b764c9d60adbe"},
+]
+flake8 = [
+    {file = "flake8-4.0.1-py2.py3-none-any.whl", hash = "sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d"},
+    {file = "flake8-4.0.1.tar.gz", hash = "sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d"},
+]
+flake8-formatter-junit-xml = [
+    {file = "flake8_formatter_junit_xml-0.0.6-py2.py3-none-any.whl", hash = "sha256:6358a44ecafdf0f9c8ee5314859b8d6f553dc2e55e946a24c538185e1eba7ce6"},
+    {file = "flake8_formatter_junit_xml-0.0.6.tar.gz", hash = "sha256:1ddd9356bb30ba736c3f14c769c837cfacf4f79c3d383ab963ef9d38eea05a9c"},
+]
+flake8-isort = [
+    {file = "flake8-isort-4.1.2.post0.tar.gz", hash = "sha256:dee69bc3c09f0832df88acf795845db8a6673b79237371a05fa927ce095248e5"},
+    {file = "flake8_isort-4.1.2.post0-py3-none-any.whl", hash = "sha256:4f95b40706dbb507cff872b34683283662e945d6028d3c8257e69de5fc6b7446"},
+]
+idna = [
+    {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
+    {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
+]
+iniconfig = [
+    {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
+    {file = "iniconfig-1.1.1.tar.gz", hash = "sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32"},
+]
+isodate = [
+    {file = "isodate-0.6.1-py2.py3-none-any.whl", hash = "sha256:0751eece944162659049d35f4f549ed815792b38793f07cf73381c1c87cbed96"},
+    {file = "isodate-0.6.1.tar.gz", hash = "sha256:48c5881de7e8b0a0d648cb024c8062dc84e7b840ed81e864c7614fd3c127bde9"},
+]
+isort = [
+    {file = "isort-5.10.1-py3-none-any.whl", hash = "sha256:6f62d78e2f89b4500b080fe3a81690850cd254227f27f75c3a0c491a1f351ba7"},
+    {file = "isort-5.10.1.tar.gz", hash = "sha256:e8443a5e7a020e9d7f97f1d7d9cd17c88bcb3bc7e218bf9cf5095fe550be2951"},
+]
+junit-xml = [
+    {file = "junit_xml-1.9-py2.py3-none-any.whl", hash = "sha256:ec5ca1a55aefdd76d28fcc0b135251d156c7106fa979686a4b48d62b761b4732"},
+]
+mccabe = [
+    {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
+]
+msrest = [
+    {file = "msrest-0.6.21-py2.py3-none-any.whl", hash = "sha256:c840511c845330e96886011a236440fafc2c9aff7b2df9c0a92041ee2dee3782"},
+    {file = "msrest-0.6.21.tar.gz", hash = "sha256:72661bc7bedc2dc2040e8f170b6e9ef226ee6d3892e01affd4d26b06474d68d8"},
+]
+mypy = [
+    {file = "mypy-0.971-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f2899a3cbd394da157194f913a931edfd4be5f274a88041c9dc2d9cdcb1c315c"},
+    {file = "mypy-0.971-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:98e02d56ebe93981c41211c05adb630d1d26c14195d04d95e49cd97dbc046dc5"},
+    {file = "mypy-0.971-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:19830b7dba7d5356d3e26e2427a2ec91c994cd92d983142cbd025ebe81d69cf3"},
+    {file = "mypy-0.971-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:02ef476f6dcb86e6f502ae39a16b93285fef97e7f1ff22932b657d1ef1f28655"},
+    {file = "mypy-0.971-cp310-cp310-win_amd64.whl", hash = "sha256:25c5750ba5609a0c7550b73a33deb314ecfb559c350bb050b655505e8aed4103"},
+    {file = "mypy-0.971-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:d3348e7eb2eea2472db611486846742d5d52d1290576de99d59edeb7cd4a42ca"},
+    {file = "mypy-0.971-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:3fa7a477b9900be9b7dd4bab30a12759e5abe9586574ceb944bc29cddf8f0417"},
+    {file = "mypy-0.971-cp36-cp36m-win_amd64.whl", hash = "sha256:2ad53cf9c3adc43cf3bea0a7d01a2f2e86db9fe7596dfecb4496a5dda63cbb09"},
+    {file = "mypy-0.971-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:855048b6feb6dfe09d3353466004490b1872887150c5bb5caad7838b57328cc8"},
+    {file = "mypy-0.971-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:23488a14a83bca6e54402c2e6435467a4138785df93ec85aeff64c6170077fb0"},
+    {file = "mypy-0.971-cp37-cp37m-win_amd64.whl", hash = "sha256:4b21e5b1a70dfb972490035128f305c39bc4bc253f34e96a4adf9127cf943eb2"},
+    {file = "mypy-0.971-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:9796a2ba7b4b538649caa5cecd398d873f4022ed2333ffde58eaf604c4d2cb27"},
+    {file = "mypy-0.971-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:5a361d92635ad4ada1b1b2d3630fc2f53f2127d51cf2def9db83cba32e47c856"},
+    {file = "mypy-0.971-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:b793b899f7cf563b1e7044a5c97361196b938e92f0a4343a5d27966a53d2ec71"},
+    {file = "mypy-0.971-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:d1ea5d12c8e2d266b5fb8c7a5d2e9c0219fedfeb493b7ed60cd350322384ac27"},
+    {file = "mypy-0.971-cp38-cp38-win_amd64.whl", hash = "sha256:23c7ff43fff4b0df93a186581885c8512bc50fc4d4910e0f838e35d6bb6b5e58"},
+    {file = "mypy-0.971-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:1f7656b69974a6933e987ee8ffb951d836272d6c0f81d727f1d0e2696074d9e6"},
+    {file = "mypy-0.971-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:d2022bfadb7a5c2ef410d6a7c9763188afdb7f3533f22a0a32be10d571ee4bbe"},
+    {file = "mypy-0.971-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:ef943c72a786b0f8d90fd76e9b39ce81fb7171172daf84bf43eaf937e9f220a9"},
+    {file = "mypy-0.971-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:d744f72eb39f69312bc6c2abf8ff6656973120e2eb3f3ec4f758ed47e414a4bf"},
+    {file = "mypy-0.971-cp39-cp39-win_amd64.whl", hash = "sha256:77a514ea15d3007d33a9e2157b0ba9c267496acf12a7f2b9b9f8446337aac5b0"},
+    {file = "mypy-0.971-py3-none-any.whl", hash = "sha256:0d054ef16b071149917085f51f89555a576e2618d5d9dd70bd6eea6410af3ac9"},
+    {file = "mypy-0.971.tar.gz", hash = "sha256:40b0f21484238269ae6a57200c807d80debc6459d444c0489a102d7c6a75fa56"},
+]
+mypy-extensions = [
+    {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
+    {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
+]
+oauthlib = [
+    {file = "oauthlib-3.2.0-py3-none-any.whl", hash = "sha256:6db33440354787f9b7f3a6dbd4febf5d0f93758354060e802f6c06cb493022fe"},
+    {file = "oauthlib-3.2.0.tar.gz", hash = "sha256:23a8208d75b902797ea29fd31fa80a15ed9dc2c6c16fe73f5d346f83f6fa27a2"},
+]
+oneml-pipelines = []
+packaging = [
+    {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
+    {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
+]
+pluggy = [
+    {file = "pluggy-1.0.0-py2.py3-none-any.whl", hash = "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"},
+    {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
+]
+py = [
+    {file = "py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"},
+    {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
+]
+pycodestyle = [
+    {file = "pycodestyle-2.8.0-py2.py3-none-any.whl", hash = "sha256:720f8b39dde8b293825e7ff02c475f3077124006db4f440dcbc9a20b76548a20"},
+    {file = "pycodestyle-2.8.0.tar.gz", hash = "sha256:eddd5847ef438ea1c7870ca7eb78a9d47ce0cdb4851a5523949f2601d0cbbe7f"},
+]
+pydot = [
+    {file = "pydot-1.4.2-py2.py3-none-any.whl", hash = "sha256:66c98190c65b8d2e2382a441b4c0edfdb4f4c025ef9cb9874de478fb0793a451"},
+    {file = "pydot-1.4.2.tar.gz", hash = "sha256:248081a39bcb56784deb018977e428605c1c758f10897a339fce1dd728ff007d"},
+]
+pyflakes = [
+    {file = "pyflakes-2.4.0-py2.py3-none-any.whl", hash = "sha256:3bb3a3f256f4b7968c9c788781e4ff07dce46bdf12339dcda61053375426ee2e"},
+    {file = "pyflakes-2.4.0.tar.gz", hash = "sha256:05a85c2872edf37a4ed30b0cce2f6093e1d0581f8c19d7393122da7e25b2b24c"},
+]
+pygame = [
+    {file = "pygame-2.1.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f149e182d0eeef15d8a9b4c9dad1b87dc6eba3a99bd3c44a777a3a2b053a3dca"},
+    {file = "pygame-2.1.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:dc4444d61d48c5546df5137cdf81554887ddb6e2ef1be7f51eb77ea3b6bdd56f"},
+    {file = "pygame-2.1.2-cp310-cp310-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:a0ccf8e3dce7ca67d523a6020b7e3dbf4b26797a9a8db5cc4c7b5ef20fb64701"},
+    {file = "pygame-2.1.2-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:7889dce887ec83c9a0bef8d9eb3669d8863fdaf37c45bacec707d8ad90b24a38"},
+    {file = "pygame-2.1.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:db2f40d5a75fd9cdda473c58b0d8b294da6e0179f00bb3b1fc2f7f29cac09bea"},
+    {file = "pygame-2.1.2-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e4b4cd440d50a9f8551b8989e856aab175593af07eb825cad22fd2f8f6f2ffce"},
+    {file = "pygame-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:754c2906f2ef47173a14493e1de116b2a56a2c8e1764f1202ba844d080248a5b"},
+    {file = "pygame-2.1.2-cp310-cp310-win32.whl", hash = "sha256:c99b95e62cdda29c2e60235d7763447c168a6a877403e6f9ca5b2e2bb297c2ce"},
+    {file = "pygame-2.1.2-cp310-cp310-win_amd64.whl", hash = "sha256:9649419254d3282dae41f23837de4108b17bc62187c3acd8af2ae3801b765cbd"},
+    {file = "pygame-2.1.2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:dcc285ee1f1d0e2672cc52f880fd3f564b1505de710e817f692fbf64a72ca657"},
+    {file = "pygame-2.1.2-cp36-cp36m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:e1bb25986db77a48f632469c6bc61baf7508ce945aa6161c02180d4ee5ac5b8d"},
+    {file = "pygame-2.1.2-cp36-cp36m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:e7a8e18677e0064b7a422f6653a622652d932826a27e50f279d55a8b122a1a83"},
+    {file = "pygame-2.1.2-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:dd528dbb91eca16f7522c975d0f9e94b95f6b5024c82c3247dc0383d242d33c6"},
+    {file = "pygame-2.1.2-cp36-cp36m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:fcc9586e17875c0cdf8764597955f9daa979098fd4f80be07ed68276ac225480"},
+    {file = "pygame-2.1.2-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c9ce7f3d8af14d7e04eb7eb41c5e5313c43508c252bb2b9eb53e51fc87ada9fd"},
+    {file = "pygame-2.1.2-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:e09044e9e1aa8512d6a9c7ce5f94b881824bcfc401105f3c24f546dfc3bb4aa5"},
+    {file = "pygame-2.1.2-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:40e4d8d65985bb467d9c5a1305fb53fd6820c61d764979600becab973339676f"},
+    {file = "pygame-2.1.2-cp36-cp36m-win32.whl", hash = "sha256:50d9a21edd551669862c27c9272747401b20b1939abaacb842c08ea1cdd1c04d"},
+    {file = "pygame-2.1.2-cp36-cp36m-win_amd64.whl", hash = "sha256:e18c9466131378421d00fc40b637425229238d506a073d9c537b230b355a25d6"},
+    {file = "pygame-2.1.2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:07ca9f683075aea9bd977af9f09a720ebf747343d3ea8103e4f1735283b02330"},
+    {file = "pygame-2.1.2-cp37-cp37m-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:3c8d6637ff75351e581327efefa9d04eeb0f257b533392b6cc6b15ceca4f7c5e"},
+    {file = "pygame-2.1.2-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:5ebbefb8b576572c8fc97a3321d37dc2b4afea6b6e3877a67f7158d8c2c4cefe"},
+    {file = "pygame-2.1.2-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9d6452419e01a0f848aed0597f69fd10a4c2a7750c15d1b0607f86090a39dcf3"},
+    {file = "pygame-2.1.2-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e627300a66a90651fb39e41601d447b1fdbbfffca3f08ef0278d6cc0436b2160"},
+    {file = "pygame-2.1.2-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a56a811d8821f7b9a594e3d0e0dd8bd39b25e3eea8963d5963263b90fd2ea5c2"},
+    {file = "pygame-2.1.2-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:24b4f7f30fa2b3d092b60be6fcc725fb91d569fc87a9bcc91614ee8b0c005726"},
+    {file = "pygame-2.1.2-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:8e87716114e97322fb177e223d889a4be369a0f73212f4f8507fe0cd43253b23"},
+    {file = "pygame-2.1.2-cp37-cp37m-win32.whl", hash = "sha256:20676da24e3e3e6b9fc4eecc7ba09d77ef46c3a83a028763ba1d222476c2e3fb"},
+    {file = "pygame-2.1.2-cp37-cp37m-win_amd64.whl", hash = "sha256:93c4cbfc942dd00410eaa9e84252129f9f9993f37f683006d7b49ab245342254"},
+    {file = "pygame-2.1.2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:2405414d8c572668e04739875661e030a0c588e197fa95463fe301c3d0a0510b"},
+    {file = "pygame-2.1.2-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:e8632f6b2ddb90f6f3950744bd65d5ef15af615e3034057fa30ff836f48a7179"},
+    {file = "pygame-2.1.2-cp38-cp38-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:ca5ef1315fa67c241a657ab077be44f230c05740c95f0b46409457dceefdc7e5"},
+    {file = "pygame-2.1.2-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:1219a963941bd53aa754e8449364c142004fe706c33a9c22ff2a76521a82d078"},
+    {file = "pygame-2.1.2-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3bb0674aa789848ddc264bfc60c54965bf3bb659c141de4f600e379acc9b944c"},
+    {file = "pygame-2.1.2-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:24254c4244f0d9bdc904f5d3f38e86757ca4c6aa0e44a6d55ef5e016bc7274d6"},
+    {file = "pygame-2.1.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:97a74ba186deee68318a52637012ef6abf5be6282c659e1d1ba6ad08cf35ec85"},
+    {file = "pygame-2.1.2-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:0e97d38308c441942577fea7fcd1326308bc56d6be6c024218e94d075d322e0f"},
+    {file = "pygame-2.1.2-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:ea36f4f93524554a35cac2359df63b50af6556ed866830aa1f07f0d8580280ea"},
+    {file = "pygame-2.1.2-cp38-cp38-win32.whl", hash = "sha256:4aa3ae32320cc704d63e185864e44f6265c2a6e52c9384afe152cc3d51b3a2ef"},
+    {file = "pygame-2.1.2-cp38-cp38-win_amd64.whl", hash = "sha256:9d7b021b8dde5d528363e474bc18bd6f79a9666eef89fb4859bcb8f0a536c9de"},
+    {file = "pygame-2.1.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:660c80c0b2e80f1f801715583b759fb4c7bc0c11eb3b534e89c9fc4bfbc38acd"},
+    {file = "pygame-2.1.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:dad6bf3fdd3752d7519422f3732be779b98fe7c87d32c3efe2fdffdcbeebb6ca"},
+    {file = "pygame-2.1.2-cp39-cp39-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:119dee20c372c85dc47b717119534d15a60c64ceab8b0eb09278866d10486afe"},
+    {file = "pygame-2.1.2-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:fc2e5db54491e8f27785fc5204c96f540d3557dcf5b0a9a857b6594d6b32561b"},
+    {file = "pygame-2.1.2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d2d3c50ee9847b743db6cd7b1bb17a94c2c2abc16679d70f5e745cabdf19e655"},
+    {file = "pygame-2.1.2-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:6ecda8dd4583982bb65f9c682f244a5e94524dcf628379766227e9ed97201a49"},
+    {file = "pygame-2.1.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0e06ae8e1c830f1b9c36a2bc6bb11de840232e95b78e2c349c6ed803a303be19"},
+    {file = "pygame-2.1.2-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:c5ea87da5fe4b6164c3854f3b0c9146811dbad0dd7fa74297683dfacc485ae1c"},
+    {file = "pygame-2.1.2-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:0427c103f741234336e5606d2fad86f5403c1a3d1dc55c309fbff3c984f0c9ae"},
+    {file = "pygame-2.1.2-cp39-cp39-win32.whl", hash = "sha256:5e88b0d4338b94960686f59396f23f7f684fed4859fcc3b9f40286d72c1c61af"},
+    {file = "pygame-2.1.2-cp39-cp39-win_amd64.whl", hash = "sha256:5d0c14152d0ca8ef5fbcc5ed9981462bdf59a9ae85a291e62d8a8d0b7e5cbe43"},
+    {file = "pygame-2.1.2-pp36-pypy36_pp73-win32.whl", hash = "sha256:636f51f56615d67459b11918206bb4da30cd7d7042027bf997c218ccd6c77902"},
+    {file = "pygame-2.1.2-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:ff961c3280d6ee5f4163f4772f963d7a4dbe42e36c6dd54b79ad436c1f046e5d"},
+    {file = "pygame-2.1.2-pp37-pypy37_pp73-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:fc30e834f65b893d1b4c230070183bf98e6b70c41c1511687e8436a33d5ce49d"},
+    {file = "pygame-2.1.2-pp37-pypy37_pp73-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:5c7600bf307de1ca1dca0cc7840e34604d5b0b0a5a5dad345c3fa62b054b886d"},
+    {file = "pygame-2.1.2-pp37-pypy37_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7fdb93b4282962c9a2ebf1af994ee698be823dd913218ed97a5f2fb372b10b66"},
+    {file = "pygame-2.1.2-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1fddec8829e96424800c806582d73a5173b7d48946cccf7d035839ca09850db8"},
+    {file = "pygame-2.1.2.tar.gz", hash = "sha256:d6d0eca28f886f0477cd0721ac688189155a587f2bb8eae740e52ca56c3ad23c"},
+]
+pyparsing = [
+    {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
+    {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
+]
+pytest = [
+    {file = "pytest-7.1.2-py3-none-any.whl", hash = "sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c"},
+    {file = "pytest-7.1.2.tar.gz", hash = "sha256:a06a0425453864a270bc45e71f783330a7428defb4230fb5e6a731fde06ecd45"},
+]
+pytest-cov = [
+    {file = "pytest-cov-3.0.0.tar.gz", hash = "sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470"},
+    {file = "pytest_cov-3.0.0-py3-none-any.whl", hash = "sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6"},
+]
+pytest-nunit = [
+    {file = "pytest-nunit-1.0.1.tar.gz", hash = "sha256:724d68d80bc3bb72c72d29ffff2e73c110fb4bf86cb72eb59d2479e206ab2893"},
+]
+requests = [
+    {file = "requests-2.28.1-py3-none-any.whl", hash = "sha256:8fefa2a1a1365bf5520aac41836fbee479da67864514bdb821f31ce07ce65349"},
+    {file = "requests-2.28.1.tar.gz", hash = "sha256:7c5599b102feddaa661c826c56ab4fee28bfd17f5abca1ebbe3e7f19d7c97983"},
+]
+requests-oauthlib = [
+    {file = "requests-oauthlib-1.3.1.tar.gz", hash = "sha256:75beac4a47881eeb94d5ea5d6ad31ef88856affe2332b9aafb52c6452ccf0d7a"},
+    {file = "requests_oauthlib-1.3.1-py2.py3-none-any.whl", hash = "sha256:2577c501a2fb8d05a304c09d090d6e47c306fef15809d102b327cf8364bddab5"},
+]
+six = [
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+toml = [
+    {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
+    {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
+]
+tomli = [
+    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
+    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
+typing-extensions = [
+    {file = "typing_extensions-4.3.0-py3-none-any.whl", hash = "sha256:25642c956049920a5aa49edcdd6ab1e06d7e5d467fc00e0506c44ac86fbfca02"},
+    {file = "typing_extensions-4.3.0.tar.gz", hash = "sha256:e6d2677a32f47fc7eb2795db1dd15c1f34eff616bcaf2cfb5e997f854fa1c4a6"},
+]
+urllib3 = [
+    {file = "urllib3-1.26.11-py2.py3-none-any.whl", hash = "sha256:c33ccba33c819596124764c23a97d25f32b28433ba0dedeb77d873a38722c9bc"},
+    {file = "urllib3-1.26.11.tar.gz", hash = "sha256:ea6e8fb210b19d950fab93b60c9009226c63a28808bc8386e05301e25883ac0a"},
+]
