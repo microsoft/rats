@@ -1,6 +1,6 @@
 import logging
 
-from oneml.lorenzo.pipelines3 import IExecutable, IStopPipelines
+from oneml.pipelines import IExecutable, IStopPipelines
 
 logger = logging.getLogger(__name__)
 

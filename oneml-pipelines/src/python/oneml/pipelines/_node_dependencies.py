@@ -38,12 +38,11 @@ class IManagePipelineNodeDependencies(
 class PipelineNodeDependenciesClient(IManagePipelineNodeDependencies):
 
     _node_dependencies: Dict[PipelineNode, Tuple[PipelineNode, ...]]
-    _node_locator: ILocatePipelineNodes
+    _node_client: ILocatePipelineNodes
 
-    def __init__(self, node_locator: ILocatePipelineNodes):
+    def __init__(self, node_client: ILocatePipelineNodes):
         self._node_dependencies = {}
-
-        self._node_locator = node_locator
+        self._node_client = node_client
 
     def register_node_dependencies(
             self, node: PipelineNode, dependencies: Tuple[PipelineNode, ...]) -> None:
@@ -59,7 +58,7 @@ class PipelineNodeDependenciesClient(IManagePipelineNodeDependencies):
         inbound_edges = set(dependencies)
         result = []
 
-        for node in self._node_locator.get_nodes():
+        for node in self._node_client.get_nodes():
             node_dependencies = self.get_node_dependencies(node)
             if node in dependencies:
                 # Exclude the dependency nodes themselves

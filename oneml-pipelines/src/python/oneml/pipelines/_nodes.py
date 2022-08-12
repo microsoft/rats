@@ -9,8 +9,17 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
+class PipelineNamespace:
+    name: str
+
+
+@dataclass(frozen=True)
 class PipelineNode:
     key: str
+
+    @property
+    def name(self) -> str:
+        return self.key.split("/")[-1]
 
 
 class IRegisterPipelineNodes(Protocol):
@@ -32,8 +41,7 @@ class ILocatePipelineNodes(Protocol):
         """
 
 
-class IManagePipelineNodes(
-        IRegisterPipelineNodes, ILocatePipelineNodes, Protocol):
+class IManagePipelineNodes(IRegisterPipelineNodes, ILocatePipelineNodes, Protocol):
     """
     """
 

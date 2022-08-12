@@ -1,9 +1,6 @@
-from oneml.pipelines import (
-    IExecutable,
-    ILocatePipelineNodeExecutables,
-    LocalPipelineNodeExecutionContext,
-    PipelineNode,
-)
+import pytest
+
+from oneml.pipelines import IExecutable, PipelineNode, PipelineNodeExecutablesClient
 
 
 class FakeExecutable(IExecutable):
@@ -16,31 +13,45 @@ class FakeExecutable(IExecutable):
         self.called = True
 
 
-mapping = {
-    PipelineNode("node-1"): FakeExecutable(),
-    PipelineNode("node-2"): FakeExecutable(),
-    PipelineNode("node-3"): FakeExecutable(),
-    PipelineNode("node-4"): FakeExecutable(),
-}
+class TestPipelineNodeExecutablesClient:
 
-
-class FakeExecutableLocator(ILocatePipelineNodeExecutables):
-
-    def get_node_executable(self, node: PipelineNode) -> IExecutable:
-        return mapping[node]
-
-
-class TestLocalPipelineNodeExecutionContext:
-    _context: LocalPipelineNodeExecutionContext
+    _client: PipelineNodeExecutablesClient
 
     def setup(self) -> None:
-        self._context = LocalPipelineNodeExecutionContext(FakeExecutableLocator())
+        self._client = PipelineNodeExecutablesClient()
 
     def test_basics(self) -> None:
-        assert mapping[PipelineNode("node-1")].called is False
-        self._context.execute_node(PipelineNode("node-1"))
-        assert mapping[PipelineNode("node-1")].called is True
+        executable = FakeExecutable()
+        node = PipelineNode("fake")
 
+        self._client.register_node_executable(node, executable)
 
-class TestPipelineNodeExecutableRegistry:
-    pass
+        assert executable == self._client.get_node_executable(node)
+
+    def test_validation(self) -> None:
+        executable1 = FakeExecutable()
+        executable2 = FakeExecutable()
+
+        node1 = PipelineNode("fake-1")
+        node2 = PipelineNode("fake-2")
+
+        self._client.register_node_executable(node1, executable1)
+
+        with pytest.raises(RuntimeError):
+            self._client.register_node_executable(node1, executable1)
+
+        with pytest.raises(RuntimeError):
+            self._client.register_node_executable(node1, executable2)
+
+        with pytest.raises(RuntimeError):
+            self._client.get_node_executable(node2)
+
+    def test_execution(self) -> None:
+        executable = FakeExecutable()
+        node = PipelineNode("fake")
+
+        self._client.register_node_executable(node, executable)
+
+        assert not executable.called
+        self._client.execute_node(node)
+        assert executable.called

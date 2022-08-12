@@ -37,7 +37,9 @@ munch = "^2.5.0"
 networkx = "^2.8.1"
 sklearn = "^0.0"
 pygame = "^2.1.2"
+pydot = "*"
 colorlog = "*"
+kubernetes = "*"
 
 # These are only needed during development
 flake8 = { version = "*", optional = true }

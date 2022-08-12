@@ -1,5 +1,4 @@
-from oneml.pipelines import PipelineNode, PipelineNodeStateClient
-from oneml.pipelines._node_state import PipelineNodeState
+from oneml.pipelines import PipelineNode, PipelineNodeState, PipelineNodeStateClient
 
 
 class TestPipelineNodeStateClient:

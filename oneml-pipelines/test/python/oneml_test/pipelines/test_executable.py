@@ -1,15 +1,6 @@
 from typing import Dict
 
-import pytest
-
-from oneml.pipelines import (
-    DeferredExecutable,
-    IExecutable,
-    IExecutePipelineNodes,
-    PipelineNode,
-    PipelineNodeExecutableRegistry,
-    PipelineNodeExecutionClient,
-)
+from oneml.pipelines import DeferredExecutable, IExecutable, IExecutePipelineNodes, PipelineNode
 
 
 class FakeExecutable(IExecutable):
@@ -52,69 +43,3 @@ class TestDeferredExecutable:
         executable.execute()
         assert self._callback_called is True
         assert self._fake_executable.called is True
-
-
-class TestPipelineNodeExecutableRegistry:
-
-    _registry: PipelineNodeExecutableRegistry
-
-    def setup(self) -> None:
-        self._registry = PipelineNodeExecutableRegistry()
-
-    def test_basics(self) -> None:
-        executable = FakeExecutable()
-        node = PipelineNode("fake")
-
-        self._registry.register_node_executable(node, executable)
-
-        assert executable == self._registry.get_node_executable(node)
-
-    def test_validation(self) -> None:
-        executable1 = FakeExecutable()
-        executable2 = FakeExecutable()
-
-        node1 = PipelineNode("fake-1")
-        node2 = PipelineNode("fake-2")
-
-        self._registry.register_node_executable(node1, executable1)
-
-        with pytest.raises(RuntimeError):
-            self._registry.register_node_executable(node1, executable1)
-
-        with pytest.raises(RuntimeError):
-            self._registry.register_node_executable(node1, executable2)
-
-        with pytest.raises(RuntimeError):
-            self._registry.get_node_executable(node2)
-
-
-class TestPipelineNodeExecutionClient:
-
-    _execution_context: FakeExecutionContext
-    _client: PipelineNodeExecutionClient
-
-    def setup(self) -> None:
-        self._execution_context = FakeExecutionContext()
-        self._client = PipelineNodeExecutionClient(
-            execution_context=self._execution_context,
-            # Should probably mock this for better test stability
-            registry=PipelineNodeExecutableRegistry(),
-        )
-
-    def test_basics(self) -> None:
-        executable = FakeExecutable()
-        node = PipelineNode("fake")
-
-        self._client.register_node_executable(node, executable)
-
-        assert executable == self._client.get_node_executable(node)
-
-    def test_execution(self) -> None:
-        executable = FakeExecutable()
-        node = PipelineNode("fake")
-
-        self._client.register_node_executable(node, executable)
-
-        assert node not in self._execution_context.execution_counts
-        self._client.execute_node(node)
-        assert self._execution_context.execution_counts[node] == 1

@@ -1,8 +1,11 @@
 from abc import abstractmethod
 from typing import Dict, Protocol
 
-from ._executable import IExecutable
-from ._nodes import PipelineNode
+from oneml.pipelines import IExecutable, PipelineNode
+
+
+class PipelineNodeExecutable(IExecutable, Protocol):
+    pass
 
 
 class IExecutePipelineNodes(Protocol):
@@ -14,7 +17,7 @@ class IExecutePipelineNodes(Protocol):
 
 class ILocatePipelineNodeExecutables(Protocol):
     @abstractmethod
-    def get_node_executable(self, node: PipelineNode) -> IExecutable:
+    def get_node_executable(self, node: PipelineNode) -> PipelineNodeExecutable:
         """
         """
 
@@ -22,7 +25,7 @@ class ILocatePipelineNodeExecutables(Protocol):
 class IRegisterPipelineNodeExecutables(Protocol):
     @abstractmethod
     def register_node_executable(
-            self, node: PipelineNode, executable: IExecutable) -> None:
+            self, node: PipelineNode, executable: PipelineNodeExecutable) -> None:
         """
         """
 
@@ -38,23 +41,20 @@ class IManagePipelineNodeExecutables(
 # These classes below might be a good replacement for the executable concepts in oneml-pipelines
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables):
 
-    _executables: Dict[PipelineNode, IExecutable]
+    _executables: Dict[PipelineNode, PipelineNodeExecutable]
 
-    def __init__(self) -> None:
+    def __init__(self):
         self._executables = {}
 
     def execute_node(self, node: PipelineNode) -> None:
         self.get_node_executable(node).execute()
 
-    def get_node_executable(self, node: PipelineNode) -> IExecutable:
-        if node not in self._executables:
-            raise RuntimeError(f"Node executable not found: {node}")
-
+    def get_node_executable(self, node: PipelineNode) -> PipelineNodeExecutable:
         return self._executables[node]
 
     def register_node_executable(
-            self, node: PipelineNode, executable: IExecutable) -> None:
+            self, node: PipelineNode, executable: PipelineNodeExecutable) -> None:
         if node in self._executables:
-            raise RuntimeError(f"Duplicate node executable: {node}")
+            raise RuntimeError(f"Diplicate node executable: {node}")
 
         self._executables[node] = executable

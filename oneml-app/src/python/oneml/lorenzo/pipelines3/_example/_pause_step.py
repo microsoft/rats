@@ -1,7 +1,7 @@
 import logging
 import time
 
-from oneml.lorenzo.pipelines3 import IExecutable
+from oneml.pipelines import IExecutable
 
 logger = logging.getLogger(__name__)
 

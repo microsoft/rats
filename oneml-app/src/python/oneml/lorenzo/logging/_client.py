@@ -28,7 +28,7 @@ class LoggingClient:
                     "class": "logging.StreamHandler",
                     "level": "DEBUG",
                     "formatter": "colored",
-                    "stream": "ext://sys.stdout"
+                    "stream": "ext://sys.stderr"
                 }
             },
             "loggers": {},
