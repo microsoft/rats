@@ -5,7 +5,6 @@ from ._node_dependencies import PipelineNodeDependenciesClient
 from ._node_execution import PipelineNodeExecutablesClient
 from ._nodes import PipelineNode, PipelineNodeClient
 from ._pipeline_components import PipelineComponents
-from ._session_components import PipelineSessionComponentsFactory
 
 
 class PipelineBuilder:
@@ -59,7 +58,6 @@ class PipelineBuilder:
             executables_client.register_node_executable(node, self._executables[node])
 
         return PipelineComponents(
-            session_factory=PipelineSessionComponentsFactory(),
             node_client=node_client,
             node_dependencies_client=dependencies_client,
             node_executables_client=executables_client,

@@ -4,15 +4,77 @@ import logging
 
 from oneml.lorenzo.pipelines3._example._di_container import Pipeline3DiContainer
 from oneml.lorenzo.pipelines3._example._gui import DagSvg, DagVisualizer, DotDag
+from oneml.lorenzo.pipelines3._example3._sample_steps import ProduceExampleSamplesFactory, \
+    ExampleSamples
 from oneml.pipelines import (
     CallableExecutable,
     CallableMultiExecutable,
     PipelineNode,
     PipelineBuilderFactory,
-    PipelineComponents,
+    PipelineComponents, PipelineBuilderComponents, PipelineSessionComponentsFactory,
 )
+from oneml.pipelines._data_dependencies import NodeDataClientFactory, PipelineDataClient, \
+    PipelineDataNode
+from oneml.pipelines._executable import ContextualCallableExecutable
 
 logger = logging.getLogger(__name__)
+
+
+class TinyPipelineExample:
+
+    _builder_components: PipelineBuilderComponents
+
+    def __init__(self, builder_components: PipelineBuilderComponents) -> None:
+        self._builder_components = builder_components
+
+    def do_it(self) -> None:
+        pipeline_builder = self._builder_components.pipeline_builder()
+        root = self._builder_components.namespace_client()
+        multiplexer = self._builder_components.multiplex_client()
+
+        # These are runner details leaking into the building steps.
+        pipeline_data_client = PipelineDataClient()
+        node_data_client_factory = NodeDataClientFactory(pipeline_data_client)
+        samples_factory = ProduceExampleSamplesFactory(node_data_client_factory)
+
+        pipeline_builder.add_node(root.node("hello"))
+        pipeline_builder.add_executable(
+            root.node("hello"),
+            ContextualCallableExecutable[PipelineNode](
+                context=root.node("hello"),
+                callback=lambda context: samples_factory.get_instance(node=context).execute()),
+        )
+
+        users = multiplexer.get_instance(root, ["bob", "mike", "sam"])
+        pipeline_builder.add_nodes(users.nodes("world"))
+        users.add_external_dependency("world", root.node("hello"))
+        users.add_executable(
+            "world", CallableMultiExecutable(lambda node: logger.info(f"hello from node: {node}")))
+
+        # MOVE FROM BUILDER TO PIPELINE
+        pipeline_components: PipelineComponents = pipeline_builder.build()
+
+        # MOVE FROM PIPELINE TO SESSION
+        # TODO: insert a session components piece!
+        session_factory = PipelineSessionComponentsFactory()
+        
+        session_components = session_factory.get_instance(pipeline_components)
+        session = session_components.pipeline_session_client()
+        session.run()
+
+        samples = pipeline_data_client.get_data(root.node("hello"), PipelineDataNode[ExampleSamples]("example-samples"))
+        logger.info(samples.samples())
+
+        ###############
+
+        dot_dag = DotDag(
+            node_client=pipeline_components.node_client(),
+            dependencies_client=pipeline_components.node_dependencies_client(),
+            node_state_client=session_components.node_state_client(),
+        )
+        svg_client = DagSvg(dot_dag=dot_dag)
+        viz = DagVisualizer(svg_client=svg_client)
+        viz.execute()
 
 
 def _render_tiny_pipeline() -> None:
@@ -43,39 +105,8 @@ def _render_tiny_pipeline() -> None:
     factory = PipelineBuilderFactory()
     builder_components = factory.get_instance("demo-pipeline")
 
-    pipeline_builder = builder_components.pipeline_builder()
-    root = builder_components.namespace_client()
-    multiplexer = builder_components.multiplex_client()
-
-    pipeline_builder.add_node(root.node("hello"))
-    pipeline_builder.add_executable(
-        root.node("hello"), CallableExecutable(lambda: logger.info("hello from hello node")))
-
-    users = multiplexer.get_instance(root, ["bob", "mike", "sam"])
-    pipeline_builder.add_nodes(users.nodes("world"))
-    users.add_external_dependency("world", root.node("hello"))
-    users.add_executable(
-        "world", CallableMultiExecutable(lambda node: logger.info(f"hello from node: {node}")))
-
-    # MOVE FROM BUILDER TO PIPELINE
-    pipeline_components: PipelineComponents = pipeline_builder.build()
-
-    # MOVE FROM PIPELINE TO SESSION
-    # TODO: insert a session components piece!
-    session_components = pipeline_components.session_components()
-    session = session_components.pipeline_session_client()
-    session.run()
-
-    ###############
-
-    dot_dag = DotDag(
-        node_client=pipeline_components.node_client(),
-        dependencies_client=pipeline_components.node_dependencies_client(),
-        node_state_client=session_components.node_state_client(),
-    )
-    svg_client = DagSvg(dot_dag=dot_dag)
-    viz = DagVisualizer(svg_client=svg_client)
-    viz.execute()
+    thing = TinyPipelineExample(builder_components)
+    thing.do_it()
 
 
 def _render_training_pipeline() -> None:

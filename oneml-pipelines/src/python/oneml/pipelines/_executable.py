@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Protocol
+from typing import Protocol, TypeVar, Generic
 
 
 class IExecutable(Protocol):
@@ -54,3 +54,31 @@ class CallableExecutable(IExecutable):
 
     def execute(self) -> None:
         self._callback()
+
+
+ContextType = TypeVar("ContextType")
+
+
+class IContextualCallableExecutable(Protocol[ContextType]):
+    """
+    Represents a callable object that we expect to treat as the execute method.
+    """
+    @abstractmethod
+    def __call__(self, context: ContextType) -> None:
+        pass
+
+
+class ContextualCallableExecutable(IExecutable, Generic[ContextType]):
+
+    _context: ContextType
+    _callback: IContextualCallableExecutable[ContextType]
+
+    def __init__(
+            self,
+            context: ContextType,
+            callback: IContextualCallableExecutable[ContextType]) -> None:
+        self._context = context
+        self._callback = callback
+
+    def execute(self) -> None:
+        self._callback(context=self._context)
