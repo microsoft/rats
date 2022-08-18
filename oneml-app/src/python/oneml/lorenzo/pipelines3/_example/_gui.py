@@ -4,11 +4,13 @@ import cairosvg
 import pydot
 import pygame
 
-from oneml.pipelines import (
-    PipelineNodeState,
+from oneml.pipelines.dag import (
     ILocatePipelineNodes,
     ILocatePipelineNodeDependencies,
+)
+from oneml.pipelines.session import (
     ILocatePipelineNodeState,
+    PipelineNodeState,
 )
 
 state_colors_map = {

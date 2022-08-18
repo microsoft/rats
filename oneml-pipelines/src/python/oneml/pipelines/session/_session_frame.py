@@ -1,14 +1,21 @@
 import logging
-from typing import Tuple
+from abc import abstractmethod
+from typing import Protocol, Tuple
 
-from ._executable import IExecutable
-from ._node_dependencies import IManagePipelineNodeDependencies
-from ._node_execution import IExecutePipelineNodes
-from ._node_state import IManagePipelineNodeState, PipelineNodeState
-from ._session import ITickablePipeline
-from ._session_state import IManagePipelineSessionState, PipelineSessionState
+from oneml.pipelines.dag import IManagePipelineNodeDependencies
+from oneml.pipelines.session._executable import IExecutable
+from oneml.pipelines.session._node_execution import IExecutePipelineNodes
+from oneml.pipelines.session._node_state import IManagePipelineNodeState, PipelineNodeState
+from oneml.pipelines.session._session_state import IManagePipelineSessionState, \
+    PipelineSessionState
 
 logger = logging.getLogger(__name__)
+
+
+class IPipelineSessionFrame(Protocol):
+    @abstractmethod
+    def tick(self) -> None:
+        """"""
 
 
 class BasicPipelineSessionFrameCommands:
@@ -16,18 +23,18 @@ class BasicPipelineSessionFrameCommands:
     _session_state_client: IManagePipelineSessionState
     _node_state_client: IManagePipelineNodeState
     _node_dependencies_client: IManagePipelineNodeDependencies
-    _node_executable_client: IExecutePipelineNodes
+    _node_executables_client: IExecutePipelineNodes
 
     def __init__(
             self,
             session_state_client: IManagePipelineSessionState,
             node_state_client: IManagePipelineNodeState,
             node_dependencies_client: IManagePipelineNodeDependencies,
-            node_executable_client: IExecutePipelineNodes):
+            node_executables_client: IExecutePipelineNodes):
         self._session_state_client = session_state_client
         self._node_state_client = node_state_client
         self._node_dependencies_client = node_dependencies_client
-        self._node_executable_client = node_executable_client
+        self._node_executables_client = node_executables_client
 
     def promote_registered_nodes(self) -> None:
         for node in self._node_state_client.get_nodes_by_state(PipelineNodeState.REGISTERED):
@@ -55,7 +62,7 @@ class BasicPipelineSessionFrameCommands:
 
         logger.debug(f"Executing node: {node}")
         self._node_state_client.set_node_state(node, PipelineNodeState.RUNNING)
-        self._node_executable_client.execute_node(node)
+        self._node_executables_client.execute_node(node)
         self._node_state_client.set_node_state(node, PipelineNodeState.COMPLETED)
 
         # TODO: put this threading logic somewhere
@@ -77,7 +84,7 @@ class BasicPipelineSessionFrameCommands:
         self._session_state_client.set_state(PipelineSessionState.STOPPED)
 
 
-class PipelineSessionFrame(ITickablePipeline):
+class PipelineSessionFrame(IPipelineSessionFrame):
     # TODO: turn these ideas into lifecycle events and tools to group events (pre/post)
     _frame_commands: Tuple[IExecutable, ...]
 

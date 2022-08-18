@@ -5,10 +5,9 @@ import logging
 from abc import abstractmethod
 from typing import Callable, Iterable, Protocol, Union
 
-from ._builder import PipelineBuilder
-from ._executable import CallableExecutable
+from ._dag_client import PipelineDagClient
 from ._node_namespacing import PipelineNamespaceClient
-from ._nodes import PipelineNode
+from oneml.pipelines.dag import PipelineNode
 
 logger = logging.getLogger(__name__)
 
@@ -42,16 +41,16 @@ class CallableMultiExecutable(MultiPipelineNodeExecutable):
 
 
 class PipelineNodeMultiplexer:
-    _builder: PipelineBuilder
+    _dag_client: PipelineDagClient
     _namespace_client: PipelineNamespaceClient
     _values: PipelineMultiplexValuesType
 
     def __init__(
             self,
-            builder: PipelineBuilder,
+            dag_client: PipelineDagClient,
             namespace_client: PipelineNamespaceClient,
             values: PipelineMultiplexValuesType):
-        self._builder = builder
+        self._dag_client = dag_client
         self._namespace_client = namespace_client
         self._values = values
 
@@ -59,7 +58,7 @@ class PipelineNodeMultiplexer:
         cartesian_folds = [f"{a},{b}" for a, b in itertools.product(self._values, values)]
 
         return PipelineNodeMultiplexer(
-            builder=self._builder,
+            dag_client=self._dag_client,
             namespace_client=self._namespace_client,
             values=cartesian_folds,
         )
@@ -77,7 +76,7 @@ class PipelineNodeMultiplexer:
 
     def add_internal_dependency(self, prefix: str, dependency: str) -> None:
         for x in self._values:
-            self._builder.add_dependency(
+            self._dag_client.add_dependency(
                 self._namespace_client.node(f"{prefix}[{x}]"),
                 self._namespace_client.node(f"{dependency}[{x}]"))
 
@@ -87,22 +86,22 @@ class PipelineNodeMultiplexer:
 
     def add_external_dependency(self, prefix: str, dependency: PipelineNode) -> None:
         for node in self.nodes(prefix):
-            self._builder.add_dependency(node, dependency)
+            self._dag_client.add_dependency(node, dependency)
 
-    def add_executable(self, prefix: str, executable: MultiPipelineNodeExecutable) -> None:
-        def build_executable(n: PipelineNode) -> CallableExecutable:
-            return CallableExecutable(lambda: executable.execute(n))
-
-        logger.debug(f"multiplexing executable for prefix: {prefix}")
-        for node in self.nodes(prefix):
-            logger.debug(f"multiplexed executable for node: {node}")
-            self._builder.add_executable(node, build_executable(node))
+    # def add_executable(self, prefix: str, executable: MultiPipelineNodeExecutable) -> None:
+    #     def build_executable(n: PipelineNode) -> CallableExecutable:
+    #         return CallableExecutable(lambda: executable.execute(n))
+    #
+    #     logger.debug(f"multiplexing executable for prefix: {prefix}")
+    #     for node in self.nodes(prefix):
+    #         logger.debug(f"multiplexed executable for node: {node}")
+    #         self._dag_client.add_executable(node, build_executable(node))
 
 
 class PipelineNodeMultiplexerFactory:
-    _pipeline: PipelineBuilder
+    _pipeline: PipelineDagClient
 
-    def __init__(self, pipeline: PipelineBuilder):
+    def __init__(self, pipeline: PipelineDagClient):
         self._pipeline = pipeline
 
     def get_instance(
@@ -110,7 +109,7 @@ class PipelineNodeMultiplexerFactory:
             namespace: PipelineNamespaceClient,
             values: PipelineMultiplexValuesType) -> PipelineNodeMultiplexer:
         return PipelineNodeMultiplexer(
-            builder=self._pipeline,
+            dag_client=self._pipeline,
             namespace_client=namespace,
             values=values,
         )

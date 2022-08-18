@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Iterable, Protocol
 
-from ._nodes import PipelineNode
+from oneml.pipelines.dag import PipelineNode
 
 
 class ICreatePipelineNamespaces(Protocol):

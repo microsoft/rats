@@ -1,25 +1,10 @@
-from __future__ import annotations
-
 import logging
 from abc import abstractmethod
-from dataclasses import dataclass
 from typing import Dict, Protocol, Tuple
 
+from oneml.pipelines.dag import PipelineNode
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass(frozen=True)
-class PipelineNamespace:
-    name: str
-
-
-@dataclass(frozen=True)
-class PipelineNode:
-    key: str
-
-    @property
-    def name(self) -> str:
-        return self.key.split("/")[-1]
 
 
 class IRegisterPipelineNodes(Protocol):
@@ -55,15 +40,33 @@ class PipelineNodeClient(IManagePipelineNodes):
 
     def register_node(self, node: PipelineNode) -> None:
         if node.key in self._nodes:
-            raise RuntimeError(f"Node already registered: {node}")
+            raise DuplicatePipelineNodeError(node)
 
         self._nodes[node.key] = node
 
     def get_node_by_key(self, key: str) -> PipelineNode:
         if key not in self._nodes:
-            raise RuntimeError(f"Node not found: {key}")
+            raise NodeNotFoundError(key)
 
         return self._nodes[key]
 
     def get_nodes(self) -> Tuple[PipelineNode, ...]:
         return tuple(self._nodes.values())
+
+
+class DuplicatePipelineNodeError(RuntimeError):
+
+    node: PipelineNode
+
+    def __init__(self, node: PipelineNode) -> None:
+        super().__init__(f"Duplicate node registration: {node}")
+        self.node = node
+
+
+class NodeNotFoundError(RuntimeError):
+
+    key: str
+
+    def __init__(self, key: str) -> None:
+        super().__init__(f"Node not found: {key}")
+        self.key = key

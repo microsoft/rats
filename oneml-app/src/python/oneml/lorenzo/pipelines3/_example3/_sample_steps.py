@@ -1,9 +1,15 @@
 import logging
 from typing import Tuple
 
-from oneml.pipelines import PipelineNode, IExecutable, PipelineSessionComponents
-from oneml.pipelines._data_dependencies import NodeDataClient, PipelineDataNode, \
-    NodeDataClientFactory
+from oneml.pipelines.building import IPipelineSessionExecutable
+from oneml.pipelines.dag import PipelineNode
+from oneml.pipelines.session import (
+    IExecutable,
+    PipelineNodeDataClient,
+    PipelineDataNode,
+    PipelineNodeDataClientFactory,
+    PipelineSessionClient,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +25,9 @@ class ExampleSamples:
 
 
 class ProduceExampleSamples(IExecutable):
-    _node_data_client: NodeDataClient
+    _node_data_client: PipelineNodeDataClient
 
-    def __init__(self, node_data_client: NodeDataClient):
+    def __init__(self, node_data_client: PipelineNodeDataClient):
         self._node_data_client = node_data_client
 
     def execute(self) -> None:
@@ -34,9 +40,9 @@ class ProduceExampleSamples(IExecutable):
 
 class ProduceExampleSamplesFactory:
 
-    _node_data_client_factory: NodeDataClientFactory
+    _node_data_client_factory: PipelineNodeDataClientFactory
 
-    def __init__(self, node_data_client_factory: NodeDataClientFactory) -> None:
+    def __init__(self, node_data_client_factory: PipelineNodeDataClientFactory) -> None:
         self._node_data_client_factory = node_data_client_factory
 
     def get_instance(self, node: PipelineNode) -> ProduceExampleSamples:
@@ -45,8 +51,6 @@ class ProduceExampleSamplesFactory:
         )
 
 
-class Something1:
-    _session: PipelineSessionComponents
-
-    def get_executable(self) -> ProduceExampleSamples:
-        pass
+class FooBarExecutable(IPipelineSessionExecutable):
+    def execute(self, session_client: PipelineSessionClient) -> None:
+        logging.warning("EXECUTING FOOBAREXECUTABLE!")

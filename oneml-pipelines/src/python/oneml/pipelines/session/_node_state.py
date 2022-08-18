@@ -6,7 +6,7 @@ from enum import Enum, auto
 from threading import RLock
 from typing import Dict, Protocol, Tuple
 
-from ._nodes import PipelineNode
+from oneml.pipelines.dag import PipelineNode
 
 logger = logging.getLogger(__name__)
 

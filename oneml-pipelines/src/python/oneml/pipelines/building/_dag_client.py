@@ -1,24 +1,22 @@
-from typing import Dict, Iterable, Set
+from typing import Dict, Iterable, Set, Tuple
 
-from ._executable import IExecutable
-from ._node_dependencies import PipelineNodeDependenciesClient
-from ._node_execution import PipelineNodeExecutablesClient
-from ._nodes import PipelineNode, PipelineNodeClient
-from ._pipeline_components import PipelineComponents
+from oneml.pipelines.dag import (
+    PipelineNode,
+    IManagePipelineNodeDependencies,
+    IManagePipelineNodes,
+    PipelineNodeClient,
+    PipelineNodeDependenciesClient, PipelineClient,
+)
 
 
-class PipelineBuilder:
+class PipelineDagClient:
 
-    _name: str
     _nodes: Set[PipelineNode]
     _dependencies: Dict[PipelineNode, Set[PipelineNode]]
-    _executables: Dict[PipelineNode, IExecutable]
 
-    def __init__(self, name: str):
-        self._name = name
+    def __init__(self) -> None:
         self._nodes = set()
         self._dependencies = {}
-        self._executables = {}
 
     def add_nodes(self, nodes: Iterable[PipelineNode]) -> None:
         for node in nodes:
@@ -38,16 +36,9 @@ class PipelineBuilder:
     def add_dependency(self, node: PipelineNode, dependency: PipelineNode) -> None:
         self._dependencies[node].add(dependency)
 
-    def add_executable(self, node: PipelineNode, executable: IExecutable) -> None:
-        if node in self._executables:
-            raise RuntimeError(f"Duplicate node executable error: {node}")
-
-        self._executables[node] = executable
-
-    def build(self) -> PipelineComponents:
+    def build(self) -> PipelineClient:
         node_client = PipelineNodeClient()
         dependencies_client = PipelineNodeDependenciesClient(node_client)
-        executables_client = PipelineNodeExecutablesClient()
 
         for node in self._nodes:
             node_client.register_node(node)
@@ -55,10 +46,7 @@ class PipelineBuilder:
             dependencies_client.register_node_dependencies(
                 node, tuple(self._dependencies.get(node, [])))
 
-            executables_client.register_node_executable(node, self._executables[node])
-
-        return PipelineComponents(
+        return PipelineClient(
             node_client=node_client,
             node_dependencies_client=dependencies_client,
-            node_executables_client=executables_client,
         )

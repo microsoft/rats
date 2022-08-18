@@ -1,9 +1,11 @@
+import logging
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Generic, TypeVar, Tuple, List, Dict, Set
+from typing import Dict, Generic, Set, Tuple, TypeVar
 
-from oneml.pipelines import PipelineNode
+from oneml.pipelines.dag import PipelineNode
 
+logger = logging.getLogger(__name__)
 DataType = TypeVar("DataType")
 
 
@@ -12,6 +14,7 @@ class PipelineDataNode(Generic[DataType]):
     key: str
 
 
+# TODO: data dependencies might belong in `dag`.
 @dataclass(frozen=True)
 class PipelineDataDependency(Generic[DataType]):
     pipeline_node: PipelineNode
@@ -65,7 +68,7 @@ class PipelineDataClient:
         return self._data[key]
 
 
-class NodeDataClient:
+class PipelineNodeDataClient:
 
     _pipeline_data_client: PipelineDataClient
     _pipeline_node: PipelineNode
@@ -86,7 +89,7 @@ class NodeDataClient:
         return self._pipeline_data_client.get_data(self._pipeline_node, data_node)
 
 
-class NodeDataClientFactory:
+class PipelineNodeDataClientFactory:
 
     _pipeline_data_client: PipelineDataClient
 
@@ -94,5 +97,5 @@ class NodeDataClientFactory:
         self._pipeline_data_client = pipeline_data_client
 
     @lru_cache()
-    def get_instance(self, pipeline_node: PipelineNode) -> NodeDataClient:
-        return NodeDataClient(self._pipeline_data_client, pipeline_node)
+    def get_instance(self, pipeline_node: PipelineNode) -> PipelineNodeDataClient:
+        return PipelineNodeDataClient(self._pipeline_data_client, pipeline_node)
