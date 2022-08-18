@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from __future__ import annotations
 
 import copy

@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from functools import partial
 
 from optuna.samplers import GridSampler

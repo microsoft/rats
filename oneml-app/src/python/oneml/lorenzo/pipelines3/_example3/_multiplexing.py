@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from __future__ import annotations
 
 import itertools
@@ -39,10 +41,11 @@ class PipelineNodeMultiplexer:
     _values: PipelineMultiplexValuesType
 
     def __init__(
-            self,
-            pipeline: PipelineBuilder,
-            namespace: PipelineNamespaceClient,
-            values: PipelineMultiplexValuesType):
+        self,
+        pipeline: PipelineBuilder,
+        namespace: PipelineNamespaceClient,
+        values: PipelineMultiplexValuesType,
+    ):
         self._pipeline = pipeline
         self._namespace = namespace
         self._values = values
@@ -70,8 +73,8 @@ class PipelineNodeMultiplexer:
     def add_internal_dependency(self, prefix: str, dependency: str) -> None:
         for x in self._values:
             self._pipeline.add_dependency(
-                self._namespace.node(f"{prefix}[{x}]"),
-                self._namespace.node(f"{dependency}[{x}]"))
+                self._namespace.node(f"{prefix}[{x}]"), self._namespace.node(f"{dependency}[{x}]")
+            )
 
     def add_external_dependencies(self, prefix: str, dependencies: Iterable[PipelineNode]) -> None:
         for dependency in dependencies:
@@ -98,9 +101,8 @@ class PipelineNodeMultiplexerFactory:
         self._pipeline = pipeline
 
     def get_instance(
-            self,
-            namespace: PipelineNamespaceClient,
-            values: PipelineMultiplexValuesType) -> PipelineNodeMultiplexer:
+        self, namespace: PipelineNamespaceClient, values: PipelineMultiplexValuesType
+    ) -> PipelineNodeMultiplexer:
         return PipelineNodeMultiplexer(
             pipeline=self._pipeline,
             namespace=namespace,

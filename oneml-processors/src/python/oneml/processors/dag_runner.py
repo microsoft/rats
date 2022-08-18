@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """Interface for running FlatDAG."""
 
 from __future__ import annotations

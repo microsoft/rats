@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import logging
 
 from oneml.pipelines import IExecutable, IStopPipelines

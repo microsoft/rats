@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from functools import lru_cache
 from threading import Thread
 from typing import Tuple
@@ -21,10 +23,7 @@ class Pipeline3ExampleApplication(IExecutable):
     _logging_client: LoggingClient
     _args: Tuple[str, ...]
 
-    def __init__(
-            self,
-            logging_client: LoggingClient,
-            args: Tuple[str, ...]):
+    def __init__(self, logging_client: LoggingClient, args: Tuple[str, ...]):
         self._logging_client = logging_client
         self._args = args
 
@@ -38,7 +37,8 @@ class Pipeline3ExampleApplication(IExecutable):
         svg_client = DagSvg(
             node_client=self._node_client(),
             dependencies_client=self._dependencies_client(),
-            node_state_client=self._node_state_client())
+            node_state_client=self._node_state_client(),
+        )
 
         viz = DagVisualizer(svg_client=svg_client)
         viz.execute()
@@ -95,19 +95,23 @@ class Pipeline3ExampleApplication(IExecutable):
         hpo.add_node(
             node=PipelineNode("eval"),
             executable=PauseStep(3),
-            dependencies=tuple([
-                pipeline.node(PipelineNode("data-prep")),
-                hpo.node(PipelineNode("train")),
-            ]),
+            dependencies=tuple(
+                [
+                    pipeline.node(PipelineNode("data-prep")),
+                    hpo.node(PipelineNode("train")),
+                ]
+            ),
         )
 
         fold = PipelineFolds[int](range(5), hpo)
         fold.add_node(
             node=PipelineNode("foo"),
             provider=FakeFoldExecutableProvider(),
-            dependencies=tuple([
-                hpo.node(PipelineNode("eval")),
-            ]),
+            dependencies=tuple(
+                [
+                    hpo.node(PipelineNode("eval")),
+                ]
+            ),
         )
 
         pipeline.add_node(

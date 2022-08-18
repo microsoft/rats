@@ -1,11 +1,14 @@
+# flake8: noqa
 import pytest
 
 from oneml.processors.identifiers import Identifier, ObjectIdentifier, SimpleObjectIdentifier
+
 
 def test_identifier():
     s = Identifier("identifier/aa")
     assert isinstance(s, Identifier)
     assert isinstance(s, str)
+
 
 def test_object_identifier():
     s = ObjectIdentifier("id/aa")
@@ -14,6 +17,7 @@ def test_object_identifier():
     assert isinstance(s, str)
     with pytest.raises(ValueError):
         s = ObjectIdentifier("id.aa")
+
 
 def test_simple_object_identifier():
     s = SimpleObjectIdentifier("id")

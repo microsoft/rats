@@ -1,3 +1,4 @@
+# type: ignore
 from .estimator import Estimator
 from .fit_and_evaluate import FitAndEvaluateFromThreeProcessors, FitAndEvaluateFromTwoProcessors
 from .linear_pipeline import LinearPipeline

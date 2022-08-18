@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from abc import ABC
 from functools import partial
 from typing import Any, Dict, Generic, List, Type

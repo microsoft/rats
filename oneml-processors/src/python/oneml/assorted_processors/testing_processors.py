@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from typing import Dict
 
 import numpy as np

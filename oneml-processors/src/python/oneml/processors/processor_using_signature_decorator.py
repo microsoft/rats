@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import inspect
 import logging
 import sys

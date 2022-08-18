@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from __future__ import annotations
 
 import logging
@@ -7,9 +9,9 @@ from oneml.lorenzo.pipelines3._example._gui import DagSvg, DagVisualizer, DotDag
 from oneml.pipelines import (
     CallableExecutable,
     CallableMultiExecutable,
-    PipelineNode,
     PipelineBuilderFactory,
     PipelineComponents,
+    PipelineNode,
 )
 
 logger = logging.getLogger(__name__)
@@ -49,13 +51,15 @@ def _render_tiny_pipeline() -> None:
 
     pipeline_builder.add_node(root.node("hello"))
     pipeline_builder.add_executable(
-        root.node("hello"), CallableExecutable(lambda: logger.info("hello from hello node")))
+        root.node("hello"), CallableExecutable(lambda: logger.info("hello from hello node"))
+    )
 
     users = multiplexer.get_instance(root, ["bob", "mike", "sam"])
     pipeline_builder.add_nodes(users.nodes("world"))
     users.add_external_dependency("world", root.node("hello"))
     users.add_executable(
-        "world", CallableMultiExecutable(lambda node: logger.info(f"hello from node: {node}")))
+        "world", CallableMultiExecutable(lambda node: logger.info(f"hello from node: {node}"))
+    )
 
     # MOVE FROM BUILDER TO PIPELINE
     pipeline_components: PipelineComponents = pipeline_builder.build()
@@ -107,14 +111,20 @@ def _render_training_pipeline() -> None:
 
     pipeline.add_dependency(root.node("prepare-data"), root.node("load-data"))
 
-    pipeline.add_dependencies(root.node("train-model"), [
-        root.node("load-parameters"),
-        root.node("prepare-data"),
-    ])
-    pipeline.add_dependencies(root.node("evaluate-model"), [
+    pipeline.add_dependencies(
         root.node("train-model"),
-        root.node("prepare-data"),
-    ])
+        [
+            root.node("load-parameters"),
+            root.node("prepare-data"),
+        ],
+    )
+    pipeline.add_dependencies(
+        root.node("evaluate-model"),
+        [
+            root.node("train-model"),
+            root.node("prepare-data"),
+        ],
+    )
 
     ###############
 

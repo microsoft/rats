@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import base64
 import uuid
 from typing import Optional

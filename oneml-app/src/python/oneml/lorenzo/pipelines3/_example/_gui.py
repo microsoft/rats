@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import io
 
 import cairosvg
@@ -5,10 +7,10 @@ import pydot
 import pygame
 
 from oneml.pipelines import (
-    PipelineNodeState,
-    ILocatePipelineNodes,
     ILocatePipelineNodeDependencies,
+    ILocatePipelineNodes,
     ILocatePipelineNodeState,
+    PipelineNodeState,
 )
 
 state_colors_map = {
@@ -27,10 +29,11 @@ class DotDag:
     _node_state_client: ILocatePipelineNodeState
 
     def __init__(
-            self,
-            node_client: ILocatePipelineNodes,
-            dependencies_client: ILocatePipelineNodeDependencies,
-            node_state_client: ILocatePipelineNodeState):
+        self,
+        node_client: ILocatePipelineNodes,
+        dependencies_client: ILocatePipelineNodeDependencies,
+        node_state_client: ILocatePipelineNodeState,
+    ):
         self._node_client = node_client
         self._dependencies_client = dependencies_client
         self._node_state_client = node_state_client
@@ -40,11 +43,14 @@ class DotDag:
 
         for node in self._node_client.get_nodes():
             node_state = self._node_state_client.get_node_state(node)
-            graph.add_node(pydot.Node(
-                name=f'"{node.key}"',
-                shape="box",
-                style="filled",
-                fillcolor=state_colors_map[node_state]))
+            graph.add_node(
+                pydot.Node(
+                    name=f'"{node.key}"',
+                    shape="box",
+                    style="filled",
+                    fillcolor=state_colors_map[node_state],
+                )
+            )
 
             for dep in self._dependencies_client.get_node_dependencies(node):
                 graph.add_edge(pydot.Edge(f'"{dep.key}"', f'"{node.key}"'))

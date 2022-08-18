@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# type: ignore
+# flake8: noqa
 
 import sys
 from typing import Dict, List

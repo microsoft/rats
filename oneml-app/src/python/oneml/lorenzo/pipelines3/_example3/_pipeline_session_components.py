@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from abc import abstractmethod
 from typing import Protocol
 
@@ -34,11 +36,12 @@ class PipelineSessionComponents:
     _node_state_client: PipelineNodeStateClient
 
     def __init__(
-            self,
-            pipeline_session: IPipelineSession,
-            frame: ITickablePipeline,
-            pipeline_state_client: PipelineSessionStateClient,
-            node_state_client: PipelineNodeStateClient):
+        self,
+        pipeline_session: IPipelineSession,
+        frame: ITickablePipeline,
+        pipeline_state_client: PipelineSessionStateClient,
+        node_state_client: PipelineNodeStateClient,
+    ):
         self._pipeline_session = pipeline_session
         self._frame = frame
         self._pipeline_state_client = pipeline_state_client
@@ -58,12 +61,12 @@ class PipelineSessionComponents:
 
 
 class PipelineSessionComponentsFactory:
-
     def get_instance(
-            self,
-            nodes_client: IManagePipelineNodes,
-            dependencies_client: IManagePipelineNodeDependencies,
-            executables_client: PipelineNodeExecutablesClient) -> PipelineSessionComponents:
+        self,
+        nodes_client: IManagePipelineNodes,
+        dependencies_client: IManagePipelineNodeDependencies,
+        executables_client: PipelineNodeExecutablesClient,
+    ) -> PipelineSessionComponents:
         pipeline_state = PipelineSessionStateClient()
         node_state = PipelineNodeStateClient()
 

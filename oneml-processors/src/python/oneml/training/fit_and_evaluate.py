@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """
     A FitAndEvaluate is a pipeline that fits using train data and evaluates on train and holdout
     data.

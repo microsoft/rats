@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """A node in a processing DAG."""
 
 from __future__ import annotations

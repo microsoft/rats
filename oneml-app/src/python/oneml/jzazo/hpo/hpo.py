@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """Hyperparameter Optimization."""
 
 from abc import ABC, abstractmethod

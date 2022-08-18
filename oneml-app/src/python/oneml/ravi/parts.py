@@ -56,7 +56,7 @@
 #
 #     def _assign(self, **kwargs: Dict) -> 'Part':
 #         """return a copy with updated attributes
-#         can specify nested attribute keys separated by '.', '__', or '/' (only '.' implemented)"""
+#         can specify nested attribute keys separated by '.', '__', or '/' (only '.' implemented)""
 #         # todo: aliasing
 #         result = self.shallowCopy()
 #         for k, v in kwargs:
@@ -101,7 +101,8 @@
 #     # actual implementation of the processor's algorithm
 #     # should only be called from Runner(), don't actually call directly
 #     # get inputs from self.* attributes, return outputs by assigning to result
-#     # todo: could autogenerate custom Result class with exact output attribute names, type checking
+#     # todo: could autogenerate custom Result class with exact output attribute names, type
+#       checking
 #     @abstractmethod
 #     def _run(self, result: Result) -> None:
 #         pass
@@ -147,9 +148,11 @@
 #
 #     def schedule(self, step: Step, **kwargs) -> Step:
 #         """
-#         schedules a step to run asynchronously when its inputs and compute resources are available
+#         schedules a step to run asynchronously when its inputs and compute resources are
+#         available
 #         immediately returns Step with input and output types T changed to Future[T]
-#         these can then be used to assign inputs of subsequently scheduled steps without waiting for completion
+#         these can then be used to assign inputs of subsequently scheduled steps without waiting
+#         for completion
 #         """
 #         pass
 #
@@ -252,7 +255,7 @@
 #         # supply inputs of step from nearest preceding output of same name
 #         result.lr = self.runner.run(self.lr, features=result.stz.features, labels=self.labels)
 #         # fitted pipeline has estimators replaced with their fitted outputs
-#         result.fitted = FittedStandardizedLogisticRegression(stz=result.stz.fitted, lr=result.lr.fitted)
+#  result.fitted = FittedStandardizedLogisticRegression(stz=result.stz.fitted, lr=result.lr.fitted)
 #         # export step outputs that were not consumed by later inputs
 #         result.features = result.lr.features
 #         result.predictions = result.lr.predictions

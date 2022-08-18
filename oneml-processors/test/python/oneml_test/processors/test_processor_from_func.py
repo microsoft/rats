@@ -1,3 +1,4 @@
+# flake8: noqa
 from typing import cast
 
 import numpy as np

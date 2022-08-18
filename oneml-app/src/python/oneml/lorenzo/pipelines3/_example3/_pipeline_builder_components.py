@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from functools import lru_cache
 
 from ._multiplexing import PipelineNodeMultiplexerFactory
@@ -26,7 +28,6 @@ class PipelineBuilderComponents:
 
 
 class PipelineBuilderFactory:
-
     @lru_cache()
     def get_instance(self, pipeline_name: str) -> PipelineBuilderComponents:
         return PipelineBuilderComponents(pipeline_name=pipeline_name)

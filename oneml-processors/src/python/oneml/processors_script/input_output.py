@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import os
 from typing import Dict, Type
 

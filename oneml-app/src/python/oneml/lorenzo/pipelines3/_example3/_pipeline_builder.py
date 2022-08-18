@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from typing import Dict, Iterable, Set
 
 from oneml.pipelines import PipelineNode, PipelineNodeClient, PipelineNodeDependenciesClient
@@ -53,7 +55,8 @@ class PipelineBuilder:
             node_client.register_node(node)
 
             dependencies_client.register_node_dependencies(
-                node, tuple(self._dependencies.get(node, [])))
+                node, tuple(self._dependencies.get(node, []))
+            )
 
             executables_client.register_node_executable(node, self._executables[node])
 

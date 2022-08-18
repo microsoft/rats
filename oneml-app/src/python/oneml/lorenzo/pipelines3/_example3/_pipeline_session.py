@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import logging
 from abc import abstractmethod
 from typing import Protocol
@@ -16,14 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 class IRunnablePipelineSession(Protocol):
-
     @abstractmethod
     def run(self) -> None:
         pass
 
 
 class IStoppablePipelineSession(Protocol):
-
     @abstractmethod
     def stop(self) -> None:
         pass
@@ -42,11 +42,12 @@ class DemoPipelineSessionFrame(ITickablePipeline):
     _close: ClosePipelineFrameCommand
 
     def __init__(
-            self,
-            registered: PromoteRegisteredNodesCommand,
-            queued: PromoteQueuedNodesCommand,
-            execute: ExecutePipelineFrameCommand,
-            close: ClosePipelineFrameCommand):
+        self,
+        registered: PromoteRegisteredNodesCommand,
+        queued: PromoteQueuedNodesCommand,
+        execute: ExecutePipelineFrameCommand,
+        close: ClosePipelineFrameCommand,
+    ):
         self._registered = registered
         self._queued = queued
         self._execute = execute

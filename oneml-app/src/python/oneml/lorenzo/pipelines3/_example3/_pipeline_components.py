@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from abc import abstractmethod
 from functools import lru_cache
 from typing import Protocol
@@ -28,7 +30,6 @@ from oneml.pipelines import (
 
 
 class IProvidePipelineComponents(Protocol):
-
     @abstractmethod
     def node_client(self) -> IManagePipelineNodes:
         pass
@@ -49,11 +50,12 @@ class PipelineComponents(IProvidePipelineComponents):
     _session_factory: PipelineSessionComponentsFactory
 
     def __init__(
-            self,
-            node_client: PipelineNodeClient,
-            dependencies_client: PipelineNodeDependenciesClient,
-            executables_client: PipelineNodeExecutablesClient,
-            session_factory: PipelineSessionComponentsFactory):
+        self,
+        node_client: PipelineNodeClient,
+        dependencies_client: PipelineNodeDependenciesClient,
+        executables_client: PipelineNodeExecutablesClient,
+        session_factory: PipelineSessionComponentsFactory,
+    ):
         self._node_client = node_client
         self._dependencies_client = dependencies_client
         self._executables_client = executables_client

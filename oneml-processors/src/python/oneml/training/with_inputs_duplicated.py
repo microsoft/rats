@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from typing import Callable
 
 from ..processors import DAG, DAGFlattener, FlatDAG, InputPortAddress, NodeName, OutputPortAddress

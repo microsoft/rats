@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from collections import UserDict
 from typing import Any, Dict, Generic, List
 

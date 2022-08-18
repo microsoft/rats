@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """Interface for scheduling pipeline steps.
 
 Steps need to interact with three environments:
@@ -14,7 +16,7 @@ from typing import Any, Dict, Iterable, Tuple
 
 class DataIdentifier(ABC):
     """Identifies step inputs and outputs.
-    
+
     To be created by scheduling environment.
     """
 
@@ -33,7 +35,7 @@ class StepForScheduling(ABC):
     @abstractmethod
     def get_compute_requirements() -> ComputeRequirements:
         """Get the compute requirements needed to execute this step.
-        
+
         Specified by client environment, and could be a requirement to run in the same python process as the client environment.
 
         To be called by scheduling environment.
@@ -42,7 +44,7 @@ class StepForScheduling(ABC):
     @abstractmethod
     def get_input_identifiers() -> Dict[str, DataIdentifier]:
         """Get a mapping from input name to input identifier.
-        
+
         To be called by scheduler in order to wait until inputs are ready.
 
         To be called by compute environment in order to read inputs to be passed to `execute`.
@@ -70,16 +72,13 @@ class ScheduledStep(ABC):
     @abstractmethod
     def execute(**inputs: Any) -> Iterable[Tuple[str, Any]]:
         """Process the inputs, generating outputs.  Output elements should be tuples of output name to output value.
-        
+
         To be called by compute environment.
         """
 
     @abstractmethod
     def wait() -> CompletedStep:
-        """Wait until step outputs are ready.
-        
-        
-        """
+        """Wait until step outputs are ready."""
 
 
 class CompletedStep(ABC):

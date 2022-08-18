@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from abc import abstractmethod
 from typing import Dict, Protocol
 
@@ -11,30 +13,29 @@ class PipelineNodeExecutable(IExecutable, Protocol):
 class IExecutePipelineNodes(Protocol):
     @abstractmethod
     def execute_node(self, node: PipelineNode) -> None:
-        """
-        """
+        """ """
 
 
 class ILocatePipelineNodeExecutables(Protocol):
     @abstractmethod
     def get_node_executable(self, node: PipelineNode) -> PipelineNodeExecutable:
-        """
-        """
+        """ """
 
 
 class IRegisterPipelineNodeExecutables(Protocol):
     @abstractmethod
     def register_node_executable(
-            self, node: PipelineNode, executable: PipelineNodeExecutable) -> None:
-        """
-        """
+        self, node: PipelineNode, executable: PipelineNodeExecutable
+    ) -> None:
+        """ """
 
 
 class IManagePipelineNodeExecutables(
-        ILocatePipelineNodeExecutables,
-        IRegisterPipelineNodeExecutables,
-        IExecutePipelineNodes,
-        Protocol):
+    ILocatePipelineNodeExecutables,
+    IRegisterPipelineNodeExecutables,
+    IExecutePipelineNodes,
+    Protocol,
+):
     pass
 
 
@@ -53,7 +54,8 @@ class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables):
         return self._executables[node]
 
     def register_node_executable(
-            self, node: PipelineNode, executable: PipelineNodeExecutable) -> None:
+        self, node: PipelineNode, executable: PipelineNodeExecutable
+    ) -> None:
         if node in self._executables:
             raise RuntimeError(f"Diplicate node executable: {node}")
 

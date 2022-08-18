@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """A DAG of processors that is a processor itself."""
 
 from __future__ import annotations

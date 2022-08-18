@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from typing import Any, Dict, List
 
 import numpy as np
@@ -57,8 +59,8 @@ class HyperGridSearch(Step):
 
     def _run(self, result: Result) -> None:
         # for now use just single train, val split for simplicity; real impl would be k-fold
-        train, val = self._runner.schedule(assign_inputs(self.splitter, self))[['train', 'val']]
-        # schedule asynchronous pipeline for each 
+        train, val = self._runner.schedule(assign_inputs(self.splitter, self))[["train", "val"]]
+        # schedule asynchronous pipeline for each
         metrics = []
         parametrizations = cartesian_product(self.parameters)
         for p in parametrizations:
@@ -74,7 +76,9 @@ class HyperGridSearch(Step):
         metrics = self._runner.wait(*metrics)
         best_i = np.argmax(metrics)
         # train modeler with best parameter settings
-        best = self._runner.schedule(assign_inputs(self.modeler._assign(**parametrizations[best_i]), self))
+        best = self._runner.schedule(
+            assign_inputs(self.modeler._assign(**parametrizations[best_i]), self)
+        )
         # export all outputs from best, including fitted model
         set_outputs(result, best)
         # report resulting artifacts

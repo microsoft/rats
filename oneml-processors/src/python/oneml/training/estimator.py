@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from typing import Callable, Dict, Optional, Type
 
 from munch import Munch
