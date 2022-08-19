@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Set, Tuple

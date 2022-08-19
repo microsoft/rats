@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import base64
 import uuid
 from collections import defaultdict
@@ -43,9 +45,9 @@ class DAGFlattener:
                     internal_input_port_address,
                     internal_output_port_address,
                 ) in node.edges.items():
-                    edges[
-                        node_name + internal_input_port_address
-                    ] = node_name + internal_output_port_address
+                    edges[node_name + internal_input_port_address] = (
+                        node_name + internal_output_port_address
+                    )
                 for (
                     internal_input_port_address,
                     internal_input_port_name,

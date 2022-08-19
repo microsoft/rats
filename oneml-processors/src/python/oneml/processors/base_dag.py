@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """Base class for DAG of processing nodes."""
 
 from __future__ import annotations

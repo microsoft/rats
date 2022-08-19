@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import re
 from copy import deepcopy
 from dataclasses import dataclass

@@ -1,3 +1,5 @@
+# flake8: noqa
+# type: ignore
 from __future__ import annotations
 
 import logging
@@ -41,9 +43,7 @@ class ExecutableWrappingProcessingNode(IExecutable):
             for key in self.node.get_input_schema().keys()
         }
         logger.debug("Executing <%s>.  Loaded inputs.", self.node_key)
-        outputs: Dict[OutputPortName, Any] = self.node.process(
-            self.run_context, **inputs
-        )  # type:ignore [misc]
+        outputs: Dict[OutputPortName, Any] = self.node.process(self.run_context, **inputs)
         logger.debug("Executing <%s>.  Calculated outputs <%s>.", self.node_key, outputs.keys())
         for port_name, value in outputs.items():
             self._save(OutputPortAddress(self.node_key, port_name), value)

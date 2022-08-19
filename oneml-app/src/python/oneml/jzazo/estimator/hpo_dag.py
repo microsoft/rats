@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import dataclasses
 from typing import Any, Dict, List, Tuple
 

@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """Classes for object identifiers.
 
 We use strings to identify objects such as DAG nodes and ports of those nodes.

@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 """A runnable flattened DAG of processors."""
 
 from __future__ import annotations

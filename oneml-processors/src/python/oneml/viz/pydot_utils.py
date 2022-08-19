@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import pydot
 
 from ..processors.base_dag import BaseDAG

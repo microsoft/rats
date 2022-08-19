@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 import logging
 from collections import defaultdict
 from dataclasses import dataclass
@@ -10,6 +12,7 @@ from networkx.algorithms.dag import topological_sort
 from .processors import Processor
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class DAG(Processor):
@@ -30,25 +33,39 @@ class DAG(Processor):
             for export_name, (node_name, output_name_in_node) in self.outputs
         }
 
-    def _get_mapping_from_node_output_names(self) -> Dict[Tuple[str, str], List[Union[str, Tuple[str, str]]]]:
+    def _get_mapping_from_node_output_names(
+        self,
+    ) -> Dict[Tuple[str, str], List[Union[str, Tuple[str, str]]]]:
         d = defaultdict(list)
-        for ((source_node_name, output_name_in_source), (target_node_name, input_name_in_target)) in self.edges:
-            d[(source_node_name, output_name_in_source)].append((target_node_name, input_name_in_target))
+        for (
+            (source_node_name, output_name_in_source),
+            (target_node_name, input_name_in_target),
+        ) in self.edges:
+            d[(source_node_name, output_name_in_source)].append(
+                (target_node_name, input_name_in_target)
+            )
         for export_name, (node_name, output_name_in_node) in self.outputs:
             d[(node_name, output_name_in_node)].append(export_name)
         return d
 
     def _get_node_edges(self) -> Sequence[Tuple[str, str]]:
-        edges = [
-            ("***source***", target_node_name)
-            for _, (target_node_name, input_name_in_target) in self.inputs
-        ] + [
-            (source_node_name, target_node_name)
-            for ((source_node_name, output_name_in_source), (target_node_name, input_name_in_target)) in self.edges
-        ] + [
-            (source_node_name, "***target***")
-            for _, (source_node_name, output_name_in_source) in self.outputs
-        ]
+        edges = (
+            [
+                ("***source***", target_node_name)
+                for _, (target_node_name, input_name_in_target) in self.inputs
+            ]
+            + [
+                (source_node_name, target_node_name)
+                for (
+                    (source_node_name, output_name_in_source),
+                    (target_node_name, input_name_in_target),
+                ) in self.edges
+            ]
+            + [
+                (source_node_name, "***target***")
+                for _, (source_node_name, output_name_in_source) in self.outputs
+            ]
+        )
         return list(set(edges))
 
     def _get_digraph(self) -> DiGraph:
@@ -77,8 +94,10 @@ class DAG(Processor):
                 for target in targets:
                     logger.debug("adding data for %s", target)
                     data_dict[target] = output_value
-        export_outputs = munchify({
-            export_name: data_dict[export_name]
-            for export_name in self.get_output_schema().keys()
-        })
+        export_outputs = munchify(
+            {
+                export_name: data_dict[export_name]
+                for export_name in self.get_output_schema().keys()
+            }
+        )
         return export_outputs

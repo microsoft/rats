@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from typing import Sequence, Tuple
 
 from munch import Munch

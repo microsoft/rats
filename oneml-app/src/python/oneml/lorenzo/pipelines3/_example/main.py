@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 from oneml.lorenzo.pipelines3._example._di_container import Pipeline3DiContainer
 
 

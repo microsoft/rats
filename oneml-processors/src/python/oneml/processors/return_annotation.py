@@ -1,3 +1,5 @@
+# type: ignore
+# flake8: noqa
 # from base64 import b32encode
 # from pickle import dumps
 from typing import NamedTuple, Type
