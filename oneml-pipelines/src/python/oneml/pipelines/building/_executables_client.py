@@ -17,6 +17,15 @@ class IPipelineSessionExecutable(Protocol):
         pass
 
 
+class IManageBuilderExecutables(Protocol):
+    @abstractmethod
+    def add_executable(
+            self,
+            node: PipelineNode,
+            session_executable: IPipelineSessionExecutable) -> None:
+        pass
+
+
 class ExecutablesPlugin(IPipelineSessionPlugin):
 
     _node: PipelineNode
@@ -34,7 +43,7 @@ class ExecutablesPlugin(IPipelineSessionPlugin):
         )
 
 
-class PipelineBuilderExecutablesClient:
+class PipelineBuilderExecutablesClient(IManageBuilderExecutables):
 
     _session_plugin_client: IRegisterPipelineSessionPlugins
 

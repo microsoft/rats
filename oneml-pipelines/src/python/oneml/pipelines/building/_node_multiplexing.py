@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 PipelineMultiplexValuesType = Iterable[Union[str, int]]
 
 
+class IMultiplexPipelineNodes(Protocol):
+    @abstractmethod
+    def multiplex(self, values: PipelineMultiplexValuesType) -> PipelineNodeMultiplexer:
+        pass
+
+
 class MultiPipelineNodeExecutable(Protocol):
     @abstractmethod
     def execute(self, node: PipelineNode) -> None:
@@ -40,7 +46,7 @@ class CallableMultiExecutable(MultiPipelineNodeExecutable):
         self._callback(node)
 
 
-class PipelineNodeMultiplexer:
+class PipelineNodeMultiplexer(IMultiplexPipelineNodes):
     _dag_client: PipelineDagClient
     _namespace_client: PipelineNamespaceClient
     _values: PipelineMultiplexValuesType

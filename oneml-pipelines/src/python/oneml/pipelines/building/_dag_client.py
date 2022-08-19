@@ -1,15 +1,36 @@
-from typing import Dict, Iterable, Set, Tuple
+from abc import abstractmethod
+from typing import Dict, Iterable, Set, Protocol
 
 from oneml.pipelines.dag import (
     PipelineNode,
-    IManagePipelineNodeDependencies,
-    IManagePipelineNodes,
     PipelineNodeClient,
     PipelineNodeDependenciesClient, PipelineClient,
 )
 
 
-class PipelineDagClient:
+class IPipelineDagClient(Protocol):
+    @abstractmethod
+    def add_nodes(self, nodes: Iterable[PipelineNode]) -> None:
+        pass
+
+    @abstractmethod
+    def add_node(self, node: PipelineNode) -> None:
+        pass
+
+    @abstractmethod
+    def add_dependencies(self, node: PipelineNode, dependencies: Iterable[PipelineNode]) -> None:
+        pass
+
+    @abstractmethod
+    def add_dependency(self, node: PipelineNode, dependency: PipelineNode) -> None:
+        pass
+
+    @abstractmethod
+    def build(self) -> PipelineClient:
+        pass
+
+
+class PipelineDagClient(IPipelineDagClient):
 
     _nodes: Set[PipelineNode]
     _dependencies: Dict[PipelineNode, Set[PipelineNode]]

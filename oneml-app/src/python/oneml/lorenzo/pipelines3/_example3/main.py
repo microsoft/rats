@@ -16,44 +16,39 @@ logger = logging.getLogger(__name__)
 class TinyPipelineExample:
 
     def do_it(self) -> None:
-        factory = PipelineBuilderFactory()
-        builder_client = factory.get_instance()
+        builder = PipelineBuilderFactory().get_instance()
 
-        dag = builder_client.dag()
-        root = builder_client.namespace_client()
-        executables_client = builder_client.executables()
-
-        dag.add_node(root.node("hello"))
-        executables_client.add_executable(
+        builder.add_node(builder.node("hello"))
+        builder.add_executable(
             # TODO: make this less repetitive and error prone :)
-            root.node("hello"),
-            ProduceExampleSamplesRunner(root.node("hello")),
+            builder.node("hello"),
+            ProduceExampleSamplesRunner(builder.node("hello")),
         )
 
-        dag.add_node(root.node("world"))
-        dag.add_dependency(root.node("world"), root.node("hello"))
-        executables_client.add_executable(
+        builder.add_node(builder.node("world"))
+        builder.add_dependency(builder.node("world"), builder.node("hello"))
+        builder.add_executable(
             # TODO: make this less repetitive and error prone :)
-            root.node("world"),
-            LogExampleSamplesRunner(input_node=root.node("hello")),
+            builder.node("world"),
+            LogExampleSamplesRunner(input_node=builder.node("hello")),
         )
 
-        pipeline_client = dag.build()
-        session_factory = builder_client.session_factory()
+        pipeline_client = builder.build()
+        session_factory = builder.get_session_client_factory()
 
         session_client = session_factory.get_instance(pipeline_client)
         session = session_client.pipeline_session_client()
         session.run()
 
-        self.do_again(session_client.pipeline_data_client())
+        # self.do_again(session_client.pipeline_data_client())
 
     def do_again(self, proxy_storage: IManagePipelineData) -> None:
         factory = PipelineBuilderFactory()
         builder_client = factory.get_instance()
 
-        dag = builder_client.dag()
-        root = builder_client.namespace_client()
-        executables_client = builder_client.executables()
+        dag = builder_client.get_dag_client()
+        root = builder_client.get_namespace_client()
+        executables_client = builder_client.get_executables_client()
 
         dag.add_node(root.node("world"))
         # dag.add_dependency(root.node("world"), root.node("hello"))
@@ -63,7 +58,7 @@ class TinyPipelineExample:
         )
 
         pipeline_client = dag.build()
-        session_factory = builder_client.session_factory()
+        session_factory = builder_client.get_session_client_factory()
 
         session_components = session_factory.get_instance_with_external_data(
             pipeline_client=pipeline_client,
