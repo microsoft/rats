@@ -7,7 +7,6 @@ from oneml.pipelines.session import (
     IExecutable,
     PipelineNodeDataClient,
     PipelineDataNode,
-    PipelineNodeDataClientFactory,
     PipelineSessionClient,
 )
 
@@ -38,19 +37,45 @@ class ProduceExampleSamples(IExecutable):
         )
 
 
-class ProduceExampleSamplesFactory:
+class ProduceExampleSamplesRunner(IPipelineSessionExecutable):
+    _node: PipelineNode
 
-    _node_data_client_factory: PipelineNodeDataClientFactory
+    def __init__(self, node: PipelineNode) -> None:
+        self._node = node
 
-    def __init__(self, node_data_client_factory: PipelineNodeDataClientFactory) -> None:
-        self._node_data_client_factory = node_data_client_factory
-
-    def get_instance(self, node: PipelineNode) -> ProduceExampleSamples:
-        return ProduceExampleSamples(
-            node_data_client=self._node_data_client_factory.get_instance(node)
-        )
-
-
-class FooBarExecutable(IPipelineSessionExecutable):
     def execute(self, session_client: PipelineSessionClient) -> None:
-        logging.warning("EXECUTING FOOBAREXECUTABLE!")
+        logging.warning("EXECUTING ProduceExampleSamplesRunner!")
+        data_factory = session_client.node_data_client_factory()
+        step_data = data_factory.get_instance(self._node)
+        step = ProduceExampleSamples(node_data_client=step_data)
+        step.execute()
+
+
+class LogExampleSamples(IExecutable):
+
+    _data: ExampleSamples
+
+    def __init__(self, data: ExampleSamples):
+        self._data = data
+
+    def execute(self) -> None:
+        logger.warning(f"Number of samples: {len(self._data.samples())}")
+        for sample in self._data.samples():
+            logger.warning(f"Sample: {sample}")
+
+
+class LogExampleSamplesRunner(IPipelineSessionExecutable):
+    _input_node: PipelineNode
+
+    def __init__(self, input_node: PipelineNode) -> None:
+        self._input_node = input_node
+
+    def execute(self, session_client: PipelineSessionClient) -> None:
+        logging.warning("EXECUTING LogExampleSamplesRunner!")
+        data_factory = session_client.node_data_client_factory()
+        data_node = PipelineDataNode[ExampleSamples]("example-samples")
+
+        input_data = data_factory.get_instance(self._input_node).get_data(data_node)
+
+        step = LogExampleSamples(data=input_data)
+        step.execute()

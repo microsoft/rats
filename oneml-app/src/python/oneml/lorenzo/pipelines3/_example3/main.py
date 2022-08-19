@@ -5,32 +5,71 @@ import logging
 from oneml.lorenzo.pipelines3._example._di_container import Pipeline3DiContainer
 from oneml.lorenzo.pipelines3._example._gui import DagSvg, DagVisualizer, DotDag
 from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
-from oneml.lorenzo.pipelines3._example3._sample_steps import FooBarExecutable
+from oneml.lorenzo.pipelines3._example3._sample_steps import ProduceExampleSamplesRunner, \
+    LogExampleSamplesRunner
 from oneml.pipelines.dag import PipelineNode
+from oneml.pipelines.session._session_data_client import IManagePipelineData
 
 logger = logging.getLogger(__name__)
 
 
 class TinyPipelineExample:
 
-    _builder_client: PipelineBuilderClient
-
-    def __init__(self, builder_client: PipelineBuilderClient) -> None:
-        self._builder_client = builder_client
-
     def do_it(self) -> None:
-        dag = self._builder_client.dag()
-        root = self._builder_client.namespace_client()
-        executables_client = self._builder_client.executables()
+        factory = PipelineBuilderFactory()
+        builder_client = factory.get_instance()
+
+        dag = builder_client.dag()
+        root = builder_client.namespace_client()
+        executables_client = builder_client.executables()
 
         dag.add_node(root.node("hello"))
+        executables_client.add_executable(
+            # TODO: make this less repetitive and error prone :)
+            root.node("hello"),
+            ProduceExampleSamplesRunner(root.node("hello")),
+        )
 
-        executables_client.add_executable(root.node("hello"), FooBarExecutable())
+        dag.add_node(root.node("world"))
+        dag.add_dependency(root.node("world"), root.node("hello"))
+        executables_client.add_executable(
+            # TODO: make this less repetitive and error prone :)
+            root.node("world"),
+            LogExampleSamplesRunner(input_node=root.node("hello")),
+        )
 
         pipeline_client = dag.build()
-        session_factory = self._builder_client.session_factory()
+        session_factory = builder_client.session_factory()
 
-        session_components = session_factory.get_instance(pipeline_client)
+        session_client = session_factory.get_instance(pipeline_client)
+        session = session_client.pipeline_session_client()
+        session.run()
+
+        self.do_again(session_client.pipeline_data_client())
+
+    def do_again(self, proxy_storage: IManagePipelineData) -> None:
+        factory = PipelineBuilderFactory()
+        builder_client = factory.get_instance()
+
+        dag = builder_client.dag()
+        root = builder_client.namespace_client()
+        executables_client = builder_client.executables()
+
+        dag.add_node(root.node("world"))
+        # dag.add_dependency(root.node("world"), root.node("hello"))
+        executables_client.add_executable(
+            root.node("world"),
+            LogExampleSamplesRunner(input_node=root.node("hello")),
+        )
+
+        pipeline_client = dag.build()
+        session_factory = builder_client.session_factory()
+
+        session_components = session_factory.get_instance_with_external_data(
+            pipeline_client=pipeline_client,
+            external_storage=proxy_storage,
+            external_nodes=(root.node("hello"),)
+        )
         session = session_components.pipeline_session_client()
         session.run()
 
@@ -103,11 +142,7 @@ def _render_tiny_pipeline() -> None:
         - ClosePipelineFrameCommand stops the pipeline if all nodes are done
     """
     ##############
-
-    factory = PipelineBuilderFactory()
-    builder_client = factory.get_instance()
-
-    thing = TinyPipelineExample(builder_client)
+    thing = TinyPipelineExample()
     thing.do_it()
 
 
