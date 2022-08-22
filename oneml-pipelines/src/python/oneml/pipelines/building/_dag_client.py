@@ -1,10 +1,11 @@
 from abc import abstractmethod
-from typing import Dict, Iterable, Set, Protocol
+from typing import Dict, Iterable, Protocol, Set
 
 from oneml.pipelines.dag import (
+    PipelineClient,
     PipelineNode,
     PipelineNodeClient,
-    PipelineNodeDependenciesClient, PipelineClient,
+    PipelineNodeDependenciesClient,
 )
 
 

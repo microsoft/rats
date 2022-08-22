@@ -1,8 +1,9 @@
 from abc import abstractmethod
 from typing import Dict, Protocol
 
-from ._executable import IExecutable
 from oneml.pipelines.dag import PipelineNode
+
+from ._executable import IExecutable
 
 
 class ILocatePipelineNodeExecutables(Protocol):

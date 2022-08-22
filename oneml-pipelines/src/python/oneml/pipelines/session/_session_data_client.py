@@ -1,8 +1,8 @@
 import logging
-from abc import abstractmethod, ABC
+from abc import abstractmethod
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Dict, Generic, Set, Tuple, TypeVar, Protocol
+from typing import Dict, Generic, Protocol, Tuple, TypeVar
 
 from oneml.pipelines.dag import PipelineNode
 
@@ -59,7 +59,7 @@ class IManagePipelineData(Protocol):
 
 class PipelineDataClient(IManagePipelineData):
 
-    _data: Dict[Tuple[PipelineNode, PipelineDataNode[DataType]], DataType]
+    _data: Dict[Tuple[PipelineNode, PipelineDataNode[DataType]], DataType]  # type: ignore
 
     def __init__(self) -> None:
         self._data = {}

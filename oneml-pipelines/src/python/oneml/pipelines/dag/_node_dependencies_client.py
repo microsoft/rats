@@ -2,8 +2,8 @@ import logging
 from abc import abstractmethod
 from typing import Dict, Protocol, Tuple
 
-from ._structs import PipelineNode
 from ._node_client import ILocatePipelineNodes
+from ._structs import PipelineNode
 
 logger = logging.getLogger(__name__)
 

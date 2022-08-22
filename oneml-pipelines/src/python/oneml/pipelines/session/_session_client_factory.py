@@ -1,16 +1,21 @@
 import uuid
 from typing import Tuple
 
+from oneml.pipelines.dag import PipelineClient, PipelineNode
+
 from ._executable import CallableExecutable
 from ._node_execution import PipelineNodeExecutablesClient
 from ._node_state import PipelineNodeState, PipelineNodeStateClient
 from ._session import PipelineSession
 from ._session_client import PipelineSessionClient
-from ._session_data_client import PipelineDataClient, PipelineNodeDataClientFactory, \
-    IManagePipelineData, ReadProxyPipelineDataClient
-from ._session_frame import PipelineSessionFrame, BasicPipelineSessionFrameCommands
+from ._session_data_client import (
+    IManagePipelineData,
+    PipelineDataClient,
+    PipelineNodeDataClientFactory,
+    ReadProxyPipelineDataClient,
+)
+from ._session_frame import BasicPipelineSessionFrameCommands, PipelineSessionFrame
 from ._session_plugins import IActivatePipelineSessionPlugins
-from oneml.pipelines.dag import PipelineClient, PipelineNode
 from ._session_state import PipelineSessionStateClient
 
 

@@ -6,8 +6,10 @@ from oneml.pipelines.dag import IManagePipelineNodeDependencies
 from oneml.pipelines.session._executable import IExecutable
 from oneml.pipelines.session._node_execution import IExecutePipelineNodes
 from oneml.pipelines.session._node_state import IManagePipelineNodeState, PipelineNodeState
-from oneml.pipelines.session._session_state import IManagePipelineSessionState, \
-    PipelineSessionState
+from oneml.pipelines.session._session_state import (
+    IManagePipelineSessionState,
+    PipelineSessionState,
+)
 
 logger = logging.getLogger(__name__)
 

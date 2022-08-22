@@ -4,9 +4,9 @@ from typing import Protocol
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.session import (
     CallableExecutable,
-    PipelineSessionClient,
     IPipelineSessionPlugin,
     IRegisterPipelineSessionPlugins,
+    PipelineSessionClient,
 )
 
 

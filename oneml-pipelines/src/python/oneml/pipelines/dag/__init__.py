@@ -1,20 +1,20 @@
-from ._structs import PipelineNode
 from ._node_client import (
-    IRegisterPipelineNodes,
+    DuplicatePipelineNodeError,
     ILocatePipelineNodes,
     IManagePipelineNodes,
-    PipelineNodeClient,
-    DuplicatePipelineNodeError,
+    IRegisterPipelineNodes,
     NodeNotFoundError,
+    PipelineNodeClient,
 )
 from ._node_dependencies_client import (
     ILocatePipelineNodeDependencies,
-    IRegisterPipelineNodeDependencies,
     IManagePipelineNodeDependencies,
-    PipelineNodeDependenciesClient,
+    IRegisterPipelineNodeDependencies,
     NodeDependenciesRegisteredError,
+    PipelineNodeDependenciesClient,
 )
 from ._pipeline_client import PipelineClient
+from ._structs import PipelineNode
 
 __all__ = [
     "PipelineNode",

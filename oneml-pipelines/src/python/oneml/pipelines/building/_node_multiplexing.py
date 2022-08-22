@@ -5,9 +5,10 @@ import logging
 from abc import abstractmethod
 from typing import Callable, Iterable, Protocol, Union
 
+from oneml.pipelines.dag import PipelineNode
+
 from ._dag_client import PipelineDagClient
 from ._node_namespacing import PipelineNamespaceClient
-from oneml.pipelines.dag import PipelineNode
 
 logger = logging.getLogger(__name__)
 

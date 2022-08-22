@@ -116,6 +116,13 @@ show_traceback = true
 show_error_codes = true
 show_column_numbers = true
 
+[[tool.mypy.overrides]]
+module = [
+    "cairosvg.*",
+    "pydot.*",
+]
+ignore_missing_imports = true
+
 [tool.coverage.run]
 branch = true
 data_file = "../.tmp/oneml-app/.coverage"

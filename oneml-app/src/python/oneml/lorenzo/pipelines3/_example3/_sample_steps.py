@@ -5,8 +5,8 @@ from oneml.pipelines.building import IPipelineSessionExecutable
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.session import (
     IExecutable,
-    PipelineNodeDataClient,
     PipelineDataNode,
+    PipelineNodeDataClient,
     PipelineSessionClient,
 )
 

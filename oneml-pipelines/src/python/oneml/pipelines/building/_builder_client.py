@@ -1,15 +1,30 @@
 from functools import lru_cache
 from typing import Iterable
 
-from ._dag_client import PipelineDagClient, IPipelineDagClient
-from ._executables_client import PipelineBuilderExecutablesClient, IManageBuilderExecutables, \
-    IPipelineSessionExecutable
-from ._node_multiplexing import PipelineNodeMultiplexerFactory, PipelineMultiplexValuesType, \
-    PipelineNodeMultiplexer, IMultiplexPipelineNodes
-from ._node_namespacing import PipelineNamespaceClient, INamespacePipelineNodes, \
-    ICreatePipelineNamespaces
-from oneml.pipelines.session import PipelineSessionClientFactory, PipelineSessionPluginClient
-from oneml.pipelines.dag import PipelineNode, PipelineClient
+from oneml.pipelines.dag import PipelineClient, PipelineNode
+from oneml.pipelines.session import (
+    PipelineSessionClient,
+    PipelineSessionClientFactory,
+    PipelineSessionPluginClient,
+)
+
+from ._dag_client import IPipelineDagClient, PipelineDagClient
+from ._executables_client import (
+    IManageBuilderExecutables,
+    IPipelineSessionExecutable,
+    PipelineBuilderExecutablesClient,
+)
+from ._node_multiplexing import (
+    IMultiplexPipelineNodes,
+    PipelineMultiplexValuesType,
+    PipelineNodeMultiplexer,
+    PipelineNodeMultiplexerFactory,
+)
+from ._node_namespacing import (
+    ICreatePipelineNamespaces,
+    INamespacePipelineNodes,
+    PipelineNamespaceClient,
+)
 
 
 class PipelineBuilderClient(
@@ -30,6 +45,9 @@ class PipelineBuilderClient(
 
     def add_dependency(self, node: PipelineNode, dependency: PipelineNode) -> None:
         self.get_dag_client().add_dependency(node, dependency)
+
+    def build_session(self) -> PipelineSessionClient:
+        return self.get_session_client_factory().get_instance(self.build())
 
     def build(self) -> PipelineClient:
         return self.get_dag_client().build()

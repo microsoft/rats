@@ -56,7 +56,7 @@ class CallableExecutable(IExecutable):
         self._callback()
 
 
-ContextType = TypeVar("ContextType")
+ContextType = TypeVar("ContextType", contravariant=True)
 
 
 class IContextualCallableExecutable(Protocol[ContextType]):
