@@ -5,9 +5,12 @@ from functools import lru_cache
 from typing import Dict, Generic, Protocol, Tuple, TypeVar
 
 from oneml.pipelines.dag import PipelineNode
+from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependenciesClient
 
 logger = logging.getLogger(__name__)
+# TODO: Move DataType and PipelineDataNode into DAG package
 DataType = TypeVar("DataType")
+# TODO: javier wants these to be called `save()` and `load()`
 
 
 @dataclass(frozen=True)
@@ -15,34 +18,14 @@ class PipelineDataNode(Generic[DataType]):
     key: str
 
 
-# TODO: data dependencies might belong in `dag`.
-# @dataclass(frozen=True)
-# class PipelineDataDependency(Generic[DataType]):
-#     pipeline_node: PipelineNode
-#     data_node: PipelineDataNode[DataType]
+class ILoadPipelineData(Protocol):
+    @abstractmethod
+    def get_data(
+            self, pipeline_node: PipelineNode, data_node: PipelineDataNode[DataType]) -> DataType:
+        pass
 
 
-# class PipelineDataDependenciesClient:
-#
-#     _dependencies: Dict[PipelineNode, Set[PipelineDataDependency]]
-#
-#     def register_data_dependency(
-#             self,
-#             pipeline_node: PipelineNode,
-#             dependency: PipelineDataDependency) -> None:
-#         current = self._dependencies.get(pipeline_node, set())
-#         if dependency in current:
-#             raise RuntimeError(f"Duplicate dependency found: {pipeline_node} -> {dependency}")
-#
-#         current.add(dependency)
-#         self._dependencies[pipeline_node] = current
-#
-#     def get_node_dependencies(
-#             self, pipeline_node: PipelineNode) -> Tuple[PipelineDataDependency, ...]:
-#         return tuple(self._dependencies.get(pipeline_node, set()))
-
-
-class IManagePipelineData(Protocol):
+class IPublishPipelineData(Protocol):
     @abstractmethod
     def publish_data(
             self,
@@ -51,10 +34,25 @@ class IManagePipelineData(Protocol):
             data: DataType) -> None:
         pass
 
+
+class IManagePipelineData(IPublishPipelineData, ILoadPipelineData, Protocol):
+    pass
+
+
+class ILoadPipelineNodeData(Protocol):
     @abstractmethod
-    def get_data(
-            self, pipeline_node: PipelineNode, data_node: PipelineDataNode[DataType]) -> DataType:
+    def get_data(self, data_node: PipelineDataNode[DataType]) -> DataType:
         pass
+
+
+class IPublishPipelineNodeData(Protocol):
+    @abstractmethod
+    def publish_data(self, data_node: PipelineDataNode[DataType], data: DataType) -> None:
+        pass
+
+
+class IManagePipelineNodeData(IPublishPipelineNodeData, ILoadPipelineNodeData, Protocol):
+    pass
 
 
 class PipelineDataClient(IManagePipelineData):
@@ -118,7 +116,7 @@ class ReadProxyPipelineDataClient(IManagePipelineData):
         return self._primary_client.get_data(pipeline_node, data_node)
 
 
-class PipelineNodeDataClient:
+class PipelineNodeDataClient(IManagePipelineNodeData):
 
     _pipeline_data_client: IManagePipelineData
     _pipeline_node: PipelineNode
@@ -139,6 +137,23 @@ class PipelineNodeDataClient:
         return self._pipeline_data_client.get_data(self._pipeline_node, data_node)
 
 
+# can we give Javier a single client for input/output?
+class PipelineNodeInputDataClient(ILoadPipelineNodeData):
+
+    _data_client: PipelineDataClient
+    _data_mapping: Dict[PipelineDataNode, PipelineNode]
+
+    def __init__(
+            self,
+            data_client: PipelineDataClient,
+            data_mapping: Dict[PipelineDataNode, PipelineNode]) -> None:
+        self._data_client = data_client
+        self._data_mapping = data_mapping
+
+    def get_data(self, data_node: PipelineDataNode[DataType]) -> DataType:
+        return self._data_client.get_data(self._data_mapping[data_node], data_node)
+
+
 class PipelineNodeDataClientFactory:
 
     _pipeline_data_client: IManagePipelineData
@@ -149,3 +164,17 @@ class PipelineNodeDataClientFactory:
     @lru_cache()
     def get_instance(self, pipeline_node: PipelineNode) -> PipelineNodeDataClient:
         return PipelineNodeDataClient(self._pipeline_data_client, pipeline_node)
+
+
+class PipelineNodeInputDataClientFactory:
+    _data_dependencies_client: PipelineDataDependenciesClient
+    _data_client: PipelineDataClient
+
+    def get_instance(self, node: PipelineNode) -> ILoadPipelineNodeData:
+        dependencies = self._data_dependencies_client.get_node_dependencies(pipeline_node=node)
+        data_mapping = {}
+        for dep in dependencies:
+            data_mapping[dep.data_node] = dep.pipeline_node
+
+        return PipelineNodeInputDataClient(
+            data_client=self._data_client, data_mapping=data_mapping)

@@ -1,13 +1,14 @@
 import logging
-from typing import Tuple
+from typing import Tuple, Dict
 
 from oneml.pipelines.building import IPipelineSessionExecutable
 from oneml.pipelines.dag import PipelineNode
+from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependenciesClient, DataType
 from oneml.pipelines.session import (
     IExecutable,
     PipelineDataNode,
     PipelineNodeDataClient,
-    PipelineSessionClient,
+    PipelineSessionClient, PipelineDataClient,
 )
 
 logger = logging.getLogger(__name__)
