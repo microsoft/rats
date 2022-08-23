@@ -1,10 +1,10 @@
 from oneml.pipelines.dag import (
-    IRegisterPipelineNodes,
+    DuplicatePipelineNodeError,
     ILocatePipelineNodes,
     IManagePipelineNodes,
-    PipelineNodeClient,
-    DuplicatePipelineNodeError,
+    IRegisterPipelineNodes,
     NodeNotFoundError,
+    PipelineNodeClient,
 )
 
 

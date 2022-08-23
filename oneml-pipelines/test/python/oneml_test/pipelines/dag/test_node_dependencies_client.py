@@ -1,9 +1,9 @@
 from oneml.pipelines.dag import (
     ILocatePipelineNodeDependencies,
-    IRegisterPipelineNodeDependencies,
     IManagePipelineNodeDependencies,
-    PipelineNodeDependenciesClient,
+    IRegisterPipelineNodeDependencies,
     NodeDependenciesRegisteredError,
+    PipelineNodeDependenciesClient,
 )
 
 

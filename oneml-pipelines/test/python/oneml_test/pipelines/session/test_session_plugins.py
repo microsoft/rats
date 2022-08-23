@@ -1,8 +1,8 @@
 from oneml.pipelines.session import (
-    IPipelineSessionPlugin,
-    IRegisterPipelineSessionPlugins,
     IActivatePipelineSessionPlugins,
     IManagePipelineSessionPlugins,
+    IPipelineSessionPlugin,
+    IRegisterPipelineSessionPlugins,
 )
 
 

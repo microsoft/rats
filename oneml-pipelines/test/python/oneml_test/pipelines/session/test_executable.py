@@ -1,13 +1,13 @@
 from oneml.pipelines.session import (
-    IExecutable,
-    NoOpExecutable,
-    ICallableExecutableProvider,
-    ICallableExecutable,
-    DeferredExecutable,
     CallableExecutable,
     ContextType,
-    IContextualCallableExecutable,
     ContextualCallableExecutable,
+    DeferredExecutable,
+    ICallableExecutable,
+    ICallableExecutableProvider,
+    IContextualCallableExecutable,
+    IExecutable,
+    NoOpExecutable,
 )
 
 

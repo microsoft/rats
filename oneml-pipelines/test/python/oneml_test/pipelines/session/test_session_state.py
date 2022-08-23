@@ -1,8 +1,8 @@
 from oneml.pipelines.session import (
-    PipelineSessionState,
     ILocatePipelineSessionState,
-    ISetPipelineSessionState,
     IManagePipelineSessionState,
+    ISetPipelineSessionState,
+    PipelineSessionState,
     PipelineSessionStateClient,
 )
 
