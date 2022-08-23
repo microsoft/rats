@@ -7,6 +7,7 @@ from oneml.pipelines.dag import (
     PipelineNodeClient,
     PipelineNodeDependenciesClient,
 )
+from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependenciesClient
 
 
 class IPipelineDagClient(Protocol):
@@ -61,6 +62,7 @@ class PipelineDagClient(IPipelineDagClient):
     def build(self) -> PipelineClient:
         node_client = PipelineNodeClient()
         dependencies_client = PipelineNodeDependenciesClient(node_client)
+        data_dependencies_client = PipelineDataDependenciesClient()
 
         for node in self._nodes:
             node_client.register_node(node)
@@ -71,4 +73,5 @@ class PipelineDagClient(IPipelineDagClient):
         return PipelineClient(
             node_client=node_client,
             node_dependencies_client=dependencies_client,
+            data_dependencies_client=data_dependencies_client,
         )

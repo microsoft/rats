@@ -12,6 +12,7 @@ from ._session_data_client import (
     IManagePipelineData,
     PipelineDataClient,
     PipelineNodeDataClientFactory,
+    PipelineNodeInputDataClientFactory,
     ReadProxyPipelineDataClient,
 )
 from ._session_frame import BasicPipelineSessionFrameCommands, PipelineSessionFrame
@@ -41,6 +42,7 @@ class PipelineSessionClientFactory:
 
         node_client = pipeline_client.node_client()
         node_dependencies_client = pipeline_client.node_dependencies_client()
+        data_dependencies_client = pipeline_client.data_dependencies_client()
 
         # TODO: move these clients to private properties + constructor args
         session_state_client = PipelineSessionStateClient()
@@ -52,6 +54,10 @@ class PipelineSessionClientFactory:
             proxied_nodes=external_nodes,
         )
         node_executables_client = PipelineNodeExecutablesClient()
+        node_input_data_client_factory = PipelineNodeInputDataClientFactory(
+            data_dependencies_client=data_dependencies_client,
+            data_client=pipeline_data_client,
+        )
 
         node_data_client_factory = PipelineNodeDataClientFactory(pipeline_data_client)
 
@@ -88,6 +94,7 @@ class PipelineSessionClientFactory:
             node_state_client=node_state_client,
             node_data_client_factory=node_data_client_factory,
             node_executables_client=node_executables_client,
+            node_input_data_client_factory=node_input_data_client_factory,
         )
         # Not sure if this activation belongs somewhere else.
         self._session_plugin_client.activate_all(session_client)
@@ -98,12 +105,17 @@ class PipelineSessionClientFactory:
 
         node_client = pipeline_client.node_client()
         node_dependencies_client = pipeline_client.node_dependencies_client()
+        data_dependencies_client = pipeline_client.data_dependencies_client()
 
         # TODO: move these clients to private properties + constructor args
         session_state_client = PipelineSessionStateClient()
         node_state_client = PipelineNodeStateClient()
         pipeline_data_client = PipelineDataClient()
         node_executables_client = PipelineNodeExecutablesClient()
+        node_input_data_client_factory = PipelineNodeInputDataClientFactory(
+            data_dependencies_client=data_dependencies_client,
+            data_client=pipeline_data_client,
+        )
 
         node_data_client_factory = PipelineNodeDataClientFactory(pipeline_data_client)
 
@@ -140,6 +152,7 @@ class PipelineSessionClientFactory:
             node_state_client=node_state_client,
             node_data_client_factory=node_data_client_factory,
             node_executables_client=node_executables_client,
+            node_input_data_client_factory=node_input_data_client_factory,
         )
         # Not sure if this activation belongs somewhere else.
         self._session_plugin_client.activate_all(session_client)

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, Generic, Set, Tuple, TypeVar
 
-from oneml.pipelines.dag import PipelineNode
+from ._structs import PipelineNode
 
 # TODO: Remove the copies of DataType and PipelineDataNode from session package
 DataType = TypeVar("DataType")

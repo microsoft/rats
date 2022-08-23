@@ -140,12 +140,12 @@ class PipelineNodeDataClient(IManagePipelineNodeData):
 # can we give Javier a single client for input/output?
 class PipelineNodeInputDataClient(ILoadPipelineNodeData):
 
-    _data_client: PipelineDataClient
+    _data_client: ILoadPipelineData
     _data_mapping: Dict[PipelineDataNode, PipelineNode]
 
     def __init__(
             self,
-            data_client: PipelineDataClient,
+            data_client: ILoadPipelineData,
             data_mapping: Dict[PipelineDataNode, PipelineNode]) -> None:
         self._data_client = data_client
         self._data_mapping = data_mapping
@@ -168,7 +168,14 @@ class PipelineNodeDataClientFactory:
 
 class PipelineNodeInputDataClientFactory:
     _data_dependencies_client: PipelineDataDependenciesClient
-    _data_client: PipelineDataClient
+    _data_client: IManagePipelineData
+
+    def __init__(
+            self,
+            data_dependencies_client: PipelineDataDependenciesClient,
+            data_client: IManagePipelineData) -> None:
+        self._data_dependencies_client = data_dependencies_client
+        self._data_client = data_client
 
     def get_instance(self, node: PipelineNode) -> ILoadPipelineNodeData:
         dependencies = self._data_dependencies_client.get_node_dependencies(pipeline_node=node)

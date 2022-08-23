@@ -1,7 +1,11 @@
 from ._node_execution import IExecutePipelineNodes, IManagePipelineNodeExecutables
 from ._node_state import IManagePipelineNodeState
 from ._session import IPipelineSession
-from ._session_data_client import IManagePipelineData, PipelineNodeDataClientFactory
+from ._session_data_client import (
+    IManagePipelineData,
+    PipelineNodeDataClientFactory,
+    PipelineNodeInputDataClientFactory,
+)
 from ._session_frame import IPipelineSessionFrame
 from ._session_state import IManagePipelineSessionState
 
@@ -17,6 +21,7 @@ class PipelineSessionClient:
     _node_state_client: IManagePipelineNodeState
     _node_data_client_factory: PipelineNodeDataClientFactory
     _node_executables_client: IManagePipelineNodeExecutables
+    _node_input_data_client_factory: PipelineNodeInputDataClientFactory
 
     def __init__(
             self,
@@ -28,7 +33,8 @@ class PipelineSessionClient:
             session_executables_client: IExecutePipelineNodes,
             node_state_client: IManagePipelineNodeState,
             node_data_client_factory: PipelineNodeDataClientFactory,
-            node_executables_client: IManagePipelineNodeExecutables):
+            node_executables_client: IManagePipelineNodeExecutables,
+            node_input_data_client_factory: PipelineNodeInputDataClientFactory):
         self._session_id = session_id
         self._session_client = session_client
         self._session_frame = session_frame
@@ -38,6 +44,7 @@ class PipelineSessionClient:
         self._node_state_client = node_state_client
         self._node_data_client_factory = node_data_client_factory
         self._node_executables_client = node_executables_client
+        self._node_input_data_client_factory = node_input_data_client_factory
 
     def run(self) -> None:
         self._session_client.run()
@@ -65,3 +72,6 @@ class PipelineSessionClient:
 
     def node_executables_client(self) -> IManagePipelineNodeExecutables:
         return self._node_executables_client
+
+    def node_input_data_client_factory(self) -> PipelineNodeInputDataClientFactory:
+        return self._node_input_data_client_factory
