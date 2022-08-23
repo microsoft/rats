@@ -2,7 +2,7 @@ import logging
 from abc import abstractmethod
 from typing import Dict, Protocol, Tuple
 
-from oneml.pipelines.dag import PipelineNode
+from ._structs import PipelineNode
 
 logger = logging.getLogger(__name__)
 
