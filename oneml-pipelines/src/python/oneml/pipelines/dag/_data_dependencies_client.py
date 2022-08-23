@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Generic, Set, Tuple, TypeVar
+from typing import Dict, Generic, Tuple, TypeVar
 
 from ._structs import PipelineNode
 
@@ -20,19 +20,20 @@ class PipelineDataDependency(Generic[DataType]):
 
 class PipelineDataDependenciesClient:
 
-    _dependencies: Dict[PipelineNode, Set[PipelineDataDependency]]
+    _dependencies: Dict[PipelineNode, Tuple[PipelineDataDependency, ...]]
 
-    def register_data_dependency(
+    def __init__(self) -> None:
+        self._dependencies = {}
+
+    def register_data_dependencies(
             self,
             pipeline_node: PipelineNode,
-            dependency: PipelineDataDependency) -> None:
-        current = self._dependencies.get(pipeline_node, set())
-        if dependency in current:
-            raise RuntimeError(f"Duplicate dependency found: {pipeline_node} -> {dependency}")
+            dependencies: Tuple[PipelineDataDependency, ...]) -> None:
+        if pipeline_node in self._dependencies:
+            raise RuntimeError(f"Duplicate dependency found: {pipeline_node}")
 
-        current.add(dependency)
-        self._dependencies[pipeline_node] = current
+        self._dependencies[pipeline_node] = dependencies
 
     def get_node_dependencies(
             self, pipeline_node: PipelineNode) -> Tuple[PipelineDataDependency, ...]:
-        return tuple(self._dependencies.get(pipeline_node, set()))
+        return self._dependencies.get(pipeline_node, tuple())

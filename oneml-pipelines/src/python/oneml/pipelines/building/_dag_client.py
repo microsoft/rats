@@ -7,7 +7,10 @@ from oneml.pipelines.dag import (
     PipelineNodeClient,
     PipelineNodeDependenciesClient,
 )
-from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependenciesClient
+from oneml.pipelines.dag._data_dependencies_client import (
+    PipelineDataDependenciesClient,
+    PipelineDataDependency,
+)
 
 
 class IPipelineDagClient(Protocol):
@@ -36,10 +39,12 @@ class PipelineDagClient(IPipelineDagClient):
 
     _nodes: Set[PipelineNode]
     _dependencies: Dict[PipelineNode, Set[PipelineNode]]
+    _data_dependencies: Dict[PipelineNode, Set[PipelineDataDependency]]
 
     def __init__(self) -> None:
         self._nodes = set()
         self._dependencies = {}
+        self._data_dependencies = {}
 
     def add_nodes(self, nodes: Iterable[PipelineNode]) -> None:
         for node in nodes:
@@ -51,6 +56,7 @@ class PipelineDagClient(IPipelineDagClient):
 
         self._nodes.add(node)
         self._dependencies[node] = set()
+        self._data_dependencies[node] = set()
 
     def add_dependencies(self, node: PipelineNode, dependencies: Iterable[PipelineNode]) -> None:
         for dependency in dependencies:
@@ -58,6 +64,14 @@ class PipelineDagClient(IPipelineDagClient):
 
     def add_dependency(self, node: PipelineNode, dependency: PipelineNode) -> None:
         self._dependencies[node].add(dependency)
+
+    def add_data_dependencies(
+            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency]) -> None:
+        for dependency in dependencies:
+            self.add_data_dependency(node, dependency)
+
+    def add_data_dependency(self, node: PipelineNode, dependency: PipelineDataDependency) -> None:
+        self._data_dependencies[node].add(dependency)
 
     def build(self) -> PipelineClient:
         node_client = PipelineNodeClient()
@@ -69,6 +83,9 @@ class PipelineDagClient(IPipelineDagClient):
 
             dependencies_client.register_node_dependencies(
                 node, tuple(self._dependencies.get(node, [])))
+
+            data_dependencies_client.register_data_dependencies(
+                node, tuple(self._data_dependencies.get(node, [])))
 
         return PipelineClient(
             node_client=node_client,
