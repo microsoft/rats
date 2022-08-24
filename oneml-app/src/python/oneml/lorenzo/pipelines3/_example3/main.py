@@ -8,8 +8,8 @@ from oneml.lorenzo.pipelines3._example3._sample_steps import (
 )
 from oneml.lorenzo.pipelines3._example._di_container import Pipeline3DiContainer
 from oneml.pipelines.building import PipelineBuilderFactory
-from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependency
-from oneml.pipelines.session._session_data_client import IManagePipelineData, PipelineDataNode
+from oneml.pipelines.dag import PipelineDataDependency
+from oneml.pipelines.session import IManagePipelineData, PipelinePort
 
 logger = logging.getLogger(__name__)
 
@@ -19,22 +19,24 @@ class TinyPipelineExample:
     def do_it(self) -> None:
         builder = PipelineBuilderFactory().get_instance()
 
-        builder.add_node(builder.node("hello"))
+        builder.add_node(builder.node("A"))
         builder.add_executable(
             # TODO: make this less repetitive and error prone :)
-            builder.node("hello"),
-            ProduceExampleSamplesRunner(builder.node("hello")),
+            builder.node("A"),
+            ProduceExampleSamplesRunner(builder.node("A")),
         )
 
-        builder.add_node(builder.node("world"))
-        builder.add_data_dependency(builder.node("world"), PipelineDataDependency(
-            pipeline_node=builder.node("hello"),
-            data_node=PipelineDataNode("example-samples"),
+        builder.add_node(builder.node("B"))
+        # builder.add_dependency(builder.node("B"), builder.node("A"))
+        builder.add_data_dependency(builder.node("B"), PipelineDataDependency(
+            node=builder.node("A"),
+            output_port=PipelinePort("example-samples"),
+            input_port=PipelinePort("input-samples"),
         ))
         builder.add_executable(
             # TODO: make this less repetitive and error prone :)
-            builder.node("world"),
-            LogExampleSamplesRunner2(node=builder.node("world")),
+            builder.node("B"),
+            LogExampleSamplesRunner2(node=builder.node("B")),
         )
 
         session = builder.build_session()

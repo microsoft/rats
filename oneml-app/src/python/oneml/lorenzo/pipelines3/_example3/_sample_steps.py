@@ -3,10 +3,10 @@ from typing import Tuple, Dict
 
 from oneml.pipelines.building import IPipelineSessionExecutable
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependenciesClient, DataType
+from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependenciesClient, PipelinePortDataType
 from oneml.pipelines.session import (
     IExecutable,
-    PipelineDataNode,
+    PipelinePort,
     PipelineNodeDataClient,
     PipelineSessionClient, PipelineDataClient,
 )
@@ -33,7 +33,7 @@ class ProduceExampleSamples(IExecutable):
     def execute(self) -> None:
         logger.info(f"Executing! {self}")
         self._node_data_client.publish_data(
-            PipelineDataNode[ExampleSamples]("example-samples"),
+            PipelinePort[ExampleSamples]("example-samples"),
             ExampleSamples(tuple(["one", "two", "three"])),
         )
 
@@ -74,7 +74,7 @@ class LogExampleSamplesRunner(IPipelineSessionExecutable):
     def execute(self, session_client: PipelineSessionClient) -> None:
         logging.warning("EXECUTING LogExampleSamplesRunner!")
         data_factory = session_client.node_data_client_factory()
-        data_node = PipelineDataNode[ExampleSamples]("example-samples")
+        data_node = PipelinePort[ExampleSamples]("example-samples")
 
         input_data = data_factory.get_instance(self._input_node).get_data(data_node)
 
@@ -92,8 +92,8 @@ class LogExampleSamplesRunner2(IPipelineSessionExecutable):
         logging.warning("EXECUTING LogExampleSamplesRunner!")
         input_data_factory = session_client.node_input_data_client_factory()
         node_input_data = input_data_factory.get_instance(self._node)
-
+        # A:example-samples -> B:input-samples
         step = LogExampleSamples(
-            data=node_input_data.get_data(PipelineDataNode[ExampleSamples]("example-samples")))
+            data=node_input_data.get_data(
+                PipelinePort[ExampleSamples]("input-samples")))
         step.execute()
-

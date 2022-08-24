@@ -1,15 +1,13 @@
 from abc import abstractmethod
-from typing import Dict, Iterable, Protocol, Set
+from typing import Any, Dict, Iterable, Protocol, Set
 
 from oneml.pipelines.dag import (
     PipelineClient,
+    PipelineDataDependenciesClient,
+    PipelineDataDependency,
     PipelineNode,
     PipelineNodeClient,
     PipelineNodeDependenciesClient,
-)
-from oneml.pipelines.dag._data_dependencies_client import (
-    PipelineDataDependenciesClient,
-    PipelineDataDependency,
 )
 
 
@@ -32,11 +30,12 @@ class IPipelineDagClient(Protocol):
 
     @abstractmethod
     def add_data_dependencies(
-            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency]) -> None:
+            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]) -> None:
         pass
 
     @abstractmethod
-    def add_data_dependency(self, node: PipelineNode, dependency: PipelineDataDependency) -> None:
+    def add_data_dependency(
+            self, node: PipelineNode, dependency: PipelineDataDependency[Any]) -> None:
         pass
 
     @abstractmethod
@@ -48,7 +47,7 @@ class PipelineDagClient(IPipelineDagClient):
 
     _nodes: Set[PipelineNode]
     _dependencies: Dict[PipelineNode, Set[PipelineNode]]
-    _data_dependencies: Dict[PipelineNode, Set[PipelineDataDependency]]
+    _data_dependencies: Dict[PipelineNode, Set[PipelineDataDependency[Any]]]
 
     def __init__(self) -> None:
         self._nodes = set()
@@ -75,11 +74,12 @@ class PipelineDagClient(IPipelineDagClient):
         self._dependencies[node].add(dependency)
 
     def add_data_dependencies(
-            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency]) -> None:
+            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]) -> None:
         for dependency in dependencies:
             self.add_data_dependency(node, dependency)
 
-    def add_data_dependency(self, node: PipelineNode, dependency: PipelineDataDependency) -> None:
+    def add_data_dependency(
+            self, node: PipelineNode, dependency: PipelineDataDependency[Any]) -> None:
         self._data_dependencies[node].add(dependency)
 
     def build(self) -> PipelineClient:

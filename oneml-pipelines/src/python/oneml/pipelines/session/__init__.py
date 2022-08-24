@@ -33,12 +33,12 @@ from ._session import (
 from ._session_client import PipelineSessionClient
 from ._session_client_factory import PipelineSessionClientFactory
 from ._session_data_client import (
-    DataType,
     IManagePipelineData,
     PipelineDataClient,
-    PipelineDataNode,
     PipelineNodeDataClient,
     PipelineNodeDataClientFactory,
+    PipelinePort,
+    PipelinePortDataType,
     ReadProxyPipelineDataClient,
 )
 from ._session_frame import (
@@ -86,8 +86,8 @@ __all__ = [
     "IStoppablePipelineSession",
     "IPipelineSession",
     "PipelineSession",
-    "DataType",
-    "PipelineDataNode",
+    "PipelinePortDataType",
+    "PipelinePort",
     "IManagePipelineData",
     "PipelineDataClient",
     "ReadProxyPipelineDataClient",

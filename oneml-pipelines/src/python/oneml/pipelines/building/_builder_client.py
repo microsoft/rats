@@ -1,14 +1,13 @@
 from functools import lru_cache
-from typing import Iterable
+from typing import Any, Iterable
 
-from oneml.pipelines.dag import PipelineClient, PipelineNode
+from oneml.pipelines.dag import PipelineClient, PipelineDataDependency, PipelineNode
 from oneml.pipelines.session import (
     PipelineSessionClient,
     PipelineSessionClientFactory,
     PipelineSessionPluginClient,
 )
 
-from ..dag._data_dependencies_client import PipelineDataDependency
 from ._dag_client import IPipelineDagClient, PipelineDagClient
 from ._executables_client import (
     IManageBuilderExecutables,
@@ -42,12 +41,13 @@ class PipelineBuilderClient(
         self.get_dag_client().add_node(node)
 
     def add_data_dependencies(
-            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency]) -> None:
+            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]) -> None:
         self.get_dag_client().add_data_dependencies(node, dependencies)
 
-    def add_data_dependency(self, node: PipelineNode, dependency: PipelineDataDependency) -> None:
+    def add_data_dependency(
+            self, node: PipelineNode, dependency: PipelineDataDependency[Any]) -> None:
         self.get_dag_client().add_data_dependency(node, dependency)
-        self.add_dependency(node, dependency.pipeline_node)
+        self.add_dependency(node, dependency.node)
 
     def add_dependencies(self, node: PipelineNode, dependencies: Iterable[PipelineNode]) -> None:
         self.get_dag_client().add_dependencies(node, dependencies)

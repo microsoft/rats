@@ -1,3 +1,9 @@
+from ._data_dependencies_client import (
+    PipelineDataDependenciesClient,
+    PipelineDataDependency,
+    PipelinePort,
+    PipelinePortDataType,
+)
 from ._node_client import (
     DuplicatePipelineNodeError,
     ILocatePipelineNodes,
@@ -17,6 +23,11 @@ from ._pipeline_client import PipelineClient
 from ._structs import PipelineNode
 
 __all__ = [
+    "PipelinePortDataType",
+    "PipelinePort",
+    "PipelineDataDependency",
+    "PipelineDataDependenciesClient",
+
     "PipelineNode",
 
     "IRegisterPipelineNodes",
