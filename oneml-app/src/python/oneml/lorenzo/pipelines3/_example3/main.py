@@ -4,7 +4,8 @@ import logging
 
 from oneml.lorenzo.pipelines3._example3._sample_steps import (
     LogExampleSamplesRunner,
-    ProduceExampleSamplesRunner, LogExampleSamplesRunner2,
+    LogExampleSamplesRunner2,
+    ProduceExampleSamplesRunner,
 )
 from oneml.lorenzo.pipelines3._example._di_container import Pipeline3DiContainer
 from oneml.pipelines.building import PipelineBuilderFactory
