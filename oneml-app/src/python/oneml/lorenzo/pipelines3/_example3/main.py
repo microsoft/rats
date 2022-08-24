@@ -4,11 +4,12 @@ import logging
 
 from oneml.lorenzo.pipelines3._example3._sample_steps import (
     LogExampleSamplesRunner,
-    ProduceExampleSamplesRunner,
+    ProduceExampleSamplesRunner, LogExampleSamplesRunner2,
 )
 from oneml.lorenzo.pipelines3._example._di_container import Pipeline3DiContainer
 from oneml.pipelines.building import PipelineBuilderFactory
-from oneml.pipelines.session._session_data_client import IManagePipelineData
+from oneml.pipelines.dag._data_dependencies_client import PipelineDataDependency
+from oneml.pipelines.session._session_data_client import IManagePipelineData, PipelineDataNode
 
 logger = logging.getLogger(__name__)
 
@@ -26,17 +27,20 @@ class TinyPipelineExample:
         )
 
         builder.add_node(builder.node("world"))
-        builder.add_dependency(builder.node("world"), builder.node("hello"))
+        builder.add_data_dependency(builder.node("world"), PipelineDataDependency(
+            pipeline_node=builder.node("hello"),
+            data_node=PipelineDataNode("example-samples"),
+        ))
         builder.add_executable(
             # TODO: make this less repetitive and error prone :)
             builder.node("world"),
-            LogExampleSamplesRunner(input_node=builder.node("hello")),
+            LogExampleSamplesRunner2(node=builder.node("world")),
         )
 
         session = builder.build_session()
         session.run()
 
-        self.do_again(session.pipeline_data_client())
+        # self.do_again(session.pipeline_data_client())
 
     def do_again(self, proxy_storage: IManagePipelineData) -> None:
         builder = PipelineBuilderFactory().get_instance()

@@ -8,6 +8,7 @@ from oneml.pipelines.session import (
     PipelineSessionPluginClient,
 )
 
+from ..dag._data_dependencies_client import PipelineDataDependency
 from ._dag_client import IPipelineDagClient, PipelineDagClient
 from ._executables_client import (
     IManageBuilderExecutables,
@@ -39,6 +40,14 @@ class PipelineBuilderClient(
 
     def add_node(self, node: PipelineNode) -> None:
         self.get_dag_client().add_node(node)
+
+    def add_data_dependencies(
+            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency]) -> None:
+        self.get_dag_client().add_data_dependencies(node, dependencies)
+
+    def add_data_dependency(self, node: PipelineNode, dependency: PipelineDataDependency) -> None:
+        self.get_dag_client().add_data_dependency(node, dependency)
+        self.add_dependency(node, dependency.pipeline_node)
 
     def add_dependencies(self, node: PipelineNode, dependencies: Iterable[PipelineNode]) -> None:
         self.get_dag_client().add_dependencies(node, dependencies)

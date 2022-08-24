@@ -31,6 +31,15 @@ class IPipelineDagClient(Protocol):
         pass
 
     @abstractmethod
+    def add_data_dependencies(
+            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency]) -> None:
+        pass
+
+    @abstractmethod
+    def add_data_dependency(self, node: PipelineNode, dependency: PipelineDataDependency) -> None:
+        pass
+
+    @abstractmethod
     def build(self) -> PipelineClient:
         pass
 

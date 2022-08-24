@@ -80,3 +80,20 @@ class LogExampleSamplesRunner(IPipelineSessionExecutable):
 
         step = LogExampleSamples(data=input_data)
         step.execute()
+
+
+class LogExampleSamplesRunner2(IPipelineSessionExecutable):
+    _node: PipelineNode
+
+    def __init__(self, node: PipelineNode) -> None:
+        self._node = node
+
+    def execute(self, session_client: PipelineSessionClient) -> None:
+        logging.warning("EXECUTING LogExampleSamplesRunner!")
+        input_data_factory = session_client.node_input_data_client_factory()
+        node_input_data = input_data_factory.get_instance(self._node)
+
+        step = LogExampleSamples(
+            data=node_input_data.get_data(PipelineDataNode[ExampleSamples]("example-samples")))
+        step.execute()
+
