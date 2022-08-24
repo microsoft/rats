@@ -93,6 +93,6 @@ class LogExampleSamplesRunner2(IPipelineSessionExecutable):
         node_input_data = input_data_factory.get_instance(self._node)
         # A:example-samples -> B:input-samples
         step = LogExampleSamples(
-            data=node_input_data.get_data(
-                PipelinePort[ExampleSamples]("input-samples")))
+            data=node_input_data.get_data(PipelinePort[ExampleSamples]("input-samples"))
+        )
         step.execute()

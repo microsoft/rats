@@ -5,7 +5,6 @@ from ._session_client import PipelineSessionClient
 
 
 class IPipelineSessionPlugin(Protocol):
-
     @abstractmethod
     def on_session_init(self, session_client: PipelineSessionClient) -> None:
         pass
@@ -24,5 +23,6 @@ class IActivatePipelineSessionPlugins(Protocol):
 
 
 class IManagePipelineSessionPlugins(
-        IRegisterPipelineSessionPlugins, IActivatePipelineSessionPlugins, Protocol):
+    IRegisterPipelineSessionPlugins, IActivatePipelineSessionPlugins, Protocol
+):
     pass

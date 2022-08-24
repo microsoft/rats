@@ -25,20 +25,17 @@ class PipelineSessionState(Enum):
 class ILocatePipelineSessionState(Protocol):
     @abstractmethod
     def get_state(self) -> PipelineSessionState:
-        """
-        """
+        """ """
 
 
 class ISetPipelineSessionState(Protocol):
     @abstractmethod
     def set_state(self, state: PipelineSessionState) -> None:
-        """
-        """
+        """ """
 
 
 class IManagePipelineSessionState(ILocatePipelineSessionState, ISetPipelineSessionState, Protocol):
-    """
-    """
+    """ """
 
 
 class PipelineSessionStateClient(IManagePipelineSessionState):

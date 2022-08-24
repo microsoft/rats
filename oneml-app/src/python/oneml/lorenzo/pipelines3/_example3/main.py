@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class TinyPipelineExample:
-
     def do_it(self) -> None:
         builder = PipelineBuilderFactory().get_instance()
 
@@ -29,11 +28,14 @@ class TinyPipelineExample:
 
         builder.add_node(builder.node("B"))
         # builder.add_dependency(builder.node("B"), builder.node("A"))
-        builder.add_data_dependency(builder.node("B"), PipelineDataDependency(
-            node=builder.node("A"),
-            output_port=PipelinePort("example-samples"),
-            input_port=PipelinePort("input-samples"),
-        ))
+        builder.add_data_dependency(
+            builder.node("B"),
+            PipelineDataDependency(
+                node=builder.node("A"),
+                output_port=PipelinePort("example-samples"),
+                input_port=PipelinePort("input-samples"),
+            ),
+        )
         builder.add_executable(
             # TODO: make this less repetitive and error prone :)
             builder.node("B"),
@@ -60,7 +62,7 @@ class TinyPipelineExample:
         session_client = session_factory.get_instance_with_external_data(
             pipeline_client=pipeline_client,
             external_storage=proxy_storage,
-            external_nodes=(builder.node("hello"),)
+            external_nodes=(builder.node("hello"),),
         )
         session = session_client.pipeline_session()
         session.run()

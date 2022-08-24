@@ -24,17 +24,18 @@ class PipelineSessionClient:
     _node_input_data_client_factory: PipelineNodeInputDataClientFactory
 
     def __init__(
-            self,
-            session_id: str,
-            session_client: IPipelineSession,
-            session_frame: IPipelineSessionFrame,
-            session_state_client: IManagePipelineSessionState,
-            pipeline_data_client: IManagePipelineData,
-            session_executables_client: IExecutePipelineNodes,
-            node_state_client: IManagePipelineNodeState,
-            node_data_client_factory: PipelineNodeDataClientFactory,
-            node_executables_client: IManagePipelineNodeExecutables,
-            node_input_data_client_factory: PipelineNodeInputDataClientFactory):
+        self,
+        session_id: str,
+        session_client: IPipelineSession,
+        session_frame: IPipelineSessionFrame,
+        session_state_client: IManagePipelineSessionState,
+        pipeline_data_client: IManagePipelineData,
+        session_executables_client: IExecutePipelineNodes,
+        node_state_client: IManagePipelineNodeState,
+        node_data_client_factory: PipelineNodeDataClientFactory,
+        node_executables_client: IManagePipelineNodeExecutables,
+        node_input_data_client_factory: PipelineNodeInputDataClientFactory,
+    ):
         self._session_id = session_id
         self._session_client = session_client
         self._session_frame = session_frame

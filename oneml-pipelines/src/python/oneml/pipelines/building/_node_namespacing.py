@@ -7,14 +7,12 @@ from oneml.pipelines.dag import PipelineNode
 
 
 class ICreatePipelineNamespaces(Protocol):
-
     @abstractmethod
     def namespace(self, name: str) -> ICreatePipelineNamespaces:
         pass
 
 
 class INamespacePipelineNodes(Protocol):
-
     @abstractmethod
     def node(self, name: str) -> PipelineNode:
         pass

@@ -10,25 +10,21 @@ logger = logging.getLogger(__name__)
 class IRegisterPipelineNodes(Protocol):
     @abstractmethod
     def register_node(self, node: PipelineNode) -> None:
-        """
-        """
+        """ """
 
 
 class ILocatePipelineNodes(Protocol):
     @abstractmethod
     def get_nodes(self) -> Tuple[PipelineNode, ...]:
-        """
-        """
+        """ """
 
     @abstractmethod
     def get_node_by_key(self, key: str) -> PipelineNode:
-        """
-        """
+        """ """
 
 
 class IManagePipelineNodes(IRegisterPipelineNodes, ILocatePipelineNodes, Protocol):
-    """
-    """
+    """ """
 
 
 class PipelineNodeClient(IManagePipelineNodes):

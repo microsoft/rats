@@ -34,10 +34,11 @@ class PipelineSessionClientFactory:
         self._session_plugin_client = session_plugin_client
 
     def get_instance_with_external_data(
-            self,
-            pipeline_client: PipelineClient,
-            external_storage: IManagePipelineData,
-            external_nodes: Tuple[PipelineNode, ...]) -> PipelineSessionClient:
+        self,
+        pipeline_client: PipelineClient,
+        external_storage: IManagePipelineData,
+        external_nodes: Tuple[PipelineNode, ...],
+    ) -> PipelineSessionClient:
         session_id = str(uuid.uuid4())
 
         node_client = pipeline_client.node_client()
@@ -72,12 +73,16 @@ class PipelineSessionClientFactory:
             node_executables_client=node_executables_client,
         )
 
-        frame = PipelineSessionFrame(tuple([
-            CallableExecutable(frame_commands.promote_registered_nodes),
-            CallableExecutable(frame_commands.promote_queued_nodes),
-            CallableExecutable(frame_commands.execute_pending_nodes),
-            CallableExecutable(frame_commands.check_pipeline_completion),
-        ]))
+        frame = PipelineSessionFrame(
+            tuple(
+                [
+                    CallableExecutable(frame_commands.promote_registered_nodes),
+                    CallableExecutable(frame_commands.promote_queued_nodes),
+                    CallableExecutable(frame_commands.execute_pending_nodes),
+                    CallableExecutable(frame_commands.check_pipeline_completion),
+                ]
+            )
+        )
 
         session = PipelineSession(
             session_state_client=session_state_client,
@@ -130,12 +135,16 @@ class PipelineSessionClientFactory:
             node_executables_client=node_executables_client,
         )
 
-        frame = PipelineSessionFrame(tuple([
-            CallableExecutable(frame_commands.promote_registered_nodes),
-            CallableExecutable(frame_commands.promote_queued_nodes),
-            CallableExecutable(frame_commands.execute_pending_nodes),
-            CallableExecutable(frame_commands.check_pipeline_completion),
-        ]))
+        frame = PipelineSessionFrame(
+            tuple(
+                [
+                    CallableExecutable(frame_commands.promote_registered_nodes),
+                    CallableExecutable(frame_commands.promote_queued_nodes),
+                    CallableExecutable(frame_commands.execute_pending_nodes),
+                    CallableExecutable(frame_commands.check_pipeline_completion),
+                ]
+            )
+        )
 
         session = PipelineSession(
             session_state_client=session_state_client,

@@ -9,10 +9,7 @@ class Pipeline3ExampleApplication(IExecutable):
     _logging_client: LoggingClient
     _args: Tuple[str, ...]
 
-    def __init__(
-            self,
-            logging_client: LoggingClient,
-            args: Tuple[str, ...]):
+    def __init__(self, logging_client: LoggingClient, args: Tuple[str, ...]):
         self._logging_client = logging_client
         self._args = args
 

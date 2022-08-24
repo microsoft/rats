@@ -43,9 +43,11 @@ class TestBasicPipelineSessionFrameCommands:
         self._foo = PipelineNode("foo")
         self._bar = PipelineNode("bar")
         self._node_executable_client.register_node_executable(
-            self._foo, self._node_executable(self._foo))
+            self._foo, self._node_executable(self._foo)
+        )
         self._node_executable_client.register_node_executable(
-            self._bar, self._node_executable(self._bar))
+            self._bar, self._node_executable(self._bar)
+        )
         self._executed_nodes = []
 
     def test_promote_node_steps(self) -> None:

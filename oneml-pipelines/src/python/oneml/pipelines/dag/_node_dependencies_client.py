@@ -11,29 +11,27 @@ logger = logging.getLogger(__name__)
 class ILocatePipelineNodeDependencies(Protocol):
     @abstractmethod
     def get_node_dependencies(self, node: PipelineNode) -> Tuple[PipelineNode, ...]:
-        """
-        """
+        """ """
 
     @abstractmethod
     def get_nodes_with_dependencies(
-            self,
-            dependencies: Tuple[PipelineNode, ...]) -> Tuple[PipelineNode, ...]:
-        """
-        """
+        self, dependencies: Tuple[PipelineNode, ...]
+    ) -> Tuple[PipelineNode, ...]:
+        """ """
 
 
 class IRegisterPipelineNodeDependencies(Protocol):
     @abstractmethod
     def register_node_dependencies(
-            self, node: PipelineNode, dependencies: Tuple[PipelineNode, ...]) -> None:
-        """
-        """
+        self, node: PipelineNode, dependencies: Tuple[PipelineNode, ...]
+    ) -> None:
+        """ """
 
 
 class IManagePipelineNodeDependencies(
-        ILocatePipelineNodeDependencies, IRegisterPipelineNodeDependencies, Protocol):
-    """
-    """
+    ILocatePipelineNodeDependencies, IRegisterPipelineNodeDependencies, Protocol
+):
+    """ """
 
 
 class PipelineNodeDependenciesClient(IManagePipelineNodeDependencies):
@@ -46,7 +44,8 @@ class PipelineNodeDependenciesClient(IManagePipelineNodeDependencies):
         self._node_client = node_client
 
     def register_node_dependencies(
-            self, node: PipelineNode, dependencies: Tuple[PipelineNode, ...]) -> None:
+        self, node: PipelineNode, dependencies: Tuple[PipelineNode, ...]
+    ) -> None:
         if node in self._node_dependencies:
             raise NodeDependenciesRegisteredError(node)
 
@@ -54,8 +53,8 @@ class PipelineNodeDependenciesClient(IManagePipelineNodeDependencies):
         self._node_dependencies[node] = dependencies
 
     def get_nodes_with_dependencies(
-            self,
-            dependencies: Tuple[PipelineNode, ...]) -> Tuple[PipelineNode, ...]:
+        self, dependencies: Tuple[PipelineNode, ...]
+    ) -> Tuple[PipelineNode, ...]:
         inbound_edges = set(dependencies)
         result = []
 

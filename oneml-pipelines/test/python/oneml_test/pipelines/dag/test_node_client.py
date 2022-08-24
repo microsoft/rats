@@ -43,12 +43,14 @@ class TestPipelineNodeClient:
         self._client.register_node(node3)
         self._client.register_node(node4)
 
-        assert self._client.get_nodes() == tuple([
-            node1,
-            node2,
-            node3,
-            node4,
-        ])
+        assert self._client.get_nodes() == tuple(
+            [
+                node1,
+                node2,
+                node3,
+                node4,
+            ]
+        )
 
     def test_validation(self) -> None:
         node1 = PipelineNode("fake-1")

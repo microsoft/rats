@@ -9,30 +9,25 @@ from ._executable import IExecutable
 class ILocatePipelineNodeExecutables(Protocol):
     @abstractmethod
     def get_node_executable(self, node: PipelineNode) -> IExecutable:
-        """
-        """
+        """ """
 
 
 class IRegisterPipelineNodeExecutables(Protocol):
     @abstractmethod
-    def register_node_executable(
-            self, node: PipelineNode, executable: IExecutable) -> None:
-        """
-        """
+    def register_node_executable(self, node: PipelineNode, executable: IExecutable) -> None:
+        """ """
 
 
 class IManagePipelineNodeExecutables(
-        ILocatePipelineNodeExecutables,
-        IRegisterPipelineNodeExecutables,
-        Protocol):
+    ILocatePipelineNodeExecutables, IRegisterPipelineNodeExecutables, Protocol
+):
     pass
 
 
 class IExecutePipelineNodes(Protocol):
     @abstractmethod
     def execute_node(self, node: PipelineNode) -> None:
-        """
-        """
+        """ """
 
 
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables, IExecutePipelineNodes):
@@ -51,12 +46,12 @@ class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables, IExecutePipe
 
         return self._executables[node]
 
-    def register_node_executable(
-            self, node: PipelineNode, executable: IExecutable) -> None:
+    def register_node_executable(self, node: PipelineNode, executable: IExecutable) -> None:
         if node in self._executables:
             raise RuntimeError(f"Duplicate node executable: {node}")
 
         self._executables[node] = executable
+
 
 #
 # class CompositePipelineNodeExecutablesClient(ILocatePipelineNodeExecutables):

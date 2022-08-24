@@ -9,7 +9,6 @@ class IExecutable(Protocol):
 
 
 class NoOpExecutable(IExecutable):
-
     def execute(self) -> None:
         pass
 
@@ -22,6 +21,7 @@ class ICallableExecutableProvider(Protocol):
     classes. This class also gets around issues with Mypy not allowing Callable[] as a property
     of classes. Use this class as a type hint anywhere you would use Callable[[], IExecutable].
     """
+
     @abstractmethod
     def __call__(self) -> IExecutable:
         pass
@@ -31,6 +31,7 @@ class ICallableExecutable(Protocol):
     """
     Represents a callable object that we expect to treat as the execute method.
     """
+
     @abstractmethod
     def __call__(self) -> None:
         pass
@@ -63,6 +64,7 @@ class IContextualCallableExecutable(Protocol[ContextType]):
     """
     Represents a callable object that we expect to treat as the execute method.
     """
+
     @abstractmethod
     def __call__(self, context: ContextType) -> None:
         pass
@@ -74,9 +76,8 @@ class ContextualCallableExecutable(IExecutable, Generic[ContextType]):
     _callback: IContextualCallableExecutable[ContextType]
 
     def __init__(
-            self,
-            context: ContextType,
-            callback: IContextualCallableExecutable[ContextType]) -> None:
+        self, context: ContextType, callback: IContextualCallableExecutable[ContextType]
+    ) -> None:
         self._context = context
         self._callback = callback
 

@@ -28,12 +28,12 @@ from ._node_namespacing import (
 
 
 class PipelineBuilderClient(
-        IPipelineDagClient,
-        IManageBuilderExecutables,
-        ICreatePipelineNamespaces,
-        INamespacePipelineNodes,
-        IMultiplexPipelineNodes):
-
+    IPipelineDagClient,
+    IManageBuilderExecutables,
+    ICreatePipelineNamespaces,
+    INamespacePipelineNodes,
+    IMultiplexPipelineNodes,
+):
     def add_nodes(self, nodes: Iterable[PipelineNode]) -> None:
         self.get_dag_client().add_nodes(nodes)
 
@@ -41,11 +41,13 @@ class PipelineBuilderClient(
         self.get_dag_client().add_node(node)
 
     def add_data_dependencies(
-            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]) -> None:
+        self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]
+    ) -> None:
         self.get_dag_client().add_data_dependencies(node, dependencies)
 
     def add_data_dependency(
-            self, node: PipelineNode, dependency: PipelineDataDependency[Any]) -> None:
+        self, node: PipelineNode, dependency: PipelineDataDependency[Any]
+    ) -> None:
         self.get_dag_client().add_data_dependency(node, dependency)
         self.add_dependency(node, dependency.node)
 
@@ -62,9 +64,8 @@ class PipelineBuilderClient(
         return self.get_dag_client().build()
 
     def add_executable(
-            self,
-            node: PipelineNode,
-            session_executable: IPipelineSessionExecutable) -> None:
+        self, node: PipelineNode, session_executable: IPipelineSessionExecutable
+    ) -> None:
         self.get_executables_client().add_executable(node, session_executable)
 
     def namespace(self, name: str) -> PipelineNamespaceClient:
@@ -105,8 +106,7 @@ class PipelineBuilderClient(
 
     @lru_cache()
     def get_session_client_factory(self) -> PipelineSessionClientFactory:
-        return PipelineSessionClientFactory(
-            session_plugin_client=self.get_session_plugin_client())
+        return PipelineSessionClientFactory(session_plugin_client=self.get_session_plugin_client())
 
     @lru_cache()
     def get_session_plugin_client(self) -> PipelineSessionPluginClient:
@@ -114,6 +114,5 @@ class PipelineBuilderClient(
 
 
 class PipelineBuilderFactory:
-
     def get_instance(self) -> PipelineBuilderClient:
         return PipelineBuilderClient()

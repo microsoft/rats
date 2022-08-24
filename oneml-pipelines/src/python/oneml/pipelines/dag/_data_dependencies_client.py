@@ -27,14 +27,12 @@ class PipelineDataDependenciesClient:
         self._dependencies = {}
 
     def register_data_dependencies(
-            self,
-            node: PipelineNode,
-            dependencies: Tuple[PipelineDataDependency[Any], ...]) -> None:
+        self, node: PipelineNode, dependencies: Tuple[PipelineDataDependency[Any], ...]
+    ) -> None:
         if node in self._dependencies:
             raise RuntimeError(f"Duplicate dependency found: {node}")
 
         self._dependencies[node] = dependencies
 
-    def get_node_dependencies(
-            self, node: PipelineNode) -> Tuple[PipelineDataDependency[Any], ...]:
+    def get_node_dependencies(self, node: PipelineNode) -> Tuple[PipelineDataDependency[Any], ...]:
         return self._dependencies.get(node, tuple())

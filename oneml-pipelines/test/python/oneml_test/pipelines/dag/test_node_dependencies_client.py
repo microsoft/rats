@@ -19,7 +19,6 @@ node4 = PipelineNode("node-4")
 
 
 class FakeNodeLocator(ILocatePipelineNodes):
-
     def get_nodes(self) -> Tuple[PipelineNode, ...]:
         return node1, node2, node3, node4
 
@@ -56,14 +55,16 @@ class TestPipelineNodeDependenciesClient:
         result3 = self._client.get_nodes_with_dependencies(tuple([node2]))
         result4 = self._client.get_nodes_with_dependencies(tuple([node1, node2]))
 
-        assert result1 == tuple([node2]), (
-            "Node 2 has no dependencies, so it basically always comes back")
+        assert result1 == tuple(
+            [node2]
+        ), "Node 2 has no dependencies, so it basically always comes back"
 
-        assert result2 == tuple([node2, node4]), (
-            "When Node 1 is complete, Nodes 2 and 4 are executable")
+        assert result2 == tuple(
+            [node2, node4]
+        ), "When Node 1 is complete, Nodes 2 and 4 are executable"
 
-        assert result3 == tuple([node1]), (
-            "When Node 2 is complete, we can run Node 1")
+        assert result3 == tuple([node1]), "When Node 2 is complete, we can run Node 1"
 
-        assert result4 == tuple([node3, node4]), (
-            "When Nodes 1 and 2 are complete, we can run Nodes 3 and 4")
+        assert result4 == tuple(
+            [node3, node4]
+        ), "When Nodes 1 and 2 are complete, we can run Nodes 3 and 4"

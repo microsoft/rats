@@ -9,14 +9,12 @@ logger = logging.getLogger(__name__)
 
 
 class IRunnablePipelineSession(Protocol):
-
     @abstractmethod
     def run(self) -> None:
         pass
 
 
 class IStoppablePipelineSession(Protocol):
-
     @abstractmethod
     def stop(self) -> None:
         pass
@@ -32,9 +30,10 @@ class PipelineSession(IPipelineSession):
     _session_frame: IPipelineSessionFrame
 
     def __init__(
-            self,
-            session_state_client: IManagePipelineSessionState,
-            session_frame: IPipelineSessionFrame) -> None:
+        self,
+        session_state_client: IManagePipelineSessionState,
+        session_frame: IPipelineSessionFrame,
+    ) -> None:
         self._session_state_client = session_state_client
         self._session_frame = session_frame
 

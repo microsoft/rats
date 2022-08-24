@@ -31,6 +31,7 @@ class ICallableMultiExecutable(Protocol):
     """
     Represents a callable object that we expect to treat as the execute method.
     """
+
     @abstractmethod
     def __call__(self, node: PipelineNode) -> None:
         pass
@@ -53,10 +54,11 @@ class PipelineNodeMultiplexer(IMultiplexPipelineNodes):
     _values: PipelineMultiplexValuesType
 
     def __init__(
-            self,
-            dag_client: PipelineDagClient,
-            namespace_client: PipelineNamespaceClient,
-            values: PipelineMultiplexValuesType):
+        self,
+        dag_client: PipelineDagClient,
+        namespace_client: PipelineNamespaceClient,
+        values: PipelineMultiplexValuesType,
+    ):
         self._dag_client = dag_client
         self._namespace_client = namespace_client
         self._values = values
@@ -85,7 +87,8 @@ class PipelineNodeMultiplexer(IMultiplexPipelineNodes):
         for x in self._values:
             self._dag_client.add_dependency(
                 self._namespace_client.node(f"{prefix}[{x}]"),
-                self._namespace_client.node(f"{dependency}[{x}]"))
+                self._namespace_client.node(f"{dependency}[{x}]"),
+            )
 
     def add_external_dependencies(self, prefix: str, dependencies: Iterable[PipelineNode]) -> None:
         for dependency in dependencies:
@@ -112,9 +115,8 @@ class PipelineNodeMultiplexerFactory:
         self._pipeline = pipeline
 
     def get_instance(
-            self,
-            namespace: PipelineNamespaceClient,
-            values: PipelineMultiplexValuesType) -> PipelineNodeMultiplexer:
+        self, namespace: PipelineNamespaceClient, values: PipelineMultiplexValuesType
+    ) -> PipelineNodeMultiplexer:
         return PipelineNodeMultiplexer(
             dag_client=self._pipeline,
             namespace_client=namespace,

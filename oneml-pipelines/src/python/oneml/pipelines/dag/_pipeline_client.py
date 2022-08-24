@@ -9,10 +9,11 @@ class PipelineClient:
     _data_dependencies_client: PipelineDataDependenciesClient
 
     def __init__(
-            self,
-            node_client: IManagePipelineNodes,
-            node_dependencies_client: IManagePipelineNodeDependencies,
-            data_dependencies_client: PipelineDataDependenciesClient):
+        self,
+        node_client: IManagePipelineNodes,
+        node_dependencies_client: IManagePipelineNodeDependencies,
+        data_dependencies_client: PipelineDataDependenciesClient,
+    ):
         self._node_client = node_client
         self._node_dependencies_client = node_dependencies_client
         self._data_dependencies_client = data_dependencies_client

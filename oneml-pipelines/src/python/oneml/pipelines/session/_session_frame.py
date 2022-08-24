@@ -28,11 +28,12 @@ class BasicPipelineSessionFrameCommands:
     _node_executables_client: IExecutePipelineNodes
 
     def __init__(
-            self,
-            session_state_client: IManagePipelineSessionState,
-            node_state_client: IManagePipelineNodeState,
-            node_dependencies_client: IManagePipelineNodeDependencies,
-            node_executables_client: IExecutePipelineNodes):
+        self,
+        session_state_client: IManagePipelineSessionState,
+        node_state_client: IManagePipelineNodeState,
+        node_dependencies_client: IManagePipelineNodeDependencies,
+        node_executables_client: IExecutePipelineNodes,
+    ):
         self._session_state_client = session_state_client
         self._node_state_client = node_state_client
         self._node_dependencies_client = node_dependencies_client

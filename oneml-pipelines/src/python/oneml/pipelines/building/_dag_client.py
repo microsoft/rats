@@ -30,12 +30,14 @@ class IPipelineDagClient(Protocol):
 
     @abstractmethod
     def add_data_dependencies(
-            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]) -> None:
+        self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]
+    ) -> None:
         pass
 
     @abstractmethod
     def add_data_dependency(
-            self, node: PipelineNode, dependency: PipelineDataDependency[Any]) -> None:
+        self, node: PipelineNode, dependency: PipelineDataDependency[Any]
+    ) -> None:
         pass
 
     @abstractmethod
@@ -74,12 +76,14 @@ class PipelineDagClient(IPipelineDagClient):
         self._dependencies[node].add(dependency)
 
     def add_data_dependencies(
-            self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]) -> None:
+        self, node: PipelineNode, dependencies: Iterable[PipelineDataDependency[Any]]
+    ) -> None:
         for dependency in dependencies:
             self.add_data_dependency(node, dependency)
 
     def add_data_dependency(
-            self, node: PipelineNode, dependency: PipelineDataDependency[Any]) -> None:
+        self, node: PipelineNode, dependency: PipelineDataDependency[Any]
+    ) -> None:
         self._data_dependencies[node].add(dependency)
 
     def build(self) -> PipelineClient:
@@ -91,10 +95,12 @@ class PipelineDagClient(IPipelineDagClient):
             node_client.register_node(node)
 
             dependencies_client.register_node_dependencies(
-                node, tuple(self._dependencies.get(node, [])))
+                node, tuple(self._dependencies.get(node, []))
+            )
 
             data_dependencies_client.register_data_dependencies(
-                node, tuple(self._data_dependencies.get(node, [])))
+                node, tuple(self._data_dependencies.get(node, []))
+            )
 
         return PipelineClient(
             node_client=node_client,

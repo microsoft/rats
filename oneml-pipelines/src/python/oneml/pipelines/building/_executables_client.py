@@ -11,7 +11,6 @@ from oneml.pipelines.session import (
 
 
 class IPipelineSessionExecutable(Protocol):
-
     @abstractmethod
     def execute(self, session_client: PipelineSessionClient) -> None:
         pass
@@ -20,9 +19,8 @@ class IPipelineSessionExecutable(Protocol):
 class IManageBuilderExecutables(Protocol):
     @abstractmethod
     def add_executable(
-            self,
-            node: PipelineNode,
-            session_executable: IPipelineSessionExecutable) -> None:
+        self, node: PipelineNode, session_executable: IPipelineSessionExecutable
+    ) -> None:
         pass
 
 
@@ -51,11 +49,12 @@ class PipelineBuilderExecutablesClient(IManageBuilderExecutables):
         self._session_plugin_client = session_plugin_client
 
     def add_executable(
-            self,
-            node: PipelineNode,
-            session_executable: IPipelineSessionExecutable) -> None:
+        self, node: PipelineNode, session_executable: IPipelineSessionExecutable
+    ) -> None:
 
-        self._session_plugin_client.register_plugin(ExecutablesPlugin(
-            node=node,
-            session_executable=session_executable,
-        ))
+        self._session_plugin_client.register_plugin(
+            ExecutablesPlugin(
+                node=node,
+                session_executable=session_executable,
+            )
+        )
