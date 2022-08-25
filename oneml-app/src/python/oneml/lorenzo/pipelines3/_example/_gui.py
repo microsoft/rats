@@ -1,17 +1,11 @@
-# type: ignore
-# flake8: noqa
 import io
 
 import cairosvg
 import pydot
 import pygame
 
-from oneml.pipelines import (
-    ILocatePipelineNodeDependencies,
-    ILocatePipelineNodes,
-    ILocatePipelineNodeState,
-    PipelineNodeState,
-)
+from oneml.pipelines.dag import ILocatePipelineNodeDependencies, ILocatePipelineNodes
+from oneml.pipelines.session import ILocatePipelineNodeState, PipelineNodeState
 
 state_colors_map = {
     PipelineNodeState.REGISTERED: "/dark27/3",
@@ -38,7 +32,7 @@ class DotDag:
         self._dependencies_client = dependencies_client
         self._node_state_client = node_state_client
 
-    def graph(self) -> pydot.Dot:
+    def graph(self) -> pydot.Dot:  # type: ignore
         graph = pydot.Dot("DAG", graph_type="digraph")
 
         for node in self._node_client.get_nodes():

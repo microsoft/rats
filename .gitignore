@@ -15,9 +15,13 @@
 **/.vscode/
 
 **/.idea/*
+# The module files tell Pycharm about the various components in the repo.
 !**/.idea/*.iml
 !**/.idea/modules.xml
+# Allows us to share configurations for running pytest and other tools through the IDE.
 !**/.idea/runConfigurations
+# Watcher tasks allow us to share things like auto formatters.
+!**/.idea/watcherTasks.xml
 
 # Draw.io tmp files
 **/*.drawio.dtmp
