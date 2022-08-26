@@ -53,29 +53,31 @@ class WithPortsRenamed:
         self.wrapped_processor = processor
         self._input_ports_rename = input_ports_rename
         self._output_ports_rename = output_ports_rename
+        self._name = processor.name
 
     def get_input_schema(self) -> Dict[InputPortName, Type[Data]]:
         return {
             self._input_ports_rename(input_port_name): t
-            for input_port_name, t in processor.get_input_schema().items()
+            for input_port_name, t in self.wrapped_processor.get_input_schema().items()
         }
 
     def get_output_schema(self) -> Dict[OutputPortName, Type[Data]]:
         return {
             self._output_ports_rename(output_port_name): t
-            for output_port_name, t in processor.get_output_schema().items()
+            for output_port_name, t in self.wrapped_processor.get_output_schema().items()
         }
 
     def process(self, run_context: RunContext, **inputs: Data) -> Dict[OutputPortName, Data]:
-        inputs = {
+        renamed_inputs = {
             input_port_name: inputs[self._input_ports_rename(input_port_name)]
             for input_port_name in self.wrapped_processor.get_input_schema().keys()
         }
-        outputs = {
+        outputs = self.wrapped_processor.process(run_context, **renamed_inputs)
+        renamed_outputs = {
             self._output_ports_rename(output_port_name): value
-            for output_port_name, value in self.wrapped_processor.process(run_context, **inputs)
+            for output_port_name, value in outputs.items()
         }
-        return outputs
+        return renamed_outputs
 
 
 def with_ports_renamed(
@@ -106,7 +108,7 @@ def with_ports_renamed(
     else:
         wrapper_processor = WithPortsRenamed(
             processor,
-            _output_ports_rename,
+            _input_ports_rename,
             _output_ports_rename,
         )
     return wrapper_processor

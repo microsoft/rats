@@ -15,11 +15,11 @@ class WithInputsDuplicated(DAG):
             duplicated.  The set of input ports selected by the function will define the sub-graph
             that will be duplicated.  Any node and output port that is downstream of any of of the
             selected input ports will be part of the duplicated sub-graph.
-        K: number of copies to create of the sub-graph to duplicated.  If K=0, then the sub-graph
-            and selected input nodes will be removed.
         port_rename: A function taking a port name and an integer in [0, K) and returning a new
             port name.  Will be applied to both input ports and output ports of the duplicated
             subgraph.  Ignored if K=0.
+        K: number of copies to create of the sub-graph to duplicated.  If K=0, then the sub-graph
+            and selected input nodes will be removed.
     """
 
     def __init__(

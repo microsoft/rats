@@ -37,7 +37,7 @@ class ExecutableWrappingProcessingNode(IExecutable):
         logger.debug("Saved output <%s.%s>.", self.node_key, key)
 
     def execute(self) -> None:
-        logger.debug("Executing <%s>.", self.node_key)
+        logger.info("Executing <%s>.", self.node_key)
         inputs = {
             key: self._load(self.input_mappings[key])
             for key in self.node.get_input_schema().keys()
@@ -47,4 +47,4 @@ class ExecutableWrappingProcessingNode(IExecutable):
         logger.debug("Executing <%s>.  Calculated outputs <%s>.", self.node_key, outputs.keys())
         for port_name, value in outputs.items():
             self._save(OutputPortAddress(self.node_key, port_name), value)
-        logger.debug("Executing <%s>.  Done.", self.node_key)
+        logger.info("Executing <%s>.  Done.", self.node_key)

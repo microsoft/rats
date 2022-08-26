@@ -7,7 +7,8 @@ from typing import Any, Generic, Mapping, Protocol, Type, TypeVar
 
 from omegaconf import DictConfig
 
-from oneml.pipelines import IExecutable
+from oneml.pipelines.building import IPipelineSessionExecutable
+from oneml.pipelines.session import PipelineSessionClient
 
 from ._frozendict import FrozenDict
 
@@ -29,7 +30,7 @@ class Processor(Protocol[T]):  # Processor is covariant
         ...
 
 
-class Provider(IExecutable, Generic[T]):
+class Provider(IPipelineSessionExecutable, Generic[T]):
     _processor_type: Type[Processor[T]]
 
     def __init__(self, processor_type: Type[Processor[T]], config: DictConfig) -> None:
@@ -37,7 +38,7 @@ class Provider(IExecutable, Generic[T]):
         self._processor_type = processor_type
         self._config = config  # hashable? frozen?
 
-    def execute(self) -> None:
+    def execute(self, session_client: PipelineSessionClient) -> None:
         pass
 
     @property
