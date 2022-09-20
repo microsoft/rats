@@ -1,3 +1,4 @@
+from oneml.processors import Provider
 from oneml.processors._example_slr import ModelEval, ModelTrain, StandardizeEval, StandardizeTrain
 from oneml.processors._frozendict import FrozenDict
 from oneml.processors._utils import ProcessorCommonInputsOutputs
@@ -12,6 +13,6 @@ def test_frozendict() -> None:
 
 def test_common_inputs_outputs() -> None:
     ProcessorCommonInputsOutputs.intersect_signatures(
-        StandardizeTrain, StandardizeEval
+        Provider(StandardizeEval), Provider(StandardizeTrain)
     )
-    ProcessorCommonInputsOutputs.intersect_signatures(ModelTrain, ModelEval)
+    ProcessorCommonInputsOutputs.intersect_signatures(Provider(ModelEval), Provider(ModelTrain))

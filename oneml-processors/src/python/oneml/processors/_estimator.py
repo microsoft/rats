@@ -1,14 +1,18 @@
 from typing import Any, FrozenSet, Mapping, TypeVar
 
+from typing_extensions import TypeAlias
+
 from ._pipeline import IExpandPipeline, Namespace, PDependency, Pipeline
 from ._utils import ProcessorCommonInputsOutputs, TailPipelineClient
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
 TI = TypeVar("TI", contravariant=True)  # generic input types for processor
 TO = TypeVar("TO", covariant=True)  # generic output types for processor
+_TI: TypeAlias = Any
+_TO: TypeAlias = Any
 
 
-class EstimatorPipeline(Pipeline[T, TI, TO]):
+class EstimatorPipeline(Pipeline):
     def __post_init__(self) -> None:
         super().__post_init__()
         train_ns, eval_ns = Namespace("train"), Namespace("eval")
@@ -20,23 +24,21 @@ class EstimatorPipeline(Pipeline[T, TI, TO]):
             raise Exception("Pipeline should contain train & eval namespaces in start nodes.")
 
 
-class EstimatorPipelineFromTrainAndEval(IExpandPipeline[T, TI, TO]):
-    _train_pipeline: Pipeline[T, TI, TO]
-    _eval_pipeline: Pipeline[T, TI, TO]
+class EstimatorPipelineFromTrainAndEval(IExpandPipeline):
+    _train_pipeline: Pipeline
+    _eval_pipeline: Pipeline
 
-    def __init__(
-        self, train_pipeline: Pipeline[T, TI, TO], eval_pipeline: Pipeline[T, TI, TO]
-    ) -> None:
+    def __init__(self, train_pipeline: Pipeline, eval_pipeline: Pipeline) -> None:
         super().__init__()
         self._train_pipeline = train_pipeline
         self._eval_pipeline = eval_pipeline
 
-    def expand(self) -> EstimatorPipeline[T, TI, TO]:
+    def expand(self) -> EstimatorPipeline:
         train_ns, eval_ns = Namespace("train"), Namespace("eval")
         new_train = self._train_pipeline.decorate(train_ns)
         new_eval = self._eval_pipeline.decorate(eval_ns)
         # placeholder for external dependencies
-        tail: Pipeline[T, TI, TO] = TailPipelineClient.build_tail_pipeline(new_train, new_eval)
+        tail: Pipeline = TailPipelineClient.build_tail_pipeline(new_train, new_eval)
         new_pipeline = new_train + new_eval + tail
 
         new_dependencies = dict(new_pipeline.dependencies)
@@ -50,7 +52,7 @@ class EstimatorPipelineFromTrainAndEval(IExpandPipeline[T, TI, TO]):
             hanging_dependencies = new_eval.dependencies[eval_node] & new_eval.hanging_dependencies
             if hanging_dependencies:
                 common_IO: FrozenSet[
-                    PDependency[TI, TO]
+                    PDependency[_TI, _TO]
                 ] = ProcessorCommonInputsOutputs.get_common_dependencies_from_providers(
                     train_node,
                     new_eval.props[eval_node].exec_provider,
@@ -75,9 +77,7 @@ class EstimatorPipelineFromTrainAndEval(IExpandPipeline[T, TI, TO]):
 
 class WrapEstimatorPipeline:
     @staticmethod
-    def wrap_estimator_pipeline_in_namespace(
-        pipeline: EstimatorPipeline[T, TI, TO], name: str
-    ) -> Pipeline[T, TI, TO]:
+    def wrap_estimator_pipeline_in_namespace(pipeline: EstimatorPipeline, name: str) -> Pipeline:
         new_pipeline = pipeline.decorate(Namespace(name))
         if len(new_pipeline.end_nodes) > 1:
             tail_pipeline = TailPipelineClient.build_tail_pipeline(pipeline)  # tail pipeline only
@@ -85,19 +85,19 @@ class WrapEstimatorPipeline:
         return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies, new_pipeline.props)
 
 
-class SequentialEstimators(IExpandPipeline[T, TI, TO]):
-    _first_pipeline: EstimatorPipeline[T, TI, TO]
-    _second_pipeline: EstimatorPipeline[T, TI, TO]
+class SequentialEstimators(IExpandPipeline):
+    _first_pipeline: EstimatorPipeline
+    _second_pipeline: EstimatorPipeline
 
     def __init__(
         self,
-        first_pipeline: EstimatorPipeline[T, TI, TO],
-        second_pipeline: EstimatorPipeline[T, TI, TO],
+        first_pipeline: EstimatorPipeline,
+        second_pipeline: EstimatorPipeline,
     ) -> None:
         super().__init__()
         self._first_pipeline = first_pipeline
         self._second_pipeline = second_pipeline
 
-    def expand(self) -> EstimatorPipeline[T, TI, TO]:
+    def expand(self) -> EstimatorPipeline:
         new_pipeline = self._first_pipeline + self._second_pipeline
         return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies, new_pipeline.props)

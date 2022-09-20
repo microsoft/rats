@@ -49,7 +49,6 @@ class PipelineBuilderClient(
         self, node: PipelineNode, dependency: PipelineDataDependency[Any]
     ) -> None:
         self.get_dag_client().add_data_dependency(node, dependency)
-        self.add_dependency(node, dependency.node)
 
     def add_dependencies(self, node: PipelineNode, dependencies: Iterable[PipelineNode]) -> None:
         self.get_dag_client().add_dependencies(node, dependencies)

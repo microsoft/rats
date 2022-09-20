@@ -1,63 +1,74 @@
-# from typing import Any, Iterable, Mapping, Tuple, TypeVar
+import logging
+from typing import Any, Generic, Iterable, Mapping, Tuple, TypeVar
 
-# from oneml.pipelines.dag import PipelineNode
+from oneml.pipelines.building import IPipelineSessionExecutable, PipelineBuilderFactory
+from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
+from oneml.pipelines.session import PipelinePort, PipelineSessionClient
 
-# from ._pipeline import PDependency, Pipeline, PNode, PNodeProperties
+from ._pipeline import PDependency, Pipeline, PNode
+from ._processor import DataArg, Provider
 
-# T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
-# TI = TypeVar("TI", contravariant=True)  # generic input types for processor
-# TO = TypeVar("TO", covariant=True)  # generic output types for processor
+logger = logging.getLogger(__name__)
 
-
-# class P2Pipeline:
-#     @staticmethod
-#     def node(node: PNode) -> PipelineNode:
-#         return PipelineNode(repr(node))
-
-#     @classmethod
-#     def dependencies(
-#         cls, dependencies: Iterable[PDependency[TI, TO]]
-#     ) -> Tuple[PipelineNode, ...]:
-#         if any(dp.node is None for dp in dependencies):
-#             raise ValueError("Trying to register a hanging depencency.")
-#         return tuple(cls.node(dp.node) for dp in dependencies if dp.node)
+T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
+TI = TypeVar("TI", contravariant=True)  # generic input types for processor
+TO = TypeVar("TO", covariant=True)  # generic output types for processor
 
 
-# class PipelineNodeClient(op.PipelineNodeClient):
-#     def __init__(self, nodes: Iterable[PNode]) -> None:
-#         super().__init__()
-#         for node in nodes:
-#             self.register_node(P2Pipeline.node(node))
+class P2Pipeline:
+    @staticmethod
+    def node(node: PNode) -> PipelineNode:
+        return PipelineNode(repr(node))
+
+    @classmethod
+    def data_dp(
+        cls, node: PNode, in_arg: DataArg[TI], out_arg: DataArg[TO]
+    ) -> PipelineDataDependency[TI]:
+        in_port = PipelinePort[in_arg.annotation](in_arg.key)  # type: ignore[name-defined]
+        out_port = PipelinePort[out_arg.annotation](out_arg.key)  # type: ignore[name-defined]
+        return PipelineDataDependency(P2Pipeline.node(node), out_port, in_port)
+
+    @classmethod
+    def data_dependencies(
+        cls, dependencies: Iterable[PDependency[TI, TO]]
+    ) -> Tuple[PipelineDataDependency[TI], ...]:
+        if any(dp.node is None for dp in dependencies):
+            raise ValueError("Trying to convert a hanging depencency.")
+        return tuple(cls.data_dp(dp.node, dp.in_arg, dp.out_arg) for dp in dependencies if dp.node)
 
 
-# class PipelineNodeDependenciesClient(op.PipelineNodeDependenciesClient):
-#     def __init__(
-#         self,
-#         node_client: op.ILocatePipelineNodes,
-#         dependencies: Mapping[PNode, Iterable[PDependency[TI, TO]]],
-#     ) -> None:
-#         super().__init__(node_client)
-#         for node, dps in dependencies.items():
-#             node_client.get_node_by_key(P2Pipeline.node(node).key)  # node exists in node_client
-#             self.register_node_dependencies(P2Pipeline.node(node), P2Pipeline.dependencies(dps))
+class SessionExecutableProvider(IPipelineSessionExecutable, Generic[T]):
+    _node: PNode
+    _provider: Provider[T]
+
+    def __init__(self, node: PNode, provider: Provider[T]) -> None:
+        super().__init__()
+        self._node = node
+        self._provider = provider
+
+    def execute(self, session_client: PipelineSessionClient) -> None:
+        logger.debug(f"Node {self._node} execute start.")
+        pipeline_node = P2Pipeline.node(self._node)
+        input_client = session_client.node_input_data_client_factory().get_instance(pipeline_node)
+        publish_client = session_client.node_data_client_factory().get_instance(pipeline_node)
+        self._provider.execute(input_client, publish_client)
+        logger.debug(f"Node {self._node} execute end.")
 
 
-# class PipelineNodeExecutablesClient(op.PipelineNodeExecutablesClient):
-#     def __init__(self, properties: Mapping[PNode, PNodeProperties[T]]) -> None:
-#         super().__init__()
-#         for node, props in properties.items():
-#             self.register_node_executable(P2Pipeline.node(node), props.exec_provider)
+class PipelineSessionProvider:
+    @classmethod
+    def get_session(cls, pipeline: Pipeline) -> PipelineSessionClient:
+        builder = PipelineBuilderFactory().get_instance()
 
+        for node in pipeline.nodes:
+            builder.add_node(P2Pipeline.node(node))
+            sess_executable = SessionExecutableProvider(node, pipeline.props[node].exec_provider)
+            builder.add_executable(P2Pipeline.node(node), sess_executable)
 
-# class PipelineClient:
-#     _node_client: PipelineNodeClient
-#     _dependencies_client: PipelineNodeDependenciesClient
-#     _executables_client: PipelineNodeExecutablesClient
+        for node, dependencies in pipeline.dependencies.items():
+            builder.add_data_dependencies(
+                P2Pipeline.node(node), P2Pipeline.data_dependencies(dependencies)
+            )
 
-#     def __init__(self, pipeline: Pipeline[T, TI, TO]) -> None:
-#         super().__init__()
-#         self._node_client = PipelineNodeClient(pipeline.nodes)
-#         self._dependencies_client = PipelineNodeDependenciesClient(
-#             self._node_client, pipeline.dependencies
-#         )
-#         self._executables_client = PipelineNodeExecutablesClient(pipeline.props)
+        session = builder.build_session()
+        return session

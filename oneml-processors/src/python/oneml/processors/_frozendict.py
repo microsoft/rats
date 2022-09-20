@@ -5,7 +5,19 @@ Original source from https://stackoverflow.com/a/25332884 (MIT License)
 """
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, Iterator, Mapping, Optional, TypeVar, overload
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Generic,
+    Iterator,
+    KeysView,
+    Mapping,
+    Optional,
+    Set,
+    TypeVar,
+    overload,
+)
 
 T = TypeVar("T")
 _KT = TypeVar("_KT")
@@ -70,4 +82,24 @@ class FrozenDict(Mapping[_KT, _VT], Generic[_KT, _VT]):
     def __or__(self, other: Dict[_KT, _VT] | FrozenDict[_KT, _VT]) -> FrozenDict[_KT, _VT]:
         new_d = self._d.copy()  # pipe operator | available in python 3.9
         new_d.update(dict(other))
+        return self.__class__(new_d)
+
+    @overload
+    def __sub__(self, other: KeysView[_KT]) -> FrozenDict[_KT, _VT]:
+        ...
+
+    @overload
+    def __sub__(self, other: Set[_KT]) -> FrozenDict[_KT, _VT]:
+        ...
+
+    @overload
+    def __sub__(self, other: FrozenSet[_KT]) -> FrozenDict[_KT, _VT]:
+        ...
+
+    @overload
+    def __sub__(self, other: Mapping[_KT, Any]) -> FrozenDict[_KT, _VT]:
+        ...
+
+    def __sub__(self, other: Any) -> FrozenDict[_KT, _VT]:
+        new_d = {k: v for k, v in self._d.items() if k not in other}
         return self.__class__(new_d)

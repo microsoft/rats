@@ -18,7 +18,7 @@ class ILoadPipelineData(Protocol):
     def get_data(
         self, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
     ) -> PipelinePortDataType:
-        pass
+        """ """
 
 
 class IPublishPipelineData(Protocol):
@@ -29,17 +29,17 @@ class IPublishPipelineData(Protocol):
         port: PipelinePort[PipelinePortDataType],
         data: PipelinePortDataType,
     ) -> None:
-        pass
+        """ """
 
 
 class IManagePipelineData(IPublishPipelineData, ILoadPipelineData, Protocol):
-    pass
+    """ """
 
 
 class ILoadPipelineNodeData(Protocol):
     @abstractmethod
     def get_data(self, port: PipelinePort[PipelinePortDataType]) -> PipelinePortDataType:
-        pass
+        """ """
 
 
 class IPublishPipelineNodeData(Protocol):
@@ -47,11 +47,11 @@ class IPublishPipelineNodeData(Protocol):
     def publish_data(
         self, port: PipelinePort[PipelinePortDataType], data: PipelinePortDataType
     ) -> None:
-        pass
+        """ """
 
 
 class IManagePipelineNodeData(IPublishPipelineNodeData, ILoadPipelineNodeData, Protocol):
-    pass
+    """ """
 
 
 class PipelineDataClient(IManagePipelineData):
@@ -182,7 +182,7 @@ class PipelineNodeInputDataClientFactory:
         self._data_dependencies_client = data_dependencies_client
         self._data_client = data_client
 
-    def get_instance(self, node: PipelineNode) -> ILoadPipelineNodeData:
+    def get_instance(self, node: PipelineNode) -> PipelineNodeInputDataClient:
         dependencies = self._data_dependencies_client.get_node_dependencies(node=node)
         data_mapping = {}
         for dep in dependencies:

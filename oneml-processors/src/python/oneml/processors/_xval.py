@@ -28,20 +28,18 @@ class DataSplitter(Processor[T]):
         return self._num_folds
 
 
-class XValTrain(IExpandPipeline[T, TI, TO]):
-    _pipeline: Pipeline[T, TI, TO]
+class XValTrain(IExpandPipeline):
+    _pipeline: Pipeline
     _data_splitter: DataSplitter[T]
     _summary: Provider[T]
 
-    def __init__(
-        self, num_folds: int, data_splitter: DataSplitter[T], pipeline: Pipeline[T, TI, TO]
-    ) -> None:
+    def __init__(self, num_folds: int, data_splitter: DataSplitter[T], pipeline: Pipeline) -> None:
         super().__init__()
         self._data_splitter = data_splitter
         self._summary = Provider()
         self._pipeline = pipeline
 
-    def expand(self) -> Pipeline[T, TI, TO]:
+    def expand(self) -> Pipeline:
         kfolds = []
         datasplit = PNode("data_splitter")
         tail_dependencies: Tuple[PDependency[TI, TO], ...] = ()
@@ -56,7 +54,7 @@ class XValTrain(IExpandPipeline[T, TI, TO]):
                 new_kfold = new_kfold.pop(new_kfold.end_nodes[0])
             kfolds.append(new_kfold)
 
-        folds_pipeline: Pipeline[T, TI, TO] = sum(kfolds, start=Pipeline())  # merge kfold
+        folds_pipeline: Pipeline = sum(kfolds, start=Pipeline())  # merge kfold
         tail = PNode("summary")  # create new tail for xval_train pipeline
         datasplit_and_tail_pipeline = Pipeline(  # create new pipeline w/ datasplit and summary
             {datasplit: self._data_splitter, tail: self._summary},
@@ -70,17 +68,17 @@ class XValTrain(IExpandPipeline[T, TI, TO]):
         return self._data_splitter.num_folds
 
 
-class XValEval(IPrunePipeline[T, TI, TO]):
-    _xval_train: Pipeline[T, TI, TO]
+class XValEval(IPrunePipeline):
+    _xval_train: Pipeline
     _summary: Provider[T]
 
-    def __init__(self, xval_train: Pipeline[T, TI, TO]) -> None:
+    def __init__(self, xval_train: Pipeline) -> None:
         super().__init__()
         self._xval_train = xval_train
         self._summary = Provider()
 
-    def prune(self) -> Pipeline[T, TI, TO]:
-        prune_pipeline: Tuple[Pipeline[T, TI, TO], ...] = ()
+    def prune(self) -> Pipeline:
+        prune_pipeline: Tuple[Pipeline, ...] = ()
         train_ns = Namespace("train")
         for node, provider in self._xval_train.nodes.items():
             if train_ns in node.namespace:

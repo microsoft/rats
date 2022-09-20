@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from collections import defaultdict
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -14,19 +15,27 @@ from typing import (
     Optional,
     Protocol,
     Set,
-    Tuple,
-    Type,
     TypeVar,
+    Union,
+    cast,
 )
 
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias  # python < 3.10
+
 from ._frozendict import FrozenDict
-from ._processor import ProcessorInput, Provider
+from ._processor import DataArg, ProcessorInput, Provider
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)  # output mapping of processors
 TI = TypeVar("TI", contravariant=True)  # generic input types for processor
 TO = TypeVar("TO", covariant=True)  # generic output types for processor
+_T: TypeAlias = Mapping[str, Any]
+_TI: TypeAlias = Any
+_TO: TypeAlias = Any
 
 
 @dataclass(frozen=True)
@@ -66,20 +75,44 @@ class PNode:
         return PNode(self.name, namespace / self.namespace)
 
 
-@dataclass(frozen=True)
 class PDependency(Generic[TI, TO]):
-    node: Optional[PNode]
-    in_arg: Tuple[str, Type[TI]]  # Generic input contravariant on TI
-    out_arg: Optional[Tuple[str, Type[TO]]] = None  # Generic output covariant on TO
+    _node: Optional[PNode]
+    _in_arg: DataArg[TI]  # Generic input contravariant on TI
+    _out_arg: Optional[DataArg[TO]]  # Generic output covariant on TO
+
+    @property
+    def node(self) -> Optional[PNode]:
+        return self._node
+
+    @property
+    def in_arg(self) -> DataArg[TI]:
+        return self._in_arg
+
+    @property
+    def out_arg(self) -> DataArg[TO]:
+        return self._out_arg if self._out_arg else cast(DataArg[TO], self._in_arg)
+
+    def __init__(
+        self,
+        node: Union[PNode, Pipeline, None],
+        in_arg: DataArg[TI],
+        out_arg: Optional[DataArg[TO]] = None,
+    ) -> None:
+        if isinstance(node, Pipeline):
+            if len(node.end_nodes) != 1:
+                raise ValueError(
+                    "Dependency pipeline must have a single tail node; "
+                    "This mechanism ensures pipelines can be referred as dependencies."
+                )
+            node = next(iter(node.end_nodes))
+
+        super().__init__()
+        self._node = node
+        self._in_arg = in_arg
+        self._out_arg = out_arg
 
     def __repr__(self) -> str:
-        in_arg = ": ".join(map(str, self.in_arg))
-        out_arg = ": ".join(map(str, self.out_arg)) if self.out_arg else None
-        return "self." + in_arg + " <- " + repr(self.node) + "." + str(out_arg)
-
-    def __post_init__(self) -> None:
-        if self.out_arg is not None and not issubclass(self.out_arg[1], self.in_arg[1]):
-            raise ValueError("Output type argument must be a subclas of the input type argument.")
+        return "self." + repr(self.in_arg) + " <- " + repr(self.node) + "." + repr(self.out_arg)
 
     def decorate(self, namespace: Namespace) -> PDependency[TI, TO]:
         return (
@@ -88,9 +121,7 @@ class PDependency(Generic[TI, TO]):
             else self
         )
 
-    def set_node(
-        self, node: PNode, out_arg: Optional[Tuple[str, Type[TO]]] = None
-    ) -> PDependency[TI, TO]:
+    def set_node(self, node: PNode, out_arg: Optional[DataArg[TO]] = None) -> PDependency[TI, TO]:
         return self.__class__(node, self.in_arg, out_arg)
 
 
@@ -114,14 +145,15 @@ class PNodeProperties(Generic[T]):
 
 
 @dataclass(frozen=True)
-class Pipeline(Generic[T, TI, TO]):
+class Pipeline:
+
     nodes: FrozenSet[PNode] = field(default_factory=frozenset)
-    dependencies: FrozenDict[PNode, FrozenSet[PDependency[TI, TO]]] = field(
+    dependencies: FrozenDict[PNode, FrozenSet[PDependency[Any, Any]]] = field(
         default_factory=FrozenDict
     )
-    props: FrozenDict[PNode, PNodeProperties[T]] = field(default_factory=FrozenDict)
+    props: FrozenDict[PNode, PNodeProperties[_T]] = field(default_factory=FrozenDict)
 
-    def __add__(self, pipeline: Pipeline[T, TI, TO]) -> Pipeline[T, TI, TO]:
+    def __add__(self, pipeline: Pipeline) -> Pipeline:
         # instead of __add__, maybe __or__?
         # overload with pipeline, nodes, dependencies, props?
         if not all(
@@ -147,22 +179,22 @@ class Pipeline(Generic[T, TI, TO]):
         if any(n not in self.props for n in self.nodes):
             raise Exception("Missing props for some nodes.")
         if not all(
-            len(set((dp.node, dp.in_arg[0]) for dp in self.dependencies[n]))
+            len(set((dp.node, dp.in_arg) for dp in self.dependencies[n]))
             == len(self.dependencies[n])
-            for n in self.nodes
+            for n in self.dependencies.keys()
         ):
             raise Exception("A node cannot have an input name more than once per dependency.")
 
         # Fill missing node dependencies for all self.nodes
         dependencies = dict(self.dependencies)
-        for node in self.nodes - set(dependencies.keys()):
+        for node in self.nodes - dependencies.keys():
             dependencies[node] = frozenset()
 
         # Fill all hanging dependencies for all unspecified dependencies
         for node in self.nodes:
             sig = ProcessorInput.signature_from_provider(self.props[node].exec_provider)
-            for in_arg in sig.items():
-                if not any(dp.in_arg == in_arg for dp in self.dependencies[node]):
+            for in_arg in sig.values():
+                if not any(dp.in_arg == in_arg for dp in dependencies[node]):
                     dependencies[node] |= set((PDependency(None, in_arg),))
 
         # Set attribute in frozen dataclass during post_init: https://stackoverflow.com/a/54119384
@@ -171,7 +203,7 @@ class Pipeline(Generic[T, TI, TO]):
     def __repr__(self) -> str:
         return f"Pipeline(nodes = {self.nodes}, dependencies = {self.dependencies})"
 
-    def __sub__(self, nodes: Iterable[PNode]) -> Pipeline[T, TI, TO]:
+    def __sub__(self, nodes: Iterable[PNode]) -> Pipeline:
         # Overload w/ nodes and pipelines support?
         new_nodes = self.nodes - set(nodes)
         new_props = {n: self.props[n] for n in new_nodes}
@@ -181,7 +213,7 @@ class Pipeline(Generic[T, TI, TO]):
     # maybe have a client that performs these operations? more consistent w/ python frozens?
     def add_dependencies(
         self, node: PNode, dependencies: Iterable[PDependency[TI, TO]]
-    ) -> Pipeline[T, TI, TO]:
+    ) -> Pipeline:
         if node not in self:
             raise Exception("Node not in current pipeline; cannot add dependencies.")
 
@@ -192,7 +224,7 @@ class Pipeline(Generic[T, TI, TO]):
 
     def set_dependencies(
         self, node: PNode, dependencies: Iterable[PDependency[TI, TO]]
-    ) -> Pipeline[T, TI, TO]:
+    ) -> Pipeline:
         if node not in self:
             raise Exception("Node not in current pipeline; cannot set dependencies.")
 
@@ -200,10 +232,10 @@ class Pipeline(Generic[T, TI, TO]):
             self.nodes, self.dependencies.set(node, frozenset(dependencies)), self.props
         )
 
-    def decorate(self, namespace: Namespace) -> Pipeline[T, TI, TO]:
+    def decorate(self, namespace: Namespace) -> Pipeline:
         nodes: set[PNode] = set()
-        dependencies: Dict[PNode, FrozenSet[PDependency[TI, TO]]] = {}
-        props: Dict[PNode, PNodeProperties[T]] = {}
+        dependencies: Dict[PNode, FrozenSet[PDependency[_TI, _TO]]] = {}
+        props: Dict[PNode, PNodeProperties[_T]] = {}
 
         for node in self.nodes:
             new_node = node.decorate(namespace)
@@ -216,7 +248,7 @@ class Pipeline(Generic[T, TI, TO]):
 
         return self.__class__(frozenset(nodes), FrozenDict(dependencies), FrozenDict(props))
 
-    def remove(self, node: PNode) -> Pipeline[T, TI, TO]:
+    def remove(self, node: PNode) -> Pipeline:
         return self.__class__(
             self.nodes - frozenset((node,)),
             self.dependencies.delete(node),
@@ -224,22 +256,22 @@ class Pipeline(Generic[T, TI, TO]):
         )
 
     @cached_property
-    def all_dependencies(self) -> FrozenSet[PDependency[TI, TO]]:
+    def all_dependencies(self) -> FrozenSet[PDependency[_TI, _TO]]:
         """All dependencies gathered from all nodes in the pipeline."""
         return frozenset(dp for dps in self.dependencies.values() for dp in dps)
 
     @cached_property
-    def external_dependencies(self) -> FrozenSet[PDependency[TI, TO]]:
+    def external_dependencies(self) -> FrozenSet[PDependency[_TI, _TO]]:
         """Dependencies that point to other nodes not from the pipeline."""
         return frozenset(dp for dp in self.all_dependencies if dp.node not in self.nodes)
 
     @cached_property
-    def internal_dependencies(self) -> FrozenSet[PDependency[TI, TO]]:
+    def internal_dependencies(self) -> FrozenSet[PDependency[_TI, _TO]]:
         """Dependencides that point to other nodes within the pipeline."""
         return self.all_dependencies - self.external_dependencies - self.hanging_dependencies
 
     @cached_property
-    def hanging_dependencies(self) -> FrozenSet[PDependency[TI, TO]]:
+    def hanging_dependencies(self) -> FrozenSet[PDependency[_TI, _TO]]:
         """Dependencies that do not have an external PNode assigned."""
         return frozenset(dp for dp in self.all_dependencies if dp.node is None)
 
@@ -257,10 +289,12 @@ class Pipeline(Generic[T, TI, TO]):
         """Nodes that other nodes in the pipeline do not depend on."""
         return self.nodes - frozenset(dp.node for dp in self.internal_dependencies if dp.node)
 
-    def history(self, node: PNode) -> Pipeline[T, TI, TO]:
+    def history(self, node: PNode) -> Pipeline:
         nodes: Set[PNode] = set((node,))
-        dependencies: Dict[PNode, FrozenSet[PDependency[TI, TO]]] = {node: self.dependencies[node]}
-        props: Dict[PNode, PNodeProperties[T]] = {node: self.props[node]}
+        dependencies: Dict[PNode, FrozenSet[PDependency[_TI, _TO]]] = {
+            node: self.dependencies[node]
+        }
+        props: Dict[PNode, PNodeProperties[_T]] = {node: self.props[node]}
         frontier: Set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
 
         while frontier:
@@ -273,11 +307,11 @@ class Pipeline(Generic[T, TI, TO]):
         return self.__class__(frozenset(nodes), FrozenDict(dependencies), FrozenDict(props))
 
 
-class IExpandPipeline(Protocol[T, TI, TO]):
-    def expand(self) -> Pipeline[T, TI, TO]:
+class IExpandPipeline(Protocol):
+    def expand(self) -> Pipeline:
         pass
 
 
-class IPrunePipeline(Protocol[T, TI, TO]):
-    def prune(self) -> Pipeline[T, TI, TO]:
+class IPrunePipeline(Protocol):
+    def prune(self) -> Pipeline:
         pass
