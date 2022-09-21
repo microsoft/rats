@@ -5,18 +5,7 @@ import logging
 import sys
 from abc import abstractmethod
 from functools import cached_property
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    Mapping,
-    Protocol,
-    Type,
-    TypedDict,
-    TypeVar,
-    get_args,
-)
+from typing import Any, Dict, Generic, Mapping, Protocol, Type, TypedDict, TypeVar, get_args
 
 from oneml.pipelines.session import (
     PipelineNodeDataClient,
@@ -124,11 +113,8 @@ class Annotations:
         Python <3.9.
 
         """
-        if hasattr(inspect, "get_annotations"):
-            get_annotations: Callable[[type], Dict[str, type]] = getattr(
-                inspect, "get_annotations"
-            )
-            annotations = get_annotations(getattr(obj_type, method))
+        if sys.version_info >= (3, 10):
+            annotations = inspect.get_annotations(getattr(obj_type, method), eval_str=True)
             annotations.pop("return", None)  # "return" key is reserved
             return annotations
         else:
@@ -151,12 +137,10 @@ class Annotations:
         Python <3.9.
 
         """
-        if hasattr(inspect, "get_annotations"):
-            get_annotations: Callable[[type], Dict[str, type]] = getattr(
-                inspect, "get_annotations"
-            )
+        if sys.version_info >= (3, 10):
             none = TypedDict("none", {})
-            return get_annotations(getattr(obj_type, method)).pop("return", none)
+            annotations = inspect.get_annotations(getattr(obj_type, method), eval_str=True)
+            return annotations.pop("return", none)
         else:
             ra = inspect.signature(getattr(obj_type, method)).return_annotation
             return ra if isinstance(ra, type) else cls._eval_annotation(obj_type, ra)

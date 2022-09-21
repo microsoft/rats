@@ -62,10 +62,6 @@
         "editor.codeActionsOnSave": {
             "source.organizeImports": true
         },
-        "python.formatting.blackArgs": [
-            "--line-length",
-            "99"
-        ],
         "python.formatting.provider": "black",
         "editor.formatOnSave": true,
         "python.envFile": "${workspaceFolder}/.envrc",

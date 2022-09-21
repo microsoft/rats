@@ -2,11 +2,22 @@
 # EDIT WITH CAUTION!
 
 parameters:
+  - name: subscription
+    type: string
+    default: "Immunomics R&D (7bd3802d-452e-4b2a-964e-e2c996bc7477)"
   # We can disable or change the location of reports with parameters.
-  publish_junit_reports: true
-  publish_coverage_reports: true
-  junit_path: '.tmp/*/reports/*-junit.xml'
-  coverage_path: '.tmp/*/reports/coverage.xml'
+  - name: publish_junit_reports
+    type: boolean
+    default: true
+  - name: publish_coverage_reports
+    type: boolean
+    default: true
+  - name: junit_path
+    type: string
+    default: '.tmp/*/reports/*-junit.xml'
+  - name: coverage_path
+    type: string
+    default: '.tmp/*/reports/coverage.xml'
 
 steps:
 

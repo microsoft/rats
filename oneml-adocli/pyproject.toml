@@ -24,12 +24,11 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
-python = ">=3.8.10,<3.11"
-oneml-pipelines = { version = "*" }
-
-pygame = "^2.1.2"
-pydot = "*"
 colorlog = "*"
+oneml-pipelines = { version = "*" }
+pydot = "*"
+pygame = "^2.1.2"
+python = ">=3.8.10,<3.11"
 
 # These are only needed during development
 flake8 = { version = "*", optional = true }
@@ -39,7 +38,6 @@ mypy = { version = "*", optional = true }
 coverage = { version = "*", optional = true }
 pytest-cov = { version = "*", optional = true }
 pytest-nunit = { version = "*", optional = true }
-autopep8 = { version = "*", optional = true }
 isort = { version = "*", optional = true }
 flake8-isort = { version = "*", optional = true }
 azure-devops = "^6.0.0-beta.4"
@@ -53,7 +51,6 @@ dev = [
     "coverage",
     "pytest-cov",
     "pytest-nunit",
-    "autopep8",
     "isort",
     "flake8-isort",
 ]
@@ -69,10 +66,12 @@ adocli = 'oneml.adocli._main:entrypoint'
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line-length = 99
+
 [tool.isort]
 line_length = 99
 profile = "black"
-multi_line_output = 3
 src_paths = "src/python"
 known_first_party = ["oneml"]
 

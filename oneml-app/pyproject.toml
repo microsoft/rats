@@ -49,7 +49,6 @@ mypy = { version = "*", optional = true }
 coverage = { version = "*", optional = true }
 pytest-cov = { version = "*", optional = true }
 pytest-nunit = { version = "*", optional = true }
-autopep8 = { version = "*", optional = true }
 isort = { version = "*", optional = true }
 flake8-isort = { version = "*", optional = true }
 black = { version = "*", optional = true }
@@ -63,7 +62,6 @@ dev = [
     "coverage",
     "pytest-cov",
     "pytest-nunit",
-    "autopep8",
     "isort",
     "flake8-isort",
     "black",
@@ -81,17 +79,14 @@ oneml-devtools = { path = "../oneml-devtools/", develop = true }
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line-length = 99
+
 [tool.isort]
 line_length = 99
 profile = "black"
-# The from-style imports should wrap if they import more than one thing.
-# force_grid_wrap = 2
-multi_line_output = 3
 src_paths = "src/python"
 known_first_party = ["oneml"]
-
-[tool.black]
-line-length = 99
 
 [tool.mypy]
 cache_dir = "../.tmp/oneml-app/.mypy_cache"

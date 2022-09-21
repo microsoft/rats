@@ -1,0 +1,196 @@
+external_dataset_storage_accounts:
+  - storage_account_name: "ampdatasets01"
+    identity_name: "msft.immunodata-cam-test-habitat"
+  - storage_account_name: "ampdatasetsdev01"
+    identity_name: "msft.immunodata-cam-test-habitat"
+  - storage_account_name: "jupyterscratch01"
+    identity_name: "msft.immunodata-cam-test-habitat"
+identity:
+  identity_vault:
+    key_vault_name: "immunodata-cam-test-kv"
+    resource_group_name: "immunodata.cam.test.aks"
+    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    key_rotation_user_group_object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
+  default_azure_identity_name: default
+  azure_identities:
+  # Default credential used when wanting to authenticate as the local user (us or managed identity)
+  - name: "default"
+    type: "local"
+  - name: "azure-cli.msft"
+    type: "azure-cli"
+    azure_cli_config:
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    # A service principal from MSFT exported to cam-test as credentials to access CAM TEST resources
+  - name: "msft.immunodata-cam-test-habitat"
+    type: "external-client-secret"
+    external_client_secret_config:
+      # Identity provisioned by the MSFT SW team
+      # https://ms.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/521b24ff-6ee9-4ed2-9c37-15b168af23ae/isMSAApp/
+      client_id: "521b24ff-6ee9-4ed2-9c37-15b168af23ae"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      external_key_vault_name: "immunodata-msft-adpt"
+      external_key_vault_secret: "immunodata-msft-cam-test-secret"
+      key_vault_name: "immunodata-cam-test-kv"
+      key_vault_secret: "msft-immunodata-cam-test-habitat-identity-secret"
+      key_vault_cli_identity: "azure-cli.msft"
+  - name: "jupyter-lab"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-lab"
+      resource_group_name: "immunodata.cam.test.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-lab"
+        kubernetes_namespace: "jupyter"
+  - name: "jupyter-kernel"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-kernel"
+      resource_group_name: "immunodata.cam.test.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-kernel"
+        kubernetes_namespace: "jupyter-kernels"
+  - name: "workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-workflows"
+      resource_group_name: "immunodata.cam.test.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "workflows"
+        kubernetes_namespace: "workflows"
+  - name: "development-workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-development-workflows"
+      resource_group_name: "immunodata.cam.test.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      kubernetes_binding:
+        azure_identity_crd_name: "development-workflow"
+        kubernetes_namespace: "development-workflows"
+kubernetes:
+  namespaces:
+    - "jupyter-kernels"
+    - "jupyter"
+    - "workflows"
+    - "development-workflows"
+  infrastructure:
+    cluster_name: "immunodata-cam-test"
+    location: "eastus"
+    kubernetes_version: "1.22.11"
+    resource_group_name: "immunodata.cam.test.aks"
+    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    agent_pool_profiles:
+      - name: "common1a"
+        count: 2
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 100
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "common"
+      - name: "jupytercore1"
+        count: 2
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 5
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 100
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "jupyter-core"
+      - name: "kernels1a"
+        count: 2
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 10
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 50
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "jupyter-kernels" 
+      - name: "system1a"
+        count: 2
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "System"
+        os_disk_size_gb: 50
+        vm_size: "Standard_E64s_v3"
+      - name: "workflows1"
+        count: 2
+        enable_auto_scaling: true
+        min_count: 1
+        max_count: 5
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 50
+        vm_size: "Standard_NC24_Promo"
+        node_labels:
+          purpose: "workflows"
+        # TODO - add taint to this node ("dedicated=jupyterKernelsGpuNc24v3:NoSchedule")
+        # node_taints:
+        #   dedicated: "workflowsGpu:NoSchedule"
+    log_analytics:
+      workspace_name: "immunodata-monitoring-cam-test"
+      retention_in_days: 30
+    network:
+      service_cidr: "10.11.0.0/16"
+      dns_service_ip: "10.11.0.10"
+      docker_bridge_cidr: "10.12.0.1/16"
+    # TODO - can we delete this?
+    public_ip:
+      name: "camtest-public-ip"
+    tags:
+      "application": "immunodata-aks"
+      "environment": "production"
+      "role": "immunodata.aks.production"
+      "service": "immunodata-platform"
+    # TODO - ensure address prefix is sync'd
+    vnet:
+      name: "immunodata-cam-test"
+      address_prefix: "10.10.0.0/16"
+      subnet:
+        - name: "immunodata.cam.test.aks-test"
+          address_prefix: "10.10.128.0/17"
+        - name: "cam-test.homepage"
+          address_prefix: "10.10.18.0/24"
+          delegation: "Microsoft.Web/serverfarms"
+traefik:
+  load_balancer_ip: "10.10.210.20"
+  image_tag: "traefik:v2.8"
+  helm_namespace: "helm-releases"
+  traefik_pod_replicas: 1
+  whoami_replicas: 1
+storage:
+  accounts:
+  - account_name: "datasetmetadatacamtest"
+    resource_group_name: "immunodata.dataset-metadata.cam.test"
+    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    owner_user_group_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
+    cli_identity_name: "azure-cli.msft"
+    containers:
+    - container_name: "production"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+    - container_name: "development"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"

@@ -25,12 +25,12 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
-immunodata-cli = "0.40.*"
-immunodata-core = "0.40.*"
-immunodata-datasets = "0.40.*"
-immunodata-devops = "0.40.*"
-immunodata-docslib = "0.40.*"
-immunodata-workflows = "0.40.*"
+immunodata-cli = "0.44.*"
+immunodata-core = "0.44.*"
+immunodata-datasets = "0.44.*"
+immunodata-devops = "0.44.*"
+immunodata-docslib = "0.44.*"
+immunodata-workflows = "0.44.*"
 # TODO: remove this once immunodata fixes the issue upstream (pulumi).
 protobuf = "3.20.*"
 
@@ -42,7 +42,6 @@ mypy = { version = "*", optional = true }
 coverage = { version = "*", optional = true }
 pytest-cov = { version = "*", optional = true }
 pytest-nunit = { version = "*", optional = true }
-autopep8 = { version = "*", optional = true }
 isort = { version = "*", optional = true }
 flake8-isort = { version = "*", optional = true }
 black = { version = "*", optional = true }
@@ -56,7 +55,6 @@ dev = [
     "coverage",
     "pytest-cov",
     "pytest-nunit",
-    "autopep8",
     "isort",
     "flake8-isort",
     "black",
@@ -70,15 +68,14 @@ dev = [
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+line-length = 99
+
 [tool.isort]
 line_length = 99
 profile = "black"
-multi_line_output = 3
 src_paths = "src/python"
 known_first_party = ["oneml"]
-
-[tool.black]
-line-length = 99
 
 [tool.mypy]
 cache_dir = "../.tmp/oneml-devtools/.mypy_cache"

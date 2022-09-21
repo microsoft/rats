@@ -33,11 +33,24 @@ steps:
       mkdir -p .tmp/docker.virtualenvs.pipenv
       mkdir -p .tmp/docker.virtualenvs.poetry
 
+      tmpfile=$(mktemp)
+      echo "#!/usr/bin/env bash" >> $tmpfile
+      echo "set -eux" >> $tmpfile
+      # We need to add the mounted directory to git's safelist to use git operations
+      echo "git config --global --add safe.directory /home/vsts/work/1/s" >> $tmpfile
+      command_var='${{ parameters.command }}'
+      printf "%s" "$command_var" >> "$tmpfile"
+
+      chmod +x $tmpfile
+
       CMD="docker run \
         -e DEVOPS_PYPI_URL \
         -e POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD \
         -e PYENV_SHELL \
+        -e BUILD_VERSION \
+        -e BUILD_BRANCH \
         -e IMMUNODATA_USER_EMAIL=azure-devops@managed-identity \
+        -e KUBECONFIG \
         -v $PWD:$PWD \
         -v $PWD/.tmp/docker.virtualenvs.pipenv:/root/.local/share/virtualenvs \
         -v $PWD/.tmp/docker.virtualenvs.poetry:/root/.cache/pypoetry/virtualenvs \
@@ -45,10 +58,11 @@ steps:
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v $HOME/.azure:/root/.azure \
         -v $KUBECONFIG:$KUBECONFIG:ro \
-        -e KUBECONFIG \
         -v $(PYPIRC_PATH):/root/.pypirc:ro \
+        -v $tmpfile:/run_script.sh \
+        -w $PWD \
         ${{ parameters.builderImage }} \
-        ${{ parameters.command }}"
+        /run_script.sh"
 
       echo "Running: $CMD"
 

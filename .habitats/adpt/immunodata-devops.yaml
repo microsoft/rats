@@ -1,4 +1,4 @@
-image_registry: "adaptiveanalyticsworkbench.azurecr.io"
+image_registry: "adaptiveanalyticsworkbench"
 image_registry_cli_identity_name: "azure-cli.adpt"
 external_registries:
   - identity_name: "msft.immunodata-adpt-habitat"
@@ -15,3 +15,6 @@ infrastructure:
 #    secrets_encryption_key_vault_name: "adpt-internal-pulumi"
   secrets_encryption_key_vault_name: "platinum-vault"
   secrets_encryption_key_vault_secret: "platform-infrastructure-encryption-secret"
+acr:
+  acr_resource_group_name: "AnalyticsWorkbenchIACTest"
+  subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"

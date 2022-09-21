@@ -1,0 +1,3 @@
+# TODO: change the storage account for IAC
+development_dataset_storage_account: "camtestdatasetsdev01"
+production_dataset_storage_account: "camtestdatasets01"

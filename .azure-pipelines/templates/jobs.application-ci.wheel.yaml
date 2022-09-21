@@ -75,13 +75,13 @@ jobs:
     - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
       parameters:
         builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
-        command: "immunocli -vvv ci generate-cg-manifests ${{ parameters.component }} --path $PWD --pipenv"
+        command: "immunocli-next -vvv ci generate-cg-manifests ${{ parameters.component }} --path $PWD --pipenv"
         name: Generate Component Governance manifests
   - ${{ if eq(parameters.python_dependency_tool, 'poetry') }}:
     - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
       parameters:
         builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
-        command: "immunocli -vvv ci generate-cg-manifests ${{ parameters.component }} --path $PWD"
+        command: "immunocli-next -vvv ci generate-cg-manifests ${{ parameters.component }} --path $PWD"
         name: Generate Component Governance manifests
 
   - publish: ".tmp/artifacts"

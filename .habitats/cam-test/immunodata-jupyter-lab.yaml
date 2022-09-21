@@ -1,0 +1,41 @@
+# TODO - clean this up so we're not writing these twice (here and below as managed identities)
+identity_names:
+  lab_identity_name: "jupyter-lab"
+  kernel_identity_name: "jupyter-kernel"
+database:
+  account_name: "jupyterlab-db-cam-test"
+  container_name: "notebooks"
+  db_name: "jupyterlab"
+  key_vault_name: "immunodata-cam-test-kv"
+  secret_name: "jupyterlab-db-rw"
+# TODO: find the storage account and IAC it. 
+notebook_fileshare:
+  fileshare_name: jupyter-notebooks
+  secret_name: jupyter-notebooks-secret
+  # TODO - set this to the right value
+  identity_name: "msft.immunodata-cam-test-habitat"
+# TODO: refactor this to more visible component once component boundaries are clearly established
+# all external registries from which workflows should be able to pull context images
+image_pull_secrets:
+  - identity_name: "msft.immunodata-cam-test-habitat"
+    registry_name: "immunodata.azurecr.io"
+    secret_name: "immunodata-pull-secret"
+users:
+  # ADAPTIVE
+  - "afigpope@adaptivebiotech.com"
+  - "esilgard@adaptivebiotech.com"
+  - "skarim@adaptivebiotech.com"
+  # MICROSOFT
+  - "elonp@microsoft.com"
+  - "gooley@microsoft.com"
+  - "jinpl@microsoft.com"
+  - "lopisani@microsoft.com"
+infrastructure:
+  resource_group_name: "immunodata.cam.test.aks"
+  subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+  jupyter_lab_kubernetes_namespace: "jupyter"
+  jupyter_kernel_kubernetes_namespace: "jupyter-kernels"
+  jupyter_lab_service_account_name: "jupyter-lab"
+  jupyter_kernel_service_account_name: "jupyter-kernel"
+  jupyter_lab_managed_identity_name: "jupyter-lab"
+  jupyter_kernel_managed_identity_name: "jupyter-kernel"

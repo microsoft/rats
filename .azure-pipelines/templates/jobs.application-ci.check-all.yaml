@@ -66,6 +66,9 @@ jobs:
       name: Check All
 
   - template: /.azure-pipelines/templates/steps.publish-reports.yaml
+    parameters:
+      junit_path: '.tmp/${{ parameters.component }}/reports/*-junit.xml'
+      coverage_path: '.tmp/${{ parameters.component }}/reports/coverage.xml'
 
   - publish: ".tmp/artifacts"
     artifact: "ci.artifacts.${{ parameters.component }}.tox"

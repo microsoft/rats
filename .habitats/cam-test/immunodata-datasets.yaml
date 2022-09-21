@@ -1,0 +1,12 @@
+# all users who have access to this habitat should have access to the writeable catalog
+writeable_catalog:
+  storage_account: "datasetmetadatacamtest"
+  production_container: "production"
+  development_container: "development"
+  cli_identity_name: "azure-cli.msft"
+readable_catalogs:
+- name: "msft.main"
+  storage_account: "datasetmetadata"
+  production_container: "production"
+  development_container: "development"
+  identity_name: "msft.immunodata-cam-test-habitat"

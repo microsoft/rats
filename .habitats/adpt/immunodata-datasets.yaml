@@ -1,27 +1,12 @@
-# all users who have access to this habitat should have access to the writeable catalog
 writeable_catalog:
-  metadata_storage_account: "adptplatinummetadata"
-  # TODO - this should potentially live at a higher level
-  metadata_resource_group: "AnalyticsWorkbenchIACTest"
-  metadata_subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+  storage_account: "adptplatinummetadata"
+  production_container: "production"
+  development_container: "development"
   cli_identity_name: "azure-cli.adpt"
+# TODO - move this config into some sort of "peered" Habitats config, and unify with token exchange
 readable_catalogs:
 - name: "msft.main"
-  metadata_storage_account: "datasetmetadata"
+  storage_account: "datasetmetadata"
+  production_container: "production"
+  development_container: "development"
   identity_name: "msft.immunodata-adpt-habitat"
-permissions:
-  - identity_name: "jupyter-lab"
-    writeable_catalog_containers:
-      production: "read"
-      development: "read"
-  - identity_name: "jupyter-kernel"
-    writeable_catalog_containers:
-      production: "read"
-      development: "read"
-  - identity_name: "workflows"
-    writeable_catalog_containers:
-      production: "write"
-  - identity_name: "development-workflows"
-    writeable_catalog_containers:
-      production: "read"
-      development: "write"

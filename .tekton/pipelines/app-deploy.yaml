@@ -66,7 +66,7 @@ spec:
         params:
           - name: docker-image-app-builder
             type: string
-            default: immunodata.azurecr.io/immunodata-app-builder:2022-04-06.11-26-39
+            default: immunodata.azurecr.io/immunodata-app-builder:2022-09-13.09-37-35
             description: The docker image for the app builder.
           - name: component
             type: string
@@ -92,6 +92,7 @@ spec:
               export PIPENV_VENV_IN_PROJECT=t
               export PYENV_SHELL=bash
               export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export POETRY_DYNAMIC_VERSIONING_BYPASS=0.0.0
               export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
 
               poetry config virtualenvs.in-project true
@@ -176,6 +177,7 @@ spec:
               export PIPENV_VENV_IN_PROJECT=t
               export PYENV_SHELL=bash
               export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
+              export POETRY_DYNAMIC_VERSIONING_BYPASS=0.0.0
               export IMMUNODATA_USER_EMAIL="tekton-pipeline@managed-identity"
 
               poetry config virtualenvs.in-project true
@@ -211,9 +213,9 @@ spec:
         - name: user
           value: "$(params.user)"
         - name: release-name
-          value: "$(params.release-name)"   
+          value: "$(params.release-name)"
         - name: release-uri
-          value: "$(params.release-uri)"   
+          value: "$(params.release-uri)"
         - name: environment
           value: "$(params.environment)"
       workspaces:

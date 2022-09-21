@@ -42,6 +42,7 @@ identity:
       key_vault_name: "platinum-vault"
       # Convention is "{identity-name}-identity-secret"
       key_vault_secret: "adpt-export-identity-secret"
+      key_vault_cli_identity: "azure-cli.adpt"
   # A service principal from MSFT exported to ADPT as credentials to access MSFT resources
   - name: "msft.immunodata-adpt-habitat"
     type: "external-client-secret"
@@ -55,6 +56,7 @@ identity:
       external_key_vault_secret: "immunodata-msft-adpt-secret"
       key_vault_name: "platinum-vault"
       key_vault_secret: "msft-immunodata-adpt-habitat-identity-secret"
+      key_vault_cli_identity: "azure-cli.adpt"
   - name: "jupyter-lab"
     type: "managed-identity"
     managed_identity_config:
@@ -80,7 +82,7 @@ identity:
       resource_group_name: "AnalyticsWorkbenchIACTest"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       kubernetes_binding:
-        azure_identity_crd_name: "workflows"
+        azure_identity_crd_name: "workflow"
         kubernetes_namespace: "workflows"
   - name: "development-workflows"
     type: "managed-identity"
@@ -89,25 +91,50 @@ identity:
       resource_group_name: "AnalyticsWorkbenchIACTest"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       kubernetes_binding:
-        azure_identity_crd_name: "development-workflows"
+        azure_identity_crd_name: "development-workflow"
         kubernetes_namespace: "development-workflows"
+  - name: "tekton-pipeline"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-tekton-pipeline"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      kubernetes_binding:
+        azure_identity_crd_name: "tekton-pipeline"
+        kubernetes_namespace: "ci-builds"
 kubernetes:
   namespaces:
     - "jupyter-kernels"
     - "jupyter"
     - "workflows"
     - "development-workflows"
+    - "ci-builds"
+    - "documentation"
   infrastructure:
     cluster_name: "platinum"
     location: "westus2"
-    kubernetes_version: "1.21.9"
+    kubernetes_version: "1.22.11"
     resource_group_name: "AnalyticsWorkbenchIACTest"
     subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
     agent_pool_profiles:
+      - name: "cicd1"
+        count: 2
+        min_count: 0
+        max_count: 5
+        enable_auto_scaling: true
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
+        node_labels:
+          purpose: "cicd"
+        node_taints:
+          - "dedicated=cicd:NoSchedule"
       - name: "common1"
         count: 3
         enable_auto_scaling: true
-        min_count: 1
+        min_count: 0
         max_count: 3
         max_pods: 30
         mode: "User"
@@ -118,18 +145,18 @@ kubernetes:
       - name: "jupytercore1"
         count: 3
         enable_auto_scaling: true
-        min_count: 1
+        min_count: 0
         max_count: 5
         max_pods: 30
         mode: "User"
         os_disk_size_gb: 50
-        vm_size: "Standard_D8_v4"
+        vm_size: "Standard_E64s_v4"
         node_labels:
           purpose: "jupyter-core"
       - name: "kernels1"
         count: 3
         enable_auto_scaling: true
-        min_count: 1
+        min_count: 0
         max_count: 10
         max_pods: 30
         mode: "User"
@@ -140,7 +167,7 @@ kubernetes:
       - name: "workflows1"
         count: 3
         enable_auto_scaling: true
-        min_count: 1
+        min_count: 0
         max_count: 5
         max_pods: 30
         mode: "User"
@@ -173,9 +200,123 @@ kubernetes:
       name: "platinum-vnet"
       address_prefix: "10.10.0.0/16"
       subnet:
-        name: "platinum-subnet"
-        address_prefix: "10.10.128.0/17"
+        - name: "platinum-subnet"
+          address_prefix: "10.10.128.0/17"
 traefik:
   load_balancer_ip: "10.10.210.20"
-  image_tag: "traefik:v2.1"
+  image_tag: "traefik:v2.8"
   helm_namespace: "helm-releases"
+  traefik_pod_replicas: 1
+  whoami_replicas: 1
+storage:
+  accounts:
+  - account_name: "adptplatinummetadata"
+    resource_group_name: "AnalyticsWorkbenchIACTest"
+    subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
+    cli_identity_name: "azure-cli.adpt"
+    containers:
+    - container_name: "production"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+    - container_name: "development"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+  - account_name: "adptjupyterscratch01"
+    resource_group_name: "AnalyticsWorkbenchIACTest"
+    subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
+    cli_identity_name: "azure-cli.adpt"
+    containers:
+    - container_name: "adptjupyterscratch01"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "write"
+      - identity_name: "jupyter-kernel"
+        access_level: "write"
+  - account_name: "adptplatinumfiles"
+    resource_group_name: "AnalyticsWorkbenchIACTest"
+    subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
+    cli_identity_name: "azure-cli.adpt"
+    containers:
+    - container_name: "general"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+    - container_name: "sideloaded"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+    - container_name: "immunodata-annotations-raw-batches"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+  - account_name: "adptplatinumfilesdev01"
+    resource_group_name: "AnalyticsWorkbenchIACTest"
+    subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
+    cli_identity_name: "azure-cli.adpt"
+    containers:
+    - container_name: "general"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+    - container_name: "tmp"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+    - container_name: "sideloaded"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+    - container_name: "immunodata-annotations-raw-batches"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"

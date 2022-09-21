@@ -1,0 +1,3 @@
+scratch:
+  storage_account_name: "adptjupyterscratch01"
+  container_name: "adptjupyterscratch01"

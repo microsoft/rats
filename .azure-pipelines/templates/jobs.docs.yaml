@@ -53,10 +53,11 @@ jobs:
         set -euxo pipefail
 
         # install tekton
-        TEKTON_FILENAME="tektoncd-cli-0.18.0_Linux-64bit.deb"
-        TEKTON_SHA256="58b469a237a161b8ab58c0e272764ff37d6556e84a36e1bc384083a507b09def"
+        TEKTON_VERSION="0.25.0"
+        TEKTON_FILENAME="tektoncd-cli-${TEKTON_VERSION}_Linux-64bit.deb"
+        TEKTON_SHA256="f953080cfc2db9e95e903c716d76e0c9e2eef047a425ef79c5826aad5c2e4792"
 
-        curl -LO https://github.com/tektoncd/cli/releases/download/v0.18.0/$TEKTON_FILENAME
+        curl -LO https://github.com/tektoncd/cli/releases/download/v${TEKTON_VERSION}/$TEKTON_FILENAME
         echo "$TEKTON_SHA256  $TEKTON_FILENAME" | sha256sum --check -
         sudo dpkg -i ./$TEKTON_FILENAME
         rm -f $TEKTON_FILENAME

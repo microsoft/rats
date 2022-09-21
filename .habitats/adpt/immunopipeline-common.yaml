@@ -1,0 +1,11 @@
+spark_datasets:
+  production_dataset_storage_account: "adptplatinumfiles"
+  development_dataset_storage_account: "adptplatinumfilesdev01"
+  old_production_dataset_storage_account: "adptplatinumfiles"
+  old_production_dataset_storage_account_ro_secret: "adptplatinumfiles-adptplatinumfilessasro"
+  old_production_dataset_storage_account_rw_secret: "adptplatinumfiles-adptplatinumfilessasrw"
+  old_development_dataset_storage_account: "adptplatinumfilesdev01"
+  old_development_dataset_storage_account_ro_secret: "adptplatinumfilesdev01-adptplatinumfilesdev01sasro"
+  old_development_dataset_storage_account_rw_secret: "adptplatinumfilesdev01-adptplatinumfilesdev01sasrw"
+  key_vault: "platinum-vault"
+  tmp_mira_keyvault: "platinum-vault"

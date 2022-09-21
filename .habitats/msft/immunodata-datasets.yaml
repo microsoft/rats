@@ -1,21 +1,5 @@
 writeable_catalog:
-  metadata_storage_account: "datasetmetadata"
-  metadata_resource_group: "immunodata.dataset-metadata"
-  metadata_subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+  storage_account: "datasetmetadata"
+  production_container: "production"
+  development_container: "development"
   cli_identity_name: "azure-cli.msft"
-permissions:
-  - identity_name: "jupyter-lab"
-    writeable_catalog_containers:
-      production: "read"
-      development: "read"
-  - identity_name: "jupyter-kernel"
-    writeable_catalog_containers:
-      production: "read"
-      development: "read"
-  - identity_name: "workflows"
-    writeable_catalog_containers:
-      production: "write"
-  - identity_name: "development-workflows"
-    writeable_catalog_containers:
-      production: "read"
-      development: "write"

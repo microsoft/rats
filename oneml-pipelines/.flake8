@@ -1,5 +1,7 @@
 [flake8]
 max-line-length = 99
+extend-select = B950
+extend-ignore = E203, E501
 ; allow unused imports in the test directory
 per-file-ignores =
     test/*:F401
