@@ -1,20 +1,21 @@
-from typing import Any, FrozenSet, Mapping, TypeVar
+from typing import AbstractSet, Any, Mapping, TypeVar
 
-from typing_extensions import TypeAlias
-
-from ._pipeline import IExpandPipeline, Namespace, PDependency, Pipeline
+from ._pipeline import IExpandPipeline, Namespace, PDependency, Pipeline, PNode, PNodeProperties
 from ._utils import ProcessorCommonInputsOutputs, TailPipelineClient
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
 TI = TypeVar("TI", contravariant=True)  # generic input types for processor
 TO = TypeVar("TO", covariant=True)  # generic output types for processor
-_TI: TypeAlias = Any
-_TO: TypeAlias = Any
 
 
 class EstimatorPipeline(Pipeline):
-    def __post_init__(self) -> None:
-        super().__post_init__()
+    def __init__(
+        self,
+        nodes: AbstractSet[PNode],
+        dependencies: Mapping[PNode, AbstractSet[PDependency[Any, Any]]],
+        props: Mapping[PNode, PNodeProperties[Any]],
+    ) -> None:
+        super().__init__(nodes, dependencies, props)
         train_ns, eval_ns = Namespace("train"), Namespace("eval")
         if any(
             # if not every namespace is contained at least in a start_node in every pipeline
@@ -51,8 +52,8 @@ class EstimatorPipelineFromTrainAndEval(IExpandPipeline):
             # and if they share common inputs & outputs
             hanging_dependencies = new_eval.dependencies[eval_node] & new_eval.hanging_dependencies
             if hanging_dependencies:
-                common_IO: FrozenSet[
-                    PDependency[_TI, _TO]
+                common_IO: AbstractSet[
+                    PDependency[Any, Any]
                 ] = ProcessorCommonInputsOutputs.get_common_dependencies_from_providers(
                     train_node,
                     new_eval.props[eval_node].exec_provider,

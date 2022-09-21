@@ -1,4 +1,4 @@
-from typing import Any, Dict, FrozenSet, Mapping, Sequence, TypedDict
+from typing import Any, Dict, Mapping, Sequence, Set, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -6,7 +6,6 @@ import pytest
 
 from oneml.processors import (
     DataArg,
-    FrozenDict,
     Namespace,
     PDependency,
     Pipeline,
@@ -60,34 +59,29 @@ def simple_pipeline(storage: Mapping[str, npt.NDArray[np.float64]]) -> Pipeline:
     left_arr = PNode("left_arr")
     right_arr = PNode("right_arr")
     multiply = PNode("multiply")
-    nodes = frozenset((left_arr, right_arr, multiply))
-    dependencies: FrozenDict[
-        PNode, FrozenSet[PDependency[npt.ArrayLike, npt.ArrayLike]]
-    ] = FrozenDict(
-        {
-            multiply: frozenset(
-                (
-                    PDependency(
-                        left_arr,
-                        in_arg=DataArg[npt.ArrayLike]("left"),
-                        out_arg=DataArg[npt.NDArray[np.float64]]("array"),
-                    ),
-                    PDependency(
-                        right_arr,
-                        in_arg=DataArg[npt.ArrayLike]("right"),
-                        out_arg=DataArg[npt.NDArray[np.float64]]("array"),
-                    ),
-                )
+    nodes = set((left_arr, right_arr, multiply))
+    dependencies: Dict[PNode, Set[PDependency[npt.ArrayLike, npt.ArrayLike]]] = {
+        multiply: set(
+            (
+                PDependency(
+                    left_arr,
+                    in_arg=DataArg[npt.ArrayLike]("left"),
+                    out_arg=DataArg[npt.NDArray[np.float64]]("array"),
+                ),
+                PDependency(
+                    right_arr,
+                    in_arg=DataArg[npt.ArrayLike]("right"),
+                    out_arg=DataArg[npt.NDArray[np.float64]]("array"),
+                ),
             )
-        }
-    )
-    props: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {
-            left_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "a"})),
-            right_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "b"})),
-            multiply: PNodeProperties(Provider(ArrayDotProduct)),
-        }
-    )
+        )
+    }
+
+    props: Dict[PNode, PNodeProperties[TDict]] = {
+        left_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "a"})),
+        right_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "b"})),
+        multiply: PNodeProperties(Provider(ArrayDotProduct)),
+    }
     pipeline = Pipeline(nodes, dependencies, props)
     return pipeline
 
@@ -98,23 +92,21 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
     p2 = simple_pipeline.decorate(Namespace("p2"))
     p3 = simple_pipeline.decorate(Namespace("p3"))
     concat_node = PNode("ArrayConcat")
-    concat_nodes = frozenset((concat_node,))
-    concat_dps: FrozenDict[
-        PNode, FrozenSet[PDependency[npt.ArrayLike, npt.ArrayLike]]
-    ] = FrozenDict(
-        {
-            concat_node: frozenset(
-                (
-                    PDependency(p1, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
-                    PDependency(p2, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
-                    PDependency(p3, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
-                )
+    concat_nodes = set((concat_node,))
+    concat_dps: Dict[PNode, Set[PDependency[npt.ArrayLike, npt.ArrayLike]]] = {
+        concat_node: set(
+            (
+                PDependency(p1, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
+                PDependency(p2, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
+                PDependency(p3, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
             )
-        }
-    )
-    concat_props: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {concat_node: PNodeProperties(Provider(ArrayConcat, {"num_inputs": 3}))}
-    )
+        )
+    }
+
+    concat_props: Dict[PNode, PNodeProperties[TDict]] = {
+        concat_node: PNodeProperties(Provider(ArrayConcat, {"num_inputs": 3}))
+    }
+
     concat_pipeline = Pipeline(concat_nodes, concat_dps, concat_props)
     return p1 + p2 + p3 + concat_pipeline
 

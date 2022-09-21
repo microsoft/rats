@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, FrozenSet, Mapping, TypedDict, TypeVar
+from typing import Any, Dict, Mapping, Set, TypedDict, TypeVar
 
 from oneml.processors import (
     DataArg,
-    FrozenDict,
     PDependency,
     Pipeline,
     PNode,
@@ -70,32 +69,28 @@ class ModelEval(Processor[ModelEvalOutput]):
 
 
 def estimator_from_multiple_nodes_pipeline() -> None:
-    train_nodes = frozenset((PNode("stz"), PNode("model")))
-    train_dps: FrozenDict[PNode, FrozenSet[PDependency[Array, Array]]] = FrozenDict(
-        {
-            PNode("stz"): frozenset((PDependency(PNode("data"), DataArg[Array]("X")),)),
-            PNode("model"): frozenset(
-                (
-                    PDependency(PNode("stz"), DataArg[Array]("X")),
-                    PDependency(PNode("data"), DataArg[Array]("Y")),
-                )
-            ),
-        }
-    )
-    train_props: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {
-            PNode("stz"): PNodeProperties(Provider(StandardizeTrain)),
-            PNode("model"): PNodeProperties(Provider(ModelTrain)),
-        }
-    )
+    train_nodes = set((PNode("stz"), PNode("model")))
+    train_dps: Dict[PNode, Set[PDependency[Array, Array]]] = {
+        PNode("stz"): set((PDependency(PNode("data"), DataArg[Array]("X")),)),
+        PNode("model"): set(
+            (
+                PDependency(PNode("stz"), DataArg[Array]("X")),
+                PDependency(PNode("data"), DataArg[Array]("Y")),
+            )
+        ),
+    }
+
+    train_props: Dict[PNode, PNodeProperties[TDict]] = {
+        PNode("stz"): PNodeProperties(Provider(StandardizeTrain)),
+        PNode("model"): PNodeProperties(Provider(ModelTrain)),
+    }
     eval_nodes = train_nodes
     eval_dps = train_dps
-    eval_props: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {
-            PNode("stz"): PNodeProperties(Provider(StandardizeEval)),
-            PNode("model"): PNodeProperties(Provider(ModelEval)),
-        }
-    )
+    eval_props: Dict[PNode, PNodeProperties[TDict]] = {
+        PNode("stz"): PNodeProperties(Provider(StandardizeEval)),
+        PNode("model"): PNodeProperties(Provider(ModelEval)),
+    }
+
     train_pipeline: Pipeline = Pipeline(train_nodes, train_dps, train_props)
     eval_pipeline: Pipeline = Pipeline(eval_nodes, eval_dps, eval_props)
 
@@ -107,42 +102,42 @@ def estimator_from_multiple_nodes_pipeline() -> None:
 
 
 def concatenate_estimators_pipeline() -> None:
-    train_nodeA = frozenset((PNode("stz"),))
-    train_nodeB = frozenset((PNode("model"),))
-    train_dpsA: FrozenDict[PNode, FrozenSet[PDependency[Array, Array]]] = FrozenDict(
-        {
-            PNode("stz"): frozenset()
-        }  # frozenset((PDependency(PNode("data"), ("X", Array), ("X", Array)),))}
-    )
-    train_dpsB: FrozenDict[PNode, FrozenSet[PDependency[Array, Array]]] = FrozenDict(
-        {
-            PNode("model"): frozenset(
-                (
-                    # PDependency(PNode("stz"), ("X", Array), ("X", Array)),
-                    # PDependency(PNode("data"), ("Y", Array), ("Y", Array)),
-                )
+    train_nodeA = set((PNode("stz"),))
+    train_nodeB = set((PNode("model"),))
+    train_dpsA: Dict[PNode, Set[PDependency[Array, Array]]] = {
+        PNode("stz"): set()
+    }  # set((PDependency(PNode("data"), ("X", Array), ("X", Array)),))}
+    train_dpsB: Dict[PNode, Set[PDependency[Array, Array]]] = {
+        PNode("model"): set(
+            (
+                # PDependency(PNode("stz"), ("X", Array), ("X", Array)),
+                # PDependency(PNode("data"), ("Y", Array), ("Y", Array)),
             )
-        }
-    )
-    train_propsA: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {PNode("stz"): PNodeProperties(Provider(StandardizeTrain))}
-    )
-    train_propsB: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {PNode("model"): PNodeProperties(Provider(ModelTrain))}
-    )
+        )
+    }
+    train_propsA: Dict[PNode, PNodeProperties[TDict]] = {
+        PNode("stz"): PNodeProperties(Provider(StandardizeTrain))
+    }
+
+    train_propsB: Dict[PNode, PNodeProperties[TDict]] = {
+        PNode("model"): PNodeProperties(Provider(ModelTrain))
+    }
+
     train_pipelineA: Pipeline = Pipeline(train_nodeA, train_dpsA, train_propsA)
     train_pipelineB: Pipeline = Pipeline(train_nodeB, train_dpsB, train_propsB)
 
     eval_nodeA = train_nodeA
     eval_nodeB = train_nodeB
-    eval_dpsA: FrozenDict[PNode, FrozenSet[PDependency[Array, Array]]] = train_dpsA
-    eval_dpsB: FrozenDict[PNode, FrozenSet[PDependency[Array, Array]]] = train_dpsB
-    eval_propsA: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {PNode("stz"): PNodeProperties(Provider(StandardizeEval))}
-    )
-    eval_propsB: FrozenDict[PNode, PNodeProperties[TDict]] = FrozenDict(
-        {PNode("model"): PNodeProperties(Provider(ModelEval))}
-    )
+    eval_dpsA: Dict[PNode, Set[PDependency[Array, Array]]] = train_dpsA
+    eval_dpsB: Dict[PNode, Set[PDependency[Array, Array]]] = train_dpsB
+    eval_propsA: Dict[PNode, PNodeProperties[TDict]] = {
+        PNode("stz"): PNodeProperties(Provider(StandardizeEval))
+    }
+
+    eval_propsB: Dict[PNode, PNodeProperties[TDict]] = {
+        PNode("model"): PNodeProperties(Provider(ModelEval))
+    }
+
     eval_pipelineA: Pipeline = Pipeline(eval_nodeA, eval_dpsA, eval_propsA)
     eval_pipelineB: Pipeline = Pipeline(eval_nodeB, eval_dpsB, eval_propsB)
 

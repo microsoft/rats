@@ -1,4 +1,4 @@
-"""FrozenDict class.
+"""frozendict class.
 
 Original source from https://stackoverflow.com/a/25332884 (MIT License)
 
@@ -24,7 +24,7 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
 
-class FrozenDict(Mapping[_KT, _VT], Generic[_KT, _VT]):
+class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
     """Dictionary like class with private storage."""
 
     _hash: Optional[int]
@@ -56,50 +56,50 @@ class FrozenDict(Mapping[_KT, _VT], Generic[_KT, _VT]):
         return self._hash
 
     def __repr__(self) -> str:
-        return f"FrozenDict({repr(self._d)})"
+        return f"frozendict({repr(self._d)})"
 
-    def copy(self) -> FrozenDict[_KT, _VT]:
+    def copy(self) -> frozendict[_KT, _VT]:
         return self.__class__(self._d.copy())
 
-    def set(self, key: _KT, value: _VT) -> FrozenDict[_KT, _VT]:
+    def set(self, key: _KT, value: _VT) -> frozendict[_KT, _VT]:
         new_d = self._d.copy()
         new_d[key] = value
         return self.__class__(new_d)
 
-    def delete(self, key: _KT) -> FrozenDict[_KT, _VT]:
+    def delete(self, key: _KT) -> frozendict[_KT, _VT]:
         new_d = self._d.copy()
         del new_d[key]
         return self.__class__(new_d)
 
     @overload
-    def __or__(self, other: Dict[_KT, _VT]) -> FrozenDict[_KT, _VT]:
+    def __or__(self, other: Dict[_KT, _VT]) -> frozendict[_KT, _VT]:
         ...
 
     @overload
-    def __or__(self, other: FrozenDict[_KT, _VT]) -> FrozenDict[_KT, _VT]:
+    def __or__(self, other: frozendict[_KT, _VT]) -> frozendict[_KT, _VT]:
         ...
 
-    def __or__(self, other: Dict[_KT, _VT] | FrozenDict[_KT, _VT]) -> FrozenDict[_KT, _VT]:
+    def __or__(self, other: Dict[_KT, _VT] | frozendict[_KT, _VT]) -> frozendict[_KT, _VT]:
         new_d = self._d.copy()  # pipe operator | available in python 3.9
         new_d.update(dict(other))
         return self.__class__(new_d)
 
     @overload
-    def __sub__(self, other: KeysView[_KT]) -> FrozenDict[_KT, _VT]:
+    def __sub__(self, other: KeysView[_KT]) -> frozendict[_KT, _VT]:
         ...
 
     @overload
-    def __sub__(self, other: Set[_KT]) -> FrozenDict[_KT, _VT]:
+    def __sub__(self, other: Set[_KT]) -> frozendict[_KT, _VT]:
         ...
 
     @overload
-    def __sub__(self, other: FrozenSet[_KT]) -> FrozenDict[_KT, _VT]:
+    def __sub__(self, other: FrozenSet[_KT]) -> frozendict[_KT, _VT]:
         ...
 
     @overload
-    def __sub__(self, other: Mapping[_KT, Any]) -> FrozenDict[_KT, _VT]:
+    def __sub__(self, other: Mapping[_KT, Any]) -> frozendict[_KT, _VT]:
         ...
 
-    def __sub__(self, other: Any) -> FrozenDict[_KT, _VT]:
+    def __sub__(self, other: Any) -> frozendict[_KT, _VT]:
         new_d = {k: v for k, v in self._d.items() if k not in other}
         return self.__class__(new_d)
