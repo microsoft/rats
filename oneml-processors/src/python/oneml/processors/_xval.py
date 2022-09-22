@@ -1,5 +1,5 @@
 # type: ignore
-from typing import Any, Mapping, Tuple, Type, TypeVar
+from typing import Any, Mapping, Type, TypeVar
 
 from ._pipeline import IExpandPipeline, IPrunePipeline, Namespace, PDependency, Pipeline, PNode
 from ._processor import Processor, Provider
@@ -42,7 +42,7 @@ class XValTrain(IExpandPipeline):
     def expand(self) -> Pipeline:
         kfolds = []
         datasplit = PNode("data_splitter")
-        tail_dependencies: Tuple[PDependency[TI, TO], ...] = ()
+        tail_dependencies: tuple[PDependency[TI, TO], ...] = ()
         # insert datasplit onto external dependencies
         new_pipeline = self._pipeline.substitute_external_dependencies(datasplit)
         for k in range(self.num_folds):
@@ -78,7 +78,7 @@ class XValEval(IPrunePipeline):
         self._summary = Provider()
 
     def prune(self) -> Pipeline:
-        prune_pipeline: Tuple[Pipeline, ...] = ()
+        prune_pipeline: tuple[Pipeline, ...] = ()
         train_ns = Namespace("train")
         for node, provider in self._xval_train.nodes.items():
             if train_ns in node.namespace:

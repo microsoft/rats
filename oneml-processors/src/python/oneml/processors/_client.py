@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import Any, Generic, Iterable, Mapping, Tuple, TypeVar
+from typing import Any, Generic, Iterable, Mapping, TypeVar
 
 from oneml.pipelines.building import IPipelineSessionExecutable, PipelineBuilderFactory
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
@@ -31,7 +33,7 @@ class P2Pipeline:
     @classmethod
     def data_dependencies(
         cls, dependencies: Iterable[PDependency[TI, TO]]
-    ) -> Tuple[PipelineDataDependency[TI], ...]:
+    ) -> tuple[PipelineDataDependency[TI], ...]:
         if any(dp.node is None for dp in dependencies):
             raise ValueError("Trying to convert a hanging depencency.")
         return tuple(cls.data_dp(dp.node, dp.in_arg, dp.out_arg) for dp in dependencies if dp.node)

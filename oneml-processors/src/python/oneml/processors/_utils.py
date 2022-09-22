@@ -2,18 +2,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import (
-    AbstractSet,
-    Any,
-    DefaultDict,
-    Dict,
-    Iterable,
-    Mapping,
-    Set,
-    Tuple,
-    TypeVar,
-    cast,
-)
+from typing import AbstractSet, Any, Iterable, Mapping, TypedDict, TypeVar
 
 from ._frozendict import frozendict
 from ._pipeline import PDependency, Pipeline, PNode, PNodeProperties, Provider
@@ -23,10 +12,12 @@ T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
 TI = TypeVar("TI", contravariant=True)  # generic input types for processor
 TO = TypeVar("TO", covariant=True)  # generic output types for processor
 
+EmptyDict = TypedDict("EmptyDict")  # type: ignore[misc]
 
-class NoOp(Processor[T]):
-    def process(self) -> T:
-        return cast(T, {})
+
+class NoOp(Processor[EmptyDict]):
+    def process(self) -> EmptyDict:
+        return EmptyDict()
 
 
 class HeadPipelineClient:
@@ -34,10 +25,10 @@ class HeadPipelineClient:
     def _build_head_pipeline_only(
         *pipelines: Pipeline,
         head_name: str = "head",
-        props: PNodeProperties[T] = PNodeProperties(Provider(NoOp, {})),
+        props: PNodeProperties[T] = PNodeProperties(Provider[T](NoOp)),
     ) -> Pipeline:
         hnode = PNode(head_name)
-        dependencies: Dict[PNode, Set[PDependency[Any, Any]]] = defaultdict(set)
+        dependencies: dict[PNode, AbstractSet[PDependency[Any, Any]]] = defaultdict(set)
         for pipeline in pipelines:
             for ext_dp in pipeline.external_dependencies:
                 dependencies[hnode] |= set((ext_dp,))  # aggregate all ext dependencies on the head
@@ -64,7 +55,7 @@ class HeadPipelineClient:
         cls,
         *pipelines: Pipeline,
         head_name: str = "head",
-        props: PNodeProperties[T] = PNodeProperties(Provider(NoOp, {})),
+        props: PNodeProperties[T] = PNodeProperties(Provider[T](NoOp)),
     ) -> Pipeline:
         head_pipeline = cls._build_head_pipeline_only(*pipelines, head_name=head_name, props=props)
         return cls._interpose_head_pipeline_before_pipeline(
@@ -77,14 +68,14 @@ class TailPipelineClient:
     def build_tail_pipeline(
         *pipelines: Pipeline,
         tail_name: str = "tail",
-        props: PNodeProperties[T] = PNodeProperties(Provider(NoOp, {})),
+        props: PNodeProperties[T] = PNodeProperties(Provider[T](NoOp)),
         exclude: AbstractSet[DataArg[TI]] = set(),
     ) -> Pipeline:
         if len(pipelines) == 0:
             raise ValueError("Missing `pipelines` input argument.")
 
         node = PNode(tail_name)
-        dependencies: DefaultDict[PNode, Set[PDependency[Any, Any]]] = defaultdict(set)
+        dependencies: defaultdict[PNode, AbstractSet[PDependency[Any, Any]]] = defaultdict(set)
         for pipeline in pipelines:
             for end_node in pipeline.end_nodes:
                 outputs = ProcessorOutput.signature_from_provider(
@@ -100,10 +91,10 @@ class ProcessorCommonInputsOutputs:
     @staticmethod
     def intersect_signatures(
         in_provider: Provider[T], out_provider: Provider[T]
-    ) -> Mapping[str, Tuple[DataArg[Any], DataArg[Any]]]:
+    ) -> Mapping[str, tuple[DataArg[Any], DataArg[Any]]]:
         in_sig = ProcessorInput.signature_from_provider(in_provider)
         out_sig = ProcessorOutput.signature_from_provider(out_provider)
-        io: Dict[str, Tuple[DataArg[Any], DataArg[Any]]] = {}
+        io: dict[str, tuple[DataArg[Any], DataArg[Any]]] = {}
         for k in in_sig.keys() & out_sig.keys():
             if issubclass(out_sig[k].annotation, in_sig[k].annotation):
                 io[k] = (in_sig[k], out_sig[k])

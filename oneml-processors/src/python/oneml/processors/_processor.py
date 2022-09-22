@@ -5,7 +5,7 @@ import logging
 import sys
 from abc import abstractmethod
 from functools import cached_property
-from typing import Any, Dict, Generic, Mapping, Protocol, Type, TypedDict, TypeVar, get_args
+from typing import Any, Generic, Mapping, Protocol, Type, TypedDict, TypeVar, get_args
 
 from oneml.pipelines.session import (
     PipelineNodeDataClient,
@@ -53,7 +53,7 @@ class Provider(Generic[T]):
 
     def get_processor(self, data_client: PipelineNodeInputDataClient) -> Processor[T]:
         init_sig = dict(ProcessorInput.signature(self.processor_type, "__init__"))
-        input: Dict[str, Any] = {
+        input: dict[str, Any] = {
             k: data_client.get_data(PipelinePort[arg.annotation](arg.key))  # type: ignore[name-defined]  # noqa: E501
             for k, arg in init_sig.items()
             if k not in self.config
@@ -66,7 +66,7 @@ class Provider(Generic[T]):
         publish_client: PipelineNodeDataClient,
     ) -> None:
         proc_sig = ProcessorInput.signature(self.processor_type, "process")
-        input: Dict[str, Any] = {
+        input: dict[str, Any] = {
             k: input_client.get_data(PipelinePort[arg.annotation](arg.key))  # type: ignore[name-defined]  # noqa: E501
             for k, arg in proc_sig.items()
         }
@@ -106,7 +106,7 @@ class Annotations:
         exclude_self: bool = True,
         exclude_var_positional: bool = True,
         exclude_var_keyword: bool = True,
-    ) -> Dict[str, type]:
+    ) -> dict[str, type]:
         """Evaluates annotation given object type and method.
 
         Object type is needed to load the corresponding module for the evaluation of annotations in

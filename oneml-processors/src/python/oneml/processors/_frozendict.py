@@ -6,15 +6,13 @@ Original source from https://stackoverflow.com/a/25332884 (MIT License)
 from __future__ import annotations
 
 from typing import (
+    AbstractSet,
     Any,
-    Dict,
-    FrozenSet,
     Generic,
     Iterator,
     KeysView,
     Mapping,
     Optional,
-    Set,
     TypeVar,
     overload,
 )
@@ -72,14 +70,14 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
         return self.__class__(new_d)
 
     @overload
-    def __or__(self, other: Dict[_KT, _VT]) -> frozendict[_KT, _VT]:
+    def __or__(self, other: dict[_KT, _VT]) -> frozendict[_KT, _VT]:
         ...
 
     @overload
     def __or__(self, other: frozendict[_KT, _VT]) -> frozendict[_KT, _VT]:
         ...
 
-    def __or__(self, other: Dict[_KT, _VT] | frozendict[_KT, _VT]) -> frozendict[_KT, _VT]:
+    def __or__(self, other: dict[_KT, _VT] | frozendict[_KT, _VT]) -> frozendict[_KT, _VT]:
         new_d = self._d.copy()  # pipe operator | available in python 3.9
         new_d.update(dict(other))
         return self.__class__(new_d)
@@ -89,15 +87,11 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
         ...
 
     @overload
-    def __sub__(self, other: Set[_KT]) -> frozendict[_KT, _VT]:
+    def __sub__(self, other: AbstractSet[_KT]) -> frozendict[_KT, _VT]:
         ...
 
     @overload
-    def __sub__(self, other: FrozenSet[_KT]) -> frozendict[_KT, _VT]:
-        ...
-
-    @overload
-    def __sub__(self, other: Mapping[_KT, Any]) -> frozendict[_KT, _VT]:
+    def __sub__(self, other: Mapping[_KT, _VT]) -> frozendict[_KT, _VT]:
         ...
 
     def __sub__(self, other: Any) -> frozendict[_KT, _VT]:

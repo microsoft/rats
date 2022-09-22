@@ -8,14 +8,11 @@ from functools import cached_property
 from typing import (
     AbstractSet,
     Any,
-    Dict,
-    FrozenSet,
     Generic,
     Iterable,
     Mapping,
     Optional,
     Protocol,
-    Set,
     TypeVar,
     Union,
     cast,
@@ -144,8 +141,8 @@ class PNodeProperties(Generic[T]):
 
 
 class Pipeline:
-    _nodes: FrozenSet[PNode]
-    _dependencies: frozendict[PNode, FrozenSet[PDependency[Any, Any]]]
+    _nodes: frozenset[PNode]
+    _dependencies: frozendict[PNode, frozenset[PDependency[Any, Any]]]
     _props: frozendict[PNode, PNodeProperties[_T]]
 
     @property
@@ -246,9 +243,9 @@ class Pipeline:
         )
 
     def decorate(self, namespace: Namespace) -> Pipeline:
-        nodes: Set[PNode] = set()
-        dependencies: Dict[PNode, Set[PDependency[Any, Any]]] = {}
-        props: Dict[PNode, PNodeProperties[_T]] = {}
+        nodes: set[PNode] = set()
+        dependencies: dict[PNode, set[PDependency[Any, Any]]] = {}
+        props: dict[PNode, PNodeProperties[_T]] = {}
 
         for node in self.nodes:
             new_node = node.decorate(namespace)
@@ -303,12 +300,12 @@ class Pipeline:
         return self.nodes - set(dp.node for dp in self.internal_dependencies if dp.node)
 
     def history(self, node: PNode) -> Pipeline:
-        nodes: Set[PNode] = set((node,))
-        dependencies: Dict[PNode, AbstractSet[PDependency[Any, Any]]] = {
+        nodes: set[PNode] = set((node,))
+        dependencies: dict[PNode, AbstractSet[PDependency[Any, Any]]] = {
             node: self.dependencies[node]
         }
-        props: Dict[PNode, PNodeProperties[_T]] = {node: self.props[node]}
-        frontier: Set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
+        props: dict[PNode, PNodeProperties[_T]] = {node: self.props[node]}
+        frontier: set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
 
         while frontier:
             past_node = frontier.pop()

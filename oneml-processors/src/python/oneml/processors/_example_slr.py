@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Set, TypedDict, TypeVar
+from typing import Any, Mapping, TypedDict, TypeVar
 
 from oneml.processors import (
     DataArg,
@@ -70,7 +70,7 @@ class ModelEval(Processor[ModelEvalOutput]):
 
 def estimator_from_multiple_nodes_pipeline() -> None:
     train_nodes = set((PNode("stz"), PNode("model")))
-    train_dps: Dict[PNode, Set[PDependency[Array, Array]]] = {
+    train_dps: dict[PNode, set[PDependency[Array, Array]]] = {
         PNode("stz"): set((PDependency(PNode("data"), DataArg[Array]("X")),)),
         PNode("model"): set(
             (
@@ -80,13 +80,13 @@ def estimator_from_multiple_nodes_pipeline() -> None:
         ),
     }
 
-    train_props: Dict[PNode, PNodeProperties[TDict]] = {
+    train_props: dict[PNode, PNodeProperties[TDict]] = {
         PNode("stz"): PNodeProperties(Provider(StandardizeTrain)),
         PNode("model"): PNodeProperties(Provider(ModelTrain)),
     }
     eval_nodes = train_nodes
     eval_dps = train_dps
-    eval_props: Dict[PNode, PNodeProperties[TDict]] = {
+    eval_props: dict[PNode, PNodeProperties[TDict]] = {
         PNode("stz"): PNodeProperties(Provider(StandardizeEval)),
         PNode("model"): PNodeProperties(Provider(ModelEval)),
     }
@@ -104,10 +104,10 @@ def estimator_from_multiple_nodes_pipeline() -> None:
 def concatenate_estimators_pipeline() -> None:
     train_nodeA = set((PNode("stz"),))
     train_nodeB = set((PNode("model"),))
-    train_dpsA: Dict[PNode, Set[PDependency[Array, Array]]] = {
+    train_dpsA: dict[PNode, set[PDependency[Array, Array]]] = {
         PNode("stz"): set()
     }  # set((PDependency(PNode("data"), ("X", Array), ("X", Array)),))}
-    train_dpsB: Dict[PNode, Set[PDependency[Array, Array]]] = {
+    train_dpsB: dict[PNode, set[PDependency[Array, Array]]] = {
         PNode("model"): set(
             (
                 # PDependency(PNode("stz"), ("X", Array), ("X", Array)),
@@ -115,11 +115,11 @@ def concatenate_estimators_pipeline() -> None:
             )
         )
     }
-    train_propsA: Dict[PNode, PNodeProperties[TDict]] = {
+    train_propsA: dict[PNode, PNodeProperties[TDict]] = {
         PNode("stz"): PNodeProperties(Provider(StandardizeTrain))
     }
 
-    train_propsB: Dict[PNode, PNodeProperties[TDict]] = {
+    train_propsB: dict[PNode, PNodeProperties[TDict]] = {
         PNode("model"): PNodeProperties(Provider(ModelTrain))
     }
 
@@ -128,13 +128,13 @@ def concatenate_estimators_pipeline() -> None:
 
     eval_nodeA = train_nodeA
     eval_nodeB = train_nodeB
-    eval_dpsA: Dict[PNode, Set[PDependency[Array, Array]]] = train_dpsA
-    eval_dpsB: Dict[PNode, Set[PDependency[Array, Array]]] = train_dpsB
-    eval_propsA: Dict[PNode, PNodeProperties[TDict]] = {
+    eval_dpsA: dict[PNode, set[PDependency[Array, Array]]] = train_dpsA
+    eval_dpsB: dict[PNode, set[PDependency[Array, Array]]] = train_dpsB
+    eval_propsA: dict[PNode, PNodeProperties[TDict]] = {
         PNode("stz"): PNodeProperties(Provider(StandardizeEval))
     }
 
-    eval_propsB: Dict[PNode, PNodeProperties[TDict]] = {
+    eval_propsB: dict[PNode, PNodeProperties[TDict]] = {
         PNode("model"): PNodeProperties(Provider(ModelEval))
     }
 
