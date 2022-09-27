@@ -1,23 +1,27 @@
+import sys
 from inspect import Parameter
 from typing import Any, Dict, Literal, Mapping, TypeVar
 
 import pydot
 
 from ._pipeline import Pipeline
-from ._processor import DataArg, Provider
-from ._utils import ProcessorInput, ProcessorOutput
+from ._processor import OutParameter, Provider
+from ._utils import Annotations
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)  # output mapping of processors
-TI = TypeVar("TI", contravariant=True)  # generic input types for processor
-TO = TypeVar("TO", covariant=True)  # generic output types for processor
 
 
 def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
     def in_signature_from_provider(provider: Provider[T]) -> Mapping[str, Parameter]:
-        return ProcessorInput.signature_from_provider(provider)
+        init_sig = Annotations.signature(provider.processor_type.__init__)
+        proc_sig = Annotations.signature(provider.processor_type.process)
+        if sys.version_info >= (3, 10):
+            return init_sig | proc_sig
+        else:
+            return {**init_sig, **proc_sig}
 
-    def out_signature_from_provider(provider: Provider[T]) -> Mapping[str, DataArg[Any]]:
-        return ProcessorOutput.signature_from_provider(provider)
+    def out_signature_from_provider(provider: Provider[T]) -> Mapping[str, OutParameter]:
+        return Annotations.get_return_annotation(provider.processor_type.process)
 
     def parse_arguments_from_provider(arguments: Mapping[str, Any], io: Literal["i", "o"]) -> str:
         return "|".join((f"<{io}_{arg}> {arg}" for arg in arguments.keys()))
@@ -41,7 +45,7 @@ def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimport
         name = repr(node)
         for dp in dps:
             dp_name = repr(dp.node)
-            out_arg = dp.out_arg.key if dp.node else ""
+            out_arg = dp.out_arg.name if dp.node else ""
             if dp_name not in node_name_mapping:
                 node_name_mapping[dp_name] = str(len(node_name_mapping))
                 node_name = node_name_mapping[dp_name]

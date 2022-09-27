@@ -1,19 +1,17 @@
 # type: ignore
-from typing import Any, Mapping, Type, TypeVar
+from typing import Any, Mapping, TypeVar
 
 from ._pipeline import IExpandPipeline, IPrunePipeline, Namespace, PDependency, Pipeline, PNode
-from ._processor import Processor, Provider
+from ._processor import IProcessor, Provider
 
 T = TypeVar("T", covariant=True)  # output mapping of processors
 M = Mapping[str, T]  # mapping for processor inputs and outputs
-TI = TypeVar("TI", bound=Type[Any], contravariant=True)  # generic input types for processor
-TO = TypeVar("TO", bound=Type[Any], covariant=True)  # generic output types for processor
 
 
 # WIP!!
 
 
-class DataSplitter(Processor[T]):
+class DataSplitter(IProcessor[T]):
     def __init__(self, num_folds: int) -> None:
         assert num_folds > 0
 
@@ -42,7 +40,7 @@ class XValTrain(IExpandPipeline):
     def expand(self) -> Pipeline:
         kfolds = []
         datasplit = PNode("data_splitter")
-        tail_dependencies: tuple[PDependency[TI, TO], ...] = ()
+        tail_dependencies: tuple[PDependency, ...] = ()
         # insert datasplit onto external dependencies
         new_pipeline = self._pipeline.substitute_external_dependencies(datasplit)
         for k in range(self.num_folds):

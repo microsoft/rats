@@ -1,18 +1,16 @@
 from typing import AbstractSet, Any, Mapping, TypeVar
 
 from ._pipeline import IExpandPipeline, Namespace, PDependency, Pipeline, PNode, PNodeProperties
-from ._utils import ProcessorCommonInputsOutputs, TailPipelineClient
+from ._utils import TailPipelineClient
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
-TI = TypeVar("TI", contravariant=True)  # generic input types for processor
-TO = TypeVar("TO", covariant=True)  # generic output types for processor
 
 
 class EstimatorPipeline(Pipeline):
     def __init__(
         self,
         nodes: AbstractSet[PNode],
-        dependencies: Mapping[PNode, AbstractSet[PDependency[Any, Any]]],
+        dependencies: Mapping[PNode, AbstractSet[PDependency]],
         props: Mapping[PNode, PNodeProperties[Any]],
     ) -> None:
         super().__init__(nodes, dependencies, props)
@@ -45,26 +43,26 @@ class EstimatorPipelineFromTrainAndEval(IExpandPipeline):
         new_dependencies = dict(new_pipeline.dependencies)
         for node in self._eval_pipeline.nodes:
             # decorate old node names with new decorated names
-            train_node = node.decorate(train_ns)
+            # train_node = node.decorate(train_ns)
             eval_node = node.decorate(eval_ns)
 
             # add dependency from train to eval node if they are hanging dependencies
             # and if they share common inputs & outputs
-            hanging_dependencies = new_eval.dependencies[eval_node] & new_eval.hanging_dependencies
-            if hanging_dependencies:
-                common_IO: AbstractSet[
-                    PDependency[Any, Any]
-                ] = ProcessorCommonInputsOutputs.get_common_dependencies_from_providers(
-                    train_node,
-                    new_eval.props[eval_node].exec_provider,
-                    new_train.props[train_node].exec_provider,
-                    node_hanging_dependencies=hanging_dependencies,
-                )
-                common_io_args = set(dp.in_arg for dp in common_IO)
-                new_dependencies[eval_node] -= set(
-                    dp for dp in new_dependencies[eval_node] if dp.in_arg in common_io_args
-                )
-                new_dependencies[eval_node] |= common_IO
+            # hanging_dependencies = new_eval.dependencies[eval_node] & new_eval.hanging_dependencies
+            # if hanging_dependencies:
+            #     common_IO: AbstractSet[
+            #         PDependency
+            #     ] = ProcessorCommonInputsOutputs.get_common_dependencies_from_providers(
+            #         train_node,
+            #         new_eval.props[eval_node].exec_provider,
+            #         new_train.props[train_node].exec_provider,
+            #         node_hanging_dependencies=hanging_dependencies,
+            #     )
+            #     common_io_args = set(dp.in_arg for dp in common_IO)
+            #     new_dependencies[eval_node] -= set(
+            #         dp for dp in new_dependencies[eval_node] if dp.in_arg in common_io_args
+            #     )
+            #     new_dependencies[eval_node] |= common_IO
 
             # update external train dependencies on eval nodes if existing
             new_dependencies[eval_node] = frozenset(

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import logging
 import re
+from collections import defaultdict
 from inspect import Parameter
-from typing import Any, Generic, Iterable, Mapping, Sequence, TypeVar
+from itertools import groupby
+from typing import Any, Generic, Iterable, Mapping, Sequence, TypeVar, cast
 
 from oneml.pipelines.building import IPipelineSessionExecutable, PipelineBuilderFactory
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
@@ -14,15 +16,13 @@ from oneml.pipelines.session import (
     PipelineSessionClient,
 )
 
-from ._dependency_kind import DependencyKindPipelineExpander
+from ._gathervars import GatherVarsPipelineExpander
 from ._pipeline import PDependency, Pipeline, PNode
-from ._processor import DataArg, Provider
+from ._processor import Provider
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
-TI = TypeVar("TI", contravariant=True)  # generic input types for processor
-TO = TypeVar("TO", covariant=True)  # generic output types for processor
 
 
 class P2Pipeline:
@@ -31,20 +31,35 @@ class P2Pipeline:
         return PipelineNode(repr(node))
 
     @classmethod
-    def data_dp(
-        cls, node: PNode, in_arg: DataArg[TI], out_arg: DataArg[TO]
-    ) -> PipelineDataDependency[TI]:
-        in_port = PipelinePort[in_arg.annotation](in_arg.key)  # type: ignore[name-defined]
-        out_port = PipelinePort[out_arg.annotation](out_arg.key)  # type: ignore[name-defined]
+    def data_dp(cls, node: PNode, in_name: str, out_name: str) -> PipelineDataDependency[Any]:
+        in_port: PipelinePort[Any] = PipelinePort(in_name)
+        out_port: PipelinePort[Any] = PipelinePort(out_name)
         return PipelineDataDependency(P2Pipeline.node(node), out_port, in_port)
 
     @classmethod
     def data_dependencies(
-        cls, dependencies: Iterable[PDependency[TI, TO]]
-    ) -> tuple[PipelineDataDependency[TI], ...]:
+        cls, dependencies: Iterable[PDependency]
+    ) -> tuple[PipelineDataDependency[Any], ...]:
         if any(dp.node is None for dp in dependencies):
             raise ValueError("Trying to convert a hanging depencency.")
-        return tuple(cls.data_dp(dp.node, dp.in_arg, dp.out_arg) for dp in dependencies if dp.node)
+
+        data_dps: list[PipelineDataDependency[Any]] = []
+        grouped_dps: defaultdict[str, list[PDependency]] = defaultdict(list)
+        for k, g in groupby(dependencies, key=lambda dp: dp.in_arg.name):
+            grouped_dps[k].extend(list(g))
+
+        for k, dps in grouped_dps.items():
+            if len(dps) == 1:
+                dp_node = cast(PNode, dps[0].node)
+                data_dps.append(cls.data_dp(dp_node, dps[0].in_arg.name, dps[0].out_arg.name))
+            else:
+                for i, dp in enumerate(dps):
+                    dp_node = cast(PNode, dps[0].node)
+                    data_dps.append(
+                        cls.data_dp(dp_node, dp.in_arg.name + ":" + str(i), dp.out_arg.name)
+                    )
+
+        return tuple(data_dps)
 
 
 class DataClient:
@@ -74,12 +89,9 @@ class DataClient:
                     raise ValueError("Gathered inputs should be of dictionary type.")
                 return {k: v for gi, _ in gathered_inputs for k, v in gi.items()}  # type: ignore
 
-    def save(self, name: str, data: Any) -> None:
-        self._output_client.publish_data(PipelinePort(name), data)
-
-    def get_formatted_args(
+    def load_parameters(
         self, parameters: Mapping[str, Parameter], exclude: Sequence[str] = ()
-    ) -> Mapping[str, Any]:
+    ) -> tuple[Sequence[Any], Mapping[str, Any]]:
         pos_only, pos_vars, kw_args, kw_vars = [], [], {}, {}
         for k, param in parameters.items():
             if k in exclude:
@@ -93,7 +105,10 @@ class DataClient:
             elif param.kind == param.VAR_KEYWORD:
                 kw_vars.update(self.load(param))  # a ditionary of values is returned
 
-        return {"positional_args": pos_only + pos_vars, "keyword_args": {**kw_args, **kw_vars}}
+        return (pos_only + pos_vars, {**kw_args, **kw_vars})
+
+    def save(self, name: str, data: Any) -> None:
+        self._output_client.publish_data(PipelinePort(name), data)
 
 
 class SessionExecutableProvider(IPipelineSessionExecutable, Generic[T]):
@@ -117,7 +132,7 @@ class SessionExecutableProvider(IPipelineSessionExecutable, Generic[T]):
 class PipelineSessionProvider:
     @classmethod
     def get_session(cls, pipeline: Pipeline) -> PipelineSessionClient:
-        pipeline = DependencyKindPipelineExpander(pipeline).expand()
+        pipeline = GatherVarsPipelineExpander(pipeline).expand()
         builder = PipelineBuilderFactory().get_instance()
 
         for node in pipeline.nodes:

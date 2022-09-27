@@ -5,18 +5,8 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
-from typing import (
-    AbstractSet,
-    Any,
-    Generic,
-    Iterable,
-    Mapping,
-    Optional,
-    Protocol,
-    TypeVar,
-    Union,
-    cast,
-)
+from inspect import Parameter
+from typing import AbstractSet, Any, Generic, Iterable, Mapping, Optional, Protocol, TypeVar, Union
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
@@ -24,14 +14,12 @@ else:
     from typing_extensions import TypeAlias  # python < 3.10
 
 from ._frozendict import frozendict
-from ._processor import DataArg, DependencyKind, ProcessorInput, Provider
+from ._processor import Annotations, GatherVarKind, OutParameter, Provider
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar("T", bound=Mapping[str, Any], covariant=True)  # output mapping of processors
-TI = TypeVar("TI", contravariant=True)  # generic input types for processor
-TO = TypeVar("TO", covariant=True)  # generic output types for processor
 _T: TypeAlias = Mapping[str, Any]
+T = TypeVar("T", bound=_T, covariant=True)  # output mapping of processors
 
 
 @dataclass(frozen=True)
@@ -71,34 +59,38 @@ class PNode:
         return PNode(self.name, namespace / self.namespace)
 
 
-class PDependency(Generic[TI, TO]):
+class PDependency:
     _node: Optional[PNode]
-    _in_arg: DataArg[TI]  # Generic input contravariant on TI
-    _out_arg: Optional[DataArg[TO]]  # Generic output covariant on TO
-    _kind: DependencyKind
+    _in_arg: Parameter  # Generic input contravariant on TI
+    _out_arg: Optional[OutParameter]  # Generic output covariant on TO
+    _gathervar_kind: GatherVarKind
 
     @property
     def node(self) -> Optional[PNode]:
         return self._node
 
     @property
-    def in_arg(self) -> DataArg[TI]:
+    def in_arg(self) -> Parameter:
         return self._in_arg
 
-    @property
-    def out_arg(self) -> DataArg[TO]:
-        return self._out_arg if self._out_arg else cast(DataArg[TO], self._in_arg)
+    @cached_property
+    def out_arg(self) -> OutParameter:
+        return (
+            self._out_arg
+            if self._out_arg
+            else OutParameter(self._in_arg.name, self._in_arg.annotation)
+        )
 
     @property
-    def kind(self) -> DependencyKind:
-        return self._kind
+    def gathervar_kind(self) -> GatherVarKind:
+        return self._gathervar_kind
 
     def __init__(
         self,
         node: Union[PNode, Pipeline, None],
-        in_arg: DataArg[TI],
-        out_arg: Optional[DataArg[TO]] = None,
-        kind: DependencyKind = DependencyKind.STANDARD,
+        in_arg: Parameter,
+        out_arg: Optional[OutParameter] = None,
+        gathervar_kind: GatherVarKind = GatherVarKind.STANDARD,
     ) -> None:
         if isinstance(node, Pipeline):
             if len(node.end_nodes) != 1:
@@ -108,27 +100,29 @@ class PDependency(Generic[TI, TO]):
                 )
             node = next(iter(node.end_nodes))
 
-        if kind is DependencyKind.MAPPING and in_arg.key.count(".") != 1:
+        if gathervar_kind is GatherVarKind.MAPPING and in_arg.name.count(".") != 1:
             raise ValueError("Keyword kind expects key with exactly one dot, e.g., `mydict.x`.")
 
         super().__init__()
         self._node = node
         self._in_arg = in_arg
         self._out_arg = out_arg
-        self._kind = kind
+        self._gathervar_kind = gathervar_kind
 
     def __repr__(self) -> str:
         return "self." + repr(self.in_arg) + " <- " + repr(self.node) + "." + repr(self.out_arg)
 
-    def decorate(self, namespace: Namespace) -> PDependency[TI, TO]:
+    def decorate(self, namespace: Namespace) -> PDependency:
         return (
-            PDependency(self.node.decorate(namespace), self.in_arg, self.out_arg, self.kind)
+            PDependency(
+                self.node.decorate(namespace), self.in_arg, self.out_arg, self.gathervar_kind
+            )
             if self.node
             else self
         )
 
-    def set_node(self, node: PNode, out_arg: Optional[DataArg[TO]] = None) -> PDependency[TI, TO]:
-        return self.__class__(node, self.in_arg, out_arg, self.kind)
+    def set_node(self, node: PNode, out_arg: Optional[OutParameter] = None) -> PDependency:
+        return self.__class__(node, self.in_arg, out_arg, self.gathervar_kind)
 
 
 @dataclass(frozen=True)
@@ -152,7 +146,7 @@ class PNodeProperties(Generic[T]):
 
 class Pipeline:
     _nodes: frozenset[PNode]
-    _dependencies: frozendict[PNode, frozenset[PDependency[Any, Any]]]
+    _dependencies: frozendict[PNode, frozenset[PDependency]]
     _props: frozendict[PNode, PNodeProperties[_T]]
 
     @property
@@ -160,7 +154,7 @@ class Pipeline:
         return self._nodes
 
     @property
-    def dependencies(self) -> Mapping[PNode, AbstractSet[PDependency[Any, Any]]]:
+    def dependencies(self) -> Mapping[PNode, AbstractSet[PDependency]]:
         return self._dependencies
 
     @property
@@ -170,7 +164,7 @@ class Pipeline:
     def __init__(
         self,
         nodes: AbstractSet[PNode] = set(),
-        dependencies: Mapping[PNode, AbstractSet[PDependency[Any, Any]]] = {},
+        dependencies: Mapping[PNode, AbstractSet[PDependency]] = {},
         props: Mapping[PNode, PNodeProperties[Any]] = {},
     ) -> None:
         if dependencies.keys() - nodes:
@@ -190,10 +184,10 @@ class Pipeline:
 
         # Fill all hanging dependencies for all unspecified dependencies
         for node in nodes:
-            sig = ProcessorInput.signature_from_provider(props[node].exec_provider)
+            sig = Annotations.signature(props[node].exec_provider.processor_type.process)
             for in_arg in sig.values():
-                if not any(dp.in_arg.key == in_arg.name for dp in dependencies[node]):
-                    dependencies[node] |= set((PDependency(None, DataArg(in_arg.name)),))
+                if not any(dp.in_arg.name == in_arg.name for dp in dependencies[node]):
+                    dependencies[node] |= set((PDependency(None, in_arg),))
 
         super().__init__()
         self._nodes = frozenset(nodes)
@@ -231,9 +225,7 @@ class Pipeline:
         return self.__class__(new_nodes, new_dependencies, new_props)
 
     # maybe have a client that performs these operations? more consistent w/ python frozens?
-    def add_dependencies(
-        self, node: PNode, dependencies: Iterable[PDependency[Any, Any]]
-    ) -> Pipeline:
+    def add_dependencies(self, node: PNode, dependencies: Iterable[PDependency]) -> Pipeline:
         if node not in self:
             raise Exception("Node not in current pipeline; cannot add dependencies.")
 
@@ -242,9 +234,7 @@ class Pipeline:
             self._nodes, self._dependencies.set(node, new_dependencies), self._props
         )
 
-    def set_dependencies(
-        self, node: PNode, dependencies: Iterable[PDependency[TI, TO]]
-    ) -> Pipeline:
+    def set_dependencies(self, node: PNode, dependencies: Iterable[PDependency]) -> Pipeline:
         if node not in self:
             raise Exception("Node not in current pipeline; cannot set dependencies.")
 
@@ -254,7 +244,7 @@ class Pipeline:
 
     def decorate(self, namespace: Namespace) -> Pipeline:
         nodes: set[PNode] = set()
-        dependencies: dict[PNode, set[PDependency[Any, Any]]] = {}
+        dependencies: dict[PNode, set[PDependency]] = {}
         props: dict[PNode, PNodeProperties[_T]] = {}
 
         for node in self.nodes:
@@ -276,22 +266,22 @@ class Pipeline:
         )
 
     @cached_property
-    def all_dependencies(self) -> AbstractSet[PDependency[Any, Any]]:
+    def all_dependencies(self) -> AbstractSet[PDependency]:
         """All dependencies gathered from all nodes in the pipeline."""
         return frozenset(dp for dps in self.dependencies.values() for dp in dps)
 
     @cached_property
-    def external_dependencies(self) -> AbstractSet[PDependency[Any, Any]]:
+    def external_dependencies(self) -> AbstractSet[PDependency]:
         """Dependencies that point to other nodes not from the pipeline."""
         return frozenset(dp for dp in self.all_dependencies if dp.node not in self.nodes)
 
     @cached_property
-    def internal_dependencies(self) -> AbstractSet[PDependency[Any, Any]]:
+    def internal_dependencies(self) -> AbstractSet[PDependency]:
         """Dependencides that point to other nodes within the pipeline."""
         return self.all_dependencies - self.external_dependencies - self.hanging_dependencies
 
     @cached_property
-    def hanging_dependencies(self) -> AbstractSet[PDependency[Any, Any]]:
+    def hanging_dependencies(self) -> AbstractSet[PDependency]:
         """Dependencies that do not have an external PNode assigned."""
         return frozenset(dp for dp in self.all_dependencies if dp.node is None)
 
@@ -311,9 +301,7 @@ class Pipeline:
 
     def history(self, node: PNode) -> Pipeline:
         nodes: set[PNode] = set((node,))
-        dependencies: dict[PNode, AbstractSet[PDependency[Any, Any]]] = {
-            node: self.dependencies[node]
-        }
+        dependencies: dict[PNode, AbstractSet[PDependency]] = {node: self.dependencies[node]}
         props: dict[PNode, PNodeProperties[_T]] = {node: self.props[node]}
         frontier: set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
 

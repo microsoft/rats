@@ -1,3 +1,4 @@
+from inspect import Parameter
 from typing import Any, Mapping, Sequence, TypedDict
 
 import numpy as np
@@ -5,11 +6,11 @@ import numpy.typing as npt
 import pytest
 
 from oneml.processors import (
-    DataArg,
-    DependencyKind,
-    IArgVarsProcessor,
+    GatherVarKind,
+    IGatherVarsProcessor,
     IProcessor,
     Namespace,
+    OutParameter,
     PDependency,
     Pipeline,
     PipelineSessionProvider,
@@ -43,7 +44,7 @@ class ArrayDotProduct(IProcessor[ArrayDotProductOutput]):
         return ArrayDotProductOutput(output=np.dot(left, right))
 
 
-class ArrayConcat(IArgVarsProcessor[ArrayConcatenatorOutput]):
+class ArrayConcat(IGatherVarsProcessor[ArrayConcatenatorOutput]):
     args: Sequence[str] = ("arrays",)
 
     def __init__(self, num_inputs: int) -> None:
@@ -66,20 +67,24 @@ def simple_pipeline(storage: Mapping[str, npt.NDArray[np.float64]]) -> Pipeline:
     right_arr = PNode("right_arr")
     multiply = PNode("multiply")
     nodes = set((left_arr, right_arr, multiply))
-    dependencies: dict[
-        PNode, set[PDependency[npt.NDArray[np.float64], npt.NDArray[np.float64]]]
-    ] = {
+    dependencies: dict[PNode, set[PDependency]] = {
         multiply: set(
             (
                 PDependency(
                     left_arr,
-                    in_arg=DataArg[npt.NDArray[np.float64]]("left"),
-                    out_arg=DataArg[npt.NDArray[np.float64]]("array"),
+                    in_arg=Parameter(
+                        "left", Parameter.POSITIONAL_OR_KEYWORD, annotation=npt.NDArray[np.float64]
+                    ),
+                    out_arg=OutParameter("array", npt.NDArray[np.float64]),
                 ),
                 PDependency(
                     right_arr,
-                    in_arg=DataArg[npt.NDArray[np.float64]]("right"),
-                    out_arg=DataArg[npt.NDArray[np.float64]]("array"),
+                    in_arg=Parameter(
+                        "right",
+                        Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=npt.NDArray[np.float64],
+                    ),
+                    out_arg=OutParameter("array", npt.NDArray[np.float64]),
                 ),
             )
         )
@@ -101,26 +106,38 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
     p3 = simple_pipeline.decorate(Namespace("p3"))
     concat_node = PNode("array_concat")
     concat_nodes = set((concat_node,))
-    concat_dps: dict[PNode, set[PDependency[npt.NDArray[np.float64], npt.NDArray[np.float64]]]] = {
+    concat_dps: dict[PNode, set[PDependency]] = {
         concat_node: set(
             (
                 PDependency(
                     p1,
-                    in_arg=DataArg[npt.NDArray[np.float64]]("arrays"),
-                    out_arg=DataArg[npt.NDArray[np.float64]]("output"),
-                    kind=DependencyKind.SEQUENCE,
+                    in_arg=Parameter(
+                        "arrays",
+                        Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=npt.NDArray[np.float64],
+                    ),
+                    out_arg=OutParameter("output", npt.NDArray[np.float64]),
+                    gathervar_kind=GatherVarKind.SEQUENCE,
                 ),
                 PDependency(
                     p2,
-                    in_arg=DataArg[npt.NDArray[np.float64]]("arrays"),
-                    out_arg=DataArg[npt.NDArray[np.float64]]("output"),
-                    kind=DependencyKind.SEQUENCE,
+                    in_arg=Parameter(
+                        "arrays",
+                        Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=npt.NDArray[np.float64],
+                    ),
+                    out_arg=OutParameter("output", npt.NDArray[np.float64]),
+                    gathervar_kind=GatherVarKind.SEQUENCE,
                 ),
                 PDependency(
                     p3,
-                    in_arg=DataArg[npt.NDArray[np.float64]]("arrays"),
-                    out_arg=DataArg[npt.NDArray[np.float64]]("output"),
-                    kind=DependencyKind.SEQUENCE,
+                    in_arg=Parameter(
+                        "arrays",
+                        Parameter.POSITIONAL_OR_KEYWORD,
+                        annotation=npt.NDArray[np.float64],
+                    ),
+                    out_arg=OutParameter("output", npt.NDArray[np.float64]),
+                    gathervar_kind=GatherVarKind.SEQUENCE,
                 ),
             )
         )

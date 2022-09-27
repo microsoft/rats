@@ -1,22 +1,13 @@
 from __future__ import annotations
 
+from inspect import Parameter
 from typing import Any, Mapping, TypedDict, TypeVar
 
-from oneml.processors import (
-    DataArg,
-    IProcessor,
-    PDependency,
-    Pipeline,
-    PNode,
-    PNodeProperties,
-    Provider,
-)
+from oneml.processors import IProcessor, PDependency, Pipeline, PNode, PNodeProperties, Provider
 from oneml.processors._estimator import EstimatorPipelineFromTrainAndEval, WrapEstimatorPipeline
 from oneml.processors._viz import dag_to_svg
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
-TI = TypeVar("TI", contravariant=True)  # generic input types for processor
-TO = TypeVar("TO", covariant=True)  # generic output types for processor
 TDict = Mapping[str, Any]
 
 
@@ -70,12 +61,24 @@ class ModelEval(IProcessor[ModelEvalOutput]):
 
 def estimator_from_multiple_nodes_pipeline() -> None:
     train_nodes = set((PNode("stz"), PNode("model")))
-    train_dps: dict[PNode, set[PDependency[Array, Array]]] = {
-        PNode("stz"): set((PDependency(PNode("data"), DataArg[Array]("X")),)),
+    train_dps: dict[PNode, set[PDependency]] = {
+        PNode("stz"): set(
+            (
+                PDependency(
+                    PNode("data"),
+                    Parameter("X", Parameter.POSITIONAL_OR_KEYWORD, annotation=Array),
+                ),
+            )
+        ),
         PNode("model"): set(
             (
-                PDependency(PNode("stz"), DataArg[Array]("X")),
-                PDependency(PNode("data"), DataArg[Array]("Y")),
+                PDependency(
+                    PNode("stz"), Parameter("X", Parameter.POSITIONAL_OR_KEYWORD, annotation=Array)
+                ),
+                PDependency(
+                    PNode("data"),
+                    Parameter("Y", Parameter.POSITIONAL_OR_KEYWORD, annotation=Array),
+                ),
             )
         ),
     }
@@ -104,17 +107,8 @@ def estimator_from_multiple_nodes_pipeline() -> None:
 def concatenate_estimators_pipeline() -> None:
     train_nodeA = set((PNode("stz"),))
     train_nodeB = set((PNode("model"),))
-    train_dpsA: dict[PNode, set[PDependency[Array, Array]]] = {
-        PNode("stz"): set()
-    }  # set((PDependency(PNode("data"), ("X", Array), ("X", Array)),))}
-    train_dpsB: dict[PNode, set[PDependency[Array, Array]]] = {
-        PNode("model"): set(
-            (
-                # PDependency(PNode("stz"), ("X", Array), ("X", Array)),
-                # PDependency(PNode("data"), ("Y", Array), ("Y", Array)),
-            )
-        )
-    }
+    train_dpsA: dict[PNode, set[PDependency]] = {PNode("stz"): set()}
+    train_dpsB: dict[PNode, set[PDependency]] = {PNode("model"): set()}
     train_propsA: dict[PNode, PNodeProperties[TDict]] = {
         PNode("stz"): PNodeProperties(Provider(StandardizeTrain))
     }
@@ -128,8 +122,8 @@ def concatenate_estimators_pipeline() -> None:
 
     eval_nodeA = train_nodeA
     eval_nodeB = train_nodeB
-    eval_dpsA: dict[PNode, set[PDependency[Array, Array]]] = train_dpsA
-    eval_dpsB: dict[PNode, set[PDependency[Array, Array]]] = train_dpsB
+    eval_dpsA: dict[PNode, set[PDependency]] = train_dpsA
+    eval_dpsB: dict[PNode, set[PDependency]] = train_dpsB
     eval_propsA: dict[PNode, PNodeProperties[TDict]] = {
         PNode("stz"): PNodeProperties(Provider(StandardizeEval))
     }
