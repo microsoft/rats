@@ -2,20 +2,22 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from inspect import Parameter
 from typing import AbstractSet, Any, Iterable, Mapping, TypedDict, TypeVar
 
 from ._frozendict import frozendict
 from ._pipeline import PDependency, Pipeline, PNode, PNodeProperties, Provider
-from ._processor import DataArg, Processor, ProcessorInput, ProcessorOutput
+from ._processor import DataArg, IProcessor, ProcessorInput, ProcessorOutput
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
 TI = TypeVar("TI", contravariant=True)  # generic input types for processor
 TO = TypeVar("TO", covariant=True)  # generic output types for processor
 
-EmptyDict = TypedDict("EmptyDict")  # type: ignore[misc]
+
+EmptyDict = TypedDict("EmptyDict", {})
 
 
-class NoOp(Processor[EmptyDict]):
+class NoOp(IProcessor[EmptyDict]):
     def process(self) -> EmptyDict:
         return EmptyDict()
 
@@ -91,10 +93,10 @@ class ProcessorCommonInputsOutputs:
     @staticmethod
     def intersect_signatures(
         in_provider: Provider[T], out_provider: Provider[T]
-    ) -> Mapping[str, tuple[DataArg[Any], DataArg[Any]]]:
+    ) -> Mapping[str, tuple[Parameter, DataArg[Any]]]:
         in_sig = ProcessorInput.signature_from_provider(in_provider)
         out_sig = ProcessorOutput.signature_from_provider(out_provider)
-        io: dict[str, tuple[DataArg[Any], DataArg[Any]]] = {}
+        io: dict[str, tuple[Parameter, DataArg[Any]]] = {}
         for k in in_sig.keys() & out_sig.keys():
             if issubclass(out_sig[k].annotation, in_sig[k].annotation):
                 io[k] = (in_sig[k], out_sig[k])

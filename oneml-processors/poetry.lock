@@ -362,6 +362,19 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
+name = "collections-extended"
+version = "2.0.2"
+description = "Extra Python Collections - bags (multisets) and setlists (ordered sets)"
+category = "main"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
 name = "colorama"
 version = "0.4.5"
 description = "Cross-platform colored terminal text."
@@ -2365,7 +2378,7 @@ dev = ["flake8", "flake8-formatter-junit-xml", "pytest", "mypy", "coverage", "py
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "43f8ad8247c927dd0e65248cf3c0cdb5ecae4eec9cac552c81a9c4b414536c6c"
+content-hash = "5ea2aca279a33ba9ecffc830e0c282bee6e0b72abab0f40d52a78faaf6bc3535"
 
 [metadata.files]
 alabaster = [
@@ -2537,6 +2550,10 @@ chevron = [
 click = [
     {file = "click-8.1.3-py3-none-any.whl", hash = "sha256:bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48"},
     {file = "click-8.1.3.tar.gz", hash = "sha256:7682dc8afb30297001674575ea00d1814d808d6a36af415a82bd481d37ba7b8e"},
+]
+collections-extended = [
+    {file = "collections-extended-2.0.2.tar.gz", hash = "sha256:d68ebd1e2208444e392aa0016e5c085bd897f89296f5c1860787de5935994114"},
+    {file = "collections_extended-2.0.2-py3-none-any.whl", hash = "sha256:bc096dda430b9455f51287943f7f63fbe53a4de78c444cc38c44e996af306ac5"},
 ]
 colorama = [
     {file = "colorama-0.4.5-py2.py3-none-any.whl", hash = "sha256:854bf444933e37f5824ae7bfc1e98d5bce2ebe4160d46b5edf346a89358e99da"},

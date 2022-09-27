@@ -24,7 +24,7 @@ else:
     from typing_extensions import TypeAlias  # python < 3.10
 
 from ._frozendict import frozendict
-from ._processor import DataArg, ProcessorInput, Provider
+from ._processor import DataArg, DependencyKind, ProcessorInput, Provider
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +75,7 @@ class PDependency(Generic[TI, TO]):
     _node: Optional[PNode]
     _in_arg: DataArg[TI]  # Generic input contravariant on TI
     _out_arg: Optional[DataArg[TO]]  # Generic output covariant on TO
+    _kind: DependencyKind
 
     @property
     def node(self) -> Optional[PNode]:
@@ -88,11 +89,16 @@ class PDependency(Generic[TI, TO]):
     def out_arg(self) -> DataArg[TO]:
         return self._out_arg if self._out_arg else cast(DataArg[TO], self._in_arg)
 
+    @property
+    def kind(self) -> DependencyKind:
+        return self._kind
+
     def __init__(
         self,
         node: Union[PNode, Pipeline, None],
         in_arg: DataArg[TI],
         out_arg: Optional[DataArg[TO]] = None,
+        kind: DependencyKind = DependencyKind.STANDARD,
     ) -> None:
         if isinstance(node, Pipeline):
             if len(node.end_nodes) != 1:
@@ -102,23 +108,27 @@ class PDependency(Generic[TI, TO]):
                 )
             node = next(iter(node.end_nodes))
 
+        if kind is DependencyKind.MAPPING and in_arg.key.count(".") != 1:
+            raise ValueError("Keyword kind expects key with exactly one dot, e.g., `mydict.x`.")
+
         super().__init__()
         self._node = node
         self._in_arg = in_arg
         self._out_arg = out_arg
+        self._kind = kind
 
     def __repr__(self) -> str:
         return "self." + repr(self.in_arg) + " <- " + repr(self.node) + "." + repr(self.out_arg)
 
     def decorate(self, namespace: Namespace) -> PDependency[TI, TO]:
         return (
-            PDependency(self.node.decorate(namespace), self.in_arg, self.out_arg)
+            PDependency(self.node.decorate(namespace), self.in_arg, self.out_arg, self.kind)
             if self.node
             else self
         )
 
     def set_node(self, node: PNode, out_arg: Optional[DataArg[TO]] = None) -> PDependency[TI, TO]:
-        return self.__class__(node, self.in_arg, out_arg)
+        return self.__class__(node, self.in_arg, out_arg, self.kind)
 
 
 @dataclass(frozen=True)
@@ -169,7 +179,7 @@ class Pipeline:
             raise Exception("Missing props for some nodes.")
         if not all(
             len(set((dp.node, dp.in_arg) for dp in dependencies[n])) == len(dependencies[n])
-            for n in dependencies.keys()
+            for n in dependencies
         ):
             raise Exception("A node cannot have an input name more than once per dependency.")
 
@@ -182,8 +192,8 @@ class Pipeline:
         for node in nodes:
             sig = ProcessorInput.signature_from_provider(props[node].exec_provider)
             for in_arg in sig.values():
-                if not any(dp.in_arg == in_arg for dp in dependencies[node]):
-                    dependencies[node] |= set((PDependency(None, in_arg),))
+                if not any(dp.in_arg.key == in_arg.name for dp in dependencies[node]):
+                    dependencies[node] |= set((PDependency(None, DataArg(in_arg.name)),))
 
         super().__init__()
         self._nodes = frozenset(nodes)

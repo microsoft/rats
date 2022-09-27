@@ -1,7 +1,7 @@
 import logging
 from abc import abstractmethod
 from functools import lru_cache
-from typing import Any, Dict, Protocol, Tuple
+from typing import Any, Dict, Protocol, Sequence, Tuple
 
 from oneml.pipelines.dag import (
     PipelineDataDependenciesClient,
@@ -152,10 +152,10 @@ class PipelineNodeInputDataClient(ILoadPipelineNodeData):
         self._data_mapping = data_mapping
 
     def get_data(self, port: PipelinePort[PipelinePortDataType]) -> PipelinePortDataType:
-        return self._data_client.get_data(
-            self._data_mapping[port][0],
-            self._data_mapping[port][1],
-        )
+        return self._data_client.get_data(*self._data_mapping[port])
+
+    def get_ports(self) -> Sequence[PipelinePort[Any]]:
+        return tuple(self._data_mapping.keys())
 
 
 class PipelineNodeDataClientFactory:

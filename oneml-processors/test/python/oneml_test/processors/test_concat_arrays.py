@@ -1,4 +1,4 @@
-from typing import Any, Dict, Mapping, Sequence, Set, TypedDict
+from typing import Any, Mapping, Sequence, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -6,23 +6,25 @@ import pytest
 
 from oneml.processors import (
     DataArg,
+    DependencyKind,
+    IArgVarsProcessor,
+    IProcessor,
     Namespace,
     PDependency,
     Pipeline,
     PipelineSessionProvider,
     PNode,
     PNodeProperties,
-    Processor,
     Provider,
 )
 
-ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": npt.ArrayLike})
-ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"output": npt.ArrayLike})
-ArrayConcatenatorOutput = TypedDict("ArrayConcatenatorOutput", {"output": npt.ArrayLike})
+ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": npt.NDArray[np.float64]})
+ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"output": npt.NDArray[np.float64]})
+ArrayConcatenatorOutput = TypedDict("ArrayConcatenatorOutput", {"output": npt.NDArray[np.float64]})
 TDict = Mapping[str, Any]
 
 
-class ArrayReader(Processor[ArrayReaderOutput]):
+class ArrayReader(IProcessor[ArrayReaderOutput]):
     def __init__(self, storage: Mapping[str, npt.NDArray[np.float64]], url: str) -> None:
         super().__init__()
         self._storage = storage
@@ -32,25 +34,29 @@ class ArrayReader(Processor[ArrayReaderOutput]):
         return ArrayReaderOutput(array=self._storage[self._url])
 
 
-class ArrayDotProduct(Processor[ArrayDotProductOutput]):
+class ArrayDotProduct(IProcessor[ArrayDotProductOutput]):
     def process(
-        self, left: npt.ArrayLike = np.zeros(1), right: npt.ArrayLike = np.zeros(1)
+        self,
+        left: npt.NDArray[np.float64] = np.zeros(1),
+        right: npt.NDArray[np.float64] = np.zeros(1),
     ) -> ArrayDotProductOutput:
         return ArrayDotProductOutput(output=np.dot(left, right))
 
 
-class ArrayConcat(Processor[ArrayConcatenatorOutput]):
+class ArrayConcat(IArgVarsProcessor[ArrayConcatenatorOutput]):
+    args: Sequence[str] = ("arrays",)
+
     def __init__(self, num_inputs: int) -> None:
         super().__init__()
         self._num_inputs = num_inputs
 
-    def process(self, arrays: Sequence[npt.ArrayLike] = ()) -> ArrayConcatenatorOutput:
+    def process(self, arrays: Sequence[npt.NDArray[np.float64]] = ()) -> ArrayConcatenatorOutput:
         concatenated = np.concatenate([np.reshape(a, newshape=(-1,)) for a in arrays])
         return ArrayConcatenatorOutput(output=concatenated)
 
 
 @pytest.fixture
-def storage() -> Dict[str, npt.NDArray[np.float64]]:
+def storage() -> dict[str, npt.NDArray[np.float64]]:
     return {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
 
 
@@ -60,24 +66,26 @@ def simple_pipeline(storage: Mapping[str, npt.NDArray[np.float64]]) -> Pipeline:
     right_arr = PNode("right_arr")
     multiply = PNode("multiply")
     nodes = set((left_arr, right_arr, multiply))
-    dependencies: Dict[PNode, Set[PDependency[npt.ArrayLike, npt.ArrayLike]]] = {
+    dependencies: dict[
+        PNode, set[PDependency[npt.NDArray[np.float64], npt.NDArray[np.float64]]]
+    ] = {
         multiply: set(
             (
                 PDependency(
                     left_arr,
-                    in_arg=DataArg[npt.ArrayLike]("left"),
+                    in_arg=DataArg[npt.NDArray[np.float64]]("left"),
                     out_arg=DataArg[npt.NDArray[np.float64]]("array"),
                 ),
                 PDependency(
                     right_arr,
-                    in_arg=DataArg[npt.ArrayLike]("right"),
+                    in_arg=DataArg[npt.NDArray[np.float64]]("right"),
                     out_arg=DataArg[npt.NDArray[np.float64]]("array"),
                 ),
             )
         )
     }
 
-    props: Dict[PNode, PNodeProperties[TDict]] = {
+    props: dict[PNode, PNodeProperties[TDict]] = {
         left_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "a"})),
         right_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "b"})),
         multiply: PNodeProperties(Provider(ArrayDotProduct)),
@@ -91,19 +99,34 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
     p1 = simple_pipeline.decorate(Namespace("p1"))
     p2 = simple_pipeline.decorate(Namespace("p2"))
     p3 = simple_pipeline.decorate(Namespace("p3"))
-    concat_node = PNode("ArrayConcat")
+    concat_node = PNode("array_concat")
     concat_nodes = set((concat_node,))
-    concat_dps: Dict[PNode, Set[PDependency[npt.ArrayLike, npt.ArrayLike]]] = {
+    concat_dps: dict[PNode, set[PDependency[npt.NDArray[np.float64], npt.NDArray[np.float64]]]] = {
         concat_node: set(
             (
-                PDependency(p1, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
-                PDependency(p2, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
-                PDependency(p3, in_arg=("arrays", npt.ArrayLike)),  # type: ignore[arg-type]
+                PDependency(
+                    p1,
+                    in_arg=DataArg[npt.NDArray[np.float64]]("arrays"),
+                    out_arg=DataArg[npt.NDArray[np.float64]]("output"),
+                    kind=DependencyKind.SEQUENCE,
+                ),
+                PDependency(
+                    p2,
+                    in_arg=DataArg[npt.NDArray[np.float64]]("arrays"),
+                    out_arg=DataArg[npt.NDArray[np.float64]]("output"),
+                    kind=DependencyKind.SEQUENCE,
+                ),
+                PDependency(
+                    p3,
+                    in_arg=DataArg[npt.NDArray[np.float64]]("arrays"),
+                    out_arg=DataArg[npt.NDArray[np.float64]]("output"),
+                    kind=DependencyKind.SEQUENCE,
+                ),
             )
         )
     }
 
-    concat_props: Dict[PNode, PNodeProperties[TDict]] = {
+    concat_props: dict[PNode, PNodeProperties[TDict]] = {
         concat_node: PNodeProperties(Provider(ArrayConcat, {"num_inputs": 3}))
     }
 
@@ -113,4 +136,9 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
 
 def test_simple_pipeline(simple_pipeline: Pipeline) -> None:
     session = PipelineSessionProvider.get_session(simple_pipeline)
+    session.run()
+
+
+def test_complex_pipeline(complex_pipeline: Pipeline) -> None:
+    session = PipelineSessionProvider.get_session(complex_pipeline)
     session.run()

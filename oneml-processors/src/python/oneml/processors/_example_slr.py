@@ -4,11 +4,11 @@ from typing import Any, Mapping, TypedDict, TypeVar
 
 from oneml.processors import (
     DataArg,
+    IProcessor,
     PDependency,
     Pipeline,
     PNode,
     PNodeProperties,
-    Processor,
     Provider,
 )
 from oneml.processors._estimator import EstimatorPipelineFromTrainAndEval, WrapEstimatorPipeline
@@ -30,7 +30,7 @@ StandardizeTrainOutput = TypedDict(
 )
 
 
-class StandardizeTrain(Processor[StandardizeTrainOutput]):
+class StandardizeTrain(IProcessor[StandardizeTrainOutput]):
     def process(self, X: Array = Array()) -> StandardizeTrainOutput:
         return StandardizeTrainOutput({"X": X, "mu": Array(), "scale": Array()})
 
@@ -38,7 +38,7 @@ class StandardizeTrain(Processor[StandardizeTrainOutput]):
 StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"X": Array})
 
 
-class StandardizeEval(Processor[StandardizeEvalOutput]):
+class StandardizeEval(IProcessor[StandardizeEvalOutput]):
     def __init__(self, mu: Array, scale: Array) -> None:
         super().__init__()
         self._mu = mu
@@ -51,7 +51,7 @@ class StandardizeEval(Processor[StandardizeEvalOutput]):
 ModelTrainOutput = TypedDict("ModelTrainOutput", {"acc": Array, "model": Array})
 
 
-class ModelTrain(Processor[ModelTrainOutput]):
+class ModelTrain(IProcessor[ModelTrainOutput]):
     def process(self, X: Array = Array(), Y: Array = Array()) -> ModelTrainOutput:
         return ModelTrainOutput({"acc": Array(), "model": Array()})
 
@@ -59,7 +59,7 @@ class ModelTrain(Processor[ModelTrainOutput]):
 ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": Array})
 
 
-class ModelEval(Processor[ModelEvalOutput]):
+class ModelEval(IProcessor[ModelEvalOutput]):
     def __init__(self, model: Array) -> None:
         super().__init__()
         self.model = model

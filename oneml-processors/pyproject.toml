@@ -44,6 +44,7 @@ networkx = "^2.8.4"
 dill = "^0.3.5"
 pydot = "^1.4.2"
 omegaconf = "*"
+collections-extended = "^2.0.2"
 
 [tool.poetry.extras]
 dev = [

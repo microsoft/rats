@@ -1,3 +1,4 @@
+from inspect import Parameter
 from typing import Any, Dict, Literal, Mapping, TypeVar
 
 import pydot
@@ -12,15 +13,13 @@ TO = TypeVar("TO", covariant=True)  # generic output types for processor
 
 
 def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
-    def in_signature_from_provider(provider: Provider[T]) -> Mapping[str, DataArg[Any]]:
+    def in_signature_from_provider(provider: Provider[T]) -> Mapping[str, Parameter]:
         return ProcessorInput.signature_from_provider(provider)
 
     def out_signature_from_provider(provider: Provider[T]) -> Mapping[str, DataArg[Any]]:
         return ProcessorOutput.signature_from_provider(provider)
 
-    def parse_arguments_from_provider(
-        arguments: Mapping[str, DataArg[Any]], io: Literal["i", "o"]
-    ) -> str:
+    def parse_arguments_from_provider(arguments: Mapping[str, Any], io: Literal["i", "o"]) -> str:
         return "|".join((f"<{io}_{arg}> {arg}" for arg in arguments.keys()))
 
     g = pydot.Dot("DAG", graph_type="digraph")
