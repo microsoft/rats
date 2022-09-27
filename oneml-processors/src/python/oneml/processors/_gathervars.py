@@ -1,26 +1,16 @@
-import sys
 from collections import Counter
 from inspect import Parameter, _ParameterKind
-from typing import Any, Mapping, Sequence, TypedDict, TypeVar
+from typing import Any, Mapping, Sequence, TypedDict
 
 from ._pipeline import IExpandPipeline, PDependency, Pipeline, PNode, PNodeProperties
 from ._processor import GatherVarKind, IProcessor, OutParameter, Provider
-
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
-
-_T: TypeAlias = Mapping[str, Any]
-T = TypeVar("T", bound=_T, covariant=True)  # output mapping of processors
-
 
 SequenceOutput = TypedDict("SequenceOutput", {"output": Sequence[Any]})
 MappingOutput = TypedDict("MappingOutput", {"output": Mapping[str, Any]})
 CollectionOutput = TypedDict("CollectionOutput", {"output": object})
 
 
-class GatherSequence(IProcessor[SequenceOutput]):
+class GatherSequence(IProcessor):
     def __init__(self) -> None:
         super().__init__()
 
@@ -28,7 +18,7 @@ class GatherSequence(IProcessor[SequenceOutput]):
         return SequenceOutput(output=args)
 
 
-class GatherMapping(IProcessor[MappingOutput]):
+class GatherMapping(IProcessor):
     def __init__(self) -> None:
         super().__init__()
 
@@ -36,7 +26,7 @@ class GatherMapping(IProcessor[MappingOutput]):
         return MappingOutput(output=kwargs)
 
 
-class GatherCollection(IProcessor[CollectionOutput]):
+class GatherCollection(IProcessor):
     """Gathers variable inputs for collection object, e.g., namedtuple or dataclass."""
 
     def __init__(self, collection_type: type[object]) -> None:
@@ -47,7 +37,7 @@ class GatherCollection(IProcessor[CollectionOutput]):
         return CollectionOutput(output=self._collection_type(**kwargs))
 
 
-GATHERVAR2PROCESSOR: Mapping[GatherVarKind, type[IProcessor[_T]]] = {
+GATHERVAR2PROCESSOR: Mapping[GatherVarKind, type[IProcessor]] = {
     GatherVarKind.SEQUENCE: GatherSequence,
     GatherVarKind.MAPPING: GatherMapping,
     GatherVarKind.NAMEDTUPLE: GatherCollection,
@@ -89,7 +79,9 @@ class GatherVarsPipelineExpander(IExpandPipeline):
 
         # create gathering pipeline with gathering node and modifyied dependencies
         gathering_node = PNode(node.name + ":" + in_arg.name + ":", node.namespace)
-        gathering_props = {gathering_node: PNodeProperties(Provider(GATHERVAR2PROCESSOR[kind]))}
+        gathering_props: dict[PNode, PNodeProperties] = {
+            gathering_node: PNodeProperties(Provider(GATHERVAR2PROCESSOR[kind]))
+        }
         gathering_dependencies = {
             gathering_node: set(
                 PDependency(

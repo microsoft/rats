@@ -1,24 +1,20 @@
 # type: ignore
-from typing import Any, Mapping, TypeVar
+from typing import Any, Mapping
 
 from ._pipeline import IExpandPipeline, IPrunePipeline, Namespace, PDependency, Pipeline, PNode
 from ._processor import IProcessor, Provider
 
-T = TypeVar("T", covariant=True)  # output mapping of processors
-M = Mapping[str, T]  # mapping for processor inputs and outputs
+T = Mapping[str, Any]  # mapping for processor inputs and outputs
 
 
-# WIP!!
-
-
-class DataSplitter(IProcessor[T]):
+class DataSplitter(IProcessor):
     def __init__(self, num_folds: int) -> None:
         assert num_folds > 0
 
         super().__init__()
         self._num_folds = num_folds
 
-    def process(self, X: Any = None, Y: Any = None) -> M[T]:
+    def process(self, X: Any, Y: Any) -> T:
         return super().process()
 
     @property
@@ -28,10 +24,10 @@ class DataSplitter(IProcessor[T]):
 
 class XValTrain(IExpandPipeline):
     _pipeline: Pipeline
-    _data_splitter: DataSplitter[T]
-    _summary: Provider[T]
+    _data_splitter: DataSplitter
+    _summary: Provider
 
-    def __init__(self, num_folds: int, data_splitter: DataSplitter[T], pipeline: Pipeline) -> None:
+    def __init__(self, num_folds: int, data_splitter: DataSplitter, pipeline: Pipeline) -> None:
         super().__init__()
         self._data_splitter = data_splitter
         self._summary = Provider()
@@ -68,7 +64,7 @@ class XValTrain(IExpandPipeline):
 
 class XValEval(IPrunePipeline):
     _xval_train: Pipeline
-    _summary: Provider[T]
+    _summary: Provider
 
     def __init__(self, xval_train: Pipeline) -> None:
         super().__init__()

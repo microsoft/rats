@@ -1,27 +1,19 @@
 from __future__ import annotations
 
 import logging
-import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 from inspect import Parameter
-from typing import AbstractSet, Any, Generic, Iterable, Mapping, Optional, Protocol, TypeVar, Union
-
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias  # python < 3.10
+from typing import AbstractSet, Iterable, Mapping, Optional, Protocol, Union, final
 
 from ._frozendict import frozendict
 from ._processor import Annotations, GatherVarKind, OutParameter, Provider
 
 logger = logging.getLogger(__name__)
 
-_T: TypeAlias = Mapping[str, Any]
-T = TypeVar("T", bound=_T, covariant=True)  # output mapping of processors
 
-
+@final
 @dataclass(frozen=True)
 class Namespace:
     key: str = ""
@@ -40,6 +32,7 @@ class Namespace:
         return Namespace(self.key + ("/" if self.key and namespace.key else "") + namespace.key)
 
 
+@final
 @dataclass(frozen=True)
 class PNode:
     name: str
@@ -59,6 +52,7 @@ class PNode:
         return PNode(self.name, namespace / self.namespace)
 
 
+@final
 class PDependency:
     _node: Optional[PNode]
     _in_arg: Parameter  # Generic input contravariant on TI
@@ -136,8 +130,8 @@ class PComputeReqs:
 
 
 @dataclass(frozen=True)
-class PNodeProperties(Generic[T]):
-    exec_provider: Provider[T]
+class PNodeProperties:
+    exec_provider: Provider
     compute_reqs: PComputeReqs = PComputeReqs()
 
     def __hash__(self) -> int:
@@ -147,7 +141,7 @@ class PNodeProperties(Generic[T]):
 class Pipeline:
     _nodes: frozenset[PNode]
     _dependencies: frozendict[PNode, frozenset[PDependency]]
-    _props: frozendict[PNode, PNodeProperties[_T]]
+    _props: frozendict[PNode, PNodeProperties]
 
     @property
     def nodes(self) -> AbstractSet[PNode]:
@@ -158,14 +152,14 @@ class Pipeline:
         return self._dependencies
 
     @property
-    def props(self) -> Mapping[PNode, PNodeProperties[Any]]:
+    def props(self) -> Mapping[PNode, PNodeProperties]:
         return self._props
 
     def __init__(
         self,
         nodes: AbstractSet[PNode] = set(),
         dependencies: Mapping[PNode, AbstractSet[PDependency]] = {},
-        props: Mapping[PNode, PNodeProperties[Any]] = {},
+        props: Mapping[PNode, PNodeProperties] = {},
     ) -> None:
         if dependencies.keys() - nodes:
             raise Exception("More dependencies than nodes.")
@@ -245,7 +239,7 @@ class Pipeline:
     def decorate(self, namespace: Namespace) -> Pipeline:
         nodes: set[PNode] = set()
         dependencies: dict[PNode, set[PDependency]] = {}
-        props: dict[PNode, PNodeProperties[_T]] = {}
+        props: dict[PNode, PNodeProperties] = {}
 
         for node in self.nodes:
             new_node = node.decorate(namespace)
@@ -302,7 +296,7 @@ class Pipeline:
     def history(self, node: PNode) -> Pipeline:
         nodes: set[PNode] = set((node,))
         dependencies: dict[PNode, AbstractSet[PDependency]] = {node: self.dependencies[node]}
-        props: dict[PNode, PNodeProperties[_T]] = {node: self.props[node]}
+        props: dict[PNode, PNodeProperties] = {node: self.props[node]}
         frontier: set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
 
         while frontier:

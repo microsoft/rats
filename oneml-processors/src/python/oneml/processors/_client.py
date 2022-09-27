@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from inspect import Parameter
 from itertools import groupby
-from typing import Any, Generic, Iterable, Mapping, Sequence, TypeVar, cast
+from typing import Any, Iterable, Mapping, Sequence, cast
 
 from oneml.pipelines.building import IPipelineSessionExecutable, PipelineBuilderFactory
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
@@ -21,8 +21,6 @@ from ._pipeline import PDependency, Pipeline, PNode
 from ._processor import Provider
 
 logger = logging.getLogger(__name__)
-
-T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
 
 
 class P2Pipeline:
@@ -76,12 +74,12 @@ class DataClient:
         elif param.kind in [param.VAR_POSITIONAL, param.VAR_KEYWORD]:
             p = re.compile(rf"^{param.name}:(\d+)")
             gathered_inputs = [
-                (s, int(match.group(1)))
+                (s, int(match.group(1)))  # converts to integer
                 for s in self._input_client.get_ports()
                 for match in (p.match(s.key),)
                 if match
             ]
-            gathered_inputs.sort(key=lambda sm: sm[1])
+            gathered_inputs.sort(key=lambda sm: sm[1])  # sorts by integer number
             if param.kind == param.VAR_POSITIONAL:
                 return tuple(self._input_client.get_data(s) for s, _ in gathered_inputs)
             elif param.kind == param.VAR_KEYWORD:
@@ -111,11 +109,11 @@ class DataClient:
         self._output_client.publish_data(PipelinePort(name), data)
 
 
-class SessionExecutableProvider(IPipelineSessionExecutable, Generic[T]):
+class SessionExecutableProvider(IPipelineSessionExecutable):
     _node: PNode
-    _provider: Provider[T]
+    _provider: Provider
 
-    def __init__(self, node: PNode, provider: Provider[T]) -> None:
+    def __init__(self, node: PNode, provider: Provider) -> None:
         super().__init__()
         self._node = node
         self._provider = provider

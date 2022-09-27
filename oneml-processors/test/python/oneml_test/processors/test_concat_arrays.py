@@ -25,7 +25,7 @@ ArrayConcatenatorOutput = TypedDict("ArrayConcatenatorOutput", {"output": npt.ND
 TDict = Mapping[str, Any]
 
 
-class ArrayReader(IProcessor[ArrayReaderOutput]):
+class ArrayReader(IProcessor):
     def __init__(self, storage: Mapping[str, npt.NDArray[np.float64]], url: str) -> None:
         super().__init__()
         self._storage = storage
@@ -35,23 +35,21 @@ class ArrayReader(IProcessor[ArrayReaderOutput]):
         return ArrayReaderOutput(array=self._storage[self._url])
 
 
-class ArrayDotProduct(IProcessor[ArrayDotProductOutput]):
+class ArrayDotProduct(IProcessor):
     def process(
-        self,
-        left: npt.NDArray[np.float64] = np.zeros(1),
-        right: npt.NDArray[np.float64] = np.zeros(1),
+        self, left: npt.NDArray[np.float64], right: npt.NDArray[np.float64]
     ) -> ArrayDotProductOutput:
         return ArrayDotProductOutput(output=np.dot(left, right))
 
 
-class ArrayConcat(IGatherVarsProcessor[ArrayConcatenatorOutput]):
-    args: Sequence[str] = ("arrays",)
+class ArrayConcat(IGatherVarsProcessor):
+    sequence_vars: Sequence[str] = ("arrays",)
 
     def __init__(self, num_inputs: int) -> None:
         super().__init__()
         self._num_inputs = num_inputs
 
-    def process(self, arrays: Sequence[npt.NDArray[np.float64]] = ()) -> ArrayConcatenatorOutput:
+    def process(self, arrays: Sequence[npt.NDArray[np.float64]]) -> ArrayConcatenatorOutput:
         concatenated = np.concatenate([np.reshape(a, newshape=(-1,)) for a in arrays])
         return ArrayConcatenatorOutput(output=concatenated)
 
@@ -90,7 +88,7 @@ def simple_pipeline(storage: Mapping[str, npt.NDArray[np.float64]]) -> Pipeline:
         )
     }
 
-    props: dict[PNode, PNodeProperties[TDict]] = {
+    props: dict[PNode, PNodeProperties] = {
         left_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "a"})),
         right_arr: PNodeProperties(Provider(ArrayReader, {"storage": storage, "url": "b"})),
         multiply: PNodeProperties(Provider(ArrayDotProduct)),
@@ -143,7 +141,7 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
         )
     }
 
-    concat_props: dict[PNode, PNodeProperties[TDict]] = {
+    concat_props: dict[PNode, PNodeProperties] = {
         concat_node: PNodeProperties(Provider(ArrayConcat, {"num_inputs": 3}))
     }
 

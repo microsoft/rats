@@ -11,7 +11,7 @@ class EstimatorPipeline(Pipeline):
         self,
         nodes: AbstractSet[PNode],
         dependencies: Mapping[PNode, AbstractSet[PDependency]],
-        props: Mapping[PNode, PNodeProperties[Any]],
+        props: Mapping[PNode, PNodeProperties],
     ) -> None:
         super().__init__(nodes, dependencies, props)
         train_ns, eval_ns = Namespace("train"), Namespace("eval")

@@ -2,18 +2,15 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import AbstractSet, Any, Mapping, TypedDict, TypeVar
+from typing import AbstractSet, TypedDict
 
 from ._pipeline import PDependency, Pipeline, PNode, PNodeProperties, Provider
 from ._processor import Annotations, IProcessor
 
-T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
-
-
 EmptyDict = TypedDict("EmptyDict", {})
 
 
-class NoOp(IProcessor[EmptyDict]):
+class NoOp(IProcessor):
     def process(self) -> EmptyDict:
         return EmptyDict()
 
@@ -23,7 +20,7 @@ class HeadPipelineClient:
     def _build_head_pipeline_only(
         *pipelines: Pipeline,
         head_name: str = "head",
-        props: PNodeProperties[T] = PNodeProperties(Provider[T](NoOp)),
+        props: PNodeProperties = PNodeProperties(Provider(NoOp)),
     ) -> Pipeline:
         hnode = PNode(head_name)
         dependencies: dict[PNode, AbstractSet[PDependency]] = defaultdict(set)
@@ -53,7 +50,7 @@ class HeadPipelineClient:
         cls,
         *pipelines: Pipeline,
         head_name: str = "head",
-        props: PNodeProperties[T] = PNodeProperties(Provider[T](NoOp)),
+        props: PNodeProperties = PNodeProperties(Provider(NoOp)),
     ) -> Pipeline:
         head_pipeline = cls._build_head_pipeline_only(*pipelines, head_name=head_name, props=props)
         return cls._interpose_head_pipeline_before_pipeline(
@@ -66,7 +63,7 @@ class TailPipelineClient:
     def build_tail_pipeline(
         *pipelines: Pipeline,
         tail_name: str = "tail",
-        props: PNodeProperties[T] = PNodeProperties(Provider[T](NoOp)),
+        props: PNodeProperties = PNodeProperties(Provider(NoOp)),
         exclude: AbstractSet[str] = set(),
     ) -> Pipeline:
         if len(pipelines) == 0:

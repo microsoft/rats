@@ -2,34 +2,21 @@ from __future__ import annotations
 
 import logging
 import sys
-from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from inspect import Parameter, get_annotations, signature
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Generic,
-    Mapping,
-    Protocol,
-    Sequence,
-    Type,
-    TypeVar,
-)
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Protocol, Sequence, Type
 
 if TYPE_CHECKING:
     from ._client import DataClient
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar("T", bound=Mapping[str, Any], covariant=True)  # output mapping of processors
 
-
-class IProcessor(Protocol[T]):  # Processor is covariant
-    @abstractmethod
-    def process(self) -> T:  # https://peps.python.org/pep-0692/
-        ...
+# IProcessor protocol cannot be generic because the return type is abstract.
+# However, any IProcessor can be made generic and return a generic TypedDict.
+class IProcessor(Protocol):
+    process: Callable[..., Mapping[str, Any]] = NotImplemented
 
 
 class IDefineGatherVars(Protocol):
@@ -37,7 +24,7 @@ class IDefineGatherVars(Protocol):
     mapping_vars: Sequence[str] = ()
 
 
-class IGatherVarsProcessor(IProcessor[T], IDefineGatherVars):
+class IGatherVarsProcessor(IProcessor, IDefineGatherVars):
     pass
 
 
@@ -55,13 +42,11 @@ class GatherVarKind(Enum):
     DATACLASS = 4
 
 
-class Provider(Generic[T]):
-    _processor_type: Type[IProcessor[T]]
+class Provider:
+    _processor_type: Type[IProcessor]
     _config: Mapping[str, Any]
 
-    def __init__(
-        self, processor_type: Type[IProcessor[T]], config: Mapping[str, Any] = {}
-    ) -> None:
+    def __init__(self, processor_type: Type[IProcessor], config: Mapping[str, Any] = {}) -> None:
         super().__init__()
         self._processor_type = processor_type
         self._config = config
@@ -72,7 +57,7 @@ class Provider(Generic[T]):
         if not all(key in in_sig for key in self._config.keys()):
             raise ValueError("Config has entries not accepted by Processor.")
 
-    def get_processor(self, data_client: DataClient) -> IProcessor[T]:
+    def get_processor(self, data_client: DataClient) -> IProcessor:
         sig = Annotations.signature(self.processor_type.__init__)
         pos_args, kw_args = data_client.load_parameters(sig, exclude=tuple(self.config.keys()))
         return self.processor_type(*pos_args, **self.config, **kw_args)
@@ -86,7 +71,7 @@ class Provider(Generic[T]):
             data_client.save(key, val)
 
     @property
-    def processor_type(self) -> Type[IProcessor[T]]:
+    def processor_type(self) -> Type[IProcessor]:
         return self._processor_type
 
     @property

@@ -1,6 +1,6 @@
 import sys
 from inspect import Parameter
-from typing import Any, Dict, Literal, Mapping, TypeVar
+from typing import Any, Dict, Literal, Mapping
 
 import pydot
 
@@ -8,11 +8,9 @@ from ._pipeline import Pipeline
 from ._processor import OutParameter, Provider
 from ._utils import Annotations
 
-T = TypeVar("T", bound=Mapping[str, Any], covariant=True)  # output mapping of processors
-
 
 def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
-    def in_signature_from_provider(provider: Provider[T]) -> Mapping[str, Parameter]:
+    def in_signature_from_provider(provider: Provider) -> Mapping[str, Parameter]:
         init_sig = Annotations.signature(provider.processor_type.__init__)
         proc_sig = Annotations.signature(provider.processor_type.process)
         if sys.version_info >= (3, 10):
@@ -20,7 +18,7 @@ def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimport
         else:
             return {**init_sig, **proc_sig}
 
-    def out_signature_from_provider(provider: Provider[T]) -> Mapping[str, OutParameter]:
+    def out_signature_from_provider(provider: Provider) -> Mapping[str, OutParameter]:
         return Annotations.get_return_annotation(provider.processor_type.process)
 
     def parse_arguments_from_provider(arguments: Mapping[str, Any], io: Literal["i", "o"]) -> str:
