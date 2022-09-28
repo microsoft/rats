@@ -1,13 +1,11 @@
-from inspect import Parameter
-from typing import Any, Mapping, Sequence, TypedDict
+from typing import Any, Mapping, TypedDict
 
 import numpy as np
 import numpy.typing as npt
 import pytest
 
 from oneml.processors import (
-    GatherVarKind,
-    IGatherVarsProcessor,
+    InParameter,
     IProcessor,
     Namespace,
     OutParameter,
@@ -42,14 +40,12 @@ class ArrayDotProduct(IProcessor):
         return ArrayDotProductOutput(output=np.dot(left, right))
 
 
-class ArrayConcat(IGatherVarsProcessor):
-    sequence_vars: Sequence[str] = ("arrays",)
-
+class ArrayConcat(IProcessor):
     def __init__(self, num_inputs: int) -> None:
         super().__init__()
         self._num_inputs = num_inputs
 
-    def process(self, arrays: Sequence[npt.NDArray[np.float64]]) -> ArrayConcatenatorOutput:
+    def process(self, *arrays: npt.NDArray[np.float64]) -> ArrayConcatenatorOutput:
         concatenated = np.concatenate([np.reshape(a, newshape=(-1,)) for a in arrays])
         return ArrayConcatenatorOutput(output=concatenated)
 
@@ -70,18 +66,12 @@ def simple_pipeline(storage: Mapping[str, npt.NDArray[np.float64]]) -> Pipeline:
             (
                 PDependency(
                     left_arr,
-                    in_arg=Parameter(
-                        "left", Parameter.POSITIONAL_OR_KEYWORD, annotation=npt.NDArray[np.float64]
-                    ),
+                    in_arg=InParameter("left", npt.NDArray[np.float64]),
                     out_arg=OutParameter("array", npt.NDArray[np.float64]),
                 ),
                 PDependency(
                     right_arr,
-                    in_arg=Parameter(
-                        "right",
-                        Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=npt.NDArray[np.float64],
-                    ),
+                    in_arg=InParameter("right", npt.NDArray[np.float64]),
                     out_arg=OutParameter("array", npt.NDArray[np.float64]),
                 ),
             )
@@ -109,33 +99,24 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
             (
                 PDependency(
                     p1,
-                    in_arg=Parameter(
-                        "arrays",
-                        Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=npt.NDArray[np.float64],
+                    in_arg=InParameter(
+                        "arrays", npt.NDArray[np.float64], InParameter.VAR_POSITIONAL
                     ),
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
-                    gathervar_kind=GatherVarKind.SEQUENCE,
                 ),
                 PDependency(
                     p2,
-                    in_arg=Parameter(
-                        "arrays",
-                        Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=npt.NDArray[np.float64],
+                    in_arg=InParameter(
+                        "arrays", npt.NDArray[np.float64], InParameter.VAR_POSITIONAL
                     ),
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
-                    gathervar_kind=GatherVarKind.SEQUENCE,
                 ),
                 PDependency(
                     p3,
-                    in_arg=Parameter(
-                        "arrays",
-                        Parameter.POSITIONAL_OR_KEYWORD,
-                        annotation=npt.NDArray[np.float64],
+                    in_arg=InParameter(
+                        "arrays", npt.NDArray[np.float64], InParameter.VAR_POSITIONAL
                     ),
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
-                    gathervar_kind=GatherVarKind.SEQUENCE,
                 ),
             )
         )

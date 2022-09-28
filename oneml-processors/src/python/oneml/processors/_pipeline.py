@@ -4,11 +4,10 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
-from inspect import Parameter
 from typing import AbstractSet, Iterable, Mapping, Optional, Protocol, Union, final
 
 from ._frozendict import frozendict
-from ._processor import Annotations, GatherVarKind, OutParameter, Provider
+from ._processor import Annotations, InParameter, OutParameter, Provider
 
 logger = logging.getLogger(__name__)
 
@@ -55,16 +54,15 @@ class PNode:
 @final
 class PDependency:
     _node: Optional[PNode]
-    _in_arg: Parameter  # Generic input contravariant on TI
-    _out_arg: Optional[OutParameter]  # Generic output covariant on TO
-    _gathervar_kind: GatherVarKind
+    _in_arg: InParameter
+    _out_arg: Optional[OutParameter]
 
     @property
     def node(self) -> Optional[PNode]:
         return self._node
 
     @property
-    def in_arg(self) -> Parameter:
+    def in_arg(self) -> InParameter:
         return self._in_arg
 
     @cached_property
@@ -75,16 +73,11 @@ class PDependency:
             else OutParameter(self._in_arg.name, self._in_arg.annotation)
         )
 
-    @property
-    def gathervar_kind(self) -> GatherVarKind:
-        return self._gathervar_kind
-
     def __init__(
         self,
         node: Union[PNode, Pipeline, None],
-        in_arg: Parameter,
+        in_arg: InParameter,
         out_arg: Optional[OutParameter] = None,
-        gathervar_kind: GatherVarKind = GatherVarKind.STANDARD,
     ) -> None:
         if isinstance(node, Pipeline):
             if len(node.end_nodes) != 1:
@@ -94,29 +87,23 @@ class PDependency:
                 )
             node = next(iter(node.end_nodes))
 
-        if gathervar_kind is GatherVarKind.MAPPING and in_arg.name.count(".") != 1:
-            raise ValueError("Keyword kind expects key with exactly one dot, e.g., `mydict.x`.")
-
         super().__init__()
         self._node = node
         self._in_arg = in_arg
         self._out_arg = out_arg
-        self._gathervar_kind = gathervar_kind
 
     def __repr__(self) -> str:
         return "self." + repr(self.in_arg) + " <- " + repr(self.node) + "." + repr(self.out_arg)
 
     def decorate(self, namespace: Namespace) -> PDependency:
         return (
-            PDependency(
-                self.node.decorate(namespace), self.in_arg, self.out_arg, self.gathervar_kind
-            )
+            self.__class__(self.node.decorate(namespace), self.in_arg, self.out_arg)
             if self.node
             else self
         )
 
     def set_node(self, node: PNode, out_arg: Optional[OutParameter] = None) -> PDependency:
-        return self.__class__(node, self.in_arg, out_arg, self.gathervar_kind)
+        return self.__class__(node, self.in_arg, out_arg)
 
 
 @dataclass(frozen=True)

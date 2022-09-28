@@ -1,20 +1,12 @@
 from ._client import P2Pipeline, PipelineSessionProvider
 from ._frozendict import frozendict
 from ._pipeline import Namespace, PComputeReqs, PDependency, Pipeline, PNode, PNodeProperties
-from ._processor import (
-    Annotations,
-    GatherVarKind,
-    IGatherVarsProcessor,
-    IProcessor,
-    OutParameter,
-    Provider,
-)
+from ._processor import Annotations, InParameter, IProcessor, OutParameter, Provider
 
 __all__ = [
     "P2Pipeline",
     "PipelineSessionProvider",
     "frozendict",
-    "DependencyKind",
     "Namespace",
     "PComputeReqs",
     "PDependency",
@@ -22,8 +14,7 @@ __all__ = [
     "PNode",
     "PNodeProperties",
     "Annotations",
-    "GatherVarKind",
-    "IGatherVarsProcessor",
+    "InParameter",
     "IProcessor",
     "OutParameter",
     "Provider",

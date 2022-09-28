@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import re
 from collections import defaultdict
-from inspect import Parameter
 from itertools import groupby
 from typing import Any, Iterable, Mapping, Sequence, cast
 
@@ -16,9 +15,8 @@ from oneml.pipelines.session import (
     PipelineSessionClient,
 )
 
-from ._gathervars import GatherVarsPipelineExpander
 from ._pipeline import PDependency, Pipeline, PNode
-from ._processor import Provider
+from ._processor import InParameter, Provider
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +66,7 @@ class DataClient:
         self._input_client = input_client
         self._output_client = output_client
 
-    def load(self, param: Parameter) -> Any:
+    def load(self, param: InParameter) -> Any:
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY]:
             return self._input_client.get_data(PipelinePort(param.name))
         elif param.kind in [param.VAR_POSITIONAL, param.VAR_KEYWORD]:
@@ -88,7 +86,7 @@ class DataClient:
                 return {k: v for gi, _ in gathered_inputs for k, v in gi.items()}  # type: ignore
 
     def load_parameters(
-        self, parameters: Mapping[str, Parameter], exclude: Sequence[str] = ()
+        self, parameters: Mapping[str, InParameter], exclude: Sequence[str] = ()
     ) -> tuple[Sequence[Any], Mapping[str, Any]]:
         pos_only, pos_vars, kw_args, kw_vars = [], [], {}, {}
         for k, param in parameters.items():
@@ -130,7 +128,6 @@ class SessionExecutableProvider(IPipelineSessionExecutable):
 class PipelineSessionProvider:
     @classmethod
     def get_session(cls, pipeline: Pipeline) -> PipelineSessionClient:
-        pipeline = GatherVarsPipelineExpander(pipeline).expand()
         builder = PipelineBuilderFactory().get_instance()
 
         for node in pipeline.nodes:

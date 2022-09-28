@@ -1,16 +1,15 @@
 import sys
-from inspect import Parameter
 from typing import Any, Dict, Literal, Mapping
 
 import pydot
 
 from ._pipeline import Pipeline
-from ._processor import OutParameter, Provider
+from ._processor import InParameter, OutParameter, Provider
 from ._utils import Annotations
 
 
 def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
-    def in_signature_from_provider(provider: Provider) -> Mapping[str, Parameter]:
+    def in_signature_from_provider(provider: Provider) -> Mapping[str, InParameter]:
         init_sig = Annotations.signature(provider.processor_type.__init__)
         proc_sig = Annotations.signature(provider.processor_type.process)
         if sys.version_info >= (3, 10):

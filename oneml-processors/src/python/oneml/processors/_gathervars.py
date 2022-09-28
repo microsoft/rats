@@ -1,13 +1,21 @@
-from collections import Counter
-from inspect import Parameter, _ParameterKind
+from enum import Enum
+from inspect import _ParameterKind
 from typing import Any, Mapping, Sequence, TypedDict
 
 from ._pipeline import IExpandPipeline, PDependency, Pipeline, PNode, PNodeProperties
-from ._processor import GatherVarKind, IProcessor, OutParameter, Provider
+from ._processor import InParameter, IProcessor, OutParameter, Provider
 
 SequenceOutput = TypedDict("SequenceOutput", {"output": Sequence[Any]})
 MappingOutput = TypedDict("MappingOutput", {"output": Mapping[str, Any]})
 CollectionOutput = TypedDict("CollectionOutput", {"output": object})
+
+
+class GatherVarKind(Enum):
+    STANDARD = 0  # one to one correspondence between processors outputs and inputs
+    SEQUENCE = 1  # many to one correspondences
+    MAPPING = 2
+    NAMEDTUPLE = 3
+    DATACLASS = 4
 
 
 class GatherSequence(IProcessor):
@@ -52,20 +60,32 @@ GATHERVAR2ARG: Mapping[GatherVarKind, str] = {
 }
 
 GATHERVAR2KIND: Mapping[GatherVarKind, _ParameterKind] = {
-    GatherVarKind.SEQUENCE: Parameter.VAR_POSITIONAL,
-    GatherVarKind.MAPPING: Parameter.VAR_KEYWORD,
-    GatherVarKind.NAMEDTUPLE: Parameter.VAR_KEYWORD,
-    GatherVarKind.DATACLASS: Parameter.VAR_KEYWORD,
+    GatherVarKind.SEQUENCE: InParameter.VAR_POSITIONAL,
+    GatherVarKind.MAPPING: InParameter.VAR_KEYWORD,
+    GatherVarKind.NAMEDTUPLE: InParameter.VAR_KEYWORD,
+    GatherVarKind.DATACLASS: InParameter.VAR_KEYWORD,
 }
 
 
 class GatherVarsPipelineExpander(IExpandPipeline):
-    def __init__(self, pipeline: Pipeline) -> None:
+    _pipeline: Pipeline
+    _gathervars: Mapping[PNode, Sequence[tuple[InParameter, GatherVarKind]]]
+
+    def __init__(
+        self,
+        pipeline: Pipeline,
+        gathervars: Mapping[PNode, Sequence[tuple[InParameter, GatherVarKind]]],
+    ) -> None:
         super().__init__()
         self._pipeline = pipeline
+        self._gathervars = gathervars
 
     def _add_gathering_node(
-        self, pipeline: Pipeline, node: PNode, dependencies: Sequence[PDependency]
+        self,
+        pipeline: Pipeline,
+        node: PNode,
+        dependencies: Sequence[PDependency],
+        kind: GatherVarKind,
     ) -> Pipeline:
         if not all(dp.node for dp in dependencies):
             dps = tuple(dp for dp in dependencies if not dp.node)
@@ -75,7 +95,6 @@ class GatherVarsPipelineExpander(IExpandPipeline):
             raise ValueError("Not all dependencies have same input argument name.")
 
         in_arg, in_arg_ann = dependencies[0].in_arg, dependencies[0].in_arg.annotation
-        kind = dependencies[0].gathervar_kind
 
         # create gathering pipeline with gathering node and modifyied dependencies
         gathering_node = PNode(node.name + ":" + in_arg.name + ":", node.namespace)
@@ -86,7 +105,7 @@ class GatherVarsPipelineExpander(IExpandPipeline):
             gathering_node: set(
                 PDependency(
                     dp.node,
-                    Parameter(GATHERVAR2ARG[kind], GATHERVAR2KIND[kind], annotation=Any),
+                    InParameter(GATHERVAR2ARG[kind], Any, GATHERVAR2KIND[kind]),
                     dp.out_arg,
                 )
                 for dp in dependencies
@@ -103,22 +122,10 @@ class GatherVarsPipelineExpander(IExpandPipeline):
 
     def expand(self) -> Pipeline:
         new_pipeline = self._pipeline
-        for node in self._pipeline.nodes:
-            # validation that each input argument has a unique kind
-            arg_counts = Counter(
-                (dp.in_arg, dp.gathervar_kind) for dp in self._pipeline.dependencies[node]
-            )
-            in_arg_counts = Counter(dp.in_arg for dp in self._pipeline.dependencies[node])
-            if not all(arg_counts[k] == in_arg_counts[k[0]] for k in arg_counts):
-                raise ValueError(f"At least one `in_arg` dependency in {node} has multiple kinds.")
-
-            in_args = set(  # input arguments that gather inputs across nodes
-                dp.in_arg
-                for dp in self._pipeline.dependencies[node]
-                if dp.gathervar_kind != GatherVarKind.STANDARD
-            )
+        for node, in_args in self._gathervars.items():
             for in_arg in in_args:
-                dps = tuple(dp for dp in self._pipeline.dependencies[node] if dp.in_arg == in_arg)
-                new_pipeline = self._add_gathering_node(new_pipeline, node, dps)
+                param, kind = in_arg
+                dps = tuple(dp for dp in self._pipeline.dependencies[node] if dp.in_arg == param)
+                new_pipeline = self._add_gathering_node(new_pipeline, node, dps, kind)
 
         return new_pipeline

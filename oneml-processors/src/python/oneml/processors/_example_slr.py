@@ -1,9 +1,16 @@
 from __future__ import annotations
 
-from inspect import Parameter
 from typing import TypedDict
 
-from oneml.processors import IProcessor, PDependency, Pipeline, PNode, PNodeProperties, Provider
+from oneml.processors import (
+    InParameter,
+    IProcessor,
+    PDependency,
+    Pipeline,
+    PNode,
+    PNodeProperties,
+    Provider,
+)
 from oneml.processors._estimator import EstimatorPipelineFromTrainAndEval, WrapEstimatorPipeline
 from oneml.processors._viz import dag_to_svg
 
@@ -59,23 +66,11 @@ class ModelEval(IProcessor):
 def estimator_from_multiple_nodes_pipeline() -> None:
     train_nodes = set((PNode("stz"), PNode("model")))
     train_dps: dict[PNode, set[PDependency]] = {
-        PNode("stz"): set(
-            (
-                PDependency(
-                    PNode("data"),
-                    Parameter("X", Parameter.POSITIONAL_OR_KEYWORD, annotation=Array),
-                ),
-            )
-        ),
+        PNode("stz"): set((PDependency(PNode("data"), InParameter("X", Array)),)),
         PNode("model"): set(
             (
-                PDependency(
-                    PNode("stz"), Parameter("X", Parameter.POSITIONAL_OR_KEYWORD, annotation=Array)
-                ),
-                PDependency(
-                    PNode("data"),
-                    Parameter("Y", Parameter.POSITIONAL_OR_KEYWORD, annotation=Array),
-                ),
+                PDependency(PNode("stz"), InParameter("X", Array)),
+                PDependency(PNode("data"), InParameter("Y", Array)),
             )
         ),
     }

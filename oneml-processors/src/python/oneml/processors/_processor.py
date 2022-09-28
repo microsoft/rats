@@ -3,43 +3,52 @@ from __future__ import annotations
 import logging
 import sys
 from dataclasses import dataclass
-from enum import Enum
-from inspect import Parameter, get_annotations, signature
-from typing import TYPE_CHECKING, Any, Callable, Mapping, Protocol, Sequence, Type
+from inspect import _ParameterKind, get_annotations, signature
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Protocol, Type, final
 
 if TYPE_CHECKING:
     from ._client import DataClient
 
 logger = logging.getLogger(__name__)
 
-
-# IProcessor protocol cannot be generic because the return type is abstract.
-# However, any IProcessor can be made generic and return a generic TypedDict.
-class IProcessor(Protocol):
-    process: Callable[..., Mapping[str, Any]] = NotImplemented
-
-
-class IDefineGatherVars(Protocol):
-    sequence_vars: Sequence[str] = ()
-    mapping_vars: Sequence[str] = ()
+_POSITIONAL_ONLY = _ParameterKind.POSITIONAL_ONLY
+_POSITIONAL_OR_KEYWORD = _ParameterKind.POSITIONAL_OR_KEYWORD
+_VAR_POSITIONAL = _ParameterKind.VAR_POSITIONAL
+_KEYWORD_ONLY = _ParameterKind.KEYWORD_ONLY
+_VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
 
 
-class IGatherVarsProcessor(IProcessor, IDefineGatherVars):
-    pass
+class _empty:
+    """Marker object for InParameter.empty."""
 
 
+@final
+@dataclass(frozen=True, slots=True)
+class InParameter:
+    POSITIONAL_ONLY = _POSITIONAL_ONLY
+    POSITIONAL_OR_KEYWORD = _POSITIONAL_OR_KEYWORD
+    VAR_POSITIONAL = _VAR_POSITIONAL
+    KEYWORD_ONLY = _KEYWORD_ONLY
+    VAR_KEYWORD = _VAR_KEYWORD
+
+    name: str
+    annotation: Any
+    kind: _ParameterKind = POSITIONAL_OR_KEYWORD
+    default: Any = _empty
+    empty: Any = _empty
+
+
+@final
 @dataclass(frozen=True)
 class OutParameter:
     name: str
     annotation: type
 
 
-class GatherVarKind(Enum):
-    STANDARD = 0  # one to one correspondence between processors outputs and inputs
-    SEQUENCE = 1  # many to one correspondences
-    MAPPING = 2
-    NAMEDTUPLE = 3
-    DATACLASS = 4
+# IProcessor protocol cannot be generic because the return type is abstract.
+# However, any IProcessor can be made generic and return a generic TypedDict.
+class IProcessor(Protocol):
+    process: Callable[..., Mapping[str, Any]] = NotImplemented
 
 
 class Provider:
@@ -98,27 +107,31 @@ class Annotations:
         exclude_self: bool = True,
         exclude_var_positional: bool = False,
         exclude_var_keyword: bool = False,
-    ) -> dict[str, Parameter]:
+    ) -> dict[str, InParameter]:
         if sys.version_info >= (3, 10):
             return {
-                k: param
-                for k, param in signature(method, eval_str=True).parameters.items()
+                k: InParameter(p.name, p.annotation, p.kind, p.default, p.empty)
+                for k, p in signature(method, eval_str=True).parameters.items()
                 if not (k == "self" and exclude_self)
-                and not (param.kind == param.VAR_POSITIONAL and exclude_var_positional)
-                and not (param.kind == param.VAR_KEYWORD and exclude_var_keyword)
+                and not (p.kind == p.VAR_POSITIONAL and exclude_var_positional)
+                and not (p.kind == p.VAR_KEYWORD and exclude_var_keyword)
                 and not k == "return"  # "return" key is reserved
             }
         else:
             return {
-                k: param
-                if not isinstance(param.annotation, str)
-                else param.replace(
-                    annotation=cls._eval_annotation(method.__module__, param.annotation)
+                k: InParameter(p.name, p.annotation, p.kind, p.default, p.empty)
+                if not isinstance(p.annotation, str)
+                else InParameter(
+                    p.name,
+                    cls._eval_annotation(method.__module__, p.annotation),
+                    p.kind,
+                    p.default,
+                    p.empty,
                 )
-                for k, param in signature(method).parameters.items()
+                for k, p in signature(method).parameters.items()
                 if not (k == "self" and exclude_self)
-                and not (param.kind == param.VAR_POSITIONAL and exclude_var_positional)
-                and not (param.kind == param.VAR_KEYWORD and exclude_var_keyword)
+                and not (p.kind == p.VAR_POSITIONAL and exclude_var_positional)
+                and not (p.kind == p.VAR_KEYWORD and exclude_var_keyword)
                 and not k == "return"  # "return" key is reserved
             }
 
