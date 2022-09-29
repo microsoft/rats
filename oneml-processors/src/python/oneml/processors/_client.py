@@ -45,15 +45,9 @@ class P2Pipeline:
             grouped_dps[k].extend(list(g))
 
         for k, dps in grouped_dps.items():
-            if len(dps) == 1:
-                dp_node = cast(PNode, dps[0].node)
-                data_dps.append(cls.data_dp(dp_node, dps[0].in_arg.name, dps[0].out_arg.name))
-            else:
-                for i, dp in enumerate(dps):
-                    dp_node = cast(PNode, dps[0].node)
-                    data_dps.append(
-                        cls.data_dp(dp_node, dp.in_arg.name + ":" + str(i), dp.out_arg.name)
-                    )
+            for i, dp in enumerate(dps):
+                dp_node, in_arg_name = cast(PNode, dp.node), dp.in_arg.name + ":" + str(i)
+                data_dps.append(cls.data_dp(dp_node, in_arg_name, dp.out_arg.name))
 
         return tuple(data_dps)
 
@@ -67,23 +61,25 @@ class DataClient:
         self._output_client = output_client
 
     def load(self, param: InParameter) -> Any:
+        p = re.compile(rf"^{param.name}:(\d+)")
+        gathered_inputs = [
+            (s, int(match.group(1)))  # converts to integer
+            for s in self._input_client.get_ports()
+            for match in (p.match(s.key),)
+            if match
+        ]
         if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY]:
-            return self._input_client.get_data(PipelinePort(param.name))
-        elif param.kind in [param.VAR_POSITIONAL, param.VAR_KEYWORD]:
-            p = re.compile(rf"^{param.name}:(\d+)")
-            gathered_inputs = [
-                (s, int(match.group(1)))  # converts to integer
-                for s in self._input_client.get_ports()
-                for match in (p.match(s.key),)
-                if match
-            ]
-            gathered_inputs.sort(key=lambda sm: sm[1])  # sorts by integer number
-            if param.kind == param.VAR_POSITIONAL:
-                return tuple(self._input_client.get_data(s) for s, _ in gathered_inputs)
-            elif param.kind == param.VAR_KEYWORD:
-                if not all(isinstance(gi, dict) for gi, _ in gathered_inputs):
-                    raise ValueError("Gathered inputs should be of dictionary type.")
-                return {k: v for gi, _ in gathered_inputs for k, v in gi.items()}  # type: ignore
+            if len(gathered_inputs) > 1:
+                raise ValueError("Too many dependencies for a positional or keyword parameter.")
+            return self._input_client.get_data(gathered_inputs.pop()[0])
+
+        gathered_inputs.sort(key=lambda sm: sm[1])  # sorts by integer number
+        if param.kind == param.VAR_POSITIONAL:
+            return tuple(self._input_client.get_data(s) for s, _ in gathered_inputs)
+        elif param.kind == param.VAR_KEYWORD:
+            if not all(isinstance(gi, dict) for gi, _ in gathered_inputs):
+                raise ValueError("Gathered inputs should be of dictionary type.")
+            return {k: v for gi, _ in gathered_inputs for k, v in gi.items()}  # type: ignore
 
     def load_parameters(
         self, parameters: Mapping[str, InParameter], exclude: Sequence[str] = ()
