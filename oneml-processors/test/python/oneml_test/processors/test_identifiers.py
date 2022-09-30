@@ -1,7 +1,11 @@
 # flake8: noqa
 import pytest
 
-from oneml.processors.identifiers import Identifier, ObjectIdentifier, SimpleObjectIdentifier
+from oneml.processors.sandbox.processors.identifiers import (
+    Identifier,
+    ObjectIdentifier,
+    SimpleObjectIdentifier,
+)
 
 
 def test_identifier():

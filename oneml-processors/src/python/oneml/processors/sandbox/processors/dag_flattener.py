@@ -5,7 +5,7 @@ import uuid
 from collections import defaultdict
 from typing import Dict, List, Mapping, Tuple, Union, cast
 
-from oneml.processors.processor import Processor
+from oneml.processors.sandbox.processors.processor import Processor
 
 from .base_dag import InputPortAddress, NodeName, OutputPortAddress, UnverifiedBaseDag
 from .dag import DAG

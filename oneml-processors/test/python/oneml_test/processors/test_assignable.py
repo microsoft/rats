@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from oneml.processors.assignable import Assignable
+from oneml.processors.sandbox.processors.assignable import Assignable
 
 
 @dataclass
