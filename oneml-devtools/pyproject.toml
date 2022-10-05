@@ -25,12 +25,12 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
-immunodata-cli = "0.44.*"
-immunodata-core = "0.44.*"
-immunodata-datasets = "0.44.*"
-immunodata-devops = "0.44.*"
-immunodata-docslib = "0.44.*"
-immunodata-workflows = "0.44.*"
+immunodata-cli = "0.45.*"
+immunodata-core = "0.45.*"
+immunodata-datasets = "0.45.*"
+immunodata-devops = "0.45.*"
+immunodata-docslib = "0.45.*"
+immunodata-workflows = "0.45.*"
 # TODO: remove this once immunodata fixes the issue upstream (pulumi).
 protobuf = "3.20.*"
 
