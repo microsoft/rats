@@ -64,6 +64,7 @@
         },
         "python.formatting.provider": "black",
         "editor.formatOnSave": true,
+        "markdown.validate.enabled": true,
         "python.envFile": "${workspaceFolder}/.envrc",
         "search.exclude": {
             "**/build": true,

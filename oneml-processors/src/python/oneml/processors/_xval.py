@@ -2,12 +2,12 @@
 from typing import Any, Mapping
 
 from ._pipeline import IExpandPipeline, IPrunePipeline, Namespace, PDependency, Pipeline, PNode
-from ._processor import IProcessor, Provider
+from ._processor import IProcess, Provider
 
 T = Mapping[str, Any]  # mapping for processor inputs and outputs
 
 
-class DataSplitter(IProcessor):
+class DataSplitter(IProcess):
     def __init__(self, num_folds: int) -> None:
         assert num_folds > 0
 

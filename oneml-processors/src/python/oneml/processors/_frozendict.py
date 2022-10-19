@@ -21,6 +21,8 @@ T = TypeVar("T")
 _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 
+Self = TypeVar("Self", bound="frozendict[Any, Any]")
+
 
 class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
     """Dictionary like class with private storage."""
@@ -54,46 +56,60 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
         return self._hash
 
     def __repr__(self) -> str:
-        return f"frozendict({repr(self._d)})"
+        return f"{self.__class__.__name__}({repr(self._d)})"
 
-    def copy(self) -> frozendict[_KT, _VT]:
+    def copy(self: Self) -> Self:
         return self.__class__(self._d.copy())
 
-    def set(self, key: _KT, value: _VT) -> frozendict[_KT, _VT]:
+    def set(self: Self, key: _KT, value: _VT) -> Self:
         new_d = self._d.copy()
         new_d[key] = value
         return self.__class__(new_d)
 
-    def delete(self, key: _KT) -> frozendict[_KT, _VT]:
+    def delete(self: Self, key: _KT) -> Self:
         new_d = self._d.copy()
         del new_d[key]
         return self.__class__(new_d)
 
     @overload
-    def __or__(self, other: dict[_KT, _VT]) -> frozendict[_KT, _VT]:
+    def __or__(self: Self, other: dict[_KT, _VT]) -> Self:
         ...
 
     @overload
-    def __or__(self, other: frozendict[_KT, _VT]) -> frozendict[_KT, _VT]:
+    def __or__(self: Self, other: Self) -> Self:
         ...
 
-    def __or__(self, other: dict[_KT, _VT] | frozendict[_KT, _VT]) -> frozendict[_KT, _VT]:
+    def __or__(self: Self, other: dict[_KT, _VT] | Self) -> Self:
         new_d = self._d.copy()  # pipe operator | available in python 3.9
         new_d.update(dict(other))
         return self.__class__(new_d)
 
     @overload
-    def __sub__(self, other: KeysView[_KT]) -> frozendict[_KT, _VT]:
+    def __and__(self: Self, other: dict[_KT, _VT]) -> Self:
         ...
 
     @overload
-    def __sub__(self, other: AbstractSet[_KT]) -> frozendict[_KT, _VT]:
+    def __and__(self: Self, other: Self) -> Self:
+        ...
+
+    def __and__(self: Self, other: dict[_KT, _VT] | Self) -> Self:
+        new_d = {k: v for k, v in self._d.items() if k in other}
+        if new_d and any(v != new_d[k] for k, v in self._d.items()):
+            raise ValueError("Intersection only supported if common keys have same values.")
+        return self.__class__(new_d)
+
+    @overload
+    def __sub__(self: Self, other: KeysView[_KT]) -> Self:
         ...
 
     @overload
-    def __sub__(self, other: Mapping[_KT, _VT]) -> frozendict[_KT, _VT]:
+    def __sub__(self: Self, other: AbstractSet[_KT]) -> Self:
         ...
 
-    def __sub__(self, other: Any) -> frozendict[_KT, _VT]:
+    @overload
+    def __sub__(self: Self, other: Mapping[_KT, _VT]) -> Self:
+        ...
+
+    def __sub__(self: Self, other: Any) -> Self:
         new_d = {k: v for k, v in self._d.items() if k not in other}
         return self.__class__(new_d)

@@ -2,8 +2,8 @@ from enum import Enum
 from inspect import _ParameterKind
 from typing import Any, Mapping, Sequence, TypedDict
 
-from ._pipeline import IExpandPipeline, PDependency, Pipeline, PNode, PNodeProperties
-from ._processor import InParameter, IProcessor, OutParameter, Provider
+from ._pipeline import IExpandPipeline, PDependency, Pipeline, PNode, ProcessorProps
+from ._processor import InParameter, InParameterTargetMethod, IProcess, OutParameter
 
 SequenceOutput = TypedDict("SequenceOutput", {"output": Sequence[Any]})
 MappingOutput = TypedDict("MappingOutput", {"output": Mapping[str, Any]})
@@ -18,7 +18,7 @@ class GatherVarKind(Enum):
     DATACLASS = 4
 
 
-class GatherSequence(IProcessor):
+class GatherSequence(IProcess):
     def __init__(self) -> None:
         super().__init__()
 
@@ -26,7 +26,7 @@ class GatherSequence(IProcessor):
         return SequenceOutput(output=args)
 
 
-class GatherMapping(IProcessor):
+class GatherMapping(IProcess):
     def __init__(self) -> None:
         super().__init__()
 
@@ -34,18 +34,17 @@ class GatherMapping(IProcessor):
         return MappingOutput(output=kwargs)
 
 
-class GatherCollection(IProcessor):
+class GatherCollection(IProcess):
     """Gathers variable inputs for collection object, e.g., namedtuple or dataclass."""
 
     def __init__(self, collection_type: type[object]) -> None:
-        super().__init__()
         self._collection_type = collection_type
 
     def process(self, **kwargs: Any) -> CollectionOutput:
         return CollectionOutput(output=self._collection_type(**kwargs))
 
 
-GATHERVAR2PROCESSOR: Mapping[GatherVarKind, type[IProcessor]] = {
+GATHERVAR2PROCESSOR: Mapping[GatherVarKind, type[IProcess]] = {
     GatherVarKind.SEQUENCE: GatherSequence,
     GatherVarKind.MAPPING: GatherMapping,
     GatherVarKind.NAMEDTUPLE: GatherCollection,
@@ -98,20 +97,25 @@ class GatherVarsPipelineExpander(IExpandPipeline):
 
         # create gathering pipeline with gathering node and modifyied dependencies
         gathering_node = PNode(node.name + ":" + in_arg.name + ":", node.namespace)
-        gathering_props: dict[PNode, PNodeProperties] = {
-            gathering_node: PNodeProperties(Provider(GATHERVAR2PROCESSOR[kind]))
+        gathering_nodes: dict[PNode, ProcessorProps] = {
+            gathering_node: ProcessorProps(GATHERVAR2PROCESSOR[kind])
         }
         gathering_dependencies = {
             gathering_node: set(
                 PDependency(
                     dp.node,
-                    InParameter(GATHERVAR2ARG[kind], Any, GATHERVAR2KIND[kind]),
+                    InParameter(
+                        GATHERVAR2ARG[kind],
+                        Any,
+                        InParameterTargetMethod.Process,
+                        GATHERVAR2KIND[kind],
+                    ),
                     dp.out_arg,
                 )
                 for dp in dependencies
             )
         }
-        gathering_pipeline = Pipeline({gathering_node}, gathering_dependencies, gathering_props)
+        gathering_pipeline = Pipeline(gathering_nodes, gathering_dependencies)
 
         # create new pipeline removing redirected dependencies
         new_dp = PDependency(gathering_node, in_arg, OutParameter("output", in_arg_ann))

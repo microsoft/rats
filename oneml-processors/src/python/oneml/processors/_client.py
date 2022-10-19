@@ -15,8 +15,9 @@ from oneml.pipelines.session import (
     PipelineSessionClient,
 )
 
-from ._pipeline import PDependency, Pipeline, PNode
-from ._processor import InParameter, Provider
+from ._environment_singletons import IRegistryOfSingletonFactories
+from ._pipeline import IProcessorProps, PDependency, Pipeline, PNode
+from ._processor import InParameter, InParameterTargetMethod, IProcess
 
 logger = logging.getLogger(__name__)
 
@@ -82,11 +83,16 @@ class DataClient:
             return {k: v for gi, _ in gathered_inputs for k, v in gi.items()}  # type: ignore
 
     def load_parameters(
-        self, parameters: Mapping[str, InParameter], exclude: Sequence[str] = ()
+        self,
+        parameters: Mapping[str, InParameter],
+        target_method: InParameterTargetMethod,
+        exclude: Sequence[str] = (),
     ) -> tuple[Sequence[Any], Mapping[str, Any]]:
         pos_only, pos_vars, kw_args, kw_vars = [], [], {}, {}
         for k, param in parameters.items():
             if k in exclude:
+                continue
+            if param.target_method != target_method:
                 continue
             elif param.kind == param.POSITIONAL_ONLY:
                 pos_only.append(self.load(param))  # one value is returned
@@ -105,30 +111,65 @@ class DataClient:
 
 class SessionExecutableProvider(IPipelineSessionExecutable):
     _node: PNode
-    _provider: Provider
+    _props: IProcessorProps
+    _environment_singletons_registry: IRegistryOfSingletonFactories
 
-    def __init__(self, node: PNode, provider: Provider) -> None:
-        super().__init__()
+    def __init__(
+        self,
+        node: PNode,
+        props: IProcessorProps,
+        environment_singletons_registry: IRegistryOfSingletonFactories,  # TODO: this should come from session_client
+    ) -> None:
         self._node = node
-        self._provider = provider
+        self._props = props
+        self._environment_singletons_registry = environment_singletons_registry
+
+    def get_processor(self, data_client: DataClient) -> IProcess:
+        singletons = self._props.params_from_environment_contract.fullfill_using_registry(
+            self._environment_singletons_registry
+        )
+        params = dict(self._props.params_getter())
+        params.update(singletons())
+
+        pos_args, kw_args = data_client.load_parameters(
+            self._props.sig, InParameterTargetMethod.Contructor, exclude=tuple(params.keys())
+        )
+        return self._props.processor_type(*pos_args, **params, **kw_args)
 
     def execute(self, session_client: PipelineSessionClient) -> None:
         logger.debug(f"Node {self._node} execute start.")
         pipeline_node = P2Pipeline.node(self._node)
         input_client = session_client.node_input_data_client_factory().get_instance(pipeline_node)
         output_client = session_client.node_data_client_factory().get_instance(pipeline_node)
-        self._provider.execute(DataClient(input_client, output_client))
+        data_client = DataClient(input_client, output_client)
+        processor = self.get_processor(data_client)
+        pos_args, kw_args = data_client.load_parameters(
+            self._props.sig, InParameterTargetMethod.Process
+        )
+        output = processor.process(*pos_args, **kw_args)
+        for key, val in output.items():
+            data_client.save(key, val)
         logger.debug(f"Node {self._node} execute end.")
 
 
 class PipelineSessionProvider:
     @classmethod
-    def get_session(cls, pipeline: Pipeline) -> PipelineSessionClient:
+    def get_session(
+        cls,
+        pipeline: Pipeline,
+        environment_singletons_registry: IRegistryOfSingletonFactories,  # TODO: this should come from session_client
+    ) -> PipelineSessionClient:
         builder = PipelineBuilderFactory().get_instance()
 
         for node in pipeline.nodes:
             builder.add_node(P2Pipeline.node(node))
-            sess_executable = SessionExecutableProvider(node, pipeline.props[node].exec_provider)
+            props = pipeline.nodes[node]
+
+            sess_executable = SessionExecutableProvider(
+                node=node,
+                props=props,
+                environment_singletons_registry=environment_singletons_registry,
+            )
             builder.add_executable(P2Pipeline.node(node), sess_executable)
 
         for node, dependencies in pipeline.dependencies.items():

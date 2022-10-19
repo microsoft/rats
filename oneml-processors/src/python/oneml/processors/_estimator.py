@@ -1,6 +1,6 @@
 from typing import AbstractSet, Any, Mapping, TypeVar
 
-from ._pipeline import IExpandPipeline, Namespace, PDependency, Pipeline, PNode, PNodeProperties
+from ._pipeline import IExpandPipeline, IProcessorProps, Namespace, PDependency, Pipeline, PNode
 from ._utils import TailPipelineClient
 
 T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
@@ -9,11 +9,10 @@ T = TypeVar("T", bound=Mapping[str, Any], covariant=True)
 class EstimatorPipeline(Pipeline):
     def __init__(
         self,
-        nodes: AbstractSet[PNode],
+        nodes: Mapping[PNode, IProcessorProps],
         dependencies: Mapping[PNode, AbstractSet[PDependency]],
-        props: Mapping[PNode, PNodeProperties],
     ) -> None:
-        super().__init__(nodes, dependencies, props)
+        super().__init__(nodes, dependencies)
         train_ns, eval_ns = Namespace("train"), Namespace("eval")
         if any(
             # if not every namespace is contained at least in a start_node in every pipeline
@@ -71,7 +70,7 @@ class EstimatorPipelineFromTrainAndEval(IExpandPipeline):
             )
             new_pipeline = new_pipeline.set_dependencies(eval_node, new_dependencies[eval_node])
 
-        return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies, new_pipeline.props)
+        return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies)
 
 
 class WrapEstimatorPipeline:
@@ -81,7 +80,7 @@ class WrapEstimatorPipeline:
         if len(new_pipeline.end_nodes) > 1:
             tail_pipeline = TailPipelineClient.build_tail_pipeline(pipeline)  # tail pipeline only
             new_pipeline += tail_pipeline
-        return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies, new_pipeline.props)
+        return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies)
 
 
 class SequentialEstimators(IExpandPipeline):
@@ -99,4 +98,4 @@ class SequentialEstimators(IExpandPipeline):
 
     def expand(self) -> EstimatorPipeline:
         new_pipeline = self._first_pipeline + self._second_pipeline
-        return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies, new_pipeline.props)
+        return EstimatorPipeline(new_pipeline.nodes, new_pipeline.dependencies)

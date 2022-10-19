@@ -1,26 +1,12 @@
-import sys
 from typing import Any, Dict, Literal, Mapping
 
 import pydot
 
 from ._pipeline import Pipeline
-from ._processor import InParameter, OutParameter, Provider
-from ._utils import Annotations
 
 
 def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
-    def in_signature_from_provider(provider: Provider) -> Mapping[str, InParameter]:
-        init_sig = Annotations.signature(provider.processor_type.__init__)
-        proc_sig = Annotations.signature(provider.processor_type.process)
-        if sys.version_info >= (3, 10):
-            return init_sig | proc_sig
-        else:
-            return {**init_sig, **proc_sig}
-
-    def out_signature_from_provider(provider: Provider) -> Mapping[str, OutParameter]:
-        return Annotations.get_return_annotation(provider.processor_type.process)
-
-    def parse_arguments_from_provider(arguments: Mapping[str, Any], io: Literal["i", "o"]) -> str:
+    def parse_arguments(arguments: Mapping[str, Any], io: Literal["i", "o"]) -> str:
         return "|".join((f"<{io}_{arg}> {arg}" for arg in arguments.keys()))
 
     g = pydot.Dot("DAG", graph_type="digraph")
@@ -29,10 +15,10 @@ def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimport
     for node in pipeline.nodes:
         name = repr(node)
         node_name_mapping[name] = str(len(node_name_mapping))
-        in_arguments = in_signature_from_provider(pipeline.props[node].exec_provider)
-        inputs = parse_arguments_from_provider(in_arguments, "i")
-        out_arguments = out_signature_from_provider(pipeline.props[node].exec_provider)
-        outputs = parse_arguments_from_provider(out_arguments, "o")
+        in_arguments = pipeline.nodes[node].sig
+        inputs = parse_arguments(in_arguments, "i")
+        out_arguments = pipeline.nodes[node].ret
+        outputs = parse_arguments(out_arguments, "o")
 
         label = f"{{{{{inputs}}}|{name}|{{{outputs}}}}}"
         node_name = node_name_mapping[name]

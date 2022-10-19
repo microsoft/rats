@@ -2,17 +2,10 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from oneml.processors import (
-    InParameter,
-    IProcessor,
-    PDependency,
-    Pipeline,
-    PNode,
-    PNodeProperties,
-    Provider,
-)
-from oneml.processors._estimator import EstimatorPipelineFromTrainAndEval, WrapEstimatorPipeline
-from oneml.processors._viz import dag_to_svg
+from ._estimator import EstimatorPipelineFromTrainAndEval, WrapEstimatorPipeline
+from ._pipeline import PDependency, Pipeline, PNode, ProcessorProps
+from ._processor import InParameter, InParameterTargetMethod, IProcess
+from ._viz import dag_to_svg
 
 
 class Array(object):
@@ -20,12 +13,17 @@ class Array(object):
         return "Array"
 
 
+class Model(object):
+    def __repr__(self) -> str:
+        return "Model"
+
+
 StandardizeTrainOutput = TypedDict(
     "StandardizeTrainOutput", {"X": Array, "mu": Array, "scale": Array}
 )
 
 
-class StandardizeTrain(IProcessor):
+class StandardizeTrain(IProcess):
     def process(self, X: Array) -> StandardizeTrainOutput:
         return StandardizeTrainOutput({"X": X, "mu": Array(), "scale": Array()})
 
@@ -33,7 +31,7 @@ class StandardizeTrain(IProcessor):
 StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"X": Array})
 
 
-class StandardizeEval(IProcessor):
+class StandardizeEval(IProcess):
     def __init__(self, mu: Array, scale: Array) -> None:
         super().__init__()
         self._mu = mu
@@ -43,19 +41,19 @@ class StandardizeEval(IProcessor):
         return StandardizeEvalOutput({"X": X})
 
 
-ModelTrainOutput = TypedDict("ModelTrainOutput", {"acc": Array, "model": Array})
+ModelTrainOutput = TypedDict("ModelTrainOutput", {"acc": Array, "model": Model})
 
 
-class ModelTrain(IProcessor):
+class ModelTrain(IProcess):
     def process(self, X: Array, Y: Array) -> ModelTrainOutput:
-        return ModelTrainOutput({"acc": Array(), "model": Array()})
+        return ModelTrainOutput({"acc": Array(), "model": Model()})
 
 
 ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": Array})
 
 
-class ModelEval(IProcessor):
-    def __init__(self, model: Array) -> None:
+class ModelEval(IProcess):
+    def __init__(self, model: Model) -> None:
         super().__init__()
         self.model = model
 
@@ -64,30 +62,41 @@ class ModelEval(IProcessor):
 
 
 def estimator_from_multiple_nodes_pipeline() -> None:
-    train_nodes = set((PNode("stz"), PNode("model")))
-    train_dps: dict[PNode, set[PDependency]] = {
-        PNode("stz"): set((PDependency(PNode("data"), InParameter("X", Array)),)),
-        PNode("model"): set(
+    train_stz = PNode("stz")
+    train_model = PNode("model")
+    data = PNode("data")
+    train_nodes = {
+        train_stz: ProcessorProps(StandardizeTrain),
+        train_model: ProcessorProps(ModelTrain),
+    }
+    train_dps = {
+        train_stz: set((PDependency(data, InParameter("X", Array, InParameterTargetMethod.Process)),)),
+        train_model: set(
             (
-                PDependency(PNode("stz"), InParameter("X", Array)),
-                PDependency(PNode("data"), InParameter("Y", Array)),
+                PDependency(train_stz, InParameter("X", Array, InParameterTargetMethod.Process)),
+                PDependency(data, InParameter("Y", Array, InParameterTargetMethod.Process)),
             )
         ),
     }
 
-    train_props: dict[PNode, PNodeProperties] = {
-        PNode("stz"): PNodeProperties(Provider(StandardizeTrain)),
-        PNode("model"): PNodeProperties(Provider(ModelTrain)),
+    eval_stz = train_stz
+    eval_model = train_model
+    eval_dps = {
+        eval_stz: set((PDependency(data, InParameter("X", Array, InParameterTargetMethod.Process)),)),
+        eval_model: set(
+            (
+                PDependency(train_stz, InParameter("X", Array, InParameterTargetMethod.Process)),
+                PDependency(data, InParameter("Y", Array, InParameterTargetMethod.Process)),
+            )
+        ),
     }
-    eval_nodes = train_nodes
-    eval_dps = train_dps
-    eval_props: dict[PNode, PNodeProperties] = {
-        PNode("stz"): PNodeProperties(Provider(StandardizeEval)),
-        PNode("model"): PNodeProperties(Provider(ModelEval)),
+    eval_nodes = {
+        eval_stz: ProcessorProps(StandardizeEval),
+        eval_model: ProcessorProps(ModelEval),
     }
 
-    train_pipeline: Pipeline = Pipeline(train_nodes, train_dps, train_props)
-    eval_pipeline: Pipeline = Pipeline(eval_nodes, eval_dps, eval_props)
+    train_pipeline = Pipeline(train_nodes, train_dps)
+    eval_pipeline = Pipeline(eval_nodes, eval_dps)
 
     pipeline = EstimatorPipelineFromTrainAndEval(train_pipeline, eval_pipeline).expand()
 
@@ -97,35 +106,25 @@ def estimator_from_multiple_nodes_pipeline() -> None:
 
 
 def concatenate_estimators_pipeline() -> None:
-    train_nodeA = set((PNode("stz"),))
-    train_nodeB = set((PNode("model"),))
-    train_dpsA: dict[PNode, set[PDependency]] = {PNode("stz"): set()}
-    train_dpsB: dict[PNode, set[PDependency]] = {PNode("model"): set()}
-    train_propsA: dict[PNode, PNodeProperties] = {
-        PNode("stz"): PNodeProperties(Provider(StandardizeTrain))
-    }
+    train_nodeA = PNode("stz")
+    train_nodeB = PNode("model")
+    train_dpsA: dict[PNode, set[PDependency]] = {train_nodeA: set()}
+    train_dpsB: dict[PNode, set[PDependency]] = {train_nodeB: set()}
+    train_nodesA = {train_nodeA: ProcessorProps(StandardizeTrain)}
+    train_nodesB = {train_nodeB: ProcessorProps(ModelTrain)}
 
-    train_propsB: dict[PNode, PNodeProperties] = {
-        PNode("model"): PNodeProperties(Provider(ModelTrain))
-    }
-
-    train_pipelineA: Pipeline = Pipeline(train_nodeA, train_dpsA, train_propsA)
-    train_pipelineB: Pipeline = Pipeline(train_nodeB, train_dpsB, train_propsB)
+    train_pipelineA = Pipeline(train_nodesA, train_dpsA)
+    train_pipelineB = Pipeline(train_nodesB, train_dpsB)
 
     eval_nodeA = train_nodeA
     eval_nodeB = train_nodeB
     eval_dpsA: dict[PNode, set[PDependency]] = train_dpsA
     eval_dpsB: dict[PNode, set[PDependency]] = train_dpsB
-    eval_propsA: dict[PNode, PNodeProperties] = {
-        PNode("stz"): PNodeProperties(Provider(StandardizeEval))
-    }
+    eval_nodesA: dict[PNode, ProcessorProps] = {eval_nodeA: ProcessorProps(StandardizeEval)}
+    eval_nodesB: dict[PNode, ProcessorProps] = {eval_nodeB: ProcessorProps(ModelEval)}
 
-    eval_propsB: dict[PNode, PNodeProperties] = {
-        PNode("model"): PNodeProperties(Provider(ModelEval))
-    }
-
-    eval_pipelineA: Pipeline = Pipeline(eval_nodeA, eval_dpsA, eval_propsA)
-    eval_pipelineB: Pipeline = Pipeline(eval_nodeB, eval_dpsB, eval_propsB)
+    eval_pipelineA: Pipeline = Pipeline(eval_nodesA, eval_dpsA)
+    eval_pipelineB: Pipeline = Pipeline(eval_nodesB, eval_dpsB)
 
     estimatorA = EstimatorPipelineFromTrainAndEval(train_pipelineA, eval_pipelineA).expand()
     estimatorB = EstimatorPipelineFromTrainAndEval(train_pipelineB, eval_pipelineB).expand()
