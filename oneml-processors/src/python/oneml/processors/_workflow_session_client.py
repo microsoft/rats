@@ -1,22 +1,20 @@
-from typing import Any, Hashable, Iterable, Iterator
+from __future__ import annotations
+
+from typing import Any, Iterable, Iterator, Mapping
 
 from oneml.pipelines.session import PipelinePort, PipelineSessionClient
 
-from ._client import P2Pipeline, PipelineSessionProvider
-from ._environment_singletons import IRegistryOfSingletonFactories
-from ._input_data import InputDataProcessorProps
+from ._client import P2Pipeline, ParamsRegistry, PipelineSessionProvider
+from ._processor import IGetParams, IProcess, OutParameter
 from ._ux import Workflow, WorkflowClient
 
 
-class WorkflowSessionProvider:
-    @classmethod
-    def get_session(
-        cls, workflow: Workflow, environment_singletons_registry: IRegistryOfSingletonFactories
-    ) -> PipelineSessionClient:
-        session = PipelineSessionProvider.get_session(
-            workflow.pipeline, environment_singletons_registry
-        )
-        return session
+class InputDataProcessor(IProcess):
+    def __init__(self, data: Any):
+        self._data = data
+
+    def process(self) -> Mapping[str, Any]:
+        return dict(data=self._data)
 
 
 class SessionOutputsGetter(Iterable[str]):
@@ -40,24 +38,25 @@ class SessionOutputsGetter(Iterable[str]):
 
 
 class WorkflowRunner:
-    def __init__(
-        self, workflow: Workflow, environment_singletons_registry: IRegistryOfSingletonFactories
-    ) -> None:
+    def __init__(self, workflow: Workflow, params_registry: ParamsRegistry) -> None:
         self._workflow = workflow
-        self._environment_singletons_registry = environment_singletons_registry
+        self._params_registry = params_registry
 
-    def __call__(self, **kwrgs: Hashable) -> SessionOutputsGetter:
+    def __call__(self, name: str = "runnable_wf", **getters: IGetParams) -> SessionOutputsGetter:
         input_workflows = tuple(
-            WorkflowClient.single_task_from_props(param_name, InputDataProcessorProps(param_value))
-            for param_name, param_value in kwrgs.items()
+            WorkflowClient.single_task(
+                name,
+                InputDataProcessor,
+                getter,
+                return_annotation=dict(data=OutParameter("data", type(getter["data"]))),
+            )
+            for name, getter in getters.items()
         )
         workflow = WorkflowClient.compose_workflow(
-            "runnable",
+            name,
             input_workflows + (self._workflow,),
             tuple(i.ret.data >> self._workflow.sig[i.name] for i in input_workflows),
         )
-        session = WorkflowSessionProvider.get_session(
-            workflow, self._environment_singletons_registry
-        )
+        session = PipelineSessionProvider.get_session(workflow.pipeline, self._params_registry)
         session.run()
         return SessionOutputsGetter(workflow, session)

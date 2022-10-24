@@ -2,34 +2,12 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from functools import cached_property
-from typing import (
-    AbstractSet,
-    Hashable,
-    Iterable,
-    Mapping,
-    Optional,
-    Protocol,
-    Tuple,
-    Union,
-    final,
-)
+from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Tuple, Union, final
 
-from ._environment_singletons import (
-    EmptyParamsFromEnvironmentContract,
-    IParamsFromEnvironmentSingletonsContract,
-)
 from ._frozendict import frozendict
-from ._frozendict_with_attr_access import FrozenDictWithAttrAccess
-from ._processor import (
-    Annotations,
-    IHashableGetParams,
-    InParameter,
-    IProcess,
-    KnownParamsGetter,
-    OutParameter,
-)
+from ._processor import Annotations, IGetParams, InParameter, IProcess, OutParameter
 
 logger = logging.getLogger(__name__)
 
@@ -53,14 +31,6 @@ class Namespace:
         return Namespace(self.key + ("/" if self.key and namespace.key else "") + namespace.key)
 
 
-class InSignature(FrozenDictWithAttrAccess[InParameter]):
-    pass
-
-
-class OutSignature(FrozenDictWithAttrAccess[OutParameter]):
-    pass
-
-
 @dataclass(frozen=True)
 class PComputeReqs:
     registry: str = ""
@@ -71,59 +41,27 @@ class PComputeReqs:
     pods: int = 1
 
 
-class IProcessorProps(Hashable, Protocol):
-    @property
-    def processor_type(self) -> type[IProcess]:
-        ...
-
-    @property
-    def params_getter(self) -> IHashableGetParams:
-        ...
-
-    @property
-    def params_from_environment_contract(self) -> IParamsFromEnvironmentSingletonsContract:
-        ...
-
-    @property
-    def compute_reqs(self) -> PComputeReqs:
-        ...
-
-    @property
-    def sig(self) -> InSignature:
-        ...
-
-    @property
-    def ret(self) -> OutSignature:
-        ...
-
-
+@final
 @dataclass(frozen=True)
 class ProcessorProps:
     processor_type: type[IProcess]
-    params_getter: IHashableGetParams = KnownParamsGetter()
-    params_from_environment_contract: IParamsFromEnvironmentSingletonsContract = (
-        EmptyParamsFromEnvironmentContract()
-    )
+    params_getter: IGetParams = frozendict[str, Any]()
     compute_reqs: PComputeReqs = PComputeReqs()
+    return_annotation: InitVar[Mapping[str, OutParameter] | None] = None
 
-    sig: InSignature = field(init=False)
-    ret: OutSignature = field(init=False)
+    sig: frozendict[str, InParameter] = field(init=False)
+    ret: frozendict[str, OutParameter] = field(init=False)
 
-    def __post_init__(self) -> None:
-        provided_params = frozenset(self.params_getter) | frozenset(
-            self.params_from_environment_contract
-        )
-        sig = InSignature(
-            **(
-                FrozenDictWithAttrAccess(
-                    **Annotations.get_processor_signature(self.processor_type)
-                )
-                - provided_params
-            )
-        )
-        ret = OutSignature(**Annotations.get_return_annotation(self.processor_type.process))
-        object.__setattr__(self, "sig", sig)
-        object.__setattr__(self, "ret", ret)
+    def __post_init__(self, return_annotation: type | None) -> None:
+        sig = {
+            k: v
+            for k, v in Annotations.get_processor_signature(self.processor_type).items()
+            if k not in self.params_getter
+        }
+
+        ret = return_annotation or Annotations.get_return_annotation(self.processor_type.process)
+        object.__setattr__(self, "sig", frozendict(sig))
+        object.__setattr__(self, "ret", frozendict(ret))
 
     def __hash__(self) -> int:
         return hash((self.processor_type, self.params_getter))
@@ -205,11 +143,11 @@ class PDependency:
 
 
 class Pipeline:
-    _nodes: frozendict[PNode, IProcessorProps]
+    _nodes: frozendict[PNode, ProcessorProps]
     _dependencies: frozendict[PNode, frozenset[PDependency]]
 
     @property
-    def nodes(self) -> Mapping[PNode, IProcessorProps]:
+    def nodes(self) -> Mapping[PNode, ProcessorProps]:
         return self._nodes
 
     @property
@@ -218,7 +156,7 @@ class Pipeline:
 
     def __init__(
         self,
-        nodes: Mapping[PNode, IProcessorProps] = {},
+        nodes: Mapping[PNode, ProcessorProps] = {},
         dependencies: Mapping[PNode, AbstractSet[PDependency]] = {},
     ) -> None:
         if dependencies.keys() - nodes:
@@ -256,7 +194,7 @@ class Pipeline:
     def __repr__(self) -> str:
         return f"Pipeline(nodes = {self.nodes}, dependencies = {self.dependencies})"
 
-    def __sub__(self, nodes: Mapping[PNode, IProcessorProps]) -> Pipeline:
+    def __sub__(self, nodes: Mapping[PNode, ProcessorProps]) -> Pipeline:
         # Overload w/ nodes and pipelines support?
         new_nodes = self._nodes - dict(nodes)
         new_dependencies = {n: self.dependencies[n] for n in new_nodes}
@@ -277,7 +215,7 @@ class Pipeline:
         return self.__class__(self._nodes, self._dependencies.set(node, frozenset(dependencies)))
 
     def decorate(self, namespace: str | Namespace) -> Pipeline:
-        nodes: dict[PNode, IProcessorProps] = {}
+        nodes: dict[PNode, ProcessorProps] = {}
         dependencies: dict[PNode, set[PDependency]] = {}
 
         for node, props in self.nodes.items():
@@ -340,7 +278,7 @@ class Pipeline:
         return self._nodes.keys() - set(dp.node for dp in self.internal_dependencies if dp.node)
 
     def history(self, node: PNode) -> Pipeline:
-        nodes: dict[PNode, IProcessorProps] = {node: self.nodes[node]}
+        nodes: dict[PNode, ProcessorProps] = {node: self.nodes[node]}
         dependencies: dict[PNode, AbstractSet[PDependency]] = {node: self.dependencies[node]}
         frontier: set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
 

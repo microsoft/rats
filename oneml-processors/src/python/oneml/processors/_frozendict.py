@@ -1,6 +1,6 @@
-"""frozendict class.
+"""frozendict class and MappingProtocol.
 
-Original source from https://stackoverflow.com/a/25332884 (MIT License)
+Original source of frozendict from https://stackoverflow.com/a/25332884 (MIT License)
 
 """
 from __future__ import annotations
@@ -9,17 +9,20 @@ from typing import (
     AbstractSet,
     Any,
     Generic,
+    ItemsView,
     Iterator,
     KeysView,
     Mapping,
     Optional,
+    Protocol,
     TypeVar,
+    ValuesView,
     overload,
 )
 
-T = TypeVar("T")
+_T = TypeVar("_T")
 _KT = TypeVar("_KT")
-_VT = TypeVar("_VT")
+_VT = TypeVar("_VT", covariant=True)
 
 Self = TypeVar("Self", bound="frozendict[Any, Any]")
 
@@ -43,6 +46,9 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
         """Gets item from storage."""
         return self._d[key]
 
+    def __getattr__(self, key: str) -> _VT:
+        return self._d[key]
+
     def __contains__(self, __o: object) -> bool:
         return self._d.__contains__(__o)
 
@@ -61,15 +67,25 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
     def copy(self: Self) -> Self:
         return self.__class__(self._d.copy())
 
-    def set(self: Self, key: _KT, value: _VT) -> Self:
-        new_d = self._d.copy()
-        new_d[key] = value
-        return self.__class__(new_d)
-
     def delete(self: Self, key: _KT) -> Self:
         new_d = self._d.copy()
         del new_d[key]
         return self.__class__(new_d)
+
+    def items(self, **kwargs: _T) -> ItemsView[_KT, _VT | _T]:
+        new_d = self._d.copy()
+        new_d.update(kwargs)
+        return new_d.items()
+
+    def set(self: Self, key: _KT, value: _T) -> Self:
+        new_d = self._d.copy()
+        new_d[key] = value
+        return self.__class__(new_d)
+
+    def values(self, **kwargs: _T) -> ValuesView[_VT | _T]:
+        new_d = self._d.copy()
+        new_d.update(kwargs)
+        return new_d.values()
 
     @overload
     def __or__(self: Self, other: dict[_KT, _VT]) -> Self:
@@ -113,3 +129,52 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
     def __sub__(self: Self, other: Any) -> Self:
         new_d = {k: v for k, v in self._d.items() if k not in other}
         return self.__class__(new_d)
+
+
+class MappingProtocol(Protocol[_KT, _VT]):
+    """Mapping as a protocol."""
+
+    def __contains__(self, __o: object) -> bool:
+        ...
+
+    def __eq__(self, __o: object) -> bool:
+        ...
+
+    def __getitem__(self, key: _KT) -> _VT:
+        ...
+
+    def __iter__(self) -> Iterator[_KT]:
+        ...
+
+    def __len__(self) -> int:
+        ...
+
+    def __ne__(self, __o: object) -> bool:
+        ...
+
+    def keys(self) -> KeysView[_KT]:
+        ...
+
+    @overload
+    def get(self, __key: _KT) -> _VT | None:
+        ...
+
+    @overload
+    def get(self, __key: _KT, __default: _VT | _T) -> _VT | _T:
+        ...
+
+    @overload
+    def items(self) -> ItemsView[_KT, _VT]:
+        ...
+
+    @overload
+    def items(self, **kwargs: _T) -> ItemsView[_KT | str, _VT | _T]:
+        ...
+
+    @overload
+    def values(self) -> ValuesView[_VT]:
+        ...
+
+    @overload
+    def values(self, **kwargs: _T) -> ValuesView[_VT | _T]:
+        ...

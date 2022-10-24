@@ -5,9 +5,9 @@ import numpy.typing as npt
 import pytest
 
 from oneml.processors import (
+    IGetParams,
     IProcess,
-    IRegistryOfSingletonFactories,
-    KnownParamsGetter,
+    ParamsRegistry,
     Workflow,
     WorkflowClient,
     WorkflowRunner,
@@ -53,15 +53,9 @@ class SumArrays(IProcess):
 
 # PARAM_GETTER
 
-
-class ExampleConfig(KnownParamsGetter):
-    def __init__(self, url: str) -> None:
-        super().__init__(
-            dict(
-                url=url,
-                storage={"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])},
-            )
-        )
+storage = {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
+left_config: IGetParams = frozendict(storage=storage, url="a")
+right_config: IGetParams = frozendict(storage=storage, url="b")
 
 
 #######
@@ -69,8 +63,8 @@ class ExampleConfig(KnownParamsGetter):
 # PIPELINE
 @pytest.fixture
 def workflow() -> Workflow:
-    left_reader = WorkflowClient.single_task("left_reader", ArrayReader, ExampleConfig("a"))
-    right_reader = WorkflowClient.single_task("right_reader", ArrayReader, ExampleConfig("b"))
+    left_reader = WorkflowClient.single_task("left_reader", ArrayReader, left_config)
+    right_reader = WorkflowClient.single_task("right_reader", ArrayReader, right_config)
     product = WorkflowClient.single_task("array_product", ArrayProduct)
 
     w1 = WorkflowClient.compose_workflow(
@@ -110,14 +104,12 @@ def workflow() -> Workflow:
 
 
 @pytest.fixture
-def registry_of_singleton_factories() -> IRegistryOfSingletonFactories:
-    return frozendict()
+def params_registry() -> ParamsRegistry:
+    return ParamsRegistry()
 
 
-def test_final_workflow(
-    workflow: Workflow, registry_of_singleton_factories: IRegistryOfSingletonFactories
-) -> None:
-    runner = WorkflowRunner(workflow, registry_of_singleton_factories)
+def test_final_workflow(workflow: Workflow, params_registry: ParamsRegistry) -> None:
+    runner = WorkflowRunner(workflow, params_registry)
     outputs = runner()
     assert len(set(outputs)) == 1
     assert outputs["result"] == -1800

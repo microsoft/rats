@@ -3,7 +3,7 @@ from inspect import _ParameterKind
 from typing import Any, Mapping, Sequence, TypedDict
 
 from ._pipeline import IExpandPipeline, PDependency, Pipeline, PNode, ProcessorProps
-from ._processor import InParameter, InParameterTargetMethod, IProcess, OutParameter
+from ._processor import InMethod, InParameter, IProcess, OutParameter
 
 SequenceOutput = TypedDict("SequenceOutput", {"output": Sequence[Any]})
 MappingOutput = TypedDict("MappingOutput", {"output": Mapping[str, Any]})
@@ -107,7 +107,7 @@ class GatherVarsPipelineExpander(IExpandPipeline):
                     InParameter(
                         GATHERVAR2ARG[kind],
                         Any,
-                        InParameterTargetMethod.Process,
+                        InMethod.process,
                         GATHERVAR2KIND[kind],
                     ),
                     dp.out_arg,

@@ -2,21 +2,19 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, TypedDict
+from typing import TypedDict
 
 import pytest
 
 from oneml.processors import (
     FitAndEvaluateBuilders,
     IProcess,
-    IRegistryOfSingletonFactories,
-    ParamsFromEnvironmentSingletonsContract,
-    RegistryOfSingletonFactories,
-    SingletonFactory,
-    SingletonFactoryPromise,
+    ParamsRegistry,
+    RegistryId,
     Workflow,
     WorkflowClient,
     WorkflowRunner,
+    frozendict,
 )
 
 
@@ -47,20 +45,14 @@ StandardizeTrainOutput = TypedDict(
 
 
 class StandardizeTrain(IProcess):
-    def __init__(self, sc: SparkClient) -> None:
+    def __init__(self) -> None:  # sc: SparkClient
         pass
 
     def process(self, X: ArrayMock) -> StandardizeTrainOutput:
         mean = ArrayMock(f"mean({X})")
         scale = ArrayMock(f"scale({X})")
         Z = ArrayMock(f"({X}-{mean})/{scale}")
-        return StandardizeTrainOutput(
-            {
-                "mean": mean,
-                "scale": scale,
-                "Z": Z,
-            }
-        )
+        return StandardizeTrainOutput({"mean": mean, "scale": scale, "Z": Z})
 
 
 StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"Z": ArrayMock})
@@ -88,7 +80,7 @@ ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": ArrayMock, "acc": Array
 
 
 class ModelEval(IProcess):
-    def __init__(self, model: ModelMock, wblogger: WBLogger, sp: SparkClient) -> None:
+    def __init__(self, model: ModelMock) -> None:  # wblogger: WBLogger, sp: SparkClient
         self.model = model
 
     def process(self, X: ArrayMock, Y: ArrayMock) -> ModelEvalOutput:
@@ -106,53 +98,21 @@ class SparkClient:
     pass
 
 
-class SparkFactoryPromise(SingletonFactoryPromise[SparkClient]):
-    def __init__(self) -> None:
-        super().__init__("spark", SparkClient)
-
-
 class WBLogger:
     pass
 
 
-class WBLoggerFactoryPromise(SingletonFactoryPromise[WBLogger]):
-    def __init__(self) -> None:
-        super().__init__("wb_logger", WBLogger)
+@pytest.fixture
+def params_registry() -> ParamsRegistry:
+    registry = ParamsRegistry()
+    registry.add(RegistryId("spark_client", SparkClient), SparkClient())
+    registry.add(RegistryId("wb_logger", WBLogger), WBLogger())
+    return registry
 
 
 @pytest.fixture
 def call_log() -> defaultdict[str, int]:
     return defaultdict(int)
-
-
-@pytest.fixture
-def spark_factory(call_log: defaultdict[str, int]) -> Callable[[], SparkClient]:
-    def f() -> SparkClient:
-        call_log["spark"] += 1
-        return SparkClient()
-
-    return f
-
-
-@pytest.fixture
-def wblogger_factory(call_log: defaultdict[str, int]) -> Callable[[], WBLogger]:
-    def f() -> WBLogger:
-        call_log["wb_logger"] += 1
-        return WBLogger()
-
-    return f
-
-
-@pytest.fixture
-def registry_of_singleton_factories(
-    spark_factory: Callable[[], SparkClient], wblogger_factory: Callable[[], WBLogger]
-) -> IRegistryOfSingletonFactories:
-    return RegistryOfSingletonFactories(
-        [
-            SingletonFactory(SparkFactoryPromise(), spark_factory),
-            SingletonFactory(WBLoggerFactoryPromise(), wblogger_factory),
-        ]
-    )
 
 
 ########
@@ -162,13 +122,7 @@ def registry_of_singleton_factories(
 
 @pytest.fixture
 def standardization() -> Workflow:
-    standardize_train = WorkflowClient.single_task(
-        "train",
-        StandardizeTrain,
-        params_from_environment_contract=ParamsFromEnvironmentSingletonsContract(
-            sc=SparkFactoryPromise()
-        ),
-    )
+    standardize_train = WorkflowClient.single_task("train", StandardizeTrain)
     standardize_eval = WorkflowClient.single_task("eval", StandardizeEval)
     e = FitAndEvaluateBuilders.build_when_fit_evaluates_on_train(
         "standardization",
@@ -185,14 +139,7 @@ def standardization() -> Workflow:
 @pytest.fixture
 def logistic_regression() -> Workflow:
     model_train = WorkflowClient.single_task("train", ModelTrain)
-    model_eval = WorkflowClient.single_task(
-        "eval",
-        ModelEval,
-        params_from_environment_contract=ParamsFromEnvironmentSingletonsContract(
-            wblogger=WBLoggerFactoryPromise(),
-            sp=SparkFactoryPromise(),
-        ),
-    )
+    model_eval = WorkflowClient.single_task("eval", ModelEval)
 
     e = FitAndEvaluateBuilders.build_when_fit_evaluates_on_train(
         "logistic_regression",
@@ -231,19 +178,20 @@ def standardized_lr(standardization: Workflow, logistic_regression: Workflow) ->
 def test_standardized_lr(
     call_log: defaultdict[str, int],
     standardized_lr: Workflow,
-    registry_of_singleton_factories: IRegistryOfSingletonFactories,
+    params_registry: ParamsRegistry,
 ) -> None:
     assert len(call_log) == 0
-    runner = WorkflowRunner(standardized_lr, registry_of_singleton_factories)
+    runner = WorkflowRunner(standardized_lr, params_registry)
     outputs = runner(
-        train_X=ArrayMock("X1"),
-        train_Y=ArrayMock("Y1"),
-        holdout_X=ArrayMock("X2"),
-        holdout_Y=ArrayMock("Y2"),
+        name="wf",
+        train_X=frozendict(data=ArrayMock("X1")),
+        train_Y=frozendict(data=ArrayMock("Y1")),
+        holdout_X=frozendict(data=ArrayMock("X2")),
+        holdout_Y=frozendict(data=ArrayMock("Y2")),
     )
-    assert len(call_log) == 2
-    assert call_log["spark"] == 1
-    assert call_log["wb_logger"] == 1
+    # assert len(call_log) == 2
+    # assert call_log["spark"] == 1
+    # assert call_log["wb_logger"] == 1
     assert set(outputs) == set(("mean", "scale", "model", "holdout_probs", "holdout_acc"))
     assert str(outputs["mean"]) == "mean(X1)"
     assert str(outputs["scale"]) == "scale(X1)"

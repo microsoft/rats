@@ -5,9 +5,9 @@ import sys
 from dataclasses import dataclass
 from enum import Enum
 from inspect import _ParameterKind, get_annotations, signature
-from typing import Any, Callable, Hashable, Iterable, Iterator, Mapping, Protocol, final
+from typing import Any, Callable, Hashable, Mapping, Protocol, final
 
-from ._frozendict import frozendict
+from ._frozendict import MappingProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -25,44 +25,17 @@ class IProcess(Protocol):
     process: Callable[..., Mapping[str, Any]] = NotImplemented
 
 
-class IParamGetterContract(Hashable, Iterable[str], Protocol):
-    """Represents a promise to provide a set of parameters in an execution environment."""
-
-
-class IGetParams(Iterable[str], Protocol):
-    """Provides parameters necessary for IProcess instantiation. Must be a hashable factory."""
-
-    def __call__(self) -> Mapping[str, Any]:
-        ...
-
-
-class IHashableGetParams(IParamGetterContract, IGetParams, Iterable[str], Protocol):
-    ...
-
-
-class KnownParamsGetter(IHashableGetParams):
-    _params_to_values: frozendict[str, Any]
-
-    def __init__(self, params_to_values: Mapping[str, Any] = {}):
-        self._params_to_values = frozendict(params_to_values)
-
-    def __call__(self) -> Mapping[str, Any]:
-        return self._params_to_values
-
-    def __hash__(self) -> int:
-        return hash(self._params_to_values)
-
-    def __iter__(self) -> Iterator[str]:
-        yield from self._params_to_values
+class IGetParams(MappingProtocol[str, Any], Hashable, Protocol):
+    """Hashable mapping (protocol) for retrieving parameters to construct & execute an IProcess."""
 
 
 class _empty:
     """Marker object for InParameter.empty."""
 
 
-class InParameterTargetMethod(Enum):
-    Contructor = 0
-    Process = 1
+class InMethod(Enum):
+    init = 0
+    process = 1
 
 
 @final
@@ -76,7 +49,7 @@ class InParameter:
 
     name: str
     annotation: Any
-    target_method: InParameterTargetMethod
+    in_method: InMethod
     kind: _ParameterKind = POSITIONAL_OR_KEYWORD
     default: Any = _empty
     empty: Any = _empty
@@ -89,11 +62,11 @@ class OutParameter:
     annotation: type
     empty: Any = _empty
 
-    def to_inparameter(self) -> InParameter:
+    def to_inparameter(self, in_method: InMethod = InMethod.process) -> InParameter:
         return InParameter(
             self.name,
             self.annotation,
-            InParameterTargetMethod.Process,
+            in_method=in_method,
             default=self.empty,
             empty=self.empty,
         )
@@ -115,14 +88,14 @@ class Annotations:
     def signature(
         cls,
         method: Callable[..., Any],
-        target_method: InParameterTargetMethod,
         exclude_self: bool = True,
         exclude_var_positional: bool = False,
         exclude_var_keyword: bool = False,
     ) -> dict[str, InParameter]:
+        in_method = InMethod.process if method.__name__ == "process" else InMethod.init
         if sys.version_info >= (3, 10):
             return {
-                k: InParameter(p.name, p.annotation, target_method, p.kind, p.default, p.empty)
+                k: InParameter(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
                 for k, p in signature(method, eval_str=True).parameters.items()
                 if not (k == "self" and exclude_self)
                 and not (p.kind == p.VAR_POSITIONAL and exclude_var_positional)
@@ -131,7 +104,7 @@ class Annotations:
             }
         else:
             return {
-                k: InParameter(p.name, p.annotation, target_method, p.kind, p.default, p.empty)
+                k: InParameter(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
                 if not isinstance(p.annotation, str)
                 else InParameter(
                     p.name,
@@ -165,8 +138,8 @@ class Annotations:
 
     @classmethod
     def get_processor_signature(cls, processor_type: type[IProcess]) -> dict[str, InParameter]:
-        # Classes that inherit from Protocol and do not override __init__, have a __init__ set by
-        # in Protocol.__init_subclass__ to typing._no_init_or_replace_init.  On the first
+        # Classes that inherit from Protocol and do not override __init__, have an __init__ set by
+        # Protocol.__init_subclass__ to typing._no_init_or_replace_init.  On the first
         # invokation of that __init__, it replaces the class's __init__ with whatever the __mro__
         # says.
         # _no_init_or_replace_init does not have the correct signature, whereas after calling it
@@ -179,6 +152,6 @@ class Annotations:
             _ = processor_type()
         except Exception:
             pass
-        init = cls.signature(processor_type, InParameterTargetMethod.Contructor)
-        proc = cls.signature(processor_type.process, InParameterTargetMethod.Process)
+        init = cls.signature(processor_type)
+        proc = cls.signature(processor_type.process)
         return {**init, **proc} if sys.version_info < (3, 10) else init | proc

@@ -2,23 +2,13 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast, overload
+from typing import Any, Callable, List, Mapping, Optional, Sequence, Tuple, cast, overload
 
-from ._environment_singletons import (
-    EmptyParamsFromEnvironmentContract,
-    IParamsFromEnvironmentSingletonsContract,
-)
 from ._frozendict import frozendict
-from ._frozendict_with_attr_access import FrozenDictWithAttrAccess
-from ._pipeline import (
-    IProcessorProps,
-    KnownParamsGetter,
-    PDependency,
-    Pipeline,
-    PNode,
-    ProcessorProps,
-)
-from ._processor import IHashableGetParams, IProcess
+from ._pipeline import PComputeReqs, PDependency, Pipeline, PNode, ProcessorProps
+from ._processor import IGetParams, IProcess, OutParameter
+
+# from ._utils import TailPipelineClient
 
 
 @dataclass(frozen=True)
@@ -50,6 +40,20 @@ class TaskParam:
 
     def decorate(self, name: str) -> TaskParam:
         return self.__class__(node=self.node.decorate(name), param=self.param)
+
+    # def __lshift__(self, other: Any) -> Dependency:
+    #     if not isinstance(other, TaskParam):
+    #         raise ValueError("TaskDependency assignment only accepts other Tasks.")
+    #     if not (isinstance(self.param, InParameter) and isinstance(other.param, OutParameter)):
+    #         raise ValueError("Trying to assing input to output.")
+    #     return Dependency(self.node, self.param, other.node, other.param)
+
+    # def __rshift__(self, other: Any) -> Dependency:
+    #     if not isinstance(other, TaskParam):
+    #         raise ValueError("TaskDependency assignment only accepts other Tasks.")
+    #     if not (isinstance(other.param, InParameter) and isinstance(self.param, OutParameter)):
+    #         raise ValueError("Trying to assing input to output.")
+    #     return Dependency(other.node, other.param, self.node, self.param)
 
 
 @dataclass(frozen=False)
@@ -104,8 +108,8 @@ class Workflow:
     _input_targets: frozendict[str, Sequence[TaskParam]]
     _output_sources: frozendict[str, TaskParam]
     name: str
-    sig: FrozenDictWithAttrAccess[InputPort]
-    ret: FrozenDictWithAttrAccess[OutputPort]
+    sig: frozendict[str, InputPort]
+    ret: frozendict[str, OutputPort]
 
     def __init__(
         self,
@@ -114,10 +118,10 @@ class Workflow:
         input_targets: Mapping[str, Sequence[TaskParam]],
         output_sources: Mapping[str, TaskParam],
     ) -> None:
-        sig = FrozenDictWithAttrAccess[InputPort](
+        sig = frozendict[str, InputPort](
             {port_name: InputPort(self, port_name) for port_name in input_targets}
         )
-        ret = FrozenDictWithAttrAccess[OutputPort](
+        ret = frozendict[str, OutputPort](
             {port_name: OutputPort(self, port_name) for port_name in output_sources}
         )
 
@@ -128,6 +132,16 @@ class Workflow:
         object.__setattr__(self, "name", name)
         object.__setattr__(self, "sig", sig)
         object.__setattr__(self, "ret", ret)
+
+    # def __add__(self, workflow: Workflow) -> Workflow:
+    #     return self.__class__(self._pipeline + workflow._pipeline)
+
+    # def __contains__(self, node: PNode) -> bool:
+    #     return node in self._pipeline
+
+    # def add_dependency(self, dependency: Dependency) -> Workflow:
+    #     dp = PDependency(dependency.out_node, dependency.in_param, dependency.out_param)
+    #     return self.__class__(self._pipeline.add_dependencies(dependency.in_node, (dp,)))
 
     def decorate(self, name: str) -> Workflow:
         return self.__class__(
@@ -148,22 +162,50 @@ class Workflow:
         return self._pipeline
 
 
+# @dataclass(init=False, frozen=True)
+# class Task(Workflow):
+#     def __init__(
+#         self,
+#         name: str,
+#         processor_type: type[IProcess],
+#         params_getter: IGetParams,
+#     ) -> None:
+#         node = {PNode(name): ProcessorProps(processor_type, params_getter)}
+#         object.__setattr__(self, "_pipeline", Pipeline(node))
+
+
+# @dataclass(frozen=True, init=False)
+# class Estimator(Workflow):
+#     def __init__(
+#         self,
+#         name: str,
+#         train_wf: Workflow,
+#         eval_wf: Workflow,
+#         shared_params: Sequence[Dependency] = (),
+#     ) -> None:
+#         tail = TailPipelineClient.build(train_wf.pipeline, eval_wf.pipeline)
+#         new_pipeline = WorkflowClient.compose_workflow(
+#             workflows=(train_wf, eval_wf, Workflow(tail)), dependencies=shared_params, name=name
+#         )
+#         object.__setattr__(self, "_pipeline", new_pipeline)
+
+
 class WorkflowClient:
     @classmethod
     def single_task(
         cls,
         name: str,
         processor_type: type[IProcess],
-        param_getter: IHashableGetParams = KnownParamsGetter(),
-        params_from_environment_contract: IParamsFromEnvironmentSingletonsContract = (
-            EmptyParamsFromEnvironmentContract()
-        ),
+        params_getter: IGetParams = frozendict[str, Any](),
+        compute_reqs: PComputeReqs = PComputeReqs(),
+        return_annotation: Mapping[str, OutParameter] | None = None,
     ) -> Workflow:
-        props = ProcessorProps(processor_type, param_getter, params_from_environment_contract)
+        props = ProcessorProps(processor_type, params_getter, compute_reqs, return_annotation)
         return cls.single_task_from_props(name, props)
+        # return Task(name, processor_type, params_getter)
 
     @classmethod
-    def single_task_from_props(cls, name: str, processor_props: IProcessorProps) -> Workflow:
+    def single_task_from_props(cls, name: str, processor_props: ProcessorProps) -> Workflow:
         node_name = PNode(name)
         pipeline = Pipeline({node_name: processor_props})
         input_targets = frozendict[str, Sequence[TaskParam]](
@@ -179,6 +221,17 @@ class WorkflowClient:
             }
         )
         return Workflow(name, pipeline, input_targets, output_sources)
+
+    # @staticmethod
+    # def compose_workflow(
+    #     name: str, workflows: Sequence[Workflow], dependencies: Sequence[Dependency]
+    # ) -> Workflow:
+    #     workflows = list(workflows)
+    #     for i in range(len(workflows)):
+    #         for dp in dependencies:
+    #             if dp.in_node in workflows[i]:
+    #                 workflows[i] = workflows[i].add_dependency(dp)  # TODO: duplicate nodes!
+    #     return sum(workflows, start=Workflow()).decorate(name)
 
     @classmethod
     def compose_workflow(

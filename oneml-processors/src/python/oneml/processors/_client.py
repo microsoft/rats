@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import re
 from collections import defaultdict
+from dataclasses import dataclass
 from itertools import groupby
 from typing import Any, Iterable, Mapping, Sequence, cast
 
@@ -15,9 +16,8 @@ from oneml.pipelines.session import (
     PipelineSessionClient,
 )
 
-from ._environment_singletons import IRegistryOfSingletonFactories
-from ._pipeline import IProcessorProps, PDependency, Pipeline, PNode
-from ._processor import InParameter, InParameterTargetMethod, IProcess
+from ._pipeline import PDependency, Pipeline, PNode, ProcessorProps
+from ._processor import InMethod, InParameter, IProcess
 
 logger = logging.getLogger(__name__)
 
@@ -85,14 +85,14 @@ class DataClient:
     def load_parameters(
         self,
         parameters: Mapping[str, InParameter],
-        target_method: InParameterTargetMethod,
+        in_method: InMethod,
         exclude: Sequence[str] = (),
     ) -> tuple[Sequence[Any], Mapping[str, Any]]:
         pos_only, pos_vars, kw_args, kw_vars = [], [], {}, {}
         for k, param in parameters.items():
             if k in exclude:
                 continue
-            if param.target_method != target_method:
+            if param.in_method != in_method:
                 continue
             elif param.kind == param.POSITIONAL_ONLY:
                 pos_only.append(self.load(param))  # one value is returned
@@ -111,29 +111,22 @@ class DataClient:
 
 class SessionExecutableProvider(IPipelineSessionExecutable):
     _node: PNode
-    _props: IProcessorProps
-    _environment_singletons_registry: IRegistryOfSingletonFactories
+    _props: ProcessorProps
+    _kwargs: dict[str, Any]
 
     def __init__(
         self,
         node: PNode,
-        props: IProcessorProps,
-        environment_singletons_registry: IRegistryOfSingletonFactories,  # TODO: this should come from session_client
+        props: ProcessorProps,
+        **kwargs: Any,
     ) -> None:
         self._node = node
         self._props = props
-        self._environment_singletons_registry = environment_singletons_registry
+        self._kwargs = kwargs
 
     def get_processor(self, data_client: DataClient) -> IProcess:
-        singletons = self._props.params_from_environment_contract.fullfill_using_registry(
-            self._environment_singletons_registry
-        )
-        params = dict(self._props.params_getter())
-        params.update(singletons())
-
-        pos_args, kw_args = data_client.load_parameters(
-            self._props.sig, InParameterTargetMethod.Contructor, exclude=tuple(params.keys())
-        )
+        params = dict(self._props.params_getter.items(**self._kwargs))
+        pos_args, kw_args = data_client.load_parameters(self._props.sig, InMethod.init)
         return self._props.processor_type(*pos_args, **params, **kw_args)
 
     def execute(self, session_client: PipelineSessionClient) -> None:
@@ -143,13 +136,45 @@ class SessionExecutableProvider(IPipelineSessionExecutable):
         output_client = session_client.node_data_client_factory().get_instance(pipeline_node)
         data_client = DataClient(input_client, output_client)
         processor = self.get_processor(data_client)
-        pos_args, kw_args = data_client.load_parameters(
-            self._props.sig, InParameterTargetMethod.Process
-        )
+        pos_args, kw_args = data_client.load_parameters(self._props.sig, InMethod.process)
         output = processor.process(*pos_args, **kw_args)
         for key, val in output.items():
             data_client.save(key, val)
         logger.debug(f"Node {self._node} execute end.")
+
+
+@dataclass(frozen=True)
+class RegistryId:
+    name: str
+    param_type: type
+
+
+class ParamsRegistry:
+    _registry: dict[str, RegistryId]
+
+    def __init__(self) -> None:
+        self._registry = {}
+
+    def add(self, id: RegistryId, param: Any) -> None:
+        ...
+
+    def get(self, id: RegistryId) -> Any:
+        ...
+
+
+# class SingletonsGetter(IGetSingletons):
+#     _singletons_ids: tuple[SingletonId, ...]
+#     _registry: SingletonsRegistry
+
+#     def __init__(self, singleton_ids: Sequence[SingletonId], registry: SingletonsRegistry) -> None:
+#         self._singletons_ids = tuple(singleton_ids)
+#         self._registry = registry
+
+#     def __call__(self) -> Mapping[str, Any]:
+#         params: dict[str, Any] = {}
+#         for id in self._singletons_ids:
+#             params.update(self._registry.get_singleton(id))
+#         return params
 
 
 class PipelineSessionProvider:
@@ -157,19 +182,16 @@ class PipelineSessionProvider:
     def get_session(
         cls,
         pipeline: Pipeline,
-        environment_singletons_registry: IRegistryOfSingletonFactories,  # TODO: this should come from session_client
+        params_registry: ParamsRegistry,  # TODO: this should come from session_client
     ) -> PipelineSessionClient:
         builder = PipelineBuilderFactory().get_instance()
 
         for node in pipeline.nodes:
             builder.add_node(P2Pipeline.node(node))
             props = pipeline.nodes[node]
+            # TODO: grab items from params_registry
 
-            sess_executable = SessionExecutableProvider(
-                node=node,
-                props=props,
-                environment_singletons_registry=environment_singletons_registry,
-            )
+            sess_executable = SessionExecutableProvider(node=node, props=props)
             builder.add_executable(P2Pipeline.node(node), sess_executable)
 
         for node, dependencies in pipeline.dependencies.items():

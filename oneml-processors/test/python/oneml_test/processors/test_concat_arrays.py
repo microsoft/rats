@@ -5,10 +5,11 @@ import numpy.typing as npt
 import pytest
 
 from oneml.processors import (
+    IGetParams,
+    InMethod,
     IProcess,
-    IRegistryOfSingletonFactories,
-    KnownParamsGetter,
     Namespace,
+    ParamsRegistry,
     PDependency,
     Pipeline,
     PipelineSessionProvider,
@@ -44,14 +45,9 @@ class SumArrays(IProcess):
         return SumArraysOutput(output=np.sum([np.sum(a) for a in arrays]))
 
 
-class ExampleConfig(KnownParamsGetter):
-    def __init__(self, url: str) -> None:
-        super().__init__(
-            dict(
-                url=url,
-                storage={"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])},
-            )
-        )
+storage = {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
+left_config: IGetParams = frozendict(storage=storage, url="a")
+right_config: IGetParams = frozendict(storage=storage, url="b")
 
 
 @pytest.fixture
@@ -60,8 +56,8 @@ def simple_pipeline() -> Pipeline:
     right_arr = PNode("right_arr")
     multiply = PNode("multiply")
     nodes = {
-        left_arr: ProcessorProps(ArrayReader, ExampleConfig("a")),
-        right_arr: ProcessorProps(ArrayReader, ExampleConfig("b")),
+        left_arr: ProcessorProps(ArrayReader, left_config),
+        right_arr: ProcessorProps(ArrayReader, right_config),
         multiply: ProcessorProps(ArrayDotProduct),
     }
     dependencies: dict[PNode, set[PDependency]] = {
@@ -69,12 +65,12 @@ def simple_pipeline() -> Pipeline:
             (
                 PDependency(
                     left_arr,
-                    in_arg=InParameter("left", npt.NDArray[np.float64], ArrayDotProduct.process),
+                    in_arg=InParameter("left", npt.NDArray[np.float64], InMethod.process),
                     out_arg=OutParameter("array", npt.NDArray[np.float64]),
                 ),
                 PDependency(
                     right_arr,
-                    in_arg=InParameter("right", npt.NDArray[np.float64], ArrayDotProduct.process),
+                    in_arg=InParameter("right", npt.NDArray[np.float64], InMethod.process),
                     out_arg=OutParameter("array", npt.NDArray[np.float64]),
                 ),
             )
@@ -99,7 +95,7 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
                     in_arg=InParameter(
                         "arrays",
                         npt.NDArray[np.float64],
-                        SumArrays.process,
+                        InMethod.process,
                         InParameter.VAR_POSITIONAL,
                     ),
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
@@ -109,7 +105,7 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
                     in_arg=InParameter(
                         "arrays",
                         npt.NDArray[np.float64],
-                        SumArrays.process,
+                        InMethod.process,
                         InParameter.VAR_POSITIONAL,
                     ),
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
@@ -119,7 +115,7 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
                     in_arg=InParameter(
                         "arrays",
                         npt.NDArray[np.float64],
-                        SumArrays.process,
+                        InMethod.process,
                         InParameter.VAR_POSITIONAL,
                     ),
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
@@ -132,21 +128,15 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
 
 
 @pytest.fixture
-def registry_of_singleton_factories() -> IRegistryOfSingletonFactories:
-    return frozendict()
+def params_registry() -> ParamsRegistry:
+    return ParamsRegistry()
 
 
-def test_simple_pipeline(
-    simple_pipeline: Pipeline, registry_of_singleton_factories: IRegistryOfSingletonFactories
-) -> None:
-    session = PipelineSessionProvider.get_session(simple_pipeline, registry_of_singleton_factories)
+def test_simple_pipeline(simple_pipeline: Pipeline, params_registry: ParamsRegistry) -> None:
+    session = PipelineSessionProvider.get_session(simple_pipeline, params_registry)
     session.run()
 
 
-def test_complex_pipeline(
-    complex_pipeline: Pipeline, registry_of_singleton_factories: IRegistryOfSingletonFactories
-) -> None:
-    session = PipelineSessionProvider.get_session(
-        complex_pipeline, registry_of_singleton_factories
-    )
+def test_complex_pipeline(complex_pipeline: Pipeline, params_registry: ParamsRegistry) -> None:
+    session = PipelineSessionProvider.get_session(complex_pipeline, params_registry)
     session.run()

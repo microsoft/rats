@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from ._estimator import EstimatorPipelineFromTrainAndEval, WrapEstimatorPipeline
 from ._pipeline import PDependency, Pipeline, PNode, ProcessorProps
-from ._processor import InParameter, InParameterTargetMethod, IProcess
+from ._processor import InMethod, InParameter, IProcess
+from ._utils import TailPipelineClient
 from ._viz import dag_to_svg
 
 
@@ -70,11 +70,11 @@ def estimator_from_multiple_nodes_pipeline() -> None:
         train_model: ProcessorProps(ModelTrain),
     }
     train_dps = {
-        train_stz: set((PDependency(data, InParameter("X", Array, InParameterTargetMethod.Process)),)),
+        train_stz: set((PDependency(data, InParameter("X", Array, InMethod.process)),)),
         train_model: set(
             (
-                PDependency(train_stz, InParameter("X", Array, InParameterTargetMethod.Process)),
-                PDependency(data, InParameter("Y", Array, InParameterTargetMethod.Process)),
+                PDependency(train_stz, InParameter("X", Array, InMethod.process)),
+                PDependency(data, InParameter("Y", Array, InMethod.process)),
             )
         ),
     }
@@ -82,11 +82,11 @@ def estimator_from_multiple_nodes_pipeline() -> None:
     eval_stz = train_stz
     eval_model = train_model
     eval_dps = {
-        eval_stz: set((PDependency(data, InParameter("X", Array, InParameterTargetMethod.Process)),)),
+        eval_stz: set((PDependency(data, InParameter("X", Array, InMethod.process)),)),
         eval_model: set(
             (
-                PDependency(train_stz, InParameter("X", Array, InParameterTargetMethod.Process)),
-                PDependency(data, InParameter("Y", Array, InParameterTargetMethod.Process)),
+                PDependency(train_stz, InParameter("X", Array, InMethod.process)),
+                PDependency(data, InParameter("Y", Array, InMethod.process)),
             )
         ),
     }
@@ -97,10 +97,10 @@ def estimator_from_multiple_nodes_pipeline() -> None:
 
     train_pipeline = Pipeline(train_nodes, train_dps)
     eval_pipeline = Pipeline(eval_nodes, eval_dps)
+    tail_pipeline = TailPipelineClient.build(train_pipeline, eval_pipeline)
+    new_pipeline = train_pipeline + eval_pipeline + tail_pipeline
 
-    pipeline = EstimatorPipelineFromTrainAndEval(train_pipeline, eval_pipeline).expand()
-
-    svg = dag_to_svg(pipeline)
+    svg = dag_to_svg(new_pipeline)
     with open("pipeline1.svg", "wb") as f:
         f.write(svg)
 
@@ -123,14 +123,17 @@ def concatenate_estimators_pipeline() -> None:
     eval_nodesA: dict[PNode, ProcessorProps] = {eval_nodeA: ProcessorProps(StandardizeEval)}
     eval_nodesB: dict[PNode, ProcessorProps] = {eval_nodeB: ProcessorProps(ModelEval)}
 
-    eval_pipelineA: Pipeline = Pipeline(eval_nodesA, eval_dpsA)
-    eval_pipelineB: Pipeline = Pipeline(eval_nodesB, eval_dpsB)
+    eval_pipelineA = Pipeline(eval_nodesA, eval_dpsA)
+    eval_pipelineB = Pipeline(eval_nodesB, eval_dpsB)
 
-    estimatorA = EstimatorPipelineFromTrainAndEval(train_pipelineA, eval_pipelineA).expand()
-    estimatorB = EstimatorPipelineFromTrainAndEval(train_pipelineB, eval_pipelineB).expand()
+    tail_pipelineA = TailPipelineClient.build(train_pipelineA, eval_pipelineA)
+    tail_pipelineB = TailPipelineClient.build(train_pipelineB, eval_pipelineB)
 
-    p = WrapEstimatorPipeline.wrap_estimator_pipeline_in_namespace(estimatorA, "p")
-    q = WrapEstimatorPipeline.wrap_estimator_pipeline_in_namespace(estimatorB, "q")
+    estimatorA = train_pipelineA + eval_pipelineA + tail_pipelineA
+    estimatorB = train_pipelineB + eval_pipelineB + tail_pipelineB
+
+    p = estimatorA.decorate("p")
+    q = estimatorB.decorate("q")
 
     svg = dag_to_svg(p)
     with open("p.svg", "wb") as f:
