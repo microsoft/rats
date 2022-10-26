@@ -138,14 +138,13 @@ def standardization() -> Workflow:
 
 @pytest.fixture
 def logistic_regression() -> Workflow:
-    model_train = WorkflowClient.single_task("train", ModelTrain)
+    model_train = WorkflowClient.single_task("fit", ModelTrain)
     model_eval = WorkflowClient.single_task("eval", ModelEval)
 
-    e = FitAndEvaluateBuilders.build_when_fit_evaluates_on_train(
+    e = FitAndEvaluateBuilders.build_using_eval_on_train_and_holdout(
         "logistic_regression",
         model_train,
         model_eval,
-        (model_eval.sig.model << model_train.ret.model,),
     )
     return e
 
@@ -168,6 +167,8 @@ def standardized_lr(standardization: Workflow, logistic_regression: Workflow) ->
             "mean" << standardization.ret.mean,
             "scale" << standardization.ret.scale,
             "model" << logistic_regression.ret.model,
+            "train_probs" << logistic_regression.ret.train_probs,
+            "train_acc" << logistic_regression.ret.train_acc,
             "holdout_probs" << logistic_regression.ret.holdout_probs,
             "holdout_acc" << logistic_regression.ret.holdout_acc,
         ),
@@ -192,7 +193,9 @@ def test_standardized_lr(
     # assert len(call_log) == 2
     # assert call_log["spark"] == 1
     # assert call_log["wb_logger"] == 1
-    assert set(outputs) == set(("mean", "scale", "model", "holdout_probs", "holdout_acc"))
+    assert set(outputs) == set(
+        ("mean", "scale", "model", "holdout_probs", "holdout_acc", "train_acc", "train_probs")
+    )
     assert str(outputs["mean"]) == "mean(X1)"
     assert str(outputs["scale"]) == "scale(X1)"
     assert str(outputs["model"]) == "Model((X1-mean(X1))/scale(X1) ; Y1)"
@@ -204,6 +207,20 @@ def test_standardized_lr(
         str(outputs["holdout_acc"])
         == "acc(Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1)), Y2)"
     )
+    assert (
+        str(outputs["train_probs"])
+        == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X1-mean(X1))/scale(X1))"
+    )
+    assert (
+        str(outputs["train_acc"])
+        == "acc(Model((X1-mean(X1))/scale(X1) ; Y1).probs((X1-mean(X1))/scale(X1)), Y1)"
+    )
+
+
+# Fails on devops b/c the graphviz binary is not available.
+# TODO: install graphviz on build machines?
+# def test_viz(standardized_lr: Workflow) -> None:
+#     workflow_to_svg(standardized_lr)
 
 
 # #######

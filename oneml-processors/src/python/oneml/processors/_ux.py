@@ -201,11 +201,11 @@ class WorkflowClient:
         return_annotation: Mapping[str, OutParameter] | None = None,
     ) -> Workflow:
         props = ProcessorProps(processor_type, params_getter, compute_reqs, return_annotation)
-        return cls.single_task_from_props(name, props)
+        return cls._single_task_from_props(name, props)
         # return Task(name, processor_type, params_getter)
 
     @classmethod
-    def single_task_from_props(cls, name: str, processor_props: ProcessorProps) -> Workflow:
+    def _single_task_from_props(cls, name: str, processor_props: ProcessorProps) -> Workflow:
         node_name = PNode(name)
         pipeline = Pipeline({node_name: processor_props})
         input_targets = frozendict[str, Sequence[TaskParam]](
@@ -243,8 +243,8 @@ class WorkflowClient:
         output_dependencies: Optional[Sequence[OutputDependency]] = None,
     ) -> Workflow:
         pipeline = sum([w.pipeline for w in workflows], start=Pipeline())
-        seen_inputs = set[Tuple[str, str]]()
-        seen_outputs = set[Tuple[str, str]]()
+        seen_inputs: set[Tuple[str, str]] = set()
+        seen_outputs: set[Tuple[str, str]] = set()
 
         for d in dependencies:
             seen_inputs.add((d.in_workflow.name, d.in_param))
@@ -258,7 +258,7 @@ class WorkflowClient:
                 pd = PDependency(node=out_node, out_arg=out_param, in_arg=in_param)
                 pipeline = pipeline.add_dependencies(in_node, [pd])
 
-        input_targets = defaultdict[str, List[TaskParam]](list)
+        input_targets: dict[str, List[TaskParam]] = defaultdict(list)
         if input_dependencies is None:
             input_dependencies = [
                 InputDependency(w, port_name, port_name)
@@ -267,7 +267,7 @@ class WorkflowClient:
                 if (w.name, port_name) not in seen_inputs
             ]
         assert input_dependencies is not None
-        accounted_input_targets = set[TaskParam]()
+        accounted_input_targets: set[TaskParam] = set()
         for in_d in input_dependencies:
             targets = in_d.in_workflow._input_targets[in_d.in_param]
             input_targets[in_d.name] += targets

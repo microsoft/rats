@@ -113,3 +113,9 @@ def test_final_workflow(workflow: Workflow, params_registry: ParamsRegistry) -> 
     outputs = runner()
     assert len(set(outputs)) == 1
     assert outputs["result"] == -1800
+
+
+# Fails on devops b/c the graphviz binary is not available.
+# TODO: install graphviz on build machines?
+# def test_viz(workflow: Workflow) -> None:
+#     workflow_to_svg(workflow)

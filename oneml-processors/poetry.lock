@@ -2382,7 +2382,7 @@ dev = ["flake8", "flake8-formatter-junit-xml", "pytest", "mypy", "coverage", "py
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "5ea2aca279a33ba9ecffc830e0c282bee6e0b72abab0f40d52a78faaf6bc3535"
+content-hash = "643a640c05267a0dbde85007d2e4e5cbeab98a5e71916220befc5741b3b0913c"
 
 [metadata.files]
 alabaster = [

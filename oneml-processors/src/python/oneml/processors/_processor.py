@@ -73,11 +73,7 @@ class OutParameter:
 
 
 class Annotations:
-    """Evaluates annotations of an object's methods.
-
-    Supports Python <3.9 and 3.10.
-
-    """
+    """Evaluates annotations of an object's methods."""
 
     @staticmethod
     def _eval_annotation(module_name: str, annotation: str) -> type:
@@ -93,32 +89,14 @@ class Annotations:
         exclude_var_keyword: bool = False,
     ) -> dict[str, InParameter]:
         in_method = InMethod.process if method.__name__ == "process" else InMethod.init
-        if sys.version_info >= (3, 10):
-            return {
-                k: InParameter(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
-                for k, p in signature(method, eval_str=True).parameters.items()
-                if not (k == "self" and exclude_self)
-                and not (p.kind == p.VAR_POSITIONAL and exclude_var_positional)
-                and not (p.kind == p.VAR_KEYWORD and exclude_var_keyword)
-                and not k == "return"  # "return" key is reserved
-            }
-        else:
-            return {
-                k: InParameter(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
-                if not isinstance(p.annotation, str)
-                else InParameter(
-                    p.name,
-                    cls._eval_annotation(method.__module__, p.annotation),
-                    p.kind,
-                    p.default,
-                    p.empty,
-                )
-                for k, p in signature(method).parameters.items()
-                if not (k == "self" and exclude_self)
-                and not (p.kind == p.VAR_POSITIONAL and exclude_var_positional)
-                and not (p.kind == p.VAR_KEYWORD and exclude_var_keyword)
-                and not k == "return"  # "return" key is reserved
-            }
+        return {
+            k: InParameter(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
+            for k, p in signature(method, eval_str=True).parameters.items()
+            if not (k == "self" and exclude_self)
+            and not (p.kind == p.VAR_POSITIONAL and exclude_var_positional)
+            and not (p.kind == p.VAR_KEYWORD and exclude_var_keyword)
+            and not k == "return"  # "return" key is reserved
+        }
 
     @classmethod
     def get_return_annotation(cls, method: Callable[..., Any]) -> Mapping[str, OutParameter]:
@@ -139,19 +117,13 @@ class Annotations:
     @classmethod
     def get_processor_signature(cls, processor_type: type[IProcess]) -> dict[str, InParameter]:
         # Classes that inherit from Protocol and do not override __init__, have an __init__ set by
-        # Protocol.__init_subclass__ to typing._no_init_or_replace_init.  On the first
-        # invokation of that __init__, it replaces the class's __init__ with whatever the __mro__
-        # says.
-        # _no_init_or_replace_init does not have the correct signature, whereas after calling it
-        # the class does have the correct signature.
-        # If all this applies to processor_type, then the following will successfully trigger the
-        # __init__ replacement mechanism and the class would have the correct signature.
-        # If it doesn't then either it is not a Protocol, or it is a Protocol but provides its own
-        # __init__.  The following instanciation might fail, but it does not matter.
-        try:
-            _ = processor_type()
-        except Exception:
-            pass
-        init = cls.signature(processor_type)
+        # in Protocol.__init_subclass__ to a function in the typing module.  That function accepts
+        # *args and **kwargs, but in runtime, no contructor parameters are allowed.
+        # Therefore, if processor_type.__init__.__module__=="typing" we should assume the init
+        # signature is empty.
+        if getattr(processor_type.__init__, "__module__", None) == "typing":
+            init = dict()
+        else:
+            init = cls.signature(processor_type.__init__)
         proc = cls.signature(processor_type.process)
-        return {**init, **proc} if sys.version_info < (3, 10) else init | proc
+        return init | proc

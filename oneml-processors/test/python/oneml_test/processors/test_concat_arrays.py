@@ -13,10 +13,9 @@ from oneml.processors import (
     PDependency,
     Pipeline,
     PipelineSessionProvider,
-    PNode,
     frozendict,
 )
-from oneml.processors._pipeline import InParameter, OutParameter, ProcessorProps
+from oneml.processors._pipeline import InParameter, OutParameter, PNode, ProcessorProps
 
 ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": npt.NDArray[np.float64]})
 ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"output": npt.NDArray[np.float64]})
