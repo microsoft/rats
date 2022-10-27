@@ -66,7 +66,7 @@ spec:
         params:
           - name: docker-image-app-builder
             type: string
-            default: immunodata.azurecr.io/immunodata-app-builder:2022-09-13.09-37-35
+            default: immunodata.azurecr.io/immunodata-app-builder:2022-10-21.19-47-38
             description: The docker image for the app builder.
           - name: component
             type: string

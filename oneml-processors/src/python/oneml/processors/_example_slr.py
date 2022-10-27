@@ -2,10 +2,18 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from ._pipeline import PDependency, Pipeline, PNode, ProcessorProps
-from ._processor import InMethod, InParameter, IProcess
-from ._utils import TailPipelineClient
-from ._viz import dag_to_svg
+from oneml.processors import (
+    InMethod,
+    InParameter,
+    IProcess,
+    Namespace,
+    PDependency,
+    Pipeline,
+    PNode,
+    ProcessorProps,
+    TailPipelineClient,
+    dag_to_svg,
+)
 
 
 class Array(object):
@@ -62,8 +70,8 @@ class ModelEval(IProcess):
 
 
 def estimator_from_multiple_nodes_pipeline() -> None:
-    train_stz = PNode("stz")
-    train_model = PNode("model")
+    train_stz = PNode("train", namespace=Namespace("stz"))
+    train_model = PNode("train", namespace=Namespace("model"))
     data = PNode("data")
     train_nodes = {
         train_stz: ProcessorProps(StandardizeTrain),
@@ -79,8 +87,8 @@ def estimator_from_multiple_nodes_pipeline() -> None:
         ),
     }
 
-    eval_stz = train_stz
-    eval_model = train_model
+    eval_stz = PNode("eval", namespace=Namespace("stz"))
+    eval_model = PNode("eval", namespace=Namespace("model"))
     eval_dps = {
         eval_stz: set((PDependency(data, InParameter("X", Array, InMethod.process)),)),
         eval_model: set(
@@ -106,8 +114,8 @@ def estimator_from_multiple_nodes_pipeline() -> None:
 
 
 def concatenate_estimators_pipeline() -> None:
-    train_nodeA = PNode("stz")
-    train_nodeB = PNode("model")
+    train_nodeA = PNode("train", namespace=Namespace("stz"))
+    train_nodeB = PNode("train", namespace=Namespace("model"))
     train_dpsA: dict[PNode, set[PDependency]] = {train_nodeA: set()}
     train_dpsB: dict[PNode, set[PDependency]] = {train_nodeB: set()}
     train_nodesA = {train_nodeA: ProcessorProps(StandardizeTrain)}
@@ -116,10 +124,10 @@ def concatenate_estimators_pipeline() -> None:
     train_pipelineA = Pipeline(train_nodesA, train_dpsA)
     train_pipelineB = Pipeline(train_nodesB, train_dpsB)
 
-    eval_nodeA = train_nodeA
-    eval_nodeB = train_nodeB
-    eval_dpsA: dict[PNode, set[PDependency]] = train_dpsA
-    eval_dpsB: dict[PNode, set[PDependency]] = train_dpsB
+    eval_nodeA = PNode("eval", namespace=Namespace("stz"))
+    eval_nodeB = PNode("eval", namespace=Namespace("model"))
+    eval_dpsA: dict[PNode, set[PDependency]] = {eval_nodeA: set()}
+    eval_dpsB: dict[PNode, set[PDependency]] = {eval_nodeB: set()}
     eval_nodesA: dict[PNode, ProcessorProps] = {eval_nodeA: ProcessorProps(StandardizeEval)}
     eval_nodesB: dict[PNode, ProcessorProps] = {eval_nodeB: ProcessorProps(ModelEval)}
 

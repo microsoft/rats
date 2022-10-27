@@ -42,7 +42,7 @@ class WorkflowRunner:
         self._workflow = workflow
         self._params_registry = params_registry
 
-    def __call__(self, name: str = "runnable_wf", **getters: IGetParams) -> SessionOutputsGetter:
+    def __call__(self, name: str = "wf", **getters: IGetParams) -> SessionOutputsGetter:
         input_workflows = tuple(
             WorkflowClient.single_task(
                 name,
