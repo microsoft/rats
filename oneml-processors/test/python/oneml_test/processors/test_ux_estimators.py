@@ -14,7 +14,6 @@ from oneml.processors import (
     Workflow,
     WorkflowClient,
     WorkflowRunner,
-    frozendict,
 )
 
 
@@ -44,10 +43,7 @@ StandardizeTrainOutput = TypedDict(
 )
 
 
-class StandardizeTrain(IProcess):
-    def __init__(self) -> None:  # sc: SparkClient
-        pass
-
+class StandardizeTrain:
     def process(self, X: ArrayMock) -> StandardizeTrainOutput:
         mean = ArrayMock(f"mean({X})")
         scale = ArrayMock(f"scale({X})")
@@ -185,10 +181,10 @@ def test_standardized_lr(
     runner = WorkflowRunner(standardized_lr, params_registry)
     outputs = runner(
         name="wf",
-        train_X=frozendict(data=ArrayMock("X1")),
-        train_Y=frozendict(data=ArrayMock("Y1")),
-        holdout_X=frozendict(data=ArrayMock("X2")),
-        holdout_Y=frozendict(data=ArrayMock("Y2")),
+        train_X=ArrayMock("X1"),
+        train_Y=ArrayMock("Y1"),
+        holdout_X=ArrayMock("X2"),
+        holdout_Y=ArrayMock("Y2"),
     )
     # assert len(call_log) == 2
     # assert call_log["spark"] == 1

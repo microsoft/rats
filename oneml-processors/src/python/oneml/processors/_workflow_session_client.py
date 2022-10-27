@@ -5,7 +5,8 @@ from typing import Any, Iterable, Iterator, Mapping
 from oneml.pipelines.session import PipelinePort, PipelineSessionClient
 
 from ._client import P2Pipeline, ParamsRegistry, PipelineSessionProvider
-from ._processor import IGetParams, IProcess, OutParameter
+from ._frozendict import frozendict
+from ._processor import IProcess, OutParameter
 from ._ux import Workflow, WorkflowClient
 
 
@@ -42,15 +43,15 @@ class WorkflowRunner:
         self._workflow = workflow
         self._params_registry = params_registry
 
-    def __call__(self, name: str = "wf", **getters: IGetParams) -> SessionOutputsGetter:
+    def __call__(self, name: str = "runnable_wf", **inputs: Any) -> SessionOutputsGetter:
         input_workflows = tuple(
             WorkflowClient.single_task(
                 name,
                 InputDataProcessor,
-                getter,
-                return_annotation=dict(data=OutParameter("data", type(getter["data"]))),
+                frozendict(data=input),
+                return_annotation=dict(data=OutParameter("data", type(input))),
             )
-            for name, getter in getters.items()
+            for name, input in inputs.items()
         )
         workflow = WorkflowClient.compose_workflow(
             name,

@@ -55,35 +55,37 @@ class DotBuilder:
                 self._g.add_edge(pydot.Edge(source, target))
 
     def _add_inputs(self, inputs: Mapping[str, Sequence[TaskParam]]) -> None:
-        name = "inputs"
-        self._add_name_to_mapping(name)
-        outputs = self._format_arguments(inputs, "o")
-        label = f"{{{name}|{{{outputs}}}}}"
-        self._g.add_node(
-            pydot.Node(
-                name=self._node_name_mapping[name], label=label, shape="record", color="red"
+        if len(inputs) > 0:
+            name = "inputs"
+            self._add_name_to_mapping(name)
+            outputs = self._format_arguments(inputs, "o")
+            label = f"{{{name}|{{{outputs}}}}}"
+            self._g.add_node(
+                pydot.Node(
+                    name=self._node_name_mapping[name], label=label, shape="record", color="red"
+                )
             )
-        )
-        for input, tasks in inputs.items():
-            source = self._node_name_mapping[name] + f":o_{input}"
-            for task in tasks:
-                target = self._node_name_mapping[repr(task.node)] + f":i_{task.param}"
-                self._g.add_edge(pydot.Edge(source, target))
+            for input, tasks in inputs.items():
+                source = self._node_name_mapping[name] + f":o_{input}"
+                for task in tasks:
+                    target = self._node_name_mapping[repr(task.node)] + f":i_{task.param}"
+                    self._g.add_edge(pydot.Edge(source, target))
 
     def _add_outputs(self, outputs: Mapping[str, TaskParam]) -> None:
-        name = "outputs"
-        self._add_name_to_mapping(name)
-        inputs = self._format_arguments(outputs, "i")
-        label = f"{{{{{inputs}}}|{{{name}}}}}"
-        self._g.add_node(
-            pydot.Node(
-                name=self._node_name_mapping[name], label=label, shape="record", color="red"
+        if len(outputs) > 0:
+            name = "outputs"
+            self._add_name_to_mapping(name)
+            inputs = self._format_arguments(outputs, "i")
+            label = f"{{{{{inputs}}}|{{{name}}}}}"
+            self._g.add_node(
+                pydot.Node(
+                    name=self._node_name_mapping[name], label=label, shape="record", color="red"
+                )
             )
-        )
-        for output, task in outputs.items():
-            source = self._node_name_mapping[repr(task.node)] + f":o_{task.param}"
-            target = self._node_name_mapping[name] + f":i_{output}"
-            self._g.add_edge(pydot.Edge(source, target))
+            for output, task in outputs.items():
+                source = self._node_name_mapping[repr(task.node)] + f":o_{task.param}"
+                target = self._node_name_mapping[name] + f":i_{output}"
+                self._g.add_edge(pydot.Edge(source, target))
 
     def add_workflow(self, workflow: Workflow) -> None:
         self._add_pipeline(workflow._pipeline)

@@ -81,14 +81,14 @@ class Annotations:
         return eval(annotation, module_dict)
 
     @classmethod
-    def signature(
+    def _signature(
         cls,
+        in_method: InMethod,
         method: Callable[..., Any],
         exclude_self: bool = True,
         exclude_var_positional: bool = False,
         exclude_var_keyword: bool = False,
     ) -> dict[str, InParameter]:
-        in_method = InMethod.process if method.__name__ == "process" else InMethod.init
         return {
             k: InParameter(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
             for k, p in signature(method, eval_str=True).parameters.items()
@@ -124,6 +124,6 @@ class Annotations:
         if getattr(processor_type.__init__, "__module__", None) == "typing":
             init = dict()
         else:
-            init = cls.signature(processor_type.__init__)
-        proc = cls.signature(processor_type.process)
+            init = cls._signature(InMethod.init, processor_type)
+        proc = cls._signature(InMethod.process, processor_type.process)
         return init | proc
