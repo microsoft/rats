@@ -2,6 +2,7 @@ from enum import Enum
 from inspect import _ParameterKind
 from typing import Any, Mapping, Sequence, TypedDict
 
+from ._orderedset import oset
 from ._pipeline import IExpandPipeline, PDependency, Pipeline, PNode, ProcessorProps
 from ._processor import InMethod, InParameter, IProcess, OutParameter
 
@@ -101,7 +102,7 @@ class GatherVarsPipelineExpander(IExpandPipeline):
             gathering_node: ProcessorProps(GATHERVAR2PROCESSOR[kind])
         }
         gathering_dependencies = {
-            gathering_node: set(
+            gathering_node: oset(
                 PDependency(
                     dp.node,
                     InParameter(

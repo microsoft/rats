@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import AbstractSet, Any, Mapping
 
+from ._orderedset import oset
 from ._pipeline import PDependency, Pipeline, PNode, ProcessorProps
 from ._processor import IProcess, OutParameter
 
@@ -21,10 +22,10 @@ class HeadPipelineClient:
         head_name: str = "head",
     ) -> Pipeline:
         hnode = PNode(head_name)
-        dependencies: dict[PNode, AbstractSet[PDependency]] = defaultdict(set)
+        dependencies: dict[PNode, oset[PDependency]] = defaultdict(oset)
         for pipeline in pipelines:
             for ext_dp in pipeline.external_dependencies:
-                dependencies[hnode] |= set((ext_dp,))  # aggregate all ext dependencies on the head
+                dependencies[hnode] |= oset((ext_dp,))  # aggregate all ext dependencies
         return Pipeline({hnode: props}, dependencies)
 
     @staticmethod
@@ -67,14 +68,14 @@ class TailPipelineClient:
 
         node = PNode("tail")
         ra: dict[str, OutParameter] = {}
-        dependencies: defaultdict[PNode, AbstractSet[PDependency]] = defaultdict(set)
+        dependencies: defaultdict[PNode, oset[PDependency]] = defaultdict(oset)
         for pipeline in pipelines:
             for end_node in pipeline.end_nodes:
                 for out_param in pipeline.nodes[end_node].ret.values():
                     if out_param.name not in exclude:
                         in_param = out_param.to_inparameter()
                         ra[in_param.name] = OutParameter(in_param.name, in_param.annotation)
-                        dependencies[node] |= set((PDependency(end_node, in_param, out_param),))
+                        dependencies[node] |= oset((PDependency(end_node, in_param, out_param),))
 
         props = ProcessorProps(NoOp, return_annotation=ra)
         return Pipeline({node: props}, dependencies)

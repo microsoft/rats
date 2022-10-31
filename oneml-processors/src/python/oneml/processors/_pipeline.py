@@ -4,9 +4,21 @@ import logging
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
-from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Tuple, Union, final
+from typing import (
+    AbstractSet,
+    Any,
+    Iterable,
+    Mapping,
+    Optional,
+    Protocol,
+    Sequence,
+    Tuple,
+    Union,
+    final,
+)
 
 from ._frozendict import frozendict
+from ._orderedset import oset
 from ._processor import Annotations, IGetParams, InParameter, IProcess, OutParameter
 
 logger = logging.getLogger(__name__)
@@ -144,20 +156,20 @@ class PDependency:
 
 class Pipeline:
     _nodes: frozendict[PNode, ProcessorProps]
-    _dependencies: frozendict[PNode, frozenset[PDependency]]
+    _dependencies: frozendict[PNode, oset[PDependency]]
 
     @property
     def nodes(self) -> Mapping[PNode, ProcessorProps]:
         return self._nodes
 
     @property
-    def dependencies(self) -> Mapping[PNode, AbstractSet[PDependency]]:
+    def dependencies(self) -> Mapping[PNode, oset[PDependency]]:
         return self._dependencies
 
     def __init__(
         self,
         nodes: Mapping[PNode, ProcessorProps] = {},
-        dependencies: Mapping[PNode, AbstractSet[PDependency]] = {},
+        dependencies: Mapping[PNode, Sequence[PDependency] | oset[PDependency]] = {},
     ) -> None:
         if dependencies.keys() - nodes:
             raise Exception("More dependencies than nodes.")
@@ -170,17 +182,17 @@ class Pipeline:
         # Fill missing node dependencies for all nodes
         dependencies = dict(dependencies)
         for node_key in nodes.keys() - dependencies.keys():
-            dependencies[node_key] = set()
+            dependencies[node_key] = oset()
 
         self._nodes = frozendict(nodes)
-        self._dependencies = frozendict({k: frozenset(dps) for k, dps in dependencies.items()})
+        self._dependencies = frozendict({k: oset(dps) for k, dps in dependencies.items()})
 
     def __add__(self, pipeline: Pipeline) -> Pipeline:
         distinct_nodes = self._nodes | pipeline._nodes - (self._nodes & pipeline._nodes)
         if len(set(repr(node) for node in distinct_nodes)) != len(distinct_nodes):
             raise Exception("Nodes in both pipelines with same name need to have same props.")
         new_nodes = self._nodes | pipeline._nodes
-        new_dependencies = defaultdict(frozenset, self.dependencies)
+        new_dependencies = defaultdict(oset, self.dependencies)
         for node, dependencies in pipeline.dependencies.items():
             new_dependencies[node] |= dependencies
         return self.__class__(new_nodes, new_dependencies)
@@ -205,23 +217,23 @@ class Pipeline:
         if node not in self:
             raise Exception("Node not in current pipeline; cannot add dependencies.")
 
-        new_dependencies = self._dependencies[node] | frozenset(dependencies)
+        new_dependencies = self._dependencies[node] | oset(dependencies)
         return self.__class__(self._nodes, self._dependencies.set(node, new_dependencies))
 
     def set_dependencies(self, node: PNode, dependencies: Iterable[PDependency]) -> Pipeline:
         if node not in self:
             raise Exception("Node not in current pipeline; cannot set dependencies.")
 
-        return self.__class__(self._nodes, self._dependencies.set(node, frozenset(dependencies)))
+        return self.__class__(self._nodes, self._dependencies.set(node, oset(dependencies)))
 
     def decorate(self, namespace: str | Namespace) -> Pipeline:
         nodes: dict[PNode, ProcessorProps] = {}
-        dependencies: dict[PNode, set[PDependency]] = {}
+        dependencies: dict[PNode, oset[PDependency]] = {}
 
         for node, props in self.nodes.items():
             new_node = node.decorate(namespace)
             nodes[new_node] = props
-            dependencies[new_node] = set(
+            dependencies[new_node] = oset(
                 dp.decorate(namespace) if dp not in self.external_dependencies else dp
                 for dp in self.dependencies[node]
             )
@@ -234,12 +246,12 @@ class Pipeline:
     @cached_property
     def all_dependencies(self) -> AbstractSet[PDependency]:
         """All dependencies gathered from all nodes in the pipeline."""
-        return frozenset(dp for dps in self.dependencies.values() for dp in dps)
+        return oset(dp for dps in self.dependencies.values() for dp in dps)
 
     @cached_property
     def external_dependencies(self) -> AbstractSet[PDependency]:
         """Dependencies that point to other nodes not from the pipeline."""
-        return frozenset(dp for dp in self.all_dependencies if dp.node not in self.nodes)
+        return oset(dp for dp in self.all_dependencies if dp.node not in self.nodes)
 
     @cached_property
     def internal_dependencies(self) -> AbstractSet[PDependency]:
@@ -250,19 +262,19 @@ class Pipeline:
     def hanging_dependencies(self) -> AbstractSet[PDependency]:
         """Dependencies that do not have an external PNode assigned."""
         # TODO: need to fix this convention; we should no longer add empty dependencies
-        return frozenset(dp for dp in self.all_dependencies if dp.node is None)
+        return oset(dp for dp in self.all_dependencies if dp.node is None)
 
     def unprovided_inputs_for_node(self, node: PNode) -> AbstractSet[str]:
         node_props = self.nodes[node]
-        required_in_port_names = frozenset(node_props.sig)
-        provided_in_port_names = frozenset(d.in_arg.name for d in self.dependencies[node])
+        required_in_port_names = oset(node_props.sig)
+        provided_in_port_names = oset(d.in_arg.name for d in self.dependencies[node])
         return required_in_port_names - provided_in_port_names
 
     @cached_property
     def unprovided_inputs(self) -> AbstractSet[Tuple[PNode, str]]:
-        return frozenset.union(
+        return oset.union(
             *(
-                frozenset(((pnode, port) for port in self.unprovided_inputs_for_node(pnode)))
+                oset(((pnode, port) for port in self.unprovided_inputs_for_node(pnode)))
                 for pnode in self.nodes
             ),
         )
@@ -270,7 +282,7 @@ class Pipeline:
     @cached_property
     def start_nodes(self) -> AbstractSet[PNode]:
         """Nodes with input ports that do not have corresponding dependencies."""
-        return frozenset(n for n, _ in self.unprovided_inputs)
+        return oset(n for n, _ in self.unprovided_inputs)
 
     @cached_property
     def end_nodes(self) -> AbstractSet[PNode]:
@@ -279,7 +291,7 @@ class Pipeline:
 
     def history(self, node: PNode) -> Pipeline:
         nodes: dict[PNode, ProcessorProps] = {node: self.nodes[node]}
-        dependencies: dict[PNode, AbstractSet[PDependency]] = {node: self.dependencies[node]}
+        dependencies: dict[PNode, oset[PDependency]] = {node: self.dependencies[node]}
         frontier: set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
 
         while frontier:
