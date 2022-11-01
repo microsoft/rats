@@ -6,7 +6,7 @@ from ._processor import Annotations, IGetParams, InMethod, InParameter, IProcess
 from ._training import FitAndEvaluateBuilders, ScatterGatherBuilders
 from ._utils import NoOp, TailPipelineClient
 from ._ux import Workflow, WorkflowClient
-from ._viz import dag_to_svg, workflow_to_svg
+from ._viz import dag_to_svg, display_dag, workflow_to_svg
 from ._workflow_session_client import WorkflowRunner
 
 __all__ = [
@@ -37,5 +37,6 @@ __all__ = [
     "WorkflowClient",
     "dag_to_svg",
     "workflow_to_svg",
+    "display_dag",
     "WorkflowRunner",
 ]

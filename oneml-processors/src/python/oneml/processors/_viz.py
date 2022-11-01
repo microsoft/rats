@@ -116,3 +116,9 @@ def dag_to_svg(pipeline: Pipeline) -> bytes:
 def workflow_to_svg(workflow: Workflow) -> bytes:
     dot = workflow_to_dot(workflow)
     return dot.create(format="svg")
+
+
+def display_dag(workflow: Workflow, **kwds: Any) -> None:
+    from IPython.display import SVG, display  # type: ignore
+
+    display(SVG(workflow_to_svg(workflow, **kwds)))
