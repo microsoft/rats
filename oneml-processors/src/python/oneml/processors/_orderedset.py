@@ -38,7 +38,6 @@ class orderedset(Hashable, AbstractSet[_T_co], Generic[_T_co]):
         ...
 
     def __eq__(self, __o: Any) -> bool:
-        assert isinstance(__o, self.__class__)
         return self.__class__ == __o.__class__ and tuple(self._d.keys()) == tuple(__o._d.keys())
 
     def __hash__(self) -> int:
