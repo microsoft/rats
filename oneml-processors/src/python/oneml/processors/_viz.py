@@ -113,12 +113,14 @@ def dag_to_svg(pipeline: Pipeline) -> bytes:
     return dot.create(format="svg")
 
 
-def workflow_to_svg(workflow: Workflow) -> bytes:
-    dot = workflow_to_dot(workflow)
-    return dot.create(format="svg")
+def display_dag(workflow: Workflow, format: str = "png", **kwds: Any) -> None:
+    from IPython.display import SVG, Image, display  # type: ignore
 
+    if format == "png":
+        display_class = Image
+    elif format == "svg":
+        display_class = SVG
+    else:
+        raise ValueError(f"Unsupported format {format}. Supported formats are png and svg.")
 
-def display_dag(workflow: Workflow, **kwds: Any) -> None:
-    from IPython.display import SVG, display  # type: ignore
-
-    display(SVG(workflow_to_svg(workflow, **kwds)))
+    display(display_class(workflow_to_dot(workflow, **kwds).create(format=format)))
