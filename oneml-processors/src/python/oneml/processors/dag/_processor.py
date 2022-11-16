@@ -8,7 +8,7 @@ from enum import Enum
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
 from typing import Any, Callable, Hashable, Mapping, Protocol, final
 
-from ._frozendict import MappingProtocol
+from ..utils._frozendict import MappingProtocol
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ class IGetParams(MappingProtocol[str, Any], Hashable, Protocol):
 
 
 class _empty:
-    """Marker object for InParameter.empty."""
+    """Marker object for InProcessorParam.empty."""
 
 
 class InMethod(Enum):
@@ -39,7 +39,7 @@ class InMethod(Enum):
     process = 1
 
 
-class Parameter(ABC):
+class ProcessorParam(ABC):
     name: str
     annotation: Any
 
@@ -49,7 +49,7 @@ class Parameter(ABC):
 
 @final
 @dataclass(frozen=True, slots=True)
-class InParameter(Parameter):
+class InProcessorParam(ProcessorParam):
     POSITIONAL_ONLY = _POSITIONAL_ONLY
     POSITIONAL_OR_KEYWORD = _POSITIONAL_OR_KEYWORD
     VAR_POSITIONAL = _VAR_POSITIONAL
@@ -66,13 +66,13 @@ class InParameter(Parameter):
 
 @final
 @dataclass(frozen=True)
-class OutParameter(Parameter):
+class OutProcessorParam(ProcessorParam):
     name: str
     annotation: type
     empty: Any = _empty
 
-    def to_inparameter(self, in_method: InMethod = InMethod.process) -> InParameter:
-        return InParameter(
+    def to_inparameter(self, in_method: InMethod = InMethod.process) -> InProcessorParam:
+        return InProcessorParam(
             self.name,
             self.annotation,
             in_method=in_method,
@@ -97,9 +97,9 @@ class Annotations:
         exclude_self: bool = True,
         exclude_var_positional: bool = False,
         exclude_var_keyword: bool = False,
-    ) -> dict[str, InParameter]:
+    ) -> dict[str, InProcessorParam]:
         return {
-            k: InParameter(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
+            k: InProcessorParam(p.name, p.annotation, in_method, p.kind, p.default, p.empty)
             for k, p in signature(method, eval_str=True).parameters.items()
             if not (k == "self" and exclude_self)
             and not (p.kind == p.VAR_POSITIONAL and exclude_var_positional)
@@ -108,7 +108,7 @@ class Annotations:
         }
 
     @classmethod
-    def get_return_annotation(cls, method: Callable[..., Any]) -> Mapping[str, OutParameter]:
+    def get_return_annotation(cls, method: Callable[..., Any]) -> Mapping[str, OutProcessorParam]:
         """Evaluates return annotation given object type and method.
 
         Object type is needed to load the corresponding module for the evaluation of annotations in
@@ -121,10 +121,12 @@ class Annotations:
             ra = signature(method).return_annotation
             output = ra if isinstance(ra, type) else cls._eval_annotation(method.__module__, ra)
         annotations = output.__annotations__ if output else {}
-        return {k: OutParameter(k, ann) for k, ann in annotations.items()}
+        return {k: OutProcessorParam(k, ann) for k, ann in annotations.items()}
 
     @classmethod
-    def get_processor_signature(cls, processor_type: type[IProcess]) -> dict[str, InParameter]:
+    def get_processor_signature(
+        cls, processor_type: type[IProcess]
+    ) -> dict[str, InProcessorParam]:
         # Classes that inherit from Protocol and do not override __init__, have an __init__ set by
         # in Protocol.__init_subclass__ to a function in the typing module.  That function accepts
         # *args and **kwargs, but in runtime, no contructor parameters are allowed.

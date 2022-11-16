@@ -5,17 +5,20 @@ import numpy.typing as npt
 import pytest
 
 from oneml.processors import (
+    DAG,
+    DagDependency,
+    DagNode,
     IGetParams,
     InMethod,
+    InProcessorParam,
     IProcess,
     Namespace,
+    OutProcessorParam,
     ParamsRegistry,
-    PDependency,
-    Pipeline,
     PipelineSessionProvider,
+    ProcessorProps,
     frozendict,
 )
-from oneml.processors._pipeline import InParameter, OutParameter, PNode, ProcessorProps
 
 ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": npt.NDArray[np.float64]})
 ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"output": npt.NDArray[np.float64]})
@@ -50,79 +53,75 @@ right_config: IGetParams = frozendict(storage=storage, url="b")
 
 
 @pytest.fixture
-def simple_pipeline() -> Pipeline:
-    left_arr = PNode("left_arr")
-    right_arr = PNode("right_arr")
-    multiply = PNode("multiply")
+def simple_pipeline() -> DAG:
+    left_arr = DagNode("left_arr")
+    right_arr = DagNode("right_arr")
+    multiply = DagNode("multiply")
     nodes = {
         left_arr: ProcessorProps(ArrayReader, left_config),
         right_arr: ProcessorProps(ArrayReader, right_config),
         multiply: ProcessorProps(ArrayDotProduct),
     }
-    dependencies: dict[PNode, set[PDependency]] = {
-        multiply: set(
-            (
-                PDependency(
-                    left_arr,
-                    in_arg=InParameter("left", npt.NDArray[np.float64], InMethod.process),
-                    out_arg=OutParameter("array", npt.NDArray[np.float64]),
-                ),
-                PDependency(
-                    right_arr,
-                    in_arg=InParameter("right", npt.NDArray[np.float64], InMethod.process),
-                    out_arg=OutParameter("array", npt.NDArray[np.float64]),
-                ),
-            )
+    dependencies: dict[DagNode, tuple[DagDependency, ...]] = {
+        multiply: (
+            DagDependency(
+                left_arr,
+                in_arg=InProcessorParam("left", npt.NDArray[np.float64], InMethod.process),
+                out_arg=OutProcessorParam("array", npt.NDArray[np.float64]),
+            ),
+            DagDependency(
+                right_arr,
+                in_arg=InProcessorParam("right", npt.NDArray[np.float64], InMethod.process),
+                out_arg=OutProcessorParam("array", npt.NDArray[np.float64]),
+            ),
         )
     }
 
-    return Pipeline(nodes, dependencies)
+    return DAG(nodes, dependencies)
 
 
 @pytest.fixture
-def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
+def complex_pipeline(simple_pipeline: DAG) -> DAG:
     p1 = simple_pipeline.decorate(Namespace("p1"))
     p2 = simple_pipeline.decorate(Namespace("p2"))
     p3 = simple_pipeline.decorate(Namespace("p3"))
-    concat_node = PNode("array_concat")
+    concat_node = DagNode("array_concat")
     concat_nodes = {concat_node: ProcessorProps(SumArrays)}
-    concat_dps: dict[PNode, set[PDependency]] = {
-        concat_node: set(
-            (
-                PDependency(
-                    PNode("multiply", Namespace("p1")),
-                    in_arg=InParameter(
-                        "arrays",
-                        npt.NDArray[np.float64],
-                        InMethod.process,
-                        InParameter.VAR_POSITIONAL,
-                    ),
-                    out_arg=OutParameter("output", npt.NDArray[np.float64]),
+    concat_dps: dict[DagNode, tuple[DagDependency, ...]] = {
+        concat_node: (
+            DagDependency(
+                DagNode("multiply", Namespace("p1")),
+                in_arg=InProcessorParam(
+                    "arrays",
+                    npt.NDArray[np.float64],
+                    InMethod.process,
+                    InProcessorParam.VAR_POSITIONAL,
                 ),
-                PDependency(
-                    PNode("multiply", Namespace("p2")),
-                    in_arg=InParameter(
-                        "arrays",
-                        npt.NDArray[np.float64],
-                        InMethod.process,
-                        InParameter.VAR_POSITIONAL,
-                    ),
-                    out_arg=OutParameter("output", npt.NDArray[np.float64]),
+                out_arg=OutProcessorParam("output", npt.NDArray[np.float64]),
+            ),
+            DagDependency(
+                DagNode("multiply", Namespace("p2")),
+                in_arg=InProcessorParam(
+                    "arrays",
+                    npt.NDArray[np.float64],
+                    InMethod.process,
+                    InProcessorParam.VAR_POSITIONAL,
                 ),
-                PDependency(
-                    PNode("multiply", Namespace("p3")),
-                    in_arg=InParameter(
-                        "arrays",
-                        npt.NDArray[np.float64],
-                        InMethod.process,
-                        InParameter.VAR_POSITIONAL,
-                    ),
-                    out_arg=OutParameter("output", npt.NDArray[np.float64]),
+                out_arg=OutProcessorParam("output", npt.NDArray[np.float64]),
+            ),
+            DagDependency(
+                DagNode("multiply", Namespace("p3")),
+                in_arg=InProcessorParam(
+                    "arrays",
+                    npt.NDArray[np.float64],
+                    InMethod.process,
+                    InProcessorParam.VAR_POSITIONAL,
                 ),
-            )
+                out_arg=OutProcessorParam("output", npt.NDArray[np.float64]),
+            ),
         )
     }
-    concat_pipeline = Pipeline(concat_nodes, concat_dps)
+    concat_pipeline = DAG(concat_nodes, concat_dps)
     return p1 + p2 + p3 + concat_pipeline
 
 
@@ -131,11 +130,11 @@ def params_registry() -> ParamsRegistry:
     return ParamsRegistry()
 
 
-def test_simple_pipeline(simple_pipeline: Pipeline, params_registry: ParamsRegistry) -> None:
+def test_simple_pipeline(simple_pipeline: DAG, params_registry: ParamsRegistry) -> None:
     session = PipelineSessionProvider.get_session(simple_pipeline, params_registry)
     session.run()
 
 
-def test_complex_pipeline(complex_pipeline: Pipeline, params_registry: ParamsRegistry) -> None:
+def test_complex_pipeline(complex_pipeline: DAG, params_registry: ParamsRegistry) -> None:
     session = PipelineSessionProvider.get_session(complex_pipeline, params_registry)
     session.run()

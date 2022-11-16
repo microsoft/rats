@@ -16,32 +16,32 @@ from oneml.pipelines.session import (
     PipelineSessionClient,
 )
 
-from ._pipeline import PDependency, Pipeline, PNode, ProcessorProps
-from ._processor import InMethod, InParameter, IProcess
+from ._dag import DAG, DagDependency, DagNode, ProcessorProps
+from ._processor import InMethod, InProcessorParam, IProcess
 
 logger = logging.getLogger(__name__)
 
 
 class P2Pipeline:
     @staticmethod
-    def node(node: PNode) -> PipelineNode:
+    def node(node: DagNode) -> PipelineNode:
         return PipelineNode(repr(node))
 
     @classmethod
-    def data_dp(cls, node: PNode, in_name: str, out_name: str) -> PipelineDataDependency[Any]:
+    def data_dp(cls, node: DagNode, in_name: str, out_name: str) -> PipelineDataDependency[Any]:
         in_port: PipelinePort[Any] = PipelinePort(in_name)
         out_port: PipelinePort[Any] = PipelinePort(out_name)
         return PipelineDataDependency(P2Pipeline.node(node), out_port, in_port)
 
     @classmethod
     def data_dependencies(
-        cls, dependencies: Iterable[PDependency]
+        cls, dependencies: Iterable[DagDependency]
     ) -> tuple[PipelineDataDependency[Any], ...]:
         if any(dp.node is None for dp in dependencies):
             raise ValueError("Trying to convert a hanging depencency.")
 
         data_dps: list[PipelineDataDependency[Any]] = []
-        grouped_dps: defaultdict[str, list[PDependency]] = defaultdict(list)
+        grouped_dps: defaultdict[str, list[DagDependency]] = defaultdict(list)
         for k, g in groupby(dependencies, key=lambda dp: dp.in_arg.name):
             grouped_dps[k].extend(list(g))
 
@@ -61,7 +61,7 @@ class DataClient:
         self._input_client = input_client
         self._output_client = output_client
 
-    def load(self, param: InParameter) -> Any:
+    def load(self, param: InProcessorParam) -> Any:
         p = re.compile(rf"^{param.name}:(\d+)")
         gathered_inputs = [
             (s, int(match.group(1)))  # converts to integer
@@ -84,7 +84,7 @@ class DataClient:
 
     def load_parameters(
         self,
-        parameters: Mapping[str, InParameter],
+        parameters: Mapping[str, InProcessorParam],
         in_method: InMethod,
         exclude: Sequence[str] = (),
     ) -> tuple[Sequence[Any], Mapping[str, Any]]:
@@ -110,13 +110,13 @@ class DataClient:
 
 
 class SessionExecutableProvider(IPipelineSessionExecutable):
-    _node: PNode
+    _node: DagNode
     _props: ProcessorProps
     _kwargs: dict[str, Any]
 
     def __init__(
         self,
-        node: PNode,
+        node: DagNode,
         props: ProcessorProps,
         **kwargs: Any,
     ) -> None:
@@ -182,20 +182,20 @@ class PipelineSessionProvider:
     @classmethod
     def get_session(
         cls,
-        pipeline: Pipeline,
+        dag: DAG,
         params_registry: ParamsRegistry,  # TODO: this should come from session_client
     ) -> PipelineSessionClient:
         builder = PipelineBuilderFactory().get_instance()
 
-        for node in pipeline.nodes:
+        for node in dag.nodes:
             builder.add_node(P2Pipeline.node(node))
-            props = pipeline.nodes[node]
+            props = dag.nodes[node]
             # TODO: grab items from params_registry
 
             sess_executable = SessionExecutableProvider(node=node, props=props)
             builder.add_executable(P2Pipeline.node(node), sess_executable)
 
-        for node, dependencies in pipeline.dependencies.items():
+        for node, dependencies in dag.dependencies.items():
             builder.add_data_dependencies(
                 P2Pipeline.node(node), P2Pipeline.data_dependencies(dependencies)
             )

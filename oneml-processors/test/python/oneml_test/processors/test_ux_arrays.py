@@ -8,9 +8,9 @@ from oneml.processors import (
     IGetParams,
     IProcess,
     ParamsRegistry,
-    Workflow,
-    WorkflowClient,
-    WorkflowRunner,
+    Pipeline,
+    PipelineBuilder,
+    PipelineRunner,
     frozendict,
 )
 
@@ -73,12 +73,12 @@ def right_config(storage: dict[str, npt.NDArray[np.float64]]) -> IGetParams:
 
 # PIPELINE
 @pytest.fixture(scope="module")
-def workflow(left_config: IGetParams, right_config: IGetParams) -> Workflow:
-    left_reader = WorkflowClient.task("left_reader", ArrayReader, left_config)
-    right_reader = WorkflowClient.task("right_reader", ArrayReader, right_config)
-    product = WorkflowClient.task("array_product", ArrayProduct)
+def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
+    left_reader = PipelineBuilder.task("left_reader", ArrayReader, left_config)
+    right_reader = PipelineBuilder.task("right_reader", ArrayReader, right_config)
+    product = PipelineBuilder.task("array_product", ArrayProduct)
 
-    w1 = WorkflowClient.combine(
+    w1 = PipelineBuilder.combine(
         left_reader,
         right_reader,
         product,
@@ -90,7 +90,7 @@ def workflow(left_config: IGetParams, right_config: IGetParams) -> Workflow:
         ),
         name="w1",
     )
-    w2 = WorkflowClient.combine(
+    w2 = PipelineBuilder.combine(
         left_reader,
         right_reader,
         product,
@@ -102,7 +102,7 @@ def workflow(left_config: IGetParams, right_config: IGetParams) -> Workflow:
         ),
         name="w2",
     )
-    w3 = WorkflowClient.combine(
+    w3 = PipelineBuilder.combine(
         left_reader,
         right_reader,
         product,
@@ -114,8 +114,8 @@ def workflow(left_config: IGetParams, right_config: IGetParams) -> Workflow:
         ),
         name="w3",
     )
-    sum_arrays = WorkflowClient.task("sum_arrays", SumArrays)
-    return WorkflowClient.combine(
+    sum_arrays = PipelineBuilder.task("sum_arrays", SumArrays)
+    return PipelineBuilder.combine(
         sum_arrays,
         w1,
         w2,
@@ -136,8 +136,8 @@ def params_registry() -> ParamsRegistry:
     return ParamsRegistry()
 
 
-def test_final_workflow(workflow: Workflow, params_registry: ParamsRegistry) -> None:
-    runner = WorkflowRunner(workflow, params_registry)
+def test_final_pipeline(pipeline: Pipeline, params_registry: ParamsRegistry) -> None:
+    runner = PipelineRunner(pipeline, params_registry)
     outputs = runner()
     assert len(set(outputs)) == 1
     assert outputs["result"] == -1800
@@ -145,5 +145,5 @@ def test_final_workflow(workflow: Workflow, params_registry: ParamsRegistry) -> 
 
 # Fails on devops b/c the graphviz binary is not available.
 # TODO: install graphviz on build machines?
-# def test_viz(workflow: Workflow) -> None:
-#     workflow_to_svg(workflow)
+# def test_viz(pipeline: Pipeline) -> None:
+#     pipeline_to_svg(pipeline)

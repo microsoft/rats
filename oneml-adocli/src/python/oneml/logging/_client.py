@@ -1,7 +1,7 @@
 import logging.config
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Protocol, Any, Dict, Iterable
+from typing import Any, Dict, Protocol
 
 
 @dataclass(frozen=True)

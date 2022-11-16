@@ -1,7 +1,7 @@
 # type: ignore
 from typing import Any, Mapping
 
-from ._pipeline import IExpandPipeline, IPrunePipeline, Namespace, PDependency, Pipeline, PNode
+from ._dag import DAG, DagDependency, DagNode, IExpandDag, IPruneDag, Namespace
 from ._processor import IProcess, Provider
 
 T = Mapping[str, Any]  # mapping for processor inputs and outputs
@@ -22,23 +22,23 @@ class DataSplitter(IProcess):
         return self._num_folds
 
 
-class XValTrain(IExpandPipeline):
-    _pipeline: Pipeline
+class XValTrain(IExpandDag):
+    _dag: DAG
     _data_splitter: DataSplitter
     _summary: Provider
 
-    def __init__(self, num_folds: int, data_splitter: DataSplitter, pipeline: Pipeline) -> None:
+    def __init__(self, num_folds: int, data_splitter: DataSplitter, dag: DAG) -> None:
         super().__init__()
         self._data_splitter = data_splitter
         self._summary = Provider()
-        self._pipeline = pipeline
+        self._dag = dag
 
-    def expand(self) -> Pipeline:
+    def expand(self) -> DAG:
         kfolds = []
-        datasplit = PNode("data_splitter")
-        tail_dependencies: tuple[PDependency, ...] = ()
+        datasplit = DagNode("data_splitter")
+        tail_dependencies: tuple[DagDependency, ...] = ()
         # insert datasplit onto external dependencies
-        new_pipeline = self._pipeline.substitute_external_dependencies(datasplit)
+        new_pipeline = self._dag.substitute_external_dependencies(datasplit)
         for k in range(self.num_folds):
             ns = Namespace(f"fold{k}")
             new_kfold = new_pipeline.decorate(ns)  # decorate each kfold
@@ -48,11 +48,11 @@ class XValTrain(IExpandPipeline):
                 new_kfold = new_kfold.pop(new_kfold.end_nodes[0])
             kfolds.append(new_kfold)
 
-        folds_pipeline: Pipeline = sum(kfolds, start=Pipeline())  # merge kfold
-        tail = PNode("summary")  # create new tail for xval_train pipeline
-        datasplit_and_tail_pipeline = Pipeline(  # create new pipeline w/ datasplit and summary
+        folds_pipeline: DAG = sum(kfolds, start=DAG())  # merge kfold
+        tail = DagNode("summary")  # create new tail for xval_train dag
+        datasplit_and_tail_pipeline = DAG(  # create new dag w/ datasplit and summary
             {datasplit: self._data_splitter, tail: self._summary},
-            {datasplit: self._pipeline.external_dependencies, tail: tail_dependencies},
+            {datasplit: self._dag.external_dependencies, tail: tail_dependencies},
         )
 
         return folds_pipeline + datasplit_and_tail_pipeline
@@ -62,23 +62,23 @@ class XValTrain(IExpandPipeline):
         return self._data_splitter.num_folds
 
 
-class XValEval(IPrunePipeline):
-    _xval_train: Pipeline
+class XValEval(IPruneDag):
+    _xval_train: DAG
     _summary: Provider
 
-    def __init__(self, xval_train: Pipeline) -> None:
+    def __init__(self, xval_train: DAG) -> None:
         super().__init__()
         self._xval_train = xval_train
         self._summary = Provider()
 
-    def prune(self) -> Pipeline:
-        prune_pipeline: tuple[Pipeline, ...] = ()
+    def prune(self) -> DAG:
+        prune_pipeline: tuple[DAG, ...] = ()
         train_ns = Namespace("train")
         for node, provider in self._xval_train.nodes.items():
             if train_ns in node.namespace:
-                prune_pipeline += (Pipeline({node: provider}),)
+                prune_pipeline += (DAG({node: provider}),)
 
-        datasplit = PNode("data_splitter")
+        datasplit = DagNode("data_splitter")
         datasplit_dps = self._xval_train.dependencies[datasplit]  # get datasplit dependencies
         new_pipeline = self._xval_train.pop(datasplit)  # remove datasplit
         for node, dps in new_pipeline.dependencies.items():
@@ -87,4 +87,4 @@ class XValEval(IPrunePipeline):
                 newds = tuple(dp for dp in (set(dps) | set(datasplit_dps)) if dp.node != datasplit)
                 new_pipeline.dependencies[node] = newds
 
-        return new_pipeline - sum(prune_pipeline, start=Pipeline())
+        return new_pipeline - sum(prune_pipeline, start=DAG())

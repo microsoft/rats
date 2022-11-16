@@ -131,6 +131,9 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
         return self.__class__(new_d)
 
 
+fdict = frozendict
+
+
 class MappingProtocol(Protocol[_KT, _VT]):
     """Mapping as a protocol."""
 

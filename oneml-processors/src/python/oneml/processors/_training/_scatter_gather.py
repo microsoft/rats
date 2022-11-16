@@ -1,25 +1,25 @@
 from collections import ChainMap
 from typing import Optional, Sequence, Tuple
 
-from .._frozendict import frozendict
-from .._orderedset import oset
-from ..ux._client import WorkflowClient
-from ..ux._workflow import Workflow
+from ..utils._frozendict import frozendict
+from ..utils._orderedset import oset
+from ..ux._client import PipelineBuilder
+from ..ux._pipeline import Pipeline
 
 
 class ScatterGatherBuilders:
-    """Builders for workflows that follow a scatter-process-gather pattern."""
+    """Builders for pipelines that follow a scatter-process-gather pattern."""
 
     @classmethod
     def build(
-        cls, name: str, scatter: Workflow, process_batch: Workflow, gather: Workflow
-    ) -> Workflow:
+        cls, name: str, scatter: Pipeline, process_batch: Pipeline, gather: Pipeline
+    ) -> Pipeline:
         """
         Args:
-            name: name for the built workflow.
-            scatter: a workflow that takes inputs and splits them into K batches.
-            process_batch: a workflow to be applied to each batch.
-            gather: a workflow that takes K batches of inputs and combines them.
+            name: name for the built pipeline.
+            scatter: a pipeline that takes inputs and splits them into K batches.
+            process_batch: a pipeline to be applied to each batch.
+            gather: a pipeline that takes K batches of inputs and combines them.
 
         Scatter outputs names are expected to correspond to process_batch inputs names as follows:
         * Each outputs name of scatter should be composed of an inputs name of gather followed by a
@@ -27,14 +27,14 @@ class ScatterGatherBuilders:
         * The serial numbers form the batch ids.  The set of batch ids should be identical fro all
           outputs of scatter.
 
-        The inputs of scatter become inputs of the ScatterGather workflow.
-        The outputs of gather become outputs of the ScatterGather workflow.
+        The inputs of scatter become inputs of the ScatterGather pipeline.
+        The outputs of gather become outputs of the ScatterGather pipeline.
 
         Each inputs name of process_batch can be:
         * A prefix of scatter outputs names as explained above.  For each batch, the value for that
           inputs will come from the corresponding outputs of scatter.
         * Not a prefix of scatter outputs names.  In this case it is assumed to be
-          batch-independent.  It will become an inputs of the ScatterGather workflow, and all
+          batch-independent.  It will become an inputs of the ScatterGather pipeline, and all
           batches will receive the same value for that inputs.
 
         For every outputs name A of process_batch, gather should either have
@@ -53,18 +53,18 @@ class ScatterGatherBuilders:
                 batch_keys, oset(process_batch.outputs), oset(gather.inputs)
             )
         )
-        batch_workflows = frozendict[int, Workflow](
+        batch_pipelines = frozendict[int, Pipeline](
             {
-                batch_key: WorkflowClient.combine(
-                    process_batch, name=cls._get_batch_workflow_name(batch_key)
+                batch_key: PipelineBuilder.combine(
+                    process_batch, name=cls._get_batch_pipeline_name(batch_key)
                 )
                 for batch_key in batch_keys
             }
         )
-        w = WorkflowClient.combine(
+        w = PipelineBuilder.combine(
             scatter,
             gather,
-            *batch_workflows.values(),
+            *batch_pipelines.values(),
             name=name,
             dependencies=(
                 tuple(
@@ -72,14 +72,14 @@ class ScatterGatherBuilders:
                         scatter.outputs[
                             batch_input_and_batch_key_to_scatter_output[port_name][batch_key]
                         ]
-                        >> batch_workflows[batch_key].inputs[port_name]
+                        >> batch_pipelines[batch_key].inputs[port_name]
                     )
                     for port_name in batch_input_and_batch_key_to_scatter_output
                     for batch_key in batch_keys
                 )
                 + tuple(
                     (
-                        batch_workflows[batch_key].outputs[port_name]
+                        batch_pipelines[batch_key].outputs[port_name]
                         >> gather.inputs[gather_port_mapping[batch_key]]
                     )
                     for port_name, gather_port_mapping in (
@@ -93,7 +93,7 @@ class ScatterGatherBuilders:
                     {port_name: scatter.inputs[port_name] for port_name in scatter.inputs},
                     {
                         port_name
-                        + f".n{batch_key}": batch_workflows[batch_key].inputs[port_name][
+                        + f".n{batch_key}": batch_pipelines[batch_key].inputs[port_name][
                             "batch_process"
                         ]
                         for port_name in process_batch.inputs
@@ -107,7 +107,7 @@ class ScatterGatherBuilders:
         return w
 
     @classmethod
-    def _get_batch_workflow_name(cls, batch_key: int) -> str:
+    def _get_batch_pipeline_name(cls, batch_key: int) -> str:
         return f"batch_{batch_key:03d}"
 
     @classmethod

@@ -123,7 +123,7 @@ class PersistSubgraphForInputPorts:
 
 
 class Estimator(DAG):
-    """A FitAndEvaluate pipeline that outputs a DAG encoding the trained evaluation pipeline.
+    """A FitAndEvaluate dag that outputs a DAG encoding the trained evaluation dag.
 
     Args:
         fit_and_evaluate: a DAG with two sets of input ports and two sets of output ports

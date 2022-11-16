@@ -4,8 +4,8 @@ from typing import Any, Literal, Mapping, Set
 
 import pydot
 
-from ._pipeline import Pipeline
-from .ux._workflow import InWorkflowParam, OutWorkflowParam, Workflow
+from ..ux._pipeline import InParameter, OutParameter, Pipeline
+from ._dag import DAG
 
 
 class DotBuilder:
@@ -23,13 +23,13 @@ class DotBuilder:
         if name not in self._node_name_mapping:
             self._node_name_mapping[name] = str(len(self._node_name_mapping))
 
-    def _add_pipeline(self, pipeline: Pipeline) -> None:
-        for node in pipeline.nodes:
+    def _add_pipeline(self, dag: DAG) -> None:
+        for node in dag.nodes:
             name = repr(node)
             self._add_name_to_mapping(name)
-            in_arguments = pipeline.nodes[node].inputs
+            in_arguments = dag.nodes[node].inputs
             inputs = self._format_arguments(in_arguments, "i")
-            out_arguments = pipeline.nodes[node].outputs
+            out_arguments = dag.nodes[node].outputs
             outputs = self._format_arguments(out_arguments, "o")
 
             label = f"{{{{{inputs}}}|{name}|{{{outputs}}}}}"
@@ -38,7 +38,7 @@ class DotBuilder:
                 pydot.Node(name=node_name, label=label, shape="Mrecord", color="blue")
             )
 
-        for node, dps in pipeline.dependencies.items():
+        for node, dps in dag.dependencies.items():
             name = repr(node)
             for dp in dps:
                 dp_name = repr(dp.node)
@@ -54,7 +54,7 @@ class DotBuilder:
                 target = self._node_name_mapping[name] + f":i_{out_arg}"
                 self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_inputs(self, inputs: Mapping[str, Set[InWorkflowParam]]) -> None:
+    def _add_inputs(self, inputs: Mapping[str, Set[InParameter]]) -> None:
         name = "inputs"
         self._add_name_to_mapping(name)
         outputs = self._format_arguments(inputs, "o")
@@ -70,7 +70,7 @@ class DotBuilder:
                 target = self._node_name_mapping[repr(task.node)] + f":i_{task.param}"
                 self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_outputs(self, outputs: Mapping[str, Set[OutWorkflowParam]]) -> None:
+    def _add_outputs(self, outputs: Mapping[str, Set[OutParameter]]) -> None:
         name = "outputs"
         self._add_name_to_mapping(name)
         inputs = self._format_arguments(outputs, "i")
@@ -86,33 +86,33 @@ class DotBuilder:
                 target = self._node_name_mapping[name] + f":i_{output}"
                 self._g.add_edge(pydot.Edge(source, target))
 
-    def add_workflow(self, workflow: Workflow) -> None:
-        self._add_pipeline(workflow.pipeline)
-        self._add_inputs({n: set(params.values()) for n, params in workflow.inputs.items()})
-        self._add_outputs({n: set(params.values()) for n, params in workflow.outputs.items()})
+    def add_pipeline(self, pipeline: Pipeline) -> None:
+        self._add_pipeline(pipeline.dag)
+        self._add_inputs({n: set(params.values()) for n, params in pipeline.inputs.items()})
+        self._add_outputs({n: set(params.values()) for n, params in pipeline.outputs.items()})
 
     def get_dot(self) -> pydot.Dot:  # type: ignore[no-any-unimported]
         return self._g
 
 
-def dag_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
+def dag_to_dot(dag: DAG) -> pydot.Dot:  # type: ignore[no-any-unimported]
     builder = DotBuilder()
-    builder._add_pipeline(pipeline)
+    builder._add_pipeline(dag)
     return builder.get_dot()
 
 
-def workflow_to_dot(workflow: Workflow) -> pydot.Dot:  # type: ignore[no-any-unimported]
+def pipeline_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
     builder = DotBuilder()
-    builder.add_workflow(workflow)
+    builder.add_pipeline(pipeline)
     return builder.get_dot()
 
 
-def dag_to_svg(pipeline: Pipeline) -> bytes:
-    dot = dag_to_dot(pipeline)
+def dag_to_svg(dag: DAG) -> bytes:
+    dot = dag_to_dot(dag)
     return dot.create(format="svg")
 
 
-def display_dag(workflow: Workflow, format: str = "png", **kwds: Any) -> None:
+def display_dag(pipeline: Pipeline, format: str = "png", **kwds: Any) -> None:
     from IPython.display import SVG, Image, display  # type: ignore
 
     if format == "png":
@@ -122,4 +122,4 @@ def display_dag(workflow: Workflow, format: str = "png", **kwds: Any) -> None:
     else:
         raise ValueError(f"Unsupported format {format}. Supported formats are png and svg.")
 
-    display(display_class(workflow_to_dot(workflow, **kwds).create(format=format)))
+    display(display_class(pipeline_to_dot(pipeline, **kwds).create(format=format)))

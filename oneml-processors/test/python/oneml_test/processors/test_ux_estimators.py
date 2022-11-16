@@ -7,13 +7,13 @@ from typing import TypedDict
 import pytest
 
 from oneml.processors import (
-    CombinedWorkflow,
+    CombinedPipeline,
     IProcess,
     ParamsRegistry,
+    Pipeline,
+    PipelineRunner,
     RegistryId,
     Task,
-    Workflow,
-    WorkflowRunner,
 )
 from oneml.processors.ml import Estimator
 
@@ -125,13 +125,13 @@ def call_log() -> defaultdict[str, int]:
 
 
 @pytest.fixture
-def standardization() -> Workflow:
+def standardization() -> Pipeline:
     standardize_train = Task(StandardizeTrain)
     standardize_eval = Task(StandardizeEval)
     e = Estimator(
         name="standardization",
-        train_wf=standardize_train,
-        eval_wf=standardize_eval,
+        train_pipeline=standardize_train,
+        eval_pipeline=standardize_eval,
         shared_params=(
             standardize_eval.inputs.mean << standardize_train.outputs.mean,
             standardize_eval.inputs.scale << standardize_train.outputs.scale,
@@ -141,14 +141,14 @@ def standardization() -> Workflow:
 
 
 @pytest.fixture
-def logistic_regression() -> Workflow:
+def logistic_regression() -> Pipeline:
     model_train = Task(ModelTrain)
     model_eval = Task(ModelEval)
 
     e = Estimator(
         name="logistic_regression",
-        train_wf=model_train,
-        eval_wf=model_eval,
+        train_pipeline=model_train,
+        eval_pipeline=model_eval,
         shared_params=(model_eval.inputs.model << model_train.outputs.model,),
     )
     return e
@@ -156,12 +156,12 @@ def logistic_regression() -> Workflow:
 
 #######
 
-# STANDARDIZED LR WORKFLOW
+# STANDARDIZED LR PIPELINE
 
 
 @pytest.fixture
-def standardized_lr(standardization: Workflow, logistic_regression: Workflow) -> Workflow:
-    e = CombinedWorkflow(
+def standardized_lr(standardization: Pipeline, logistic_regression: Pipeline) -> Pipeline:
+    e = CombinedPipeline(
         standardization,
         logistic_regression,
         inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y},
@@ -180,24 +180,24 @@ def standardized_lr(standardization: Workflow, logistic_regression: Workflow) ->
 
 
 @pytest.fixture
-def report1() -> Workflow:
+def report1() -> Pipeline:
     return Task(ReportGenerator, "report1")
 
 
 @pytest.fixture
-def report2() -> Workflow:
+def report2() -> Pipeline:
     return Task(ReportGenerator, "report2")
 
 
 def test_standardized_lr(
     call_log: defaultdict[str, int],
-    standardized_lr: Workflow,
+    standardized_lr: Pipeline,
     params_registry: ParamsRegistry,
 ) -> None:
     assert len(call_log) == 0
-    runner = WorkflowRunner(standardized_lr, params_registry)
+    runner = PipelineRunner(standardized_lr, params_registry)
     outputs = runner(
-        name="wf",
+        name="pl",
         train_inputs=dict(X=ArrayMock("X1"), Y=ArrayMock("Y1")),
         eval_inputs=dict(X=ArrayMock("X2"), Y=ArrayMock("Y2")),
     )
@@ -209,7 +209,7 @@ def test_standardized_lr(
     assert str(outputs["scale"]) == "scale(X1)"
     assert str(outputs["model"]) == "Model((X1-mean(X1))/scale(X1) ; Y1)"
     assert (
-        str(outputs["probs"]["/wf/standardized_lr/logistic_regression/eval/ModelEval"])
+        str(outputs["probs"]["/pl/standardized_lr/logistic_regression/eval/ModelEval"])
         == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1))"
     )
     assert (
@@ -217,31 +217,31 @@ def test_standardized_lr(
         == "acc(Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1)), Y2)"
     )
     assert (
-        str(outputs["probs"]["/wf/standardized_lr/logistic_regression/train/ModelTrain"])
+        str(outputs["probs"]["/pl/standardized_lr/logistic_regression/train/ModelTrain"])
         == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X1-mean(X1))/scale(X1))"
     )
 
 
 def test_single_output_multiple_input(
-    standardized_lr: Workflow, report1: Workflow, report2: Workflow
+    standardized_lr: Pipeline, report1: Pipeline, report2: Pipeline
 ) -> None:
-    reports = CombinedWorkflow(
+    reports = CombinedPipeline(
         report1,
         report2,
         name="reports",
         inputs={"acc._report1": report1.inputs.acc, "acc._report2": report2.inputs.acc},
     )
-    wf = CombinedWorkflow(
+    pl = CombinedPipeline(
         standardized_lr,
         reports,
-        name="wf",
+        name="pl",
         dependencies=(reports.inputs.acc << standardized_lr.outputs.acc,),
     )
-    assert len(wf.inputs) == 2
-    assert len(wf.outputs) == 4
+    assert len(pl.inputs) == 2
+    assert len(pl.outputs) == 4
 
 
 # Fails on devops b/c the graphviz binary is not available.
 # TODO: install graphviz on build machines?
-# def test_viz(standardized_lr: Workflow) -> None:
-#     workflow_to_svg(standardized_lr)
+# def test_viz(standardized_lr: Pipeline) -> None:
+#     pipeline_to_svg(standardized_lr)

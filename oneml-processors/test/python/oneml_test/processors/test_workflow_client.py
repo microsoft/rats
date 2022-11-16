@@ -1,4 +1,4 @@
-"""These tests are copies of the examples in the docstrings of WorkflowClient methods."""
+"""These tests are copies of the examples in the docstrings of PipelineBuilder methods."""
 
 from typing import Dict, TypedDict, TypeVar
 
@@ -7,9 +7,9 @@ import pytest
 from oneml.processors import (
     Dependency,
     IProcess,
-    OutParameter,
-    Workflow,
-    WorkflowClient,
+    OutProcessorParam,
+    Pipeline,
+    PipelineBuilder,
     frozendict,
 )
 
@@ -29,7 +29,7 @@ class Standardize(IProcess):
 
 
 def test_predefined_standardize() -> None:
-    predefined_standardize = WorkflowClient.task(
+    predefined_standardize = PipelineBuilder.task(
         name="standardize",
         processor_type=Standardize,
         params_getter=frozendict(shift=10.0, scale=2.0),
@@ -40,42 +40,42 @@ def test_predefined_standardize() -> None:
 
 
 def test_eval_standardize() -> None:
-    eval_standardize = WorkflowClient.task(name="standardize", processor_type=Standardize)
+    eval_standardize = PipelineBuilder.task(name="standardize", processor_type=Standardize)
 
     assert set(eval_standardize.inputs) == set(("shift", "scale", "X"))
     assert set(eval_standardize.outputs) == set(("Z", "shift", "scale"))
 
 
-def test_single_workflowparams_assignments() -> None:
-    train_standardize = WorkflowClient.task(
+def test_single_pipelineparams_assignments() -> None:
+    train_standardize = PipelineBuilder.task(
         name="train",
         processor_type=Standardize,
         params_getter=frozendict(shift=10.0, scale=2.0),
     )
-    eval_standardize = WorkflowClient.task(name="eval", processor_type=Standardize)
+    eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
 
-    # Tests InWorkflowParamCollection << OutWorkflowParamCollection assignments
+    # Tests InParamCollection << OutParamCollection assignments
     dp = eval_standardize.inputs.shift << train_standardize.outputs.shift
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
     with pytest.raises(TypeError):
         eval_standardize.inputs.shift >> train_standardize.outputs.shift  # type: ignore
 
-    # Tests InWorkflowParam << OutWorkflowParam assignament
+    # Tests InParameter << OutParameter assignament
     dp = eval_standardize.inputs.shift.eval << train_standardize.outputs.shift.train
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
     with pytest.raises(TypeError):
         eval_standardize.inputs.shift.eval >> train_standardize.outputs.shift.train  # type: ignore
 
-    # Tests OutWorkflowParamCollection >> InWorkflowParamCollection assignments
+    # Tests OutParamCollection >> InParamCollection assignments
     dp = train_standardize.outputs.scale >> eval_standardize.inputs.scale
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
     with pytest.raises(TypeError):
         train_standardize.outputs.scale << eval_standardize.inputs.scale  # type: ignore
 
-    # Tests OutWorkflowParam >> InWorkflowParam assignments
+    # Tests OutParameter >> InParameter assignments
     dp = train_standardize.outputs.scale.train >> eval_standardize.inputs.scale.eval
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
@@ -83,35 +83,35 @@ def test_single_workflowparams_assignments() -> None:
         train_standardize.outputs.scale.train << eval_standardize.inputs.scale.eval  # type: ignore
 
 
-def test_mixed_workflowparams_assignments() -> None:
-    train_standardize = WorkflowClient.task(
+def test_mixed_pipelineparams_assignments() -> None:
+    train_standardize = PipelineBuilder.task(
         name="train",
         processor_type=Standardize,
         params_getter=frozendict(shift=10.0, scale=2.0),
     )
-    eval_standardize = WorkflowClient.task(name="eval", processor_type=Standardize)
+    eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
 
     with pytest.raises(ValueError):  # not supported
-        eval_standardize.inputs.shift.eval << train_standardize.outputs.shift
+        eval_standardize.inputs.shift.eval << train_standardize.outputs.shift  # type: ignore
 
     with pytest.raises(ValueError):  # not supported
-        train_standardize.outputs.shift >> eval_standardize.inputs.shift.eval
+        train_standardize.outputs.shift >> eval_standardize.inputs.shift.eval  # type: ignore
 
     with pytest.raises(ValueError):  # not supported
-        eval_standardize.inputs.shift << train_standardize.outputs.shift.train
+        eval_standardize.inputs.shift << train_standardize.outputs.shift.train  # type: ignore
 
     with pytest.raises(ValueError):  # not supported
-        train_standardize.outputs.shift.train >> eval_standardize.inputs.shift
+        train_standardize.outputs.shift.train >> eval_standardize.inputs.shift  # type: ignore
 
 
-def test_collection_workflowparams_assignments() -> None:
-    train_standardize = WorkflowClient.task(
+def test_collection_pipelineparams_assignments() -> None:
+    train_standardize = PipelineBuilder.task(
         name="train",
         processor_type=Standardize,
         params_getter=frozendict(shift=10.0, scale=2.0),
     )
-    eval_standardize = WorkflowClient.task(name="eval", processor_type=Standardize)
-    stz1 = WorkflowClient.combine(
+    eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
+    stz1 = PipelineBuilder.combine(
         train_standardize,
         eval_standardize,
         dependencies=(
@@ -120,7 +120,7 @@ def test_collection_workflowparams_assignments() -> None:
         ),
         name="stz1",
     )
-    stz2 = WorkflowClient.combine(
+    stz2 = PipelineBuilder.combine(
         train_standardize,
         eval_standardize,
         dependencies=(
@@ -130,7 +130,7 @@ def test_collection_workflowparams_assignments() -> None:
         name="stz2",
     )
 
-    # Tests InWorkflowParamCollection << OutWorkflowParamCollection assignments
+    # Tests InParamCollection << OutParamCollection assignments
     dps = stz2.inputs.X << stz1.outputs.Z  # many to many
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
@@ -140,7 +140,7 @@ def test_collection_workflowparams_assignments() -> None:
     with pytest.raises(TypeError):
         stz2.inputs.X >> stz1.outputs.Z  # type: ignore
 
-    # Tests InWorkflowParam << OutWorkflowParam assignments
+    # Tests InParameter << OutParameter assignments
     dp1 = stz2.inputs.X.train << stz1.outputs.Z.train
     dp2 = stz2.inputs.X.eval << stz1.outputs.Z.eval
     assert len(dp1) == 1 and isinstance(dp1[0], Dependency)
@@ -150,7 +150,7 @@ def test_collection_workflowparams_assignments() -> None:
         stz2.inputs.X.train >> stz1.outputs.Z.train  # type: ignore
         stz2.inputs.X.eval >> stz1.outputs.Z.eval  # type: ignore
 
-    # Tests OutWorkflowParamCollection >> InWorkflowParamCollection assignments
+    # Tests OutParamCollection >> InParamCollection assignments
     dps = stz1.outputs.Z >> stz2.inputs.X  # many to many
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
@@ -160,7 +160,7 @@ def test_collection_workflowparams_assignments() -> None:
     with pytest.raises(TypeError):
         stz1.outputs.Z << stz2.inputs.X  # type: ignore
 
-    # Tests OutWorkflowParam >> InWorkflowParam assignments
+    # Tests OutParameter >> InParameter assignments
     dp1 = stz1.outputs.Z.train >> stz2.inputs.X.train
     dp2 = stz1.outputs.Z.eval >> stz2.inputs.X.eval
     assert len(dp1) == 1 and isinstance(dp1[0], Dependency)
@@ -176,9 +176,9 @@ class Scatter:
         self._K = K
 
     @classmethod
-    def get_return_annotation(cls, K: int) -> Dict[str, OutParameter]:
+    def get_return_annotation(cls, K: int) -> Dict[str, OutProcessorParam]:
         out_names = [f"in1_n{k}" for k in range(K)] + [f"in2_n{k}" for k in range(K)]
-        return {out_name: OutParameter(out_name, str) for out_name in out_names}
+        return {out_name: OutProcessorParam(out_name, str) for out_name in out_names}
 
     def process(self, in1: str, in2: str) -> Dict[str, str]:
         return {f"in1_n{k}": f"{in1}_n{k}" for k in range(self._K)} | {
@@ -187,7 +187,7 @@ class Scatter:
 
 
 def test_scatter() -> None:
-    scatter = WorkflowClient.task(
+    scatter = PipelineBuilder.task(
         name="scatter",
         processor_type=Scatter,
         params_getter=frozendict(K=3),
@@ -201,60 +201,60 @@ def test_scatter() -> None:
 
 
 @pytest.fixture
-def w1() -> Workflow:
+def w1() -> Pipeline:
     W1Output = TypedDict("W1Output", {"C": str})
 
     class W1:
         def process(self, A: str, B: str) -> W1Output:
             ...
 
-    return WorkflowClient.task("w1", W1)
+    return PipelineBuilder.task("w1", W1)
 
 
 @pytest.fixture
-def w2() -> Workflow:
+def w2() -> Pipeline:
     W2Output = TypedDict("W2Output", {"E": str, "F": str})
 
     class W2:
         def process(self, D: str) -> W2Output:
             ...
 
-    return WorkflowClient.task("w2", W2)
+    return PipelineBuilder.task("w2", W2)
 
 
 @pytest.fixture
-def w3() -> Workflow:
+def w3() -> Pipeline:
     W3Output = TypedDict("W3Output", {"H": str})
 
     class W3:
         def process(self, A: str, G: str) -> W3Output:
             ...
 
-    return WorkflowClient.task("w3", W3)
+    return PipelineBuilder.task("w3", W3)
 
 
 @pytest.fixture
-def w4() -> Workflow:
+def w4() -> Pipeline:
     W4Output = TypedDict("W4Output", {"E": str})
 
     class W4:
         def process(self, A: str) -> W4Output:
             ...
 
-    return WorkflowClient.task("w4", W4)
+    return PipelineBuilder.task("w4", W4)
 
 
-def test_no_dependencies_default_inputs_and_outputs(w1: Workflow, w2: Workflow) -> None:
-    combined = WorkflowClient.combine(w1, w2, name="combined")
+def test_no_dependencies_default_inputs_and_outputs(w1: Pipeline, w2: Pipeline) -> None:
+    combined = PipelineBuilder.combine(w1, w2, name="combined")
 
     assert set(combined.inputs) == set(("A", "B", "D"))
     assert set(combined.outputs) == set(("C", "E", "F"))
 
 
 def test_with_dependencies_default_inputs_and_outputs(
-    w1: Workflow, w2: Workflow, w3: Workflow
+    w1: Pipeline, w2: Pipeline, w3: Pipeline
 ) -> None:
-    combined = WorkflowClient.combine(
+    combined = PipelineBuilder.combine(
         w1,
         w2,
         w3,
@@ -271,9 +271,9 @@ def test_with_dependencies_default_inputs_and_outputs(
 
 
 def test_with_dependencies_default_inputs_and_outputs_with_shared_input(
-    w1: Workflow, w2: Workflow, w3: Workflow
+    w1: Pipeline, w2: Pipeline, w3: Pipeline
 ) -> None:
-    combined = WorkflowClient.combine(
+    combined = PipelineBuilder.combine(
         w1,
         w2,
         w3,
@@ -289,9 +289,9 @@ def test_with_dependencies_default_inputs_and_outputs_with_shared_input(
 
 
 def test_with_dependencies_inputs_and_outputs_specified(
-    w1: Workflow, w2: Workflow, w3: Workflow, w4: Workflow
+    w1: Pipeline, w2: Pipeline, w3: Pipeline, w4: Pipeline
 ) -> None:
-    combined = WorkflowClient.combine(
+    combined = PipelineBuilder.combine(
         w1,
         w2,
         w3,
@@ -315,9 +315,9 @@ def test_with_dependencies_inputs_and_outputs_specified(
     assert set(combined.outputs) == set(("c", "h", "e"))
 
 
-def test_missing_input_error(w1: Workflow, w2: Workflow) -> None:
+def test_missing_input_error(w1: Pipeline, w2: Pipeline) -> None:
     with pytest.raises(ValueError):
-        _ = WorkflowClient.combine(
+        _ = PipelineBuilder.combine(
             w1,
             w2,
             name="combined",
@@ -325,7 +325,7 @@ def test_missing_input_error(w1: Workflow, w2: Workflow) -> None:
             inputs={"a": w1.inputs.A},
         )
 
-    mitigated_combined = WorkflowClient.combine(
+    mitigated_combined = PipelineBuilder.combine(
         w1,
         w2,
         name="combined",
@@ -340,14 +340,14 @@ def test_missing_input_error(w1: Workflow, w2: Workflow) -> None:
     assert set(mitigated_combined.outputs) == set(("E", "F"))
 
 
-def test_clashing_outputs_error(w2: Workflow, w4: Workflow) -> None:
-    combined = WorkflowClient.combine(w2, w4, name="combined")
+def test_clashing_outputs_error(w2: Pipeline, w4: Pipeline) -> None:
+    combined = PipelineBuilder.combine(w2, w4, name="combined")
     assert set(combined.inputs) == set(("D", "A"))
     assert set(combined.outputs) == set(("F", "E"))
     assert set(combined.outputs.F) == set(("w2",))
     assert set(combined.outputs.E) == set(("w2", "w4"))
 
-    mitigated_combined = WorkflowClient.combine(
+    mitigated_combined = PipelineBuilder.combine(
         w2, w4, name="combined", outputs={"e": w2.outputs.E}
     )
     assert set(mitigated_combined.inputs) == set(("D", "A"))

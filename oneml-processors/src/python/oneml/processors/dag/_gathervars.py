@@ -2,9 +2,9 @@ from enum import Enum
 from inspect import _ParameterKind
 from typing import Any, Mapping, Sequence, TypedDict
 
-from ._orderedset import oset
-from ._pipeline import IExpandPipeline, PDependency, Pipeline, PNode, ProcessorProps
-from ._processor import InMethod, InParameter, IProcess, OutParameter
+from ..utils._orderedset import oset
+from ._dag import DAG, DagDependency, DagNode, IExpandDag, ProcessorProps
+from ._processor import InMethod, InProcessorParam, IProcess, OutProcessorParam
 
 SequenceOutput = TypedDict("SequenceOutput", {"output": Sequence[Any]})
 MappingOutput = TypedDict("MappingOutput", {"output": Mapping[str, Any]})
@@ -60,33 +60,33 @@ GATHERVAR2ARG: Mapping[GatherVarKind, str] = {
 }
 
 GATHERVAR2KIND: Mapping[GatherVarKind, _ParameterKind] = {
-    GatherVarKind.SEQUENCE: InParameter.VAR_POSITIONAL,
-    GatherVarKind.MAPPING: InParameter.VAR_KEYWORD,
-    GatherVarKind.NAMEDTUPLE: InParameter.VAR_KEYWORD,
-    GatherVarKind.DATACLASS: InParameter.VAR_KEYWORD,
+    GatherVarKind.SEQUENCE: InProcessorParam.VAR_POSITIONAL,
+    GatherVarKind.MAPPING: InProcessorParam.VAR_KEYWORD,
+    GatherVarKind.NAMEDTUPLE: InProcessorParam.VAR_KEYWORD,
+    GatherVarKind.DATACLASS: InProcessorParam.VAR_KEYWORD,
 }
 
 
-class GatherVarsPipelineExpander(IExpandPipeline):
-    _pipeline: Pipeline
-    _gathervars: Mapping[PNode, Sequence[tuple[InParameter, GatherVarKind]]]
+class GatherVarsDagExpander(IExpandDag):
+    _dag: DAG
+    _gathervars: Mapping[DagNode, Sequence[tuple[InProcessorParam, GatherVarKind]]]
 
     def __init__(
         self,
-        pipeline: Pipeline,
-        gathervars: Mapping[PNode, Sequence[tuple[InParameter, GatherVarKind]]],
+        dag: DAG,
+        gathervars: Mapping[DagNode, Sequence[tuple[InProcessorParam, GatherVarKind]]],
     ) -> None:
         super().__init__()
-        self._pipeline = pipeline
+        self._dag = dag
         self._gathervars = gathervars
 
     def _add_gathering_node(
         self,
-        pipeline: Pipeline,
-        node: PNode,
-        dependencies: Sequence[PDependency],
+        dag: DAG,
+        node: DagNode,
+        dependencies: Sequence[DagDependency],
         kind: GatherVarKind,
-    ) -> Pipeline:
+    ) -> DAG:
         if not all(dp.node for dp in dependencies):
             dps = tuple(dp for dp in dependencies if not dp.node)
             raise ValueError(f"Trying to gather inputs from hanging dependencies: {dps}.")
@@ -96,16 +96,16 @@ class GatherVarsPipelineExpander(IExpandPipeline):
 
         in_arg, in_arg_ann = dependencies[0].in_arg, dependencies[0].in_arg.annotation
 
-        # create gathering pipeline with gathering node and modifyied dependencies
-        gathering_node = PNode(node.name + ":" + in_arg.name + ":", node.namespace)
-        gathering_nodes: dict[PNode, ProcessorProps] = {
+        # create gathering dag with gathering node and modifyied dependencies
+        gathering_node = DagNode(node.name + ":" + in_arg.name + ":", node.namespace)
+        gathering_nodes: dict[DagNode, ProcessorProps] = {
             gathering_node: ProcessorProps(GATHERVAR2PROCESSOR[kind])
         }
         gathering_dependencies = {
             gathering_node: oset(
-                PDependency(
+                DagDependency(
                     dp.node,
-                    InParameter(
+                    InProcessorParam(
                         GATHERVAR2ARG[kind],
                         Any,
                         InMethod.process,
@@ -116,21 +116,21 @@ class GatherVarsPipelineExpander(IExpandPipeline):
                 for dp in dependencies
             )
         }
-        gathering_pipeline = Pipeline(gathering_nodes, gathering_dependencies)
+        gathering_dag = DAG(gathering_nodes, gathering_dependencies)
 
-        # create new pipeline removing redirected dependencies
-        new_dp = PDependency(gathering_node, in_arg, OutParameter("output", in_arg_ann))
-        new_dependencies = pipeline.dependencies[node] - set(dependencies) | set((new_dp,))
-        new_pipeline = pipeline.set_dependencies(node, new_dependencies)
+        # create new dag removing redirected dependencies
+        new_dp = DagDependency(gathering_node, in_arg, OutProcessorParam("output", in_arg_ann))
+        new_dependencies = dag.dependencies[node] - set(dependencies) | set((new_dp,))
+        new_dag = dag.set_dependencies(node, new_dependencies)
 
-        return new_pipeline + gathering_pipeline  # return joint gathering and modified pipelines
+        return new_dag + gathering_dag  # return joint gathering and modified dags
 
-    def expand(self) -> Pipeline:
-        new_pipeline = self._pipeline
+    def expand(self) -> DAG:
+        new_dag = self._dag
         for node, in_args in self._gathervars.items():
             for in_arg in in_args:
                 param, kind = in_arg
-                dps = tuple(dp for dp in self._pipeline.dependencies[node] if dp.in_arg == param)
-                new_pipeline = self._add_gathering_node(new_pipeline, node, dps, kind)
+                dps = tuple(dp for dp in self._dag.dependencies[node] if dp.in_arg == param)
+                new_dag = self._add_gathering_node(new_dag, node, dps, kind)
 
-        return new_pipeline
+        return new_dag

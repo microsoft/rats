@@ -3,134 +3,137 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Mapping, Sequence, TypeAlias, cast
 
-from .._frozendict import frozendict
-from .._pipeline import PNode
-from .._processor import InParameter, OutParameter, Parameter
-from ._workflow import (
-    InWorkflowParam,
-    InWorkflowParamCollection,
-    OutWorkflowParam,
-    OutWorkflowParamCollection,
-    Workflow,
-    WorkflowInput,
-    WorkflowOutput,
-    WorkflowParam,
-    WorkflowParamCollection,
+from ..dag._dag import DagNode
+from ..dag._processor import InProcessorParam, OutProcessorParam, ProcessorParam
+from ..utils._frozendict import frozendict
+from ._pipeline import (
+    InParamCollection,
+    InParameter,
+    OutParamCollection,
+    OutParameter,
+    Pipeline,
+    PipelineInput,
+    PipelineOutput,
+    PipelineParam,
+    PipelineParamCollection,
 )
 
-UserInput: TypeAlias = Mapping[str, InWorkflowParam | InWorkflowParamCollection]
-UserOutput: TypeAlias = Mapping[str, OutWorkflowParam | OutWorkflowParamCollection]
-PipelineInput: TypeAlias = Mapping[PNode, Mapping[str, InParameter]]
-PipelineOutput: TypeAlias = Mapping[PNode, Mapping[str, OutParameter]]
+UserInput: TypeAlias = Mapping[str, InParameter | InParamCollection]
+UserOutput: TypeAlias = Mapping[str, OutParameter | OutParamCollection]
+DagInput: TypeAlias = Mapping[DagNode, Mapping[str, InProcessorParam]]
+DagOutput: TypeAlias = Mapping[DagNode, Mapping[str, OutProcessorParam]]
 
 
-class WorkflowUtils:
+class PipelineUtils:
     @staticmethod
-    def merge_workflow_inputs(
-        *workflows: Workflow, exclude: Sequence[InWorkflowParam] = ()
-    ) -> WorkflowInput:
+    def merge_pipeline_inputs(
+        *pipelines: Pipeline, exclude: Sequence[InParameter] = ()
+    ) -> PipelineInput:
         params_exclude = tuple((p.node, p.param) for p in exclude)
-        pipeline_input = {
+        dag_input = {
             n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
-            for wf in workflows
-            for n, d in WorkflowIO.workflow_inputs_to_pipeline_inputs(wf.inputs).items()
+            for pl in pipelines
+            for n, d in PipelineIO.pipeline_inputs_to_dag_inputs(pl.inputs).items()
         }
-        return WorkflowIO.pipeline_inputs_to_workflow_inputs(pipeline_input, workflows)
+        return PipelineIO.dag_inputs_to_pipeline_inputs(dag_input, pipelines)
 
     @staticmethod
-    def merge_workflow_outputs(
-        *workflows: Workflow, exclude: Sequence[OutWorkflowParam] = ()
-    ) -> WorkflowOutput:
+    def merge_pipeline_outputs(
+        *pipelines: Pipeline, exclude: Sequence[OutParameter] = ()
+    ) -> PipelineOutput:
         params_exclude = tuple((p.node, p.param) for p in exclude)
-        pipeline_output = {
+        dag_output = {
             n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
-            for wf in workflows
-            for n, d in WorkflowIO.workflow_outputs_to_pipeline_outputs(wf.outputs).items()
+            for pl in pipelines
+            for n, d in PipelineIO.pipeline_outputs_to_dag_outputs(pl.outputs).items()
         }
-        return WorkflowIO.pipeline_outputs_to_workflow_outputs(pipeline_output, workflows)
+        return PipelineIO.dag_outputs_to_pipeline_outputs(dag_output, pipelines)
 
 
-class WorkflowIO:
+class PipelineIO:
     @classmethod
-    def pipeline_inputs_to_workflow_inputs(
-        cls, inputs: PipelineInput, workflows: Sequence[Workflow] = ()
-    ) -> WorkflowInput:
-        io = cls._io2workflow(inputs, workflows, InWorkflowParam, InWorkflowParamCollection)
-        return cast(WorkflowInput, io)
-
-    @classmethod
-    def pipeline_outputs_to_workflow_outputs(
-        cls, outputs: PipelineOutput, workflows: Sequence[Workflow] = ()
-    ) -> WorkflowOutput:
-        io = cls._io2workflow(outputs, workflows, OutWorkflowParam, OutWorkflowParamCollection)
-        return cast(WorkflowOutput, io)
+    def dag_inputs_to_pipeline_inputs(
+        cls, inputs: DagInput, pipelines: Sequence[Pipeline] = ()
+    ) -> PipelineInput:
+        io = cls._io2pipeline(inputs, pipelines, InParameter, InParamCollection)
+        return cast(PipelineInput, io)
 
     @classmethod
-    def user_inputs_to_workflow_inputs(
-        cls, user_input: UserInput, name: str, workflows: Sequence[Workflow]
-    ) -> WorkflowInput:
-        pipeline_input = cls.user_inputs_to_pipeline_inputs(user_input, name)
-        return cls.pipeline_inputs_to_workflow_inputs(pipeline_input, workflows)
+    def dag_outputs_to_pipeline_outputs(
+        cls, outputs: DagOutput, pipelines: Sequence[Pipeline] = ()
+    ) -> PipelineOutput:
+        io = cls._io2pipeline(outputs, pipelines, OutParameter, OutParamCollection)
+        return cast(PipelineOutput, io)
 
     @classmethod
-    def user_outputs_to_workflow_outputs(
-        cls, user_output: UserOutput, name: str, workflows: Sequence[Workflow]
-    ) -> WorkflowOutput:
-        pipeline_output = cls.user_outputs_to_pipeline_outputs(user_output, name)
-        return cls.pipeline_outputs_to_workflow_outputs(pipeline_output, workflows)
+    def user_inputs_to_pipeline_inputs(
+        cls, user_input: UserInput, name: str, pipelines: Sequence[Pipeline]
+    ) -> PipelineInput:
+        dag_input = cls.user_inputs_to_dag_inputs(user_input, name)
+        return cls.dag_inputs_to_pipeline_inputs(dag_input, pipelines)
 
     @classmethod
-    def workflow_inputs_to_pipeline_inputs(cls, inputs: WorkflowInput) -> PipelineInput:
-        pipeline_input = cls._io2pipeline(inputs, InWorkflowParam, InWorkflowParamCollection)
-        return cast(PipelineInput, pipeline_input)
+    def user_outputs_to_pipeline_outputs(
+        cls, user_output: UserOutput, name: str, pipelines: Sequence[Pipeline]
+    ) -> PipelineOutput:
+        dag_output = cls.user_outputs_to_dag_outputs(user_output, name)
+        return cls.dag_outputs_to_pipeline_outputs(dag_output, pipelines)
 
     @classmethod
-    def workflow_outputs_to_pipeline_outputs(cls, outputs: WorkflowOutput) -> PipelineOutput:
-        pipeline_output = cls._io2pipeline(outputs, OutWorkflowParam, OutWorkflowParamCollection)
-        return cast(PipelineOutput, pipeline_output)
+    def pipeline_inputs_to_dag_inputs(cls, inputs: PipelineInput) -> DagInput:
+        dag_input = cls._io2dag(inputs, InParameter, InParamCollection)
+        return cast(DagInput, dag_input)
 
     @classmethod
-    def user_inputs_to_pipeline_inputs(cls, inputs: UserInput, name: str) -> PipelineInput:
-        pipeline_input = cls._io2pipeline(inputs, InWorkflowParam, InWorkflowParamCollection, name)
-        return cast(PipelineInput, pipeline_input)
+    def pipeline_outputs_to_dag_outputs(cls, outputs: PipelineOutput) -> DagOutput:
+        dag_output = cls._io2dag(outputs, OutParameter, OutParamCollection)
+        return cast(DagOutput, dag_output)
 
     @classmethod
-    def user_outputs_to_pipeline_outputs(cls, outputs: UserOutput, name: str) -> PipelineOutput:
-        p_output = cls._io2pipeline(outputs, OutWorkflowParam, OutWorkflowParamCollection, name)
-        return cast(PipelineOutput, p_output)
+    def user_inputs_to_dag_inputs(cls, inputs: UserInput, name: str) -> DagInput:
+        dag_input = cls._io2dag(inputs, InParameter, InParamCollection, name)
+        return cast(DagInput, dag_input)
 
     @classmethod
-    def workflow_inputs_to_user_inputs(cls, inputs: WorkflowInput) -> UserInput:
+    def user_outputs_to_dag_outputs(cls, outputs: UserOutput, name: str) -> DagOutput:
+        p_output = cls._io2dag(outputs, OutParameter, OutParamCollection, name)
+        return cast(DagOutput, p_output)
+
+    @classmethod
+    def pipeline_inputs_to_user_inputs(cls, inputs: PipelineInput) -> UserInput:
         return cast(UserInput, inputs)
 
     @classmethod
-    def workflow_outputs_to_user_outputs(cls, outputs: WorkflowOutput) -> UserOutput:
+    def pipeline_outputs_to_user_outputs(cls, outputs: PipelineOutput) -> UserOutput:
         return cast(UserOutput, outputs)
 
     @classmethod
-    def pipeline_inputs_to_user_inputs(
-        cls, inputs: PipelineInput, workflows: Sequence[Workflow]
+    def dag_inputs_to_user_inputs(
+        cls, inputs: DagInput, pipelines: Sequence[Pipeline]
     ) -> UserInput:
-        workflow_input = cls.pipeline_inputs_to_workflow_inputs(inputs, workflows)
-        return cls.workflow_inputs_to_user_inputs(workflow_input)
+        pipeline_input = cls.dag_inputs_to_pipeline_inputs(inputs, pipelines)
+        return cls.pipeline_inputs_to_user_inputs(pipeline_input)
 
     @classmethod
-    def pipeline_outputs_to_user_outputs(
-        cls, outputs: PipelineOutput, workflows: Sequence[Workflow]
+    def dag_outputs_to_user_outputs(
+        cls, outputs: DagOutput, pipelines: Sequence[Pipeline]
     ) -> UserOutput:
-        workflow_output = cls.pipeline_outputs_to_workflow_outputs(outputs, workflows)
-        return cls.workflow_outputs_to_user_outputs(workflow_output)
+        pipeline_output = cls.dag_outputs_to_pipeline_outputs(outputs, pipelines)
+        return cls.pipeline_outputs_to_user_outputs(pipeline_output)
 
     @staticmethod
-    def _io2workflow(
-        io: Mapping[PNode, Mapping[str, Parameter]],
-        workflows: Sequence[Workflow],
-        param_type: type[WorkflowParam],
-        collection_type: type[WorkflowParamCollection],
-    ) -> frozendict[str, WorkflowParamCollection]:
-        pipeline_parameter_type = {InWorkflowParam: InParameter, OutWorkflowParam: OutParameter}
-        if not all(isinstance(node, PNode) for node in io):
-            raise ValueError("Keys have to be instances of PNode.")
+    def _io2pipeline(
+        io: Mapping[DagNode, Mapping[str, ProcessorParam]],
+        pipelines: Sequence[Pipeline],
+        param_type: type[PipelineParam],
+        collection_type: type[PipelineParamCollection],
+    ) -> frozendict[str, PipelineParamCollection]:
+        pipeline_parameter_type = {
+            InParameter: InProcessorParam,
+            OutParameter: OutProcessorParam,
+        }
+        if not all(isinstance(node, DagNode) for node in io):
+            raise ValueError("Keys have to be instances of DagNode.")
         if not all(
             isinstance(k, str) and isinstance(p, pipeline_parameter_type[param_type])
             for d in io.values()
@@ -144,11 +147,11 @@ class WorkflowIO:
             split = key.split(".")
             return split[0], split[1] if split[1:] else default
 
-        def get_default(node: PNode) -> str:
-            return next(iter(wf.name for wf in workflows if node in wf.pipeline), node.name)
+        def get_default(node: DagNode) -> str:
+            return next(iter(pl.name for pl in pipelines if node in pl.dag), node.name)
 
         names: set[str] = set()
-        spaces: dict[PNode, str] = {}
+        spaces: dict[DagNode, str] = {}
         counter: defaultdict[tuple[str, str], int] = defaultdict(int)
         for n, in_params in io.items():
             for k in in_params:
@@ -172,13 +175,13 @@ class WorkflowIO:
         return frozendict(sig)
 
     @staticmethod
-    def _io2pipeline(
-        io: Mapping[str, WorkflowParam | WorkflowParamCollection],
-        param_type: type[WorkflowParam],
-        collection_type: type[WorkflowParamCollection],
+    def _io2dag(
+        io: Mapping[str, PipelineParam | PipelineParamCollection],
+        param_type: type[PipelineParam],
+        collection_type: type[PipelineParamCollection],
         name: str = "",
-    ) -> Mapping[PNode, Mapping[str, Parameter]]:
-        pipeline_io: defaultdict[PNode, dict[str, Parameter]] = defaultdict(dict)
+    ) -> Mapping[DagNode, Mapping[str, ProcessorParam]]:
+        pipeline_io: defaultdict[DagNode, dict[str, ProcessorParam]] = defaultdict(dict)
         for k, params in io.items():
             if isinstance(params, param_type):
                 pipeline_io[params.node.decorate(name)].update({k: params.param})

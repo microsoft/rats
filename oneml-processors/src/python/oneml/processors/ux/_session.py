@@ -4,13 +4,13 @@ from typing import Any, Iterable, Iterator, Mapping
 
 from oneml.pipelines.session import PipelinePort, PipelineSessionClient
 
-from ._client import P2Pipeline, ParamsRegistry, PipelineSessionProvider
-from ._frozendict import frozendict
-from ._pipeline import PNode
-from ._processor import IProcess, OutParameter
-from .ml import Estimator
-from .ux._client import CombinedWorkflow, Task
-from .ux._workflow import Workflow
+from ..dag._client import P2Pipeline, ParamsRegistry, PipelineSessionProvider
+from ..dag._dag import DagNode
+from ..dag._processor import IProcess, OutProcessorParam
+from ..ml import Estimator
+from ..utils._frozendict import frozendict
+from ._client import CombinedPipeline, Task
+from ._pipeline import Pipeline
 
 
 class InputDataProcessor(IProcess):
@@ -21,23 +21,23 @@ class InputDataProcessor(IProcess):
         return self._data
 
     @staticmethod
-    def get_return_annotation(**inputs: Any) -> Mapping[str, OutParameter]:
-        return {k: OutParameter(k, type(v)) for k, v in inputs.items()}
+    def get_return_annotation(**inputs: Any) -> Mapping[str, OutProcessorParam]:
+        return {k: OutProcessorParam(k, type(v)) for k, v in inputs.items()}
 
 
 class SessionOutputsGetter(Iterable[str]):
-    def __init__(self, workflow: Workflow, session: PipelineSessionClient) -> None:
-        self._workflow = workflow
+    def __init__(self, pipeline: Pipeline, session: PipelineSessionClient) -> None:
+        self._pipeline = pipeline
         self._session = session
 
     def __getitem__(self, key: str) -> Any:
-        def get_param(node: PNode, param: OutParameter) -> Any:
+        def get_param(node: DagNode, param: OutProcessorParam) -> Any:
             pipeline_node = P2Pipeline.node(node)
             pipeline_port = PipelinePort[Any](param.name)
             output_client = self._session.node_data_client_factory().get_instance(pipeline_node)
             return output_client.get_data(pipeline_port)
 
-        out_params = self._workflow.outputs[key]
+        out_params = self._pipeline.outputs[key]
         if len(out_params) == 1:
             p = next(iter(out_params.values()))
             return get_param(p.node, p.param)
@@ -48,20 +48,20 @@ class SessionOutputsGetter(Iterable[str]):
         return self[key]
 
     def __iter__(self) -> Iterator[str]:
-        yield from self._workflow.outputs
+        yield from self._pipeline.outputs
 
 
-class WorkflowRunner:
+class PipelineRunner:
     def __init__(
-        self, workflow: Workflow, params_registry: ParamsRegistry = ParamsRegistry()
+        self, pipeline: Pipeline, params_registry: ParamsRegistry = ParamsRegistry()
     ) -> None:
-        self._workflow = workflow
+        self._pipeline = pipeline
         self._params_registry = params_registry
 
     def _data_estimator(
         self, train_inputs: dict[str, Any], eval_inputs: dict[str, Any]
-    ) -> Workflow:
-        wfs = tuple(
+    ) -> Pipeline:
+        pls = tuple(
             Task(
                 InputDataProcessor,
                 name=k,
@@ -72,28 +72,28 @@ class WorkflowRunner:
             if train_inputs and eval_inputs
         )
         return (
-            Estimator(name="data", train_wf=wfs[0], eval_wf=wfs[1])
+            Estimator(name="data", train_pipeline=pls[0], eval_pipeline=pls[1])
             if train_inputs and eval_inputs
-            else Workflow("data")
+            else Pipeline("data")
         )
 
     def __call__(
-        self, name: str = "wf", train_inputs: dict[str, Any] = {}, eval_inputs: dict[str, Any] = {}
+        self, name: str = "pl", train_inputs: dict[str, Any] = {}, eval_inputs: dict[str, Any] = {}
     ) -> SessionOutputsGetter:
         data_estimator = self._data_estimator(train_inputs, eval_inputs)
-        workflow = CombinedWorkflow(
+        pipeline = CombinedPipeline(
             data_estimator,
-            self._workflow,
+            self._pipeline,
             inputs={},
-            outputs=self._workflow.outputs,
+            outputs=self._pipeline.outputs,
             dependencies=(
                 tuple(
-                    getattr(data_estimator.outputs, param) >> getattr(self._workflow.inputs, param)
+                    getattr(data_estimator.outputs, param) >> getattr(self._pipeline.inputs, param)
                     for param in train_inputs
                 )
             ),
             name=name,
         )
-        session = PipelineSessionProvider.get_session(workflow.pipeline, self._params_registry)
+        session = PipelineSessionProvider.get_session(pipeline.dag, self._params_registry)
         session.run()
-        return SessionOutputsGetter(workflow, session)
+        return SessionOutputsGetter(pipeline, session)

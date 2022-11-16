@@ -5,16 +5,16 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Any, ItemsView, Iterator, KeysView, Mapping, TypeAlias, ValuesView, final
 
-from .._frozendict import frozendict
-from .._pipeline import Pipeline, PNode
-from .._processor import InParameter, OutParameter, Parameter
+from ..dag._dag import DAG, DagNode
+from ..dag._processor import InProcessorParam, OutProcessorParam, ProcessorParam
+from ..utils._frozendict import frozendict
 
 
 @final
 @dataclass(frozen=True)
 class Dependency:
-    in_param: InWorkflowParam
-    out_param: OutWorkflowParam
+    in_param: InParameter
+    out_param: OutParameter
 
     def __repr__(self) -> str:
         return f"{repr(self.in_param)} <- {repr(self.out_param)}"
@@ -24,15 +24,15 @@ class Dependency:
 
 
 @dataclass(frozen=True)
-class WorkflowParam(ABC):
-    node: PNode
-    param: Parameter
+class PipelineParam(ABC):
+    node: DagNode
+    param: ProcessorParam
 
     def __post_init__(self) -> None:
-        if not isinstance(self.node, PNode):
-            raise ValueError("node has to be PNode.")
-        if not isinstance(self.param, Parameter):
-            raise ValueError("param has to be Parameter.")
+        if not isinstance(self.node, DagNode):
+            raise ValueError("node has to be DagNode.")
+        if not isinstance(self.param, ProcessorParam):
+            raise ValueError("param has to be ProcessorParam.")
 
     def __contains__(self, other: Any) -> bool:
         return other == self.param.name if isinstance(other, str) else other == self.param
@@ -40,25 +40,25 @@ class WorkflowParam(ABC):
     def __repr__(self) -> str:
         return f"({repr(self.node)}) {repr(self.param)}"
 
-    def decorate(self, name: str) -> WorkflowParam:
+    def decorate(self, name: str) -> PipelineParam:
         return self.__class__(self.node.decorate(name), self.param)
 
 
 @final
 @dataclass(frozen=True)
-class InWorkflowParam(WorkflowParam):
-    param: InParameter
+class InParameter(PipelineParam):
+    param: InProcessorParam
 
     def __post_init__(self) -> None:
-        if not isinstance(self.param, InParameter):
-            raise ValueError("param has to be InParameter.")
+        if not isinstance(self.param, InProcessorParam):
+            raise ValueError("param has to be InProcessorParam.")
         super().__post_init__()
 
-    def decorate(self, name: str) -> InWorkflowParam:
+    def decorate(self, name: str) -> InParameter:
         return self.__class__(self.node.decorate(name), self.param)
 
-    def __lshift__(self, other: OutWorkflowParam) -> tuple[Dependency]:
-        if not isinstance(other, OutWorkflowParam):
+    def __lshift__(self, other: OutParameter) -> tuple[Dependency]:
+        if not isinstance(other, OutParameter):
             raise ValueError("Not assinging outputs to inputs.")
 
         dp = Dependency(self, other)
@@ -67,19 +67,19 @@ class InWorkflowParam(WorkflowParam):
 
 @final
 @dataclass(frozen=True)
-class OutWorkflowParam(WorkflowParam):
-    param: OutParameter
+class OutParameter(PipelineParam):
+    param: OutProcessorParam
 
     def __post_init__(self) -> None:
-        if not isinstance(self.param, OutParameter):
-            raise ValueError("param has to be OutParameter.")
+        if not isinstance(self.param, OutProcessorParam):
+            raise ValueError("param has to be OutProcessorParam.")
         super().__post_init__()
 
-    def decorate(self, name: str) -> OutWorkflowParam:
+    def decorate(self, name: str) -> OutParameter:
         return self.__class__(self.node.decorate(name), self.param)
 
-    def __rshift__(self, other: InWorkflowParam) -> tuple[Dependency]:
-        if not isinstance(other, InWorkflowParam):
+    def __rshift__(self, other: InParameter) -> tuple[Dependency]:
+        if not isinstance(other, InParameter):
             raise ValueError("Not assinging outputs to inputs.")
 
         dp = Dependency(other, self)
@@ -87,16 +87,16 @@ class OutWorkflowParam(WorkflowParam):
 
 
 @dataclass(frozen=True)
-class WorkflowParamCollection(ABC):
-    collection: Mapping[str, WorkflowParam]
+class PipelineParamCollection(ABC):
+    collection: Mapping[str, PipelineParam]
 
     def __contains__(self, other: Any) -> bool:
         return other in self.collection if isinstance(other, str) else False
 
-    def __getattr__(self, key: str) -> WorkflowParam:
+    def __getattr__(self, key: str) -> PipelineParam:
         return self.collection[key]
 
-    def __getitem__(self, key: str) -> WorkflowParam:
+    def __getitem__(self, key: str) -> PipelineParam:
         return self.collection[key]
 
     def __iter__(self) -> Iterator[str]:
@@ -111,43 +111,43 @@ class WorkflowParamCollection(ABC):
     def keys(self) -> KeysView[str]:
         return self.collection.keys()
 
-    def decorate(self, name: str) -> WorkflowParamCollection:
+    def decorate(self, name: str) -> PipelineParamCollection:
         return self.__class__({k: v.decorate(name) for k, v in self.collection.items()})
 
-    def values(self) -> ValuesView[WorkflowParam]:
+    def values(self) -> ValuesView[PipelineParam]:
         return self.collection.values()
 
-    def items(self) -> ItemsView[str, WorkflowParam]:
+    def items(self) -> ItemsView[str, PipelineParam]:
         return self.collection.items()
 
 
 @final
 @dataclass(frozen=True, init=False)
-class InWorkflowParamCollection(WorkflowParamCollection):
-    collection: dict[str, InWorkflowParam]
+class InParamCollection(PipelineParamCollection):
+    collection: dict[str, InParameter]
 
     def __post_init__(self) -> None:
-        if not all(isinstance(v, InWorkflowParam) for v in self.collection.values()):
-            raise ValueError("Collection values have to be InWorkflowParam's.")
+        if not all(isinstance(v, InParameter) for v in self.collection.values()):
+            raise ValueError("Collection values have to be InParameter's.")
 
-    def __getattr__(self, key: str) -> InWorkflowParam:
+    def __getattr__(self, key: str) -> InParameter:
         return self.collection[key]
 
-    def __getitem__(self, key: str) -> InWorkflowParam:
+    def __getitem__(self, key: str) -> InParameter:
         return self.collection[key]
 
-    def decorate(self, name: str) -> InWorkflowParamCollection:
+    def decorate(self, name: str) -> InParamCollection:
         return self.__class__({k: v.decorate(name) for k, v in self.collection.items()})
 
-    def values(self) -> ValuesView[InWorkflowParam]:
+    def values(self) -> ValuesView[InParameter]:
         return self.collection.values()
 
-    def items(self) -> ItemsView[str, InWorkflowParam]:
+    def items(self) -> ItemsView[str, InParameter]:
         return self.collection.items()
 
-    def __lshift__(self, other: OutWorkflowParamCollection) -> tuple[Dependency, ...]:
-        if not isinstance(other, OutWorkflowParamCollection):
-            raise ValueError("Dependency assignment only accepts OutWorkflowParamCollection's.")
+    def __lshift__(self, other: OutParamCollection) -> tuple[Dependency, ...]:
+        if not isinstance(other, OutParamCollection):
+            raise ValueError("Dependency assignment only accepts OutParamCollection's.")
 
         self_counts = Counter(in_space for in_space in self.collection)
         other_counts = Counter(out_space for out_space in other.collection)
@@ -168,31 +168,31 @@ class InWorkflowParamCollection(WorkflowParamCollection):
 
 @final
 @dataclass(frozen=True)
-class OutWorkflowParamCollection(WorkflowParamCollection):
-    collection: dict[str, OutWorkflowParam]
+class OutParamCollection(PipelineParamCollection):
+    collection: dict[str, OutParameter]
 
     def __post_init__(self) -> None:
-        if not all(isinstance(v, OutWorkflowParam) for v in self.collection.values()):
-            raise ValueError("Collection values have to be OutWorkflowParam's.")
+        if not all(isinstance(v, OutParameter) for v in self.collection.values()):
+            raise ValueError("Collection values have to be OutParameter's.")
 
-    def __getattr__(self, key: str) -> OutWorkflowParam:
+    def __getattr__(self, key: str) -> OutParameter:
         return self.collection[key]
 
-    def __getitem__(self, key: str) -> OutWorkflowParam:
+    def __getitem__(self, key: str) -> OutParameter:
         return self.collection[key]
 
-    def decorate(self, name: str) -> OutWorkflowParamCollection:
+    def decorate(self, name: str) -> OutParamCollection:
         return self.__class__({k: v.decorate(name) for k, v in self.collection.items()})
 
-    def values(self) -> ValuesView[OutWorkflowParam]:
+    def values(self) -> ValuesView[OutParameter]:
         return self.collection.values()
 
-    def items(self) -> ItemsView[str, OutWorkflowParam]:
+    def items(self) -> ItemsView[str, OutParameter]:
         return self.collection.items()
 
-    def __rshift__(self, other: InWorkflowParamCollection) -> tuple[Dependency, ...]:
-        if not isinstance(other, InWorkflowParamCollection):
-            raise ValueError("Dependency assignment only accepts InWorkflowParamCollection's.")
+    def __rshift__(self, other: InParamCollection) -> tuple[Dependency, ...]:
+        if not isinstance(other, InParamCollection):
+            raise ValueError("Dependency assignment only accepts InParamCollection's.")
 
         self_counts = Counter(out_space for out_space in self.collection)
         other_counts = Counter(in_space for in_space in other.collection)
@@ -211,37 +211,36 @@ class OutWorkflowParamCollection(WorkflowParamCollection):
         )
 
 
-WorkflowInput: TypeAlias = frozendict[str, InWorkflowParamCollection]
-WorkflowOutput: TypeAlias = frozendict[str, OutWorkflowParamCollection]
+PipelineInput: TypeAlias = frozendict[str, InParamCollection]
+PipelineOutput: TypeAlias = frozendict[str, OutParamCollection]
 
 
 @dataclass(frozen=True)
-class Workflow:
+class Pipeline:
     name: str
-    pipeline: Pipeline = Pipeline()
-    inputs: WorkflowInput = frozendict()
-    outputs: WorkflowOutput = frozendict()
+    dag: DAG = DAG()
+    inputs: PipelineInput = frozendict()
+    outputs: PipelineOutput = frozendict()
 
     def __post_init__(self) -> None:
         if not isinstance(self.name, str) or len(self.name) == 0:
-            raise ValueError("Missing workflow name.")
-        if not isinstance(self.pipeline, Pipeline):
-            raise ValueError(f"{self.pipeline} must be an instance of Pipeline.")
+            raise ValueError("Missing pipeline name.")
+        if not isinstance(self.dag, DAG):
+            raise ValueError(f"{self.dag} must be an instance of DAG.")
         if not all(
-            isinstance(k, str) and isinstance(v, InWorkflowParamCollection)
-            for k, v in self.inputs.items()
+            isinstance(k, str) and isinstance(v, InParamCollection) for k, v in self.inputs.items()
         ):
-            raise ValueError("inputs should be `frozendict[str, InWorkflowParamCollection`.")
+            raise ValueError("inputs should be `frozendict[str, InParamCollection`.")
         if not all(
-            isinstance(k, str) and isinstance(v, OutWorkflowParamCollection)
+            isinstance(k, str) and isinstance(v, OutParamCollection)
             for k, v in self.outputs.items()
         ):
-            raise ValueError("outputs should be `frozendict[str, OutWorkflowParamCollection`.")
+            raise ValueError("outputs should be `frozendict[str, OutParamCollection`.")
 
-    def __contains__(self, node: PNode) -> bool:
-        return node in self.pipeline
+    def __contains__(self, node: DagNode) -> bool:
+        return node in self.dag
 
-    def decorate(self, name: str) -> Workflow:
-        inputs: WorkflowInput = frozendict({k: v.decorate(name) for k, v in self.inputs.items()})
-        output: WorkflowOutput = frozendict({k: v.decorate(name) for k, v in self.outputs.items()})
-        return Workflow(name, self.pipeline.decorate(name), inputs, output)
+    def decorate(self, name: str) -> Pipeline:
+        inputs: PipelineInput = frozendict({k: v.decorate(name) for k, v in self.inputs.items()})
+        output: PipelineOutput = frozendict({k: v.decorate(name) for k, v in self.outputs.items()})
+        return Pipeline(name, self.dag.decorate(name), inputs, output)

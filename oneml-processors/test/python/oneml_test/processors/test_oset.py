@@ -1,4 +1,4 @@
-from oneml.processors._orderedset import oset
+from oneml.processors import oset
 
 
 def test_oset_eq() -> None:

@@ -2,11 +2,11 @@ from typing import Any, Dict, TypedDict
 
 from oneml.processors import (
     InputDataProcessor,
-    OutParameter,
+    OutProcessorParam,
+    Pipeline,
+    PipelineBuilder,
+    PipelineRunner,
     ScatterGatherBuilders,
-    Workflow,
-    WorkflowClient,
-    WorkflowRunner,
     frozendict,
 )
 
@@ -16,9 +16,9 @@ class Scatter:
         self._K = K
 
     @classmethod
-    def get_return_annotation(cls, K: int) -> Dict[str, OutParameter]:
+    def get_return_annotation(cls, K: int) -> Dict[str, OutProcessorParam]:
         out_names = [f"in1_{k}" for k in range(K)] + [f"in2_{k}" for k in range(K)]
-        return {out_name: OutParameter(out_name, str) for out_name in out_names}
+        return {out_name: OutProcessorParam(out_name, str) for out_name in out_names}
 
     def process(self, in1: str, in2: str) -> Dict[str, Any]:
         return {f"in1_{k}": f"{in1}_{k}" for k in range(self._K)} | {
@@ -26,8 +26,8 @@ class Scatter:
         }
 
 
-def get_scatter_workflow(K: int) -> Workflow:
-    return WorkflowClient.task(
+def get_scatter_pipeline(K: int) -> Pipeline:
+    return PipelineBuilder.task(
         "scatter", Scatter, frozendict(K=K), return_annotation=Scatter.get_return_annotation(K)
     )
 
@@ -40,8 +40,8 @@ class BatchProcess:
         return BatchProcessOutput(out12=in1 + "*" + in2, out23=in2 + "*" + in3)
 
 
-def get_batch_process_workflow() -> Workflow:
-    return WorkflowClient.task("batch_process", BatchProcess)
+def get_batch_process_pipeline() -> Pipeline:
+    return PipelineBuilder.task("batch_process", BatchProcess)
 
 
 ConcatStringsAsLinesOutput = TypedDict("ConcatStringsAsLinesOutput", {"out": str})
@@ -52,61 +52,61 @@ class ConcatStringsAsLines:
         return ConcatStringsAsLinesOutput(out="\n".join(inp))
 
 
-def get_concat_strings_as_lines_workflow(port_name: str) -> Workflow:
-    w = WorkflowClient.task(f"concat_{port_name}", ConcatStringsAsLines)
-    w = WorkflowClient.combine(
+def get_concat_strings_as_lines_pipeline(port_name: str) -> Pipeline:
+    w = PipelineBuilder.task(f"concat_{port_name}", ConcatStringsAsLines)
+    w = PipelineBuilder.combine(
         w, name=w.name, inputs={port_name: w.inputs.inp}, outputs={port_name: w.outputs.out}
     )
     return w
 
 
-def get_gather_workflow() -> Workflow:
-    return WorkflowClient.combine(
-        get_concat_strings_as_lines_workflow("out12"),
-        get_concat_strings_as_lines_workflow("out23"),
+def get_gather_pipeline() -> Pipeline:
+    return PipelineBuilder.combine(
+        get_concat_strings_as_lines_pipeline("out12"),
+        get_concat_strings_as_lines_pipeline("out23"),
         name="gather",
     )
 
 
-def get_data_workflow() -> Workflow:
-    in1 = WorkflowClient.task(
+def get_data_pipeline() -> Pipeline:
+    in1 = PipelineBuilder.task(
         "in1",
         InputDataProcessor,
         params_getter=frozendict(data={"in1": "IN1"}),
         return_annotation=InputDataProcessor.get_return_annotation(in1="IN1"),
     )
-    in2 = WorkflowClient.task(
+    in2 = PipelineBuilder.task(
         "in2",
         InputDataProcessor,
         params_getter=frozendict(data={"in2": "IN2"}),
         return_annotation=InputDataProcessor.get_return_annotation(in2="IN2"),
     )
-    in3 = WorkflowClient.task(
+    in3 = PipelineBuilder.task(
         "in3",
         InputDataProcessor,
         params_getter=frozendict(data={"in3": "IN3"}),
         return_annotation=InputDataProcessor.get_return_annotation(in3="IN3"),
     )
-    return WorkflowClient.combine(in1, in2, in3, name="wf")
+    return PipelineBuilder.combine(in1, in2, in3, name="pl")
 
 
 def test_scatter_gather() -> None:
-    scatter = get_scatter_workflow(4)
-    batch_process = get_batch_process_workflow()
-    gather = get_gather_workflow()
+    scatter = get_scatter_pipeline(4)
+    batch_process = get_batch_process_pipeline()
+    gather = get_gather_pipeline()
     sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
-    data_wf = get_data_workflow()
-    test_sc = WorkflowClient.combine(
+    data_pl = get_data_pipeline()
+    test_sc = PipelineBuilder.combine(
         sc,
-        data_wf,
+        data_pl,
         name="test_sc",
         dependencies=(
-            sc.inputs.in1 << data_wf.outputs.in1,
-            sc.inputs.in2 << data_wf.outputs.in2,
-            sc.inputs.in3 << data_wf.outputs.in3,
+            sc.inputs.in1 << data_pl.outputs.in1,
+            sc.inputs.in2 << data_pl.outputs.in2,
+            sc.inputs.in3 << data_pl.outputs.in3,
         ),
     )
-    runner = WorkflowRunner(test_sc)
+    runner = PipelineRunner(test_sc)
     o = runner()
     expected_out12 = "\n".join(
         (
@@ -129,10 +129,10 @@ def test_scatter_gather() -> None:
     assert o.out23 == expected_out23
 
 
-def get_gather_workflow_with_numbered_inputs(K: int) -> Workflow:
-    w12 = get_concat_strings_as_lines_workflow("out12")
-    w23 = get_concat_strings_as_lines_workflow("out23")
-    return WorkflowClient.combine(
+def get_gather_pipeline_with_numbered_inputs(K: int) -> Pipeline:
+    w12 = get_concat_strings_as_lines_pipeline("out12")
+    w23 = get_concat_strings_as_lines_pipeline("out23")
+    return PipelineBuilder.combine(
         w12,
         w23,
         name="gather",
@@ -145,22 +145,22 @@ def get_gather_workflow_with_numbered_inputs(K: int) -> Workflow:
 
 
 def test_scatter_gather_with_numbered_gather_inputs() -> None:
-    scatter = get_scatter_workflow(4)
-    batch_process = get_batch_process_workflow()
-    gather = get_gather_workflow_with_numbered_inputs(4)
+    scatter = get_scatter_pipeline(4)
+    batch_process = get_batch_process_pipeline()
+    gather = get_gather_pipeline_with_numbered_inputs(4)
     sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
-    data_wf = get_data_workflow()
-    test_sc = WorkflowClient.combine(
+    data_pl = get_data_pipeline()
+    test_sc = PipelineBuilder.combine(
         sc,
-        data_wf,
+        data_pl,
         name="test_sc",
         dependencies=(
-            sc.inputs.in1 << data_wf.outputs.in1,
-            sc.inputs.in2 << data_wf.outputs.in2,
-            sc.inputs.in3 << data_wf.outputs.in3,
+            sc.inputs.in1 << data_pl.outputs.in1,
+            sc.inputs.in2 << data_pl.outputs.in2,
+            sc.inputs.in3 << data_pl.outputs.in3,
         ),
     )
-    runner = WorkflowRunner(test_sc)
+    runner = PipelineRunner(test_sc)
     o = runner()
     expected_out12 = "\n".join(
         (

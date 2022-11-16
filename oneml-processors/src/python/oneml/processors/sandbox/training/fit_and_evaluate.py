@@ -1,7 +1,7 @@
 # type: ignore
 # flake8: noqa
 """
-    A FitAndEvaluate is a pipeline that fits using train data and evaluates on train and holdout
+    A FitAndEvaluate is a dag that fits using train data and evaluates on train and holdout
     data.
     To that end, the FitAndEvaluate has two sets of input ports and two sets of output ports:
     * train input/output ports whose names start with "train_"
@@ -53,7 +53,7 @@ def _build_fit_and_evaluate_from_three_processors(
 class FitAndEvaluateFromTwoProcessors(DAG):
     """A FitAndEvaluate DAG where the evaluate stage is identical for train and holdout.
 
-    A FitAndEvaluate is a pipeline that fits using train data and evaluates on train and holdout
+    A FitAndEvaluate is a dag that fits using train data and evaluates on train and holdout
     data.
     To that end, the FitAndEvaluate has two sets of input ports and two sets of output ports:
     * train input/output ports whose names start with "train_"
@@ -93,7 +93,7 @@ class FitAndEvaluateFromTwoProcessors(DAG):
 class FitAndEvaluateFromThreeProcessors(DAG):
     """A FitAndEvaluate DAG supporting different evaluate stages for train and holdout.
 
-    A FitAndEvaluate is a pipeline that fits using train data and evaluates on train and holdout
+    A FitAndEvaluate is a dag that fits using train data and evaluates on train and holdout
     data.
     To that end, the FitAndEvaluate has two sets of input ports and two sets of output ports:
     * train input/output ports whose names start with "train_"
