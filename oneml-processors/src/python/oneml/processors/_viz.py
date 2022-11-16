@@ -59,7 +59,7 @@ class DotBuilder:
             name = "inputs"
             self._add_name_to_mapping(name)
             outputs = self._format_arguments(inputs, "o")
-            label = f"{{{name}|{{{outputs}}}}}"
+            label = f"{{{{{outputs}}}}}"
             self._g.add_node(
                 pydot.Node(
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"
@@ -76,7 +76,7 @@ class DotBuilder:
             name = "outputs"
             self._add_name_to_mapping(name)
             inputs = self._format_arguments(outputs, "i")
-            label = f"{{{{{inputs}}}|{{{name}}}}}"
+            label = f"{{{{{inputs}}}}}"
             self._g.add_node(
                 pydot.Node(
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"

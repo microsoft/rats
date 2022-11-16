@@ -5,13 +5,13 @@ steps:
 - task: Docker@2
   displayName: 'Authenticate: Docker'
   inputs:
-    containerRegistry: 'immunomics-acr'
+    containerRegistry: 'immunomics-acr-v2'
     command: 'login'
 
 - task: Docker@2
   displayName: 'Authenticate: Docker'
   inputs:
-    containerRegistry: 'immunodata-acr'
+    containerRegistry: 'immunodata-acr-v2'
     command: 'login'
 
 - task: TwineAuthenticate@1
