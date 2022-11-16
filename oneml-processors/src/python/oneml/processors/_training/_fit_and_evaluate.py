@@ -1,15 +1,17 @@
 """
     A FitAndEvaluate is a workflow that fits using train data and evaluates on train and holdout
     data.
-    To that end, the FitAndEvaluate has two sets of input ports and two sets of output ports:
-    * train input/output ports whose names start with "train_"
-    * holdout input/output ports whose names start with "holdout_"
+    To that end, the FitAndEvaluate has two sets of inputs ports and two sets of outputs ports:
+    * train inputs/outputs ports whose names start with "train_"
+    * holdout inputs/outputs ports whose names start with "holdout_"
 
 """
 
+from collections import ChainMap
 from typing import Sequence
 
-from .._ux import Dependency, Workflow, WorkflowClient
+from ..ux._client import WorkflowClient
+from ..ux._workflow import Dependency, Workflow
 
 
 class FitAndEvaluateBuilders:
@@ -17,9 +19,9 @@ class FitAndEvaluateBuilders:
 
     A FitAndEvaluate is a workflow that fits using train data and evaluates on train and holdout
     data.
-    To that end, the FitAndEvaluate has two sets of input ports and two sets of output ports:
-    * train input/output ports whose names start with "train_"
-    * holdout input/output ports whose names start with "holdout_"
+    To that end, the FitAndEvaluate has two sets of inputs ports and two sets of outputs ports:
+    * train inputs/outputs ports whose names start with "train_"
+    * holdout inputs/outputs ports whose names start with "holdout_"
     """
 
     @classmethod
@@ -42,16 +44,16 @@ class FitAndEvaluateBuilders:
           outputs to eval_workflow inputs.
         Returns:
           A workflow that meets the FitAndEvaluate pattern.
-          * Every input to `fit_workflow` becomes an input to the built workflow, with a `train_`
+          * Every inputs to `fit_workflow` becomes an inputs to the built workflow, with a `train_`
             prefix added to its name.
-          * Every output of `fit_workflow`, except those indicated in `shared_params` becomes an
-            output of the build workflow, with a `train_` prefix added to its name.
-          * Every input to `eval_workflow`, except those indicated in `shared_params` becomes an
-            input to the built workflow, with a `holdout_` prefix added to its name.
-          * Every output of `eval_workflow` becomes an output of the built workflow, with a
+          * Every outputs of `fit_workflow`, except those indicated in `shared_params` becomes an
+            outputs of the build workflow, with a `train_` prefix added to its name.
+          * Every inputs to `eval_workflow`, except those indicated in `shared_params` becomes an
+            inputs to the built workflow, with a `holdout_` prefix added to its name.
+          * Every outputs of `eval_workflow` becomes an outputs of the built workflow, with a
             `holdout_` prefix added to its name.
-          * Every fit parameters, i.e. output of `fit_workflow` that is indicated in
-            `shared_params` becomes an output of the built workflow.
+          * Every fit parameters, i.e. outputs of `fit_workflow` that is indicated in
+            `shared_params` becomes an outputs of the built workflow.
 
         Example:
           Assuming
@@ -62,8 +64,8 @@ class FitAndEvaluateBuilders:
           ```python
           w = FitAndEvaluateBuilders(
                   "standardize", fit, eval,
-                  (fit.ret.mean >> eval.sig.offset,
-                   fit.ret.std >> eval.sig.scale,))
+                  (fit.outputs.mean >> eval.inputs.offset,
+                   fit.outputs.std >> eval.inputs.scale,))
           ```
           Would create `w` as a worfkflow with the following inputs and outputs:
           * Inputs: `train_X`, `holdout_X`
@@ -71,26 +73,27 @@ class FitAndEvaluateBuilders:
         """
         fitted_names_in_fit = frozenset((d.out_param for d in shared_params))
         fitted_names_in_eval = frozenset((d.in_param for d in shared_params))
-        workflow = WorkflowClient.compose_workflow(
-            workflows=(fit_workflow, eval_workflow),
-            dependencies=shared_params,
+        workflow = WorkflowClient.combine(
+            fit_workflow,
+            eval_workflow,
+            dependencies=(shared_params,),
             name=estimator_name,
-            input_dependencies=(
-                tuple(f"train_{n}" >> fit_workflow.sig[n] for n in fit_workflow.sig)
-                + tuple(
-                    f"holdout_{n}" >> eval_workflow.sig[n]
-                    for n in eval_workflow.sig
-                    if n not in fitted_names_in_eval
-                )
+            inputs=ChainMap(
+                {f"train_{n}": fit_workflow.inputs[n] for n in fit_workflow.inputs},
+                {
+                    f"holdout_{n}": eval_workflow.inputs[n]
+                    for n in eval_workflow.inputs
+                    if n not in (fn.node.name for fn in fitted_names_in_eval)
+                },
             ),
-            output_dependencies=(
-                tuple(
-                    f"train_{n}" << fit_workflow.ret[n]
-                    for n in fit_workflow.ret
-                    if n not in fitted_names_in_fit
-                )
-                + tuple(f"holdout_{n}" << eval_workflow.ret[n] for n in eval_workflow.ret)
-                + tuple(n << fit_workflow.ret[n] for n in fitted_names_in_fit)
+            outputs=ChainMap(
+                {
+                    f"train_{n}": fit_workflow.outputs[n]
+                    for n in fit_workflow.outputs
+                    if n not in (fn.node.name for fn in fitted_names_in_fit)
+                },
+                {f"holdout_{n}": eval_workflow.outputs[n] for n in eval_workflow.outputs},
+                {n: fit_workflow.outputs[n] for n in (fn.node.name for fn in fitted_names_in_fit)},
             ),
         )
         return workflow
@@ -121,7 +124,7 @@ class FitAndEvaluateBuilders:
         This builder uses names to match inputs/outputs across the given workflows, in the
         following ways:
         1. Inputs of `fit_workflow` and `train_eval_workflow` that share the same name, e.g. X
-          become a single input to the built workflow (train_X).  That input is passed as X to both
+          become a single inputs to the built workflow (train_X).  That inputs is passed as X to both
           `fit_workflow` and `train_eval_workflow`.
         2. Outputs of `fit_workflow` are matched to inputs of `train_eval_workflow` and
           `holdout_eval_workflow` by name, and passed accordingly.
@@ -130,59 +133,64 @@ class FitAndEvaluateBuilders:
           A workflow that meets the FitAndEvaluate pattern.
           * Outputs of `fit_workflow` are matched to inputs of `train_eval_workflow` and
             `holdout_eval_workflow` by name, and passed accordingly.
-          * Every input to `fit_workflow` becomes an input to the built workflow, with a `train_`
+          * Every inputs to `fit_workflow` becomes an inputs to the built workflow, with a `train_`
             prefix added to its name.
-          * Every input to `train_eval_workflow` that is not matched to an output of `fit_workflow`
-            becomes an input to the built workflow, with a `train_` prefix added to its name.
-          * Every input to `holdout_eval_workflow` that is not matched to an output of
-            `fit_workflow` becomes an input to the built workflow, with a `holdout_` prefix added
+          * Every inputs to `train_eval_workflow` that is not matched to an outputs of `fit_workflow`
+            becomes an inputs to the built workflow, with a `train_` prefix added to its name.
+          * Every inputs to `holdout_eval_workflow` that is not matched to an outputs of
+            `fit_workflow` becomes an inputs to the built workflow, with a `holdout_` prefix added
             to its name.
-          * Every output of `train_eval_workflow` becomes an output of the built workflow, with a
+          * Every outputs of `train_eval_workflow` becomes an outputs of the built workflow, with a
             `train_` prefix added to its name.
-          * Every output of `holdout_eval_workflow` becomes an output of the built workflow, with a
+          * Every outputs of `holdout_eval_workflow` becomes an outputs of the built workflow, with a
             `holdout_` prefix added to its name.
-          * Every fit parameter, i.e. output of `train_fit` becomes an output of the built
+          * Every fit parameter, i.e. outputs of `train_fit` becomes an outputs of the built
             workflow.
         """
-        fitted_params_used_by_train_eval = frozenset(fit_workflow.ret) & frozenset(
-            train_eval_workflow.sig
+        fitted_params_used_by_train_eval = frozenset(fit_workflow.outputs) & frozenset(
+            train_eval_workflow.inputs
         )
-        fitted_params_used_by_holdout_eval = frozenset(fit_workflow.ret) & frozenset(
-            holdout_eval_workflow.sig
+        fitted_params_used_by_holdout_eval = frozenset(fit_workflow.outputs) & frozenset(
+            holdout_eval_workflow.inputs
         )
-        workflow = WorkflowClient.compose_workflow(
+        workflow = WorkflowClient.combine(
+            fit_workflow,
+            train_eval_workflow,
+            holdout_eval_workflow,
             name=estimator_name,
-            workflows=(fit_workflow, train_eval_workflow, holdout_eval_workflow),
             dependencies=(
                 tuple(
-                    fit_workflow.ret[n] >> train_eval_workflow.sig[n]
+                    fit_workflow.outputs[n] >> train_eval_workflow.inputs[n]
                     for n in fitted_params_used_by_train_eval
                 )
                 + tuple(
-                    fit_workflow.ret[n] >> holdout_eval_workflow.sig[n]
+                    fit_workflow.outputs[n] >> holdout_eval_workflow.inputs[n]
                     for n in fitted_params_used_by_holdout_eval
                 )
             ),
-            input_dependencies=(
-                tuple(f"train_{n}" >> fit_workflow.sig[n] for n in fit_workflow.sig)
-                + tuple(
-                    f"train_{n}" >> train_eval_workflow.sig[n]
-                    for n in train_eval_workflow.sig
+            inputs=ChainMap(
+                {f"train.n{n}": fit_workflow.inputs[n] for n in fit_workflow.inputs},
+                {
+                    f"train.n{n}": train_eval_workflow.inputs[n]
+                    for n in train_eval_workflow.inputs
                     if n not in fitted_params_used_by_train_eval
-                )
-                + tuple(
-                    f"holdout_{n}" >> holdout_eval_workflow.sig[n]
-                    for n in holdout_eval_workflow.sig
+                },
+                {
+                    f"holdout.n{n}": holdout_eval_workflow.inputs[n]
+                    for n in holdout_eval_workflow.inputs
                     if n not in fitted_params_used_by_holdout_eval
-                )
+                },
             ),
-            output_dependencies=(
-                tuple(f"train_{n}" << train_eval_workflow.ret[n] for n in train_eval_workflow.ret)
-                + tuple(
-                    f"holdout_{n}" << holdout_eval_workflow.ret[n]
-                    for n in holdout_eval_workflow.ret
-                )
-                + tuple(n << fit_workflow.ret[n] for n in fit_workflow.ret)
+            outputs=ChainMap(
+                {
+                    f"train.n{n}": train_eval_workflow.outputs[n]
+                    for n in train_eval_workflow.outputs
+                },
+                {
+                    f"holdout.n{n}": holdout_eval_workflow.outputs[n]
+                    for n in holdout_eval_workflow.outputs
+                },
+                {f"n{n}": fit_workflow.outputs[n] for n in fit_workflow.outputs},
             ),
         )
         return workflow
@@ -211,7 +219,7 @@ class FitAndEvaluateBuilders:
         This builder uses names to match inputs/outputs across the given workflows, in the
         following ways:
         1. Inputs of `fit_workflow` and `eval_workflow` that share the same name, e.g. X
-          become a single train input to the built workflow (train_X).  That input is passed as X
+          become a single train inputs to the built workflow (train_X).  That inputs is passed as X
           to both `fit_workflow` and the train copy of `eval_workflow`.
         2. Outputs of `fit_workflow` are matched to inputs of `eval_workflow` and passed
           accordingly to its two copies.
@@ -222,25 +230,21 @@ class FitAndEvaluateBuilders:
             holdout eval workflow.
           * Outputs of `fit_workflow` are matched to inputs of `eval_workflow` and by name, and
             passed accordingly to the two copies of `eval_workflow`.
-          * Every input to `fit_workflow` becomes an input to the built workflow, with a `train_`
+          * Every inputs to `fit_workflow` becomes an inputs to the built workflow, with a `train_`
             prefix added to its name.
-          * Every input to `eval_workflow` that is not matched to an output of `fit_workflow`
+          * Every inputs to `eval_workflow` that is not matched to an outputs of `fit_workflow`
             becomes two inputs to the built workflow. One with a `train_` prefix added to its name,
             passed to the train copy of `eval_workflow` and one with a `holdout_` prefix add to its
             name, passed to the holdout copy of `eval_workflow`.
-          * Every output of `eval_workflow` becomes two outputs of the built workflow, One with a
+          * Every outputs of `eval_workflow` becomes two outputs of the built workflow, One with a
             `train_` prefix added to its name, taken from the train copy of `eval_workflow` and one
             with a `holdout_` prefix added to its name, taken from the holdout copy of
             `eval_workflow`.
-          * Every fit parameter, i.e. output of `train_fit` becomes an output of the built
+          * Every fit parameter, i.e. outputs of `train_fit` becomes an outputs of the built
             workflow.
         """
-        train_eval_workflow = WorkflowClient.compose_workflow(
-            "train", (eval_workflow,), dependencies=()
-        )
-        holdout_eval_workflow = WorkflowClient.compose_workflow(
-            "holdout", (eval_workflow,), dependencies=()
-        )
+        train_eval_workflow = WorkflowClient.combine(eval_workflow, name="train")
+        holdout_eval_workflow = WorkflowClient.combine(eval_workflow, name="holdout")
         return cls.build_using_fit_and_two_evals(
             estimator_name, fit_workflow, train_eval_workflow, holdout_eval_workflow
         )

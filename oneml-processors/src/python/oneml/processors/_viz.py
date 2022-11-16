@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Mapping, Sequence
+from typing import Any, Literal, Mapping, Set
 
 import pydot
 
 from ._pipeline import Pipeline
-from ._ux import TaskParam, Workflow
+from .ux._workflow import InWorkflowParam, OutWorkflowParam, Workflow
 
 
 class DotBuilder:
-    _g: pydot.Dot = pydot.Dot("DAG", graph_type="digraph")  # type: ignore[no-any-unimported]
+    _g: pydot.Dot  # type: ignore[no-any-unimported]
     _node_name_mapping: dict[str, str]
 
     def __init__(self) -> None:
@@ -27,9 +27,9 @@ class DotBuilder:
         for node in pipeline.nodes:
             name = repr(node)
             self._add_name_to_mapping(name)
-            in_arguments = pipeline.nodes[node].sig
+            in_arguments = pipeline.nodes[node].inputs
             inputs = self._format_arguments(in_arguments, "i")
-            out_arguments = pipeline.nodes[node].ret
+            out_arguments = pipeline.nodes[node].outputs
             outputs = self._format_arguments(out_arguments, "o")
 
             label = f"{{{{{inputs}}}|{name}|{{{outputs}}}}}"
@@ -54,43 +54,42 @@ class DotBuilder:
                 target = self._node_name_mapping[name] + f":i_{out_arg}"
                 self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_inputs(self, inputs: Mapping[str, Sequence[TaskParam]]) -> None:
-        if len(inputs) > 0:
-            name = "inputs"
-            self._add_name_to_mapping(name)
-            outputs = self._format_arguments(inputs, "o")
-            label = f"{{{{{outputs}}}}}"
-            self._g.add_node(
-                pydot.Node(
-                    name=self._node_name_mapping[name], label=label, shape="record", color="red"
-                )
+    def _add_inputs(self, inputs: Mapping[str, Set[InWorkflowParam]]) -> None:
+        name = "inputs"
+        self._add_name_to_mapping(name)
+        outputs = self._format_arguments(inputs, "o")
+        label = f"{{{{{outputs}}}}}"
+        self._g.add_node(
+            pydot.Node(
+                name=self._node_name_mapping[name], label=label, shape="record", color="red"
             )
-            for input, tasks in inputs.items():
-                source = self._node_name_mapping[name] + f":o_{input}"
-                for task in tasks:
-                    target = self._node_name_mapping[repr(task.node)] + f":i_{task.param}"
-                    self._g.add_edge(pydot.Edge(source, target))
+        )
+        for input, tasks in inputs.items():
+            source = self._node_name_mapping[name] + f":o_{input}"
+            for task in tasks:
+                target = self._node_name_mapping[repr(task.node)] + f":i_{task.param}"
+                self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_outputs(self, outputs: Mapping[str, TaskParam]) -> None:
-        if len(outputs) > 0:
-            name = "outputs"
-            self._add_name_to_mapping(name)
-            inputs = self._format_arguments(outputs, "i")
-            label = f"{{{{{inputs}}}}}"
-            self._g.add_node(
-                pydot.Node(
-                    name=self._node_name_mapping[name], label=label, shape="record", color="red"
-                )
+    def _add_outputs(self, outputs: Mapping[str, Set[OutWorkflowParam]]) -> None:
+        name = "outputs"
+        self._add_name_to_mapping(name)
+        inputs = self._format_arguments(outputs, "i")
+        label = f"{{{{{inputs}}}}}"
+        self._g.add_node(
+            pydot.Node(
+                name=self._node_name_mapping[name], label=label, shape="record", color="red"
             )
-            for output, task in outputs.items():
+        )
+        for output, tasks in outputs.items():
+            for task in tasks:
                 source = self._node_name_mapping[repr(task.node)] + f":o_{task.param}"
                 target = self._node_name_mapping[name] + f":i_{output}"
                 self._g.add_edge(pydot.Edge(source, target))
 
     def add_workflow(self, workflow: Workflow) -> None:
-        self._add_pipeline(workflow._pipeline)
-        self._add_inputs(workflow._input_targets)
-        self._add_outputs(workflow._output_sources)
+        self._add_pipeline(workflow.pipeline)
+        self._add_inputs({n: set(params.values()) for n, params in workflow.inputs.items()})
+        self._add_outputs({n: set(params.values()) for n, params in workflow.outputs.items()})
 
     def get_dot(self) -> pydot.Dot:  # type: ignore[no-any-unimported]
         return self._g

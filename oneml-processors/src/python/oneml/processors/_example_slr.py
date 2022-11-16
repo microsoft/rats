@@ -7,11 +7,11 @@ from oneml.processors import (
     InParameter,
     IProcess,
     Namespace,
+    OutParameter,
     PDependency,
     Pipeline,
     PNode,
     ProcessorProps,
-    TailPipelineClient,
     dag_to_svg,
     oset,
 )
@@ -28,16 +28,16 @@ class Model(object):
 
 
 StandardizeTrainOutput = TypedDict(
-    "StandardizeTrainOutput", {"X": Array, "mu": Array, "scale": Array}
+    "StandardizeTrainOutput", {"Z": Array, "mu": Array, "scale": Array}
 )
 
 
 class StandardizeTrain(IProcess):
     def process(self, X: Array) -> StandardizeTrainOutput:
-        return StandardizeTrainOutput({"X": X, "mu": Array(), "scale": Array()})
+        return StandardizeTrainOutput({"Z": X, "mu": Array(), "scale": Array()})
 
 
-StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"X": Array})
+StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"Z": Array})
 
 
 class StandardizeEval(IProcess):
@@ -47,7 +47,7 @@ class StandardizeEval(IProcess):
         self._scale = scale
 
     def process(self, X: Array) -> StandardizeEvalOutput:
-        return StandardizeEvalOutput({"X": X})
+        return StandardizeEvalOutput({"Z": X})
 
 
 ModelTrainOutput = TypedDict("ModelTrainOutput", {"acc": Array, "model": Model})
@@ -82,7 +82,9 @@ def estimator_from_multiple_nodes_pipeline() -> None:
         train_stz: oset((PDependency(data, InParameter("X", Array, InMethod.process)),)),
         train_model: oset(
             (
-                PDependency(train_stz, InParameter("X", Array, InMethod.process)),
+                PDependency(
+                    train_stz, InParameter("X", Array, InMethod.process), OutParameter("Z", Array)
+                ),
                 PDependency(data, InParameter("Y", Array, InMethod.process)),
             )
         ),
@@ -94,7 +96,9 @@ def estimator_from_multiple_nodes_pipeline() -> None:
         eval_stz: oset((PDependency(data, InParameter("X", Array, InMethod.process)),)),
         eval_model: oset(
             (
-                PDependency(train_stz, InParameter("X", Array, InMethod.process)),
+                PDependency(
+                    eval_stz, InParameter("X", Array, InMethod.process), OutParameter("Z", Array)
+                ),
                 PDependency(data, InParameter("Y", Array, InMethod.process)),
             )
         ),
@@ -106,8 +110,7 @@ def estimator_from_multiple_nodes_pipeline() -> None:
 
     train_pipeline = Pipeline(train_nodes, train_dps)
     eval_pipeline = Pipeline(eval_nodes, eval_dps)
-    tail_pipeline = TailPipelineClient.build(train_pipeline, eval_pipeline)
-    new_pipeline = train_pipeline + eval_pipeline + tail_pipeline
+    new_pipeline = train_pipeline + eval_pipeline
 
     svg = dag_to_svg(new_pipeline)
     with open("pipeline1.svg", "wb") as f:
@@ -135,11 +138,8 @@ def concatenate_estimators_pipeline() -> None:
     eval_pipelineA = Pipeline(eval_nodesA, eval_dpsA)
     eval_pipelineB = Pipeline(eval_nodesB, eval_dpsB)
 
-    tail_pipelineA = TailPipelineClient.build(train_pipelineA, eval_pipelineA)
-    tail_pipelineB = TailPipelineClient.build(train_pipelineB, eval_pipelineB)
-
-    estimatorA = train_pipelineA + eval_pipelineA + tail_pipelineA
-    estimatorB = train_pipelineB + eval_pipelineB + tail_pipelineB
+    estimatorA = train_pipelineA + eval_pipelineA
+    estimatorB = train_pipelineB + eval_pipelineB
 
     p = estimatorA.decorate("p")
     q = estimatorB.decorate("q")

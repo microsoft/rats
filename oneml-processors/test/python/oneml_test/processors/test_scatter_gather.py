@@ -1,6 +1,7 @@
 from typing import Any, Dict, TypedDict
 
 from oneml.processors import (
+    InputDataProcessor,
     OutParameter,
     ScatterGatherBuilders,
     Workflow,
@@ -26,7 +27,7 @@ class Scatter:
 
 
 def get_scatter_workflow(K: int) -> Workflow:
-    return WorkflowClient.single_task(
+    return WorkflowClient.task(
         "scatter", Scatter, frozendict(K=K), return_annotation=Scatter.get_return_annotation(K)
     )
 
@@ -40,7 +41,7 @@ class BatchProcess:
 
 
 def get_batch_process_workflow() -> Workflow:
-    return WorkflowClient.single_task("batch_process", BatchProcess)
+    return WorkflowClient.task("batch_process", BatchProcess)
 
 
 ConcatStringsAsLinesOutput = TypedDict("ConcatStringsAsLinesOutput", {"out": str})
@@ -52,29 +53,61 @@ class ConcatStringsAsLines:
 
 
 def get_concat_strings_as_lines_workflow(port_name: str) -> Workflow:
-    w = WorkflowClient.single_task(f"concat_{port_name}", ConcatStringsAsLines)
-    w = WorkflowClient.rename(w, inputs={"inp": port_name}, outputs={"out": port_name})
+    w = WorkflowClient.task(f"concat_{port_name}", ConcatStringsAsLines)
+    w = WorkflowClient.combine(
+        w, name=w.name, inputs={port_name: w.inputs.inp}, outputs={port_name: w.outputs.out}
+    )
     return w
 
 
 def get_gather_workflow() -> Workflow:
-    return WorkflowClient.compose_workflow(
+    return WorkflowClient.combine(
+        get_concat_strings_as_lines_workflow("out12"),
+        get_concat_strings_as_lines_workflow("out23"),
         name="gather",
-        workflows=(
-            get_concat_strings_as_lines_workflow("out12"),
-            get_concat_strings_as_lines_workflow("out23"),
-        ),
-        dependencies=(),
     )
+
+
+def get_data_workflow() -> Workflow:
+    in1 = WorkflowClient.task(
+        "in1",
+        InputDataProcessor,
+        params_getter=frozendict(data={"in1": "IN1"}),
+        return_annotation=InputDataProcessor.get_return_annotation(in1="IN1"),
+    )
+    in2 = WorkflowClient.task(
+        "in2",
+        InputDataProcessor,
+        params_getter=frozendict(data={"in2": "IN2"}),
+        return_annotation=InputDataProcessor.get_return_annotation(in2="IN2"),
+    )
+    in3 = WorkflowClient.task(
+        "in3",
+        InputDataProcessor,
+        params_getter=frozendict(data={"in3": "IN3"}),
+        return_annotation=InputDataProcessor.get_return_annotation(in3="IN3"),
+    )
+    return WorkflowClient.combine(in1, in2, in3, name="wf")
 
 
 def test_scatter_gather() -> None:
     scatter = get_scatter_workflow(4)
     batch_process = get_batch_process_workflow()
     gather = get_gather_workflow()
-    process = ScatterGatherBuilders.build("test_sc", scatter, batch_process, gather)
-    runner = WorkflowRunner(process, frozendict())
-    o = runner(in1="IN1", in2="IN2", in3="IN3")
+    sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
+    data_wf = get_data_workflow()
+    test_sc = WorkflowClient.combine(
+        sc,
+        data_wf,
+        name="test_sc",
+        dependencies=(
+            sc.inputs.in1 << data_wf.outputs.in1,
+            sc.inputs.in2 << data_wf.outputs.in2,
+            sc.inputs.in3 << data_wf.outputs.in3,
+        ),
+    )
+    runner = WorkflowRunner(test_sc)
+    o = runner()
     expected_out12 = "\n".join(
         (
             "IN1_0*IN2_0",
@@ -99,13 +132,14 @@ def test_scatter_gather() -> None:
 def get_gather_workflow_with_numbered_inputs(K: int) -> Workflow:
     w12 = get_concat_strings_as_lines_workflow("out12")
     w23 = get_concat_strings_as_lines_workflow("out23")
-    return WorkflowClient.compose_workflow(
+    return WorkflowClient.combine(
+        w12,
+        w23,
         name="gather",
-        workflows=(w12, w23),
         dependencies=(),
-        input_dependencies=(
-            tuple(f"out12_{k}" >> w12.sig.out12 for k in range(K))
-            + tuple(f"out23_{k}" >> w23.sig.out23 for k in range(K))
+        inputs=(
+            {f"out12.{k}": w12.inputs.out12.concat_out12 for k in range(K)}
+            | {f"out23.{k}": w23.inputs.out23.concat_out23 for k in range(K)}
         ),
     )
 
@@ -114,9 +148,20 @@ def test_scatter_gather_with_numbered_gather_inputs() -> None:
     scatter = get_scatter_workflow(4)
     batch_process = get_batch_process_workflow()
     gather = get_gather_workflow_with_numbered_inputs(4)
-    process = ScatterGatherBuilders.build("test_sc", scatter, batch_process, gather)
-    runner = WorkflowRunner(process, frozendict())
-    o = runner(in1="IN1", in2="IN2", in3="IN3")
+    sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
+    data_wf = get_data_workflow()
+    test_sc = WorkflowClient.combine(
+        sc,
+        data_wf,
+        name="test_sc",
+        dependencies=(
+            sc.inputs.in1 << data_wf.outputs.in1,
+            sc.inputs.in2 << data_wf.outputs.in2,
+            sc.inputs.in3 << data_wf.outputs.in3,
+        ),
+    )
+    runner = WorkflowRunner(test_sc)
+    o = runner()
     expected_out12 = "\n".join(
         (
             "IN1_0*IN2_0",

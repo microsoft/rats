@@ -90,7 +90,7 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
         concat_node: set(
             (
                 PDependency(
-                    p1,
+                    PNode("multiply", Namespace("p1")),
                     in_arg=InParameter(
                         "arrays",
                         npt.NDArray[np.float64],
@@ -100,7 +100,7 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
                 ),
                 PDependency(
-                    p2,
+                    PNode("multiply", Namespace("p2")),
                     in_arg=InParameter(
                         "arrays",
                         npt.NDArray[np.float64],
@@ -110,7 +110,7 @@ def complex_pipeline(simple_pipeline: Pipeline) -> Pipeline:
                     out_arg=OutParameter("output", npt.NDArray[np.float64]),
                 ),
                 PDependency(
-                    p3,
+                    PNode("multiply", Namespace("p3")),
                     in_arg=InParameter(
                         "arrays",
                         npt.NDArray[np.float64],

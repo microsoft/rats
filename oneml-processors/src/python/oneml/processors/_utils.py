@@ -24,8 +24,8 @@ class HeadPipelineClient:
         hnode = PNode(head_name)
         dependencies: dict[PNode, oset[PDependency]] = defaultdict(oset)
         for pipeline in pipelines:
-            for ext_dp in pipeline.external_dependencies:
-                dependencies[hnode] |= oset((ext_dp,))  # aggregate all ext dependencies
+            for ext_dp in pipeline.external_dependencies.values():
+                dependencies[hnode] |= ext_dp  # aggregate all ext dependencies on the head
         return Pipeline({hnode: props}, dependencies)
 
     @staticmethod
@@ -36,11 +36,11 @@ class HeadPipelineClient:
             raise ValueError("head_pipeline must have a single node only.")
         hnode = set(head_pipeline.nodes.keys()).pop()  # pop unique head node
         dependencies = dict(pipeline.dependencies)  # copy dependencies from pipeline
-        for start_node in pipeline.start_nodes:  # iterate over start nodes to change external dps
-            for dp in pipeline.dependencies[start_node]:  # iterate over FrozenSet of dependencies
-                if dp in pipeline.external_dependencies:  # remove old dependency & add new to head
-                    dependencies[start_node] -= set((dp,))
-                    dependencies[start_node] |= set((PDependency(hnode, dp.in_arg, dp.out_arg),))
+        for root_node in pipeline.root_nodes:  # iterate over start nodes to change external dps
+            for dp in pipeline.dependencies[root_node]:  # iterate over FrozenSet of dependencies
+                if dp in pipeline.external_dependencies[root_node]:
+                    dependencies[root_node] -= set((dp,))  # remove old dps & add new to head
+                    dependencies[root_node] |= set((PDependency(hnode, dp.in_arg, dp.out_arg),))
         new_pipeline: Pipeline = Pipeline(pipeline.nodes, dependencies)
         return new_pipeline + head_pipeline
 
@@ -64,14 +64,14 @@ class TailPipelineClient:
         exclude: AbstractSet[str] = set(),
     ) -> Pipeline:
         if len(pipelines) == 0:
-            raise ValueError("Missing `pipelines` input argument.")
+            raise ValueError("Missing `pipelines` inputs argument.")
 
         node = PNode("tail")
         ra: dict[str, OutParameter] = {}
         dependencies: defaultdict[PNode, oset[PDependency]] = defaultdict(oset)
         for pipeline in pipelines:
-            for end_node in pipeline.end_nodes:
-                for out_param in pipeline.nodes[end_node].ret.values():
+            for end_node in pipeline.leaf_nodes:
+                for out_param in pipeline.nodes[end_node].outputs.values():
                     if out_param.name not in exclude:
                         in_param = out_param.to_inparameter()
                         ra[in_param.name] = OutParameter(in_param.name, in_param.annotation)

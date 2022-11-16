@@ -4,22 +4,11 @@ import logging
 from collections import defaultdict
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
-from typing import (
-    AbstractSet,
-    Any,
-    Iterable,
-    Mapping,
-    Optional,
-    Protocol,
-    Sequence,
-    Tuple,
-    Union,
-    final,
-)
+from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Sequence, final
 
 from ._frozendict import frozendict
 from ._orderedset import oset
-from ._processor import Annotations, IGetParams, InParameter, IProcess, OutParameter
+from ._processor import Annotations, IGetParams, InMethod, InParameter, IProcess, OutParameter
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +17,9 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class Namespace:
     key: str = ""
+
+    def __bool__(self) -> bool:
+        return bool(self.key)
 
     def __contains__(self, namespace: Namespace) -> bool:
         return namespace.key in self.key
@@ -61,19 +53,25 @@ class ProcessorProps:
     compute_reqs: PComputeReqs = PComputeReqs()
     return_annotation: InitVar[Mapping[str, OutParameter] | None] = None
 
-    sig: frozendict[str, InParameter] = field(init=False)
-    ret: frozendict[str, OutParameter] = field(init=False)
+    inputs: frozendict[str, InParameter] = field(init=False)
+    outputs: frozendict[str, OutParameter] = field(init=False)
 
     def __post_init__(self, return_annotation: type | None) -> None:
-        sig = {
+        inputs = {
             k: v
             for k, v in Annotations.get_processor_signature(self.processor_type).items()
             if k not in self.params_getter
         }
-
-        ret = return_annotation or Annotations.get_return_annotation(self.processor_type.process)
-        object.__setattr__(self, "sig", frozendict(sig))
-        object.__setattr__(self, "ret", frozendict(ret))
+        for k in self.params_getter:
+            try:
+                self.params_getter[k]
+            except Exception:  # add missing dependencies required by param_getter
+                inputs[k] = InParameter(
+                    k, self.params_getter.__annotations__.get(k, Any), InMethod.init
+                )
+        ra = return_annotation or Annotations.get_return_annotation(self.processor_type.process)
+        object.__setattr__(self, "inputs", frozendict(inputs))
+        object.__setattr__(self, "outputs", frozendict(ra))
 
     def __hash__(self) -> int:
         return hash((self.processor_type, self.params_getter))
@@ -102,12 +100,12 @@ class PNode:
 
 @final
 class PDependency:
-    _node: Optional[PNode]
+    _node: PNode
     _in_arg: InParameter
     _out_arg: Optional[OutParameter]
 
     @property
-    def node(self) -> Optional[PNode]:
+    def node(self) -> PNode:
         return self._node
 
     @property
@@ -124,18 +122,10 @@ class PDependency:
 
     def __init__(
         self,
-        node: Union[PNode, Pipeline, None],
+        node: PNode,
         in_arg: InParameter,
         out_arg: Optional[OutParameter] = None,
     ) -> None:
-        if isinstance(node, Pipeline):
-            if len(node.end_nodes) != 1:
-                raise ValueError(
-                    "Dependency pipeline must have a single tail node; "
-                    "This mechanism ensures pipelines can be referred as dependencies."
-                )
-            node = next(iter(node.end_nodes))
-
         self._node = node
         self._in_arg = in_arg
         self._out_arg = out_arg
@@ -144,16 +134,10 @@ class PDependency:
         return "self." + repr(self.in_arg) + " <- " + repr(self.node) + "." + repr(self.out_arg)
 
     def decorate(self, namespace: str | Namespace) -> PDependency:
-        return (
-            self.__class__(self.node.decorate(namespace), self.in_arg, self.out_arg)
-            if self.node
-            else self
-        )
-
-    def set_node(self, node: PNode, out_arg: Optional[OutParameter] = None) -> PDependency:
-        return self.__class__(node, self.in_arg, out_arg)
+        return self.__class__(self.node.decorate(namespace), self.in_arg, self.out_arg)
 
 
+@final
 class Pipeline:
     _nodes: frozendict[PNode, ProcessorProps]
     _dependencies: frozendict[PNode, oset[PDependency]]
@@ -204,7 +188,7 @@ class Pipeline:
         return len(self.nodes)
 
     def __repr__(self) -> str:
-        return f"Pipeline(nodes = {self.nodes}, dependencies = {self.dependencies})"
+        return f"Pipeline(\n\tnodes = {self.nodes},\n\tdependencies = {self.dependencies}\n)"
 
     def __sub__(self, nodes: Mapping[PNode, ProcessorProps]) -> Pipeline:
         # Overload w/ nodes and pipelines support?
@@ -234,7 +218,7 @@ class Pipeline:
             new_node = node.decorate(namespace)
             nodes[new_node] = props
             dependencies[new_node] = oset(
-                dp.decorate(namespace) if dp not in self.external_dependencies else dp
+                dp.decorate(namespace) if dp not in self.external_dependencies[node] else dp
                 for dp in self.dependencies[node]
             )
 
@@ -249,56 +233,50 @@ class Pipeline:
         return oset(dp for dps in self.dependencies.values() for dp in dps)
 
     @cached_property
-    def external_dependencies(self) -> AbstractSet[PDependency]:
+    def external_dependencies(self) -> Mapping[PNode, AbstractSet[PDependency]]:
         """Dependencies that point to other nodes not from the pipeline."""
-        return oset(dp for dp in self.all_dependencies if dp.node not in self.nodes)
+        return {
+            n: oset({dp for dp in dps if dp.node not in self._nodes})
+            for n, dps in self._dependencies.items()
+        }
 
     @cached_property
-    def internal_dependencies(self) -> AbstractSet[PDependency]:
-        """Dependencides that point to other nodes within the pipeline."""
-        return self.all_dependencies - self.external_dependencies - self.hanging_dependencies
-
-    @cached_property
-    def hanging_dependencies(self) -> AbstractSet[PDependency]:
+    def hanging_dependencies(self) -> Mapping[PNode, AbstractSet[InParameter]]:
         """Dependencies that do not have an external PNode assigned."""
-        # TODO: need to fix this convention; we should no longer add empty dependencies
-        return oset(dp for dp in self.all_dependencies if dp.node is None)
-
-    def unprovided_inputs_for_node(self, node: PNode) -> AbstractSet[str]:
-        node_props = self.nodes[node]
-        required_in_port_names = oset(node_props.sig)
-        provided_in_port_names = oset(d.in_arg.name for d in self.dependencies[node])
-        return required_in_port_names - provided_in_port_names
-
-    @cached_property
-    def unprovided_inputs(self) -> AbstractSet[Tuple[PNode, str]]:
-        return oset.union(
-            *(
-                oset(((pnode, port) for port in self.unprovided_inputs_for_node(pnode)))
-                for pnode in self.nodes
-            ),
-        )
+        return {
+            n: oset(
+                in_arg
+                for in_arg in props.inputs.values()
+                if in_arg not in (dp.in_arg for dp in self._dependencies[n])
+            )
+            for n, props in self._nodes.items()
+        }
 
     @cached_property
-    def start_nodes(self) -> AbstractSet[PNode]:
-        """Nodes with input ports that do not have corresponding dependencies."""
-        return oset(n for n, _ in self.unprovided_inputs)
+    def root_nodes(self) -> Mapping[PNode, ProcessorProps]:
+        """Nodes with external or hanging dependencies."""
+        return {
+            n: props
+            for n, props in self.nodes.items()
+            if (n in self.external_dependencies or n in self.hanging_dependencies)
+        }
 
     @cached_property
-    def end_nodes(self) -> AbstractSet[PNode]:
+    def leaf_nodes(self) -> Mapping[PNode, ProcessorProps]:
         """Nodes that other nodes in the pipeline do not depend on."""
-        return self._nodes.keys() - set(dp.node for dp in self.internal_dependencies if dp.node)
+        leaf_nodes = self._nodes.keys() - set(dp.node for dp in self.all_dependencies)
+        return {n: self._nodes[n] for n in leaf_nodes}
 
     def history(self, node: PNode) -> Pipeline:
         nodes: dict[PNode, ProcessorProps] = {node: self.nodes[node]}
         dependencies: dict[PNode, oset[PDependency]] = {node: self.dependencies[node]}
-        frontier: set[PNode] = set(dp.node for dp in self.dependencies[node] if dp.node)
+        frontier: set[PNode] = set(dp.node for dp in self.dependencies[node])
 
         while frontier:
             past_node = frontier.pop()
             nodes[past_node] = self.nodes[past_node]
             dependencies[past_node] = self.dependencies[past_node]
-            frontier |= set(dp.node for dp in self.dependencies[past_node] if dp.node)
+            frontier |= set(dp.node for dp in self.dependencies[past_node])
 
         return self.__class__(nodes, dependencies)
 

@@ -53,57 +53,85 @@ class SumArrays(IProcess):
 
 # PARAM_GETTER
 
-storage = {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
-left_config: IGetParams = frozendict(storage=storage, url="a")
-right_config: IGetParams = frozendict(storage=storage, url="b")
+
+@pytest.fixture(scope="module")
+def storage() -> dict[str, npt.NDArray[np.float64]]:
+    return {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
+
+
+@pytest.fixture(scope="module")
+def left_config(storage: dict[str, npt.NDArray[np.float64]]) -> IGetParams:
+    return frozendict(storage=storage, url="a")
+
+
+@pytest.fixture(scope="module")
+def right_config(storage: dict[str, npt.NDArray[np.float64]]) -> IGetParams:
+    return frozendict(storage=storage, url="b")
 
 
 #######
 
 # PIPELINE
-@pytest.fixture
-def workflow() -> Workflow:
-    left_reader = WorkflowClient.single_task("left_reader", ArrayReader, left_config)
-    right_reader = WorkflowClient.single_task("right_reader", ArrayReader, right_config)
-    product = WorkflowClient.single_task("array_product", ArrayProduct)
+@pytest.fixture(scope="module")
+def workflow(left_config: IGetParams, right_config: IGetParams) -> Workflow:
+    left_reader = WorkflowClient.task("left_reader", ArrayReader, left_config)
+    right_reader = WorkflowClient.task("right_reader", ArrayReader, right_config)
+    product = WorkflowClient.task("array_product", ArrayProduct)
 
-    w1 = WorkflowClient.compose_workflow(
+    w1 = WorkflowClient.combine(
+        left_reader,
+        right_reader,
+        product,
+        inputs={},
+        outputs={"result": product.outputs.result},
+        dependencies=(
+            product.inputs.left_arr << left_reader.outputs.array,
+            product.inputs.right_arr << right_reader.outputs.array,
+        ),
         name="w1",
-        workflows=(left_reader, right_reader, product),
-        dependencies=(
-            product.sig.left_arr << left_reader.ret.array,
-            product.sig.right_arr << right_reader.ret.array,
-        ),
     )
-    w2 = WorkflowClient.compose_workflow(
+    w2 = WorkflowClient.combine(
+        left_reader,
+        right_reader,
+        product,
+        inputs={},
+        outputs={"result": product.outputs.result},
+        dependencies=(
+            product.inputs.left_arr << left_reader.outputs.array,
+            product.inputs.right_arr << right_reader.outputs.array,
+        ),
         name="w2",
-        workflows=(left_reader, right_reader, product),
-        dependencies=(
-            product.sig.left_arr << left_reader.ret.array,
-            product.sig.right_arr << right_reader.ret.array,
-        ),
     )
-    w3 = WorkflowClient.compose_workflow(
+    w3 = WorkflowClient.combine(
+        left_reader,
+        right_reader,
+        product,
+        inputs={},
+        outputs={"result": product.outputs.result},
+        dependencies=(
+            product.inputs.left_arr << left_reader.outputs.array,
+            product.inputs.right_arr << right_reader.outputs.array,
+        ),
         name="w3",
-        workflows=(left_reader, right_reader, product),
-        dependencies=(
-            product.sig.left_arr << left_reader.ret.array,
-            product.sig.right_arr << right_reader.ret.array,
-        ),
     )
-    sum_arrays = WorkflowClient.single_task("sum_arrays", SumArrays)
-    return WorkflowClient.compose_workflow(
-        "p",
-        (sum_arrays, w1, w2, w3),
+    sum_arrays = WorkflowClient.task("sum_arrays", SumArrays)
+    return WorkflowClient.combine(
+        sum_arrays,
+        w1,
+        w2,
+        w3,
+        inputs={},
+        outputs={"result": sum_arrays.outputs.result},
         dependencies=(
-            sum_arrays.sig.arrays << w1.ret.result,
-            sum_arrays.sig.arrays << w2.ret.result,
-            sum_arrays.sig.arrays << w3.ret.result,
+            sum_arrays.inputs.arrays << w1.outputs.result,
+            sum_arrays.inputs.arrays << w2.outputs.result,
+            sum_arrays.inputs.arrays << w3.outputs.result,
         ),
+        name="p",
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def params_registry() -> ParamsRegistry:
     return ParamsRegistry()
 

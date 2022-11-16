@@ -38,8 +38,8 @@
 #         self.storage = storage
 #         self.url = url
 
-#     def _process(self, input: npt.ArrayLike) -> Output():
-#         self.storage[self.url] = input
+#     def _process(self, inputs: npt.ArrayLike) -> Output():
+#         self.storage[self.url] = inputs
 #         return dict()
 
 
@@ -119,7 +119,7 @@
 #             "concatenator.input0": "d1.result",
 #             "concatenator.input1": "d2.result",
 #             "concatenator.input2": "d3.result",
-#             "write.input": "concatenator.output",
+#             "write.inputs": "concatenator.output",
 #         },
 #     )
 #     return dag
@@ -190,7 +190,7 @@
 #         "d3/multiply.left": "d3/load_left.output",
 #         "d3/multiply.right": "load_right.output",
 #         "concatenator.input2": "d3/multiply.output",
-#         "write.input": "concatenator.output",
+#         "write.inputs": "concatenator.output",
 #     }
 
 

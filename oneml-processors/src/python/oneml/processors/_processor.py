@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import logging
 import sys
+from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
-from inspect import _ParameterKind, get_annotations, signature
+from inspect import _ParameterKind, formatannotation, get_annotations, signature
 from typing import Any, Callable, Hashable, Mapping, Protocol, final
 
 from ._frozendict import MappingProtocol
@@ -22,7 +23,7 @@ _VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
 # IProcess protocol cannot be generic because the return type is abstract.
 # However, any IProcess can be made generic and return a generic TypedDict.
 class IProcess(Protocol):
-    process: Callable[..., Mapping[str, Any]] = NotImplemented
+    process: Callable[..., Mapping[str, Any] | None] = NotImplemented
 
 
 class IGetParams(MappingProtocol[str, Any], Hashable, Protocol):
@@ -38,9 +39,17 @@ class InMethod(Enum):
     process = 1
 
 
+class Parameter(ABC):
+    name: str
+    annotation: Any
+
+    def __repr__(self) -> str:
+        return self.name + ": " + formatannotation(self.annotation)
+
+
 @final
 @dataclass(frozen=True, slots=True)
-class InParameter:
+class InParameter(Parameter):
     POSITIONAL_ONLY = _POSITIONAL_ONLY
     POSITIONAL_OR_KEYWORD = _POSITIONAL_OR_KEYWORD
     VAR_POSITIONAL = _VAR_POSITIONAL
@@ -57,7 +66,7 @@ class InParameter:
 
 @final
 @dataclass(frozen=True)
-class OutParameter:
+class OutParameter(Parameter):
     name: str
     annotation: type
     empty: Any = _empty

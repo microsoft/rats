@@ -110,7 +110,7 @@ class frozendict(Mapping[_KT, _VT], Generic[_KT, _VT]):
 
     def __and__(self: Self, other: dict[_KT, _VT] | Self) -> Self:
         new_d = {k: v for k, v in self._d.items() if k in other}
-        if new_d and any(v != new_d[k] for k, v in self._d.items()):
+        if new_d and any(v != self._d[k] for k, v in new_d.items()):
             raise ValueError("Intersection only supported if common keys have same values.")
         return self.__class__(new_d)
 

@@ -65,6 +65,8 @@
         "python.formatting.provider": "black",
         "editor.formatOnSave": true,
         "markdown.validate.enabled": true,
+        "diffEditor.diffAlgorithm": "experimental",
+        "python.analysis.autoImportCompletions": true,
         "python.envFile": "${workspaceFolder}/.envrc",
         "search.exclude": {
             "**/build": true,

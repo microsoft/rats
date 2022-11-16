@@ -7,14 +7,15 @@ from typing import TypedDict
 import pytest
 
 from oneml.processors import (
-    FitAndEvaluateBuilders,
+    CombinedWorkflow,
     IProcess,
     ParamsRegistry,
     RegistryId,
+    Task,
     Workflow,
-    WorkflowClient,
     WorkflowRunner,
 )
+from oneml.processors.ml import Estimator
 
 
 @dataclass
@@ -64,12 +65,14 @@ class StandardizeEval(IProcess):
         return StandardizeEvalOutput({"Z": Z})
 
 
-ModelTrainOutput = TypedDict("ModelTrainOutput", {"model": ModelMock})
+ModelTrainOutput = TypedDict("ModelTrainOutput", {"model": ModelMock, "probs": ArrayMock})
 
 
 class ModelTrain(IProcess):
     def process(self, X: ArrayMock, Y: ArrayMock) -> ModelTrainOutput:
-        return ModelTrainOutput({"model": ModelMock(X, Y)})
+        model = ModelMock(X, Y)
+        probs = ArrayMock(f"{model}.probs({X})")
+        return ModelTrainOutput({"model": model, "probs": probs})
 
 
 ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": ArrayMock, "acc": ArrayMock})
@@ -83,6 +86,11 @@ class ModelEval(IProcess):
         probs = ArrayMock(f"{self.model}.probs({X})")
         acc = ArrayMock(f"acc({probs}, {Y})")
         return {"probs": probs, "acc": acc}
+
+
+class ReportGenerator(IProcess):
+    def process(self, acc: ArrayMock) -> None:
+        ...
 
 
 ########
@@ -118,15 +126,15 @@ def call_log() -> defaultdict[str, int]:
 
 @pytest.fixture
 def standardization() -> Workflow:
-    standardize_train = WorkflowClient.single_task("train", StandardizeTrain)
-    standardize_eval = WorkflowClient.single_task("eval", StandardizeEval)
-    e = FitAndEvaluateBuilders.build_when_fit_evaluates_on_train(
-        "standardization",
-        standardize_train,
-        standardize_eval,
-        (
-            standardize_eval.sig.mean << standardize_train.ret.mean,
-            standardize_eval.sig.scale << standardize_train.ret.scale,
+    standardize_train = Task(StandardizeTrain)
+    standardize_eval = Task(StandardizeEval)
+    e = Estimator(
+        name="standardization",
+        train_wf=standardize_train,
+        eval_wf=standardize_eval,
+        shared_params=(
+            standardize_eval.inputs.mean << standardize_train.outputs.mean,
+            standardize_eval.inputs.scale << standardize_train.outputs.scale,
         ),
     )
     return e
@@ -134,13 +142,14 @@ def standardization() -> Workflow:
 
 @pytest.fixture
 def logistic_regression() -> Workflow:
-    model_train = WorkflowClient.single_task("fit", ModelTrain)
-    model_eval = WorkflowClient.single_task("eval", ModelEval)
+    model_train = Task(ModelTrain)
+    model_eval = Task(ModelEval)
 
-    e = FitAndEvaluateBuilders.build_using_eval_on_train_and_holdout(
-        "logistic_regression",
-        model_train,
-        model_eval,
+    e = Estimator(
+        name="logistic_regression",
+        train_wf=model_train,
+        eval_wf=model_eval,
+        shared_params=(model_eval.inputs.model << model_train.outputs.model,),
     )
     return e
 
@@ -152,24 +161,32 @@ def logistic_regression() -> Workflow:
 
 @pytest.fixture
 def standardized_lr(standardization: Workflow, logistic_regression: Workflow) -> Workflow:
-    e = WorkflowClient.compose_workflow(
-        "standardized_lr",
-        (standardization, logistic_regression),
-        (
-            logistic_regression.sig.train_X << standardization.ret.train_Z,
-            logistic_regression.sig.holdout_X << standardization.ret.holdout_Z,
-        ),
-        output_dependencies=(
-            "mean" << standardization.ret.mean,
-            "scale" << standardization.ret.scale,
-            "model" << logistic_regression.ret.model,
-            "train_probs" << logistic_regression.ret.train_probs,
-            "train_acc" << logistic_regression.ret.train_acc,
-            "holdout_probs" << logistic_regression.ret.holdout_probs,
-            "holdout_acc" << logistic_regression.ret.holdout_acc,
-        ),
+    e = CombinedWorkflow(
+        standardization,
+        logistic_regression,
+        inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y},
+        outputs={
+            "mean": standardization.outputs.mean.train,
+            "scale": standardization.outputs.scale,
+            "model": logistic_regression.outputs.model.train,
+            "probs.train": logistic_regression.outputs.probs.train,
+            "probs.eval": logistic_regression.outputs.probs.eval,
+            "acc": logistic_regression.outputs.acc,
+        },
+        dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
+        name="standardized_lr",
     )
     return e
+
+
+@pytest.fixture
+def report1() -> Workflow:
+    return Task(ReportGenerator, "report1")
+
+
+@pytest.fixture
+def report2() -> Workflow:
+    return Task(ReportGenerator, "report2")
 
 
 def test_standardized_lr(
@@ -181,54 +198,50 @@ def test_standardized_lr(
     runner = WorkflowRunner(standardized_lr, params_registry)
     outputs = runner(
         name="wf",
-        train_X=ArrayMock("X1"),
-        train_Y=ArrayMock("Y1"),
-        holdout_X=ArrayMock("X2"),
-        holdout_Y=ArrayMock("Y2"),
+        train_inputs=dict(X=ArrayMock("X1"), Y=ArrayMock("Y1")),
+        eval_inputs=dict(X=ArrayMock("X2"), Y=ArrayMock("Y2")),
     )
     # assert len(call_log) == 2
     # assert call_log["spark"] == 1
     # assert call_log["wb_logger"] == 1
-    assert set(outputs) == set(
-        ("mean", "scale", "model", "holdout_probs", "holdout_acc", "train_acc", "train_probs")
-    )
+    assert set(outputs) == set(("mean", "scale", "model", "probs", "acc"))
     assert str(outputs["mean"]) == "mean(X1)"
     assert str(outputs["scale"]) == "scale(X1)"
     assert str(outputs["model"]) == "Model((X1-mean(X1))/scale(X1) ; Y1)"
     assert (
-        str(outputs["holdout_probs"])
+        str(outputs["probs"]["/wf/standardized_lr/logistic_regression/eval/ModelEval"])
         == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1))"
     )
     assert (
-        str(outputs["holdout_acc"])
+        str(outputs["acc"])
         == "acc(Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1)), Y2)"
     )
     assert (
-        str(outputs["train_probs"])
+        str(outputs["probs"]["/wf/standardized_lr/logistic_regression/train/ModelTrain"])
         == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X1-mean(X1))/scale(X1))"
     )
-    assert (
-        str(outputs["train_acc"])
-        == "acc(Model((X1-mean(X1))/scale(X1) ; Y1).probs((X1-mean(X1))/scale(X1)), Y1)"
+
+
+def test_single_output_multiple_input(
+    standardized_lr: Workflow, report1: Workflow, report2: Workflow
+) -> None:
+    reports = CombinedWorkflow(
+        report1,
+        report2,
+        name="reports",
+        inputs={"acc._report1": report1.inputs.acc, "acc._report2": report2.inputs.acc},
     )
+    wf = CombinedWorkflow(
+        standardized_lr,
+        reports,
+        name="wf",
+        dependencies=(reports.inputs.acc << standardized_lr.outputs.acc,),
+    )
+    assert len(wf.inputs) == 2
+    assert len(wf.outputs) == 4
 
 
 # Fails on devops b/c the graphviz binary is not available.
 # TODO: install graphviz on build machines?
 # def test_viz(standardized_lr: Workflow) -> None:
 #     workflow_to_svg(standardized_lr)
-
-
-# #######
-
-# # XVAL PIPELINE
-
-# xval = XVal("xval", (stz_lr,), config={"num_folds": 3})
-
-
-# #######
-
-# # HPO PIPELINE
-
-# hpo_without_xval = HPO("hpo_without_xval", (stz_lr,), search_space={})
-# hpo_with_xval = HPO("hpo_with_xval", (xval,), search_space={})

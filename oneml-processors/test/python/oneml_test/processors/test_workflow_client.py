@@ -4,11 +4,18 @@ from typing import Dict, TypedDict, TypeVar
 
 import pytest
 
-from oneml.processors import IProcess, OutParameter, WorkflowClient, frozendict
+from oneml.processors import (
+    Dependency,
+    IProcess,
+    OutParameter,
+    Workflow,
+    WorkflowClient,
+    frozendict,
+)
 
 Array = TypeVar("Array")
 
-StandardizeOutput = TypedDict("StandardizeOutput", {"Z": Array})
+StandardizeOutput = TypedDict("StandardizeOutput", {"Z": float, "shift": float, "scale": float})
 
 
 class Standardize(IProcess):
@@ -16,38 +23,152 @@ class Standardize(IProcess):
         self._shift = shift
         self._scale = scale
 
-    def process(self, X: Array) -> StandardizeOutput:
+    def process(self, X: float) -> StandardizeOutput:
         Z = (X - self._shift) / self._scale
-        return StandardizeOutput({"Z": Z})
+        return StandardizeOutput({"Z": Z, "shift": self._shift, "scale": self._scale})
 
 
-def test_predefined_standardize():
-    predefined_standardize = WorkflowClient.single_task(
+def test_predefined_standardize() -> None:
+    predefined_standardize = WorkflowClient.task(
         name="standardize",
         processor_type=Standardize,
-        params_getter=frozendict(
-            shift=10.0,
-            scale=2.0,
+        params_getter=frozendict(shift=10.0, scale=2.0),
+    )
+
+    assert set(predefined_standardize.inputs) == set(("X",))
+    assert set(predefined_standardize.outputs) == set(("Z", "scale", "shift"))
+
+
+def test_eval_standardize() -> None:
+    eval_standardize = WorkflowClient.task(name="standardize", processor_type=Standardize)
+
+    assert set(eval_standardize.inputs) == set(("shift", "scale", "X"))
+    assert set(eval_standardize.outputs) == set(("Z", "shift", "scale"))
+
+
+def test_single_workflowparams_assignments() -> None:
+    train_standardize = WorkflowClient.task(
+        name="train",
+        processor_type=Standardize,
+        params_getter=frozendict(shift=10.0, scale=2.0),
+    )
+    eval_standardize = WorkflowClient.task(name="eval", processor_type=Standardize)
+
+    # Tests InWorkflowParamCollection << OutWorkflowParamCollection assignments
+    dp = eval_standardize.inputs.shift << train_standardize.outputs.shift
+    assert len(dp) == 1 and isinstance(dp[0], Dependency)
+
+    with pytest.raises(TypeError):
+        eval_standardize.inputs.shift >> train_standardize.outputs.shift  # type: ignore
+
+    # Tests InWorkflowParam << OutWorkflowParam assignament
+    dp = eval_standardize.inputs.shift.eval << train_standardize.outputs.shift.train
+    assert len(dp) == 1 and isinstance(dp[0], Dependency)
+
+    with pytest.raises(TypeError):
+        eval_standardize.inputs.shift.eval >> train_standardize.outputs.shift.train  # type: ignore
+
+    # Tests OutWorkflowParamCollection >> InWorkflowParamCollection assignments
+    dp = train_standardize.outputs.scale >> eval_standardize.inputs.scale
+    assert len(dp) == 1 and isinstance(dp[0], Dependency)
+
+    with pytest.raises(TypeError):
+        train_standardize.outputs.scale << eval_standardize.inputs.scale  # type: ignore
+
+    # Tests OutWorkflowParam >> InWorkflowParam assignments
+    dp = train_standardize.outputs.scale.train >> eval_standardize.inputs.scale.eval
+    assert len(dp) == 1 and isinstance(dp[0], Dependency)
+
+    with pytest.raises(TypeError):
+        train_standardize.outputs.scale.train << eval_standardize.inputs.scale.eval  # type: ignore
+
+
+def test_mixed_workflowparams_assignments() -> None:
+    train_standardize = WorkflowClient.task(
+        name="train",
+        processor_type=Standardize,
+        params_getter=frozendict(shift=10.0, scale=2.0),
+    )
+    eval_standardize = WorkflowClient.task(name="eval", processor_type=Standardize)
+
+    with pytest.raises(ValueError):  # not supported
+        eval_standardize.inputs.shift.eval << train_standardize.outputs.shift
+
+    with pytest.raises(ValueError):  # not supported
+        train_standardize.outputs.shift >> eval_standardize.inputs.shift.eval
+
+    with pytest.raises(ValueError):  # not supported
+        eval_standardize.inputs.shift << train_standardize.outputs.shift.train
+
+    with pytest.raises(ValueError):  # not supported
+        train_standardize.outputs.shift.train >> eval_standardize.inputs.shift
+
+
+def test_collection_workflowparams_assignments() -> None:
+    train_standardize = WorkflowClient.task(
+        name="train",
+        processor_type=Standardize,
+        params_getter=frozendict(shift=10.0, scale=2.0),
+    )
+    eval_standardize = WorkflowClient.task(name="eval", processor_type=Standardize)
+    stz1 = WorkflowClient.combine(
+        train_standardize,
+        eval_standardize,
+        dependencies=(
+            train_standardize.outputs.shift >> eval_standardize.inputs.shift,
+            train_standardize.outputs.scale >> eval_standardize.inputs.scale,
         ),
+        name="stz1",
+    )
+    stz2 = WorkflowClient.combine(
+        train_standardize,
+        eval_standardize,
+        dependencies=(
+            train_standardize.outputs.shift >> eval_standardize.inputs.shift,
+            train_standardize.outputs.scale >> eval_standardize.inputs.scale,
+        ),
+        name="stz2",
     )
 
-    assert set(predefined_standardize.sig) == set(("X",))
-    assert set(predefined_standardize.ret) == set(("Z",))
+    # Tests InWorkflowParamCollection << OutWorkflowParamCollection assignments
+    dps = stz2.inputs.X << stz1.outputs.Z  # many to many
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
+    dps = stz2.inputs.X << stz1.outputs.shift  # one to many
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
-def test_eval_standardize():
-    eval_standardize = WorkflowClient.single_task(
-        name="standardize", processor_type=Standardize, params_getter=frozendict()
-    )
+    with pytest.raises(TypeError):
+        stz2.inputs.X >> stz1.outputs.Z  # type: ignore
 
-    assert set(eval_standardize.sig) == set(
-        (
-            "shift",
-            "scale",
-            "X",
-        )
-    )
-    assert set(eval_standardize.ret) == set(("Z",))
+    # Tests InWorkflowParam << OutWorkflowParam assignments
+    dp1 = stz2.inputs.X.train << stz1.outputs.Z.train
+    dp2 = stz2.inputs.X.eval << stz1.outputs.Z.eval
+    assert len(dp1) == 1 and isinstance(dp1[0], Dependency)
+    assert len(dp2) == 1 and isinstance(dp2[0], Dependency)
+
+    with pytest.raises(TypeError):
+        stz2.inputs.X.train >> stz1.outputs.Z.train  # type: ignore
+        stz2.inputs.X.eval >> stz1.outputs.Z.eval  # type: ignore
+
+    # Tests OutWorkflowParamCollection >> InWorkflowParamCollection assignments
+    dps = stz1.outputs.Z >> stz2.inputs.X  # many to many
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
+
+    dps = stz1.outputs.shift >> stz2.inputs.X  # one to many
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
+
+    with pytest.raises(TypeError):
+        stz1.outputs.Z << stz2.inputs.X  # type: ignore
+
+    # Tests OutWorkflowParam >> InWorkflowParam assignments
+    dp1 = stz1.outputs.Z.train >> stz2.inputs.X.train
+    dp2 = stz1.outputs.Z.eval >> stz2.inputs.X.eval
+    assert len(dp1) == 1 and isinstance(dp1[0], Dependency)
+    assert len(dp2) == 1 and isinstance(dp2[0], Dependency)
+
+    with pytest.raises(TypeError):
+        stz1.outputs.Z.train << stz1.inputs.X.train  # type: ignore
+        stz1.outputs.Z.eval << stz1.inputs.X.eval  # type: ignore
 
 
 class Scatter:
@@ -56,166 +177,178 @@ class Scatter:
 
     @classmethod
     def get_return_annotation(cls, K: int) -> Dict[str, OutParameter]:
-        out_names = [f"in1_{k}" for k in range(K)] + [f"in2_{k}" for k in range(K)]
+        out_names = [f"in1_n{k}" for k in range(K)] + [f"in2_n{k}" for k in range(K)]
         return {out_name: OutParameter(out_name, str) for out_name in out_names}
 
     def process(self, in1: str, in2: str) -> Dict[str, str]:
-        return {f"in1_{k}": f"{in1}_{k}" for k in range(self._K)} | {
-            f"in2_{k}": f"{in2}_{k}" for k in range(self._K)
+        return {f"in1_n{k}": f"{in1}_n{k}" for k in range(self._K)} | {
+            f"in2_n{k}": f"{in2}_n{k}" for k in range(self._K)
         }
 
 
-def test_scatter():
-    scatter = WorkflowClient.single_task(
+def test_scatter() -> None:
+    scatter = WorkflowClient.task(
         name="scatter",
         processor_type=Scatter,
         params_getter=frozendict(K=3),
         return_annotation=Scatter.get_return_annotation(3),
     )
 
-    assert set(scatter.sig) == set(("in1", "in2"))
-    assert set(scatter.ret) == set(("in1_0", "in1_1", "in1_2", "in2_0", "in2_1", "in2_2"))
+    assert set(scatter.inputs) == set(("in1", "in2"))
+    assert set(scatter.outputs) == set(
+        ("in1_n0", "in1_n1", "in1_n2", "in2_n0", "in2_n1", "in2_n2")
+    )
 
 
 @pytest.fixture
-def w1():
+def w1() -> Workflow:
     W1Output = TypedDict("W1Output", {"C": str})
 
     class W1:
         def process(self, A: str, B: str) -> W1Output:
             ...
 
-    return WorkflowClient.single_task("w1", W1)
+    return WorkflowClient.task("w1", W1)
 
 
 @pytest.fixture
-def w2():
+def w2() -> Workflow:
     W2Output = TypedDict("W2Output", {"E": str, "F": str})
 
     class W2:
         def process(self, D: str) -> W2Output:
             ...
 
-    return WorkflowClient.single_task("w2", W2)
+    return WorkflowClient.task("w2", W2)
 
 
 @pytest.fixture
-def w3():
+def w3() -> Workflow:
     W3Output = TypedDict("W3Output", {"H": str})
 
     class W3:
         def process(self, A: str, G: str) -> W3Output:
             ...
 
-    return WorkflowClient.single_task("w3", W3)
+    return WorkflowClient.task("w3", W3)
 
 
 @pytest.fixture
-def w4():
+def w4() -> Workflow:
     W4Output = TypedDict("W4Output", {"E": str})
 
     class W4:
         def process(self, A: str) -> W4Output:
             ...
 
-    return WorkflowClient.single_task("w4", W4)
+    return WorkflowClient.task("w4", W4)
 
 
-def test_no_dependencies_default_inputs_and_outputs(w1, w2):
-    combined = WorkflowClient.compose_workflow(name="combined", workflows=(w1, w2))
+def test_no_dependencies_default_inputs_and_outputs(w1: Workflow, w2: Workflow) -> None:
+    combined = WorkflowClient.combine(w1, w2, name="combined")
 
-    assert set(combined.sig) == set(("A", "B", "D"))
-    assert set(combined.ret) == set(("C", "E", "F"))
+    assert set(combined.inputs) == set(("A", "B", "D"))
+    assert set(combined.outputs) == set(("C", "E", "F"))
 
 
-def test_with_dependencies_default_inputs_and_outputs(w1, w2, w3):
-    combined = WorkflowClient.compose_workflow(
+def test_with_dependencies_default_inputs_and_outputs(
+    w1: Workflow, w2: Workflow, w3: Workflow
+) -> None:
+    combined = WorkflowClient.combine(
+        w1,
+        w2,
+        w3,
         name="combined",
-        workflows=(w1, w2, w3),
         dependencies=(
-            w1.ret.C >> w2.sig.D,
-            w1.ret.C >> w3.sig.A,
-            w2.ret.E >> w3.sig.G,
+            w1.outputs.C >> w2.inputs.D,
+            w1.outputs.C >> w3.inputs.A,
+            w2.outputs.E >> w3.inputs.G,
         ),
     )
 
-    assert set(combined.sig) == set(("A", "B"))
-    assert set(combined.ret) == set(("F", "H"))
+    assert set(combined.inputs) == set(("A", "B"))
+    assert set(combined.outputs) == set(("F", "H"))
 
 
-def test_with_dependencies_default_inputs_and_outputs_with_shared_input(w1, w2, w3):
-    combined = WorkflowClient.compose_workflow(
+def test_with_dependencies_default_inputs_and_outputs_with_shared_input(
+    w1: Workflow, w2: Workflow, w3: Workflow
+) -> None:
+    combined = WorkflowClient.combine(
+        w1,
+        w2,
+        w3,
         name="combined",
-        workflows=(w1, w2, w3),
         dependencies=(
-            w1.ret.C >> w2.sig.D,
-            w2.ret.E >> w3.sig.G,
+            w1.outputs.C >> w2.inputs.D,
+            w2.outputs.E >> w3.inputs.G,
         ),
     )
 
-    assert set(combined.sig) == set(("A", "B"))
-    assert set(combined.ret) == set(("F", "H"))
+    assert set(combined.inputs) == set(("A", "B"))
+    assert set(combined.outputs) == set(("F", "H"))
 
 
-def test_with_dependencies_inputs_and_outputs_specified(w1, w2, w3, w4):
-    combined = WorkflowClient.compose_workflow(
+def test_with_dependencies_inputs_and_outputs_specified(
+    w1: Workflow, w2: Workflow, w3: Workflow, w4: Workflow
+) -> None:
+    combined = WorkflowClient.combine(
+        w1,
+        w2,
+        w3,
+        w4,
         name="combined",
-        workflows=(w1, w2, w3, w4),
         dependencies=(
-            w1.ret.C >> w2.sig.D,
-            w1.ret.C >> w3.sig.A,
-            w2.ret.E >> w3.sig.G,
-            w2.ret.E >> w4.sig.A,
+            w1.outputs.C >> w2.inputs.D,
+            w1.outputs.C >> w3.inputs.A,
+            w2.outputs.E >> w3.inputs.G,
+            w2.outputs.E >> w4.inputs.A,
         ),
-        input_dependencies=(
-            "a1" >> w1.sig.A,
-            "b" >> w1.sig.B,
-            "a2" >> w3.sig.A,
-        ),
-        output_dependencies=(
-            w1.ret.C >> "c",
-            w3.ret.H >> "h",
-            w4.ret.E >> "e",
-        ),
+        inputs={
+            "a1": w1.inputs.A,
+            "b": w1.inputs.B,
+            "a2": w3.inputs.A,
+        },
+        outputs={"c": w1.outputs.C, "h": w3.outputs.H, "e": w4.outputs.E},
     )
 
-    assert set(combined.sig) == set(("a1", "b", "a2"))
-    assert set(combined.ret) == set(("c", "h", "e"))
+    assert set(combined.inputs) == set(("a1", "b", "a2"))
+    assert set(combined.outputs) == set(("c", "h", "e"))
 
 
-def test_missing_input_error(w1, w2):
+def test_missing_input_error(w1: Workflow, w2: Workflow) -> None:
     with pytest.raises(ValueError):
-        _ = WorkflowClient.compose_workflow(
+        _ = WorkflowClient.combine(
+            w1,
+            w2,
             name="combined",
-            workflows=(w1, w2),
-            dependencies=(w1.ret.C >> w2.sig.D,),
-            input_dependencies=("a" >> w1.sig.A,),
+            dependencies=(w1.outputs.C >> w2.inputs.D,),
+            inputs={"a": w1.inputs.A},
         )
 
-    mitigated_combined = WorkflowClient.compose_workflow(
+    mitigated_combined = WorkflowClient.combine(
+        w1,
+        w2,
         name="combined",
-        workflows=(w1, w2),
-        dependencies=(w1.ret.C >> w2.sig.D,),
-        input_dependencies=(
-            "a" >> w1.sig.A,
-            "b" >> w1.sig.B,
-        ),
+        dependencies=(w1.outputs.C >> w2.inputs.D,),
+        inputs={
+            "a": w1.inputs.A,
+            "b": w1.inputs.B,
+        },
     )
 
-    assert set(mitigated_combined.sig) == set(("a", "b"))
-    assert set(mitigated_combined.ret) == set(("E", "F"))
+    assert set(mitigated_combined.inputs) == set(("a", "b"))
+    assert set(mitigated_combined.outputs) == set(("E", "F"))
 
 
-def test_clashing_outputs_error(w2, w4):
-    with pytest.raises(ValueError):
-        _ = WorkflowClient.compose_workflow(
-            name="combined",
-            workflows=(w2, w4),
-        )
+def test_clashing_outputs_error(w2: Workflow, w4: Workflow) -> None:
+    combined = WorkflowClient.combine(w2, w4, name="combined")
+    assert set(combined.inputs) == set(("D", "A"))
+    assert set(combined.outputs) == set(("F", "E"))
+    assert set(combined.outputs.F) == set(("w2",))
+    assert set(combined.outputs.E) == set(("w2", "w4"))
 
-    mitigated_combined = WorkflowClient.compose_workflow(
-        name="combined", workflows=(w2, w4), output_dependencies=(w2.ret.E >> "e",)
+    mitigated_combined = WorkflowClient.combine(
+        w2, w4, name="combined", outputs={"e": w2.outputs.E}
     )
-
-    assert set(mitigated_combined.sig) == set(("D", "A"))
-    assert set(mitigated_combined.ret) == set(("e"))
+    assert set(mitigated_combined.inputs) == set(("D", "A"))
+    assert set(mitigated_combined.outputs) == set(("e"))

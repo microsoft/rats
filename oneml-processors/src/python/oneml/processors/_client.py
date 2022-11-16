@@ -5,7 +5,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
-from typing import Any, Iterable, Mapping, Sequence, cast
+from typing import Any, Iterable, Mapping, Sequence
 
 from oneml.pipelines.building import IPipelineSessionExecutable, PipelineBuilderFactory
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
@@ -47,8 +47,8 @@ class P2Pipeline:
 
         for k, dps in grouped_dps.items():
             for i, dp in enumerate(dps):
-                dp_node, in_arg_name = cast(PNode, dp.node), dp.in_arg.name + ":" + str(i)
-                data_dps.append(cls.data_dp(dp_node, in_arg_name, dp.out_arg.name))
+                in_arg_name = dp.in_arg.name + ":" + str(i)
+                data_dps.append(cls.data_dp(dp.node, in_arg_name, dp.out_arg.name))
 
         return tuple(data_dps)
 
@@ -126,7 +126,7 @@ class SessionExecutableProvider(IPipelineSessionExecutable):
 
     def get_processor(self, data_client: DataClient) -> IProcess:
         params = dict(self._props.params_getter.items(**self._kwargs))
-        pos_args, kw_args = data_client.load_parameters(self._props.sig, InMethod.init)
+        pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.init)
         return self._props.processor_type(*pos_args, **params, **kw_args)
 
     def execute(self, session_client: PipelineSessionClient) -> None:
@@ -136,10 +136,11 @@ class SessionExecutableProvider(IPipelineSessionExecutable):
         output_client = session_client.node_data_client_factory().get_instance(pipeline_node)
         data_client = DataClient(input_client, output_client)
         processor = self.get_processor(data_client)
-        pos_args, kw_args = data_client.load_parameters(self._props.sig, InMethod.process)
-        output = processor.process(*pos_args, **kw_args)
-        for key, val in output.items():
-            data_client.save(key, val)
+        pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.process)
+        outputs = processor.process(*pos_args, **kw_args)
+        if outputs:
+            for key, val in outputs.items():
+                data_client.save(key, val)
         logger.debug(f"Node {self._node} execute end.")
 
 
