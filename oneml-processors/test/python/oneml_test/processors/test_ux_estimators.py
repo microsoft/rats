@@ -130,8 +130,8 @@ def standardization() -> Pipeline:
     standardize_eval = Task(StandardizeEval)
     e = Estimator(
         name="standardization",
-        train_pipeline=standardize_train,
-        eval_pipeline=standardize_eval,
+        train_pl=standardize_train,
+        eval_pl=standardize_eval,
         shared_params=(
             standardize_eval.inputs.mean << standardize_train.outputs.mean,
             standardize_eval.inputs.scale << standardize_train.outputs.scale,
@@ -147,8 +147,8 @@ def logistic_regression() -> Pipeline:
 
     e = Estimator(
         name="logistic_regression",
-        train_pipeline=model_train,
-        eval_pipeline=model_eval,
+        train_pl=model_train,
+        eval_pl=model_eval,
         shared_params=(model_eval.inputs.model << model_train.outputs.model,),
     )
     return e

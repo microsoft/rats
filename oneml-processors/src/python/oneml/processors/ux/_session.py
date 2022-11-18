@@ -72,7 +72,7 @@ class PipelineRunner:
             if train_inputs and eval_inputs
         )
         return (
-            Estimator(name="data", train_pipeline=pls[0], eval_pipeline=pls[1])
+            Estimator(name="data", train_pl=pls[0], eval_pl=pls[1])
             if train_inputs and eval_inputs
             else Pipeline("data")
         )

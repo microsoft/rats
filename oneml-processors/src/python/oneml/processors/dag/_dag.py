@@ -63,7 +63,7 @@ class ProcessorProps:
     inputs: frozendict[str, InProcessorParam] = field(init=False)
     outputs: frozendict[str, OutProcessorParam] = field(init=False)
 
-    def __post_init__(self, return_annotation: type | None) -> None:
+    def __post_init__(self, return_annotation: Mapping[str, type] | None) -> None:
         inputs = {
             k: v
             for k, v in Annotations.get_processor_signature(self.processor_type).items()
@@ -76,7 +76,12 @@ class ProcessorProps:
                 inputs[k] = InProcessorParam(
                     k, self.params_getter.__annotations__.get(k, Any), InMethod.init
                 )
-        ra = return_annotation or Annotations.get_return_annotation(self.processor_type.process)
+
+        if return_annotation:
+            ra = {k: OutProcessorParam(k, t) for k, t in return_annotation.items()}
+        else:
+            ra = dict(Annotations.get_return_annotation(self.processor_type.process))
+
         object.__setattr__(self, "inputs", frozendict(inputs))
         object.__setattr__(self, "outputs", frozendict(ra))
 

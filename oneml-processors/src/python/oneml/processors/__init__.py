@@ -1,53 +1,70 @@
 from ._training import FitAndEvaluateBuilders, ScatterGatherBuilders
-from .dag._client import P2Pipeline, ParamsRegistry, PipelineSessionProvider, RegistryId
-from .dag._dag import DAG, ComputeReqs, DagDependency, DagNode, Namespace, ProcessorProps
-from .dag._processor import (
+from .dag import (
+    DAG,
     Annotations,
+    ComputeReqs,
+    DagDependency,
+    DagNode,
     IGetParams,
     InMethod,
     InProcessorParam,
     IProcess,
+    Namespace,
     OutProcessorParam,
+    P2Pipeline,
+    ParamsRegistry,
+    PipelineSessionProvider,
+    ProcessorProps,
+    RegistryId,
 )
 from .dag._viz import dag_to_svg, display_dag
-from .utils._frozendict import fdict, frozendict
-from .utils._orderedset import orderedset, oset
-from .ux._client import CombinedPipeline, PipelineBuilder, Task
-from .ux._pipeline import Dependency, Pipeline
-from .ux._session import InputDataProcessor, PipelineRunner
-from .ux._utils import PipelineUtils
+from .utils import fdict, frozendict, orderedset, oset
+from .ux import (
+    CombinedPipeline,
+    Dependency,
+    InputDataProcessor,
+    Pipeline,
+    PipelineBuilder,
+    PipelineInput,
+    PipelineOutput,
+    PipelineRunner,
+    PipelineUtils,
+    Task,
+)
 
 __all__ = [
-    "P2Pipeline",
-    "ParamsRegistry",
-    "PipelineSessionProvider",
-    "RegistryId",
-    "fdict",
-    "frozendict",
-    "orderedset",
-    "oset",
-    "Namespace",
+    "FitAndEvaluateBuilders",
+    "ScatterGatherBuilders",
+    "DAG",
+    "Annotations",
     "ComputeReqs",
     "DagDependency",
-    "DAG",
     "DagNode",
-    "ProcessorProps",
-    "Annotations",
     "IGetParams",
     "InMethod",
     "InProcessorParam",
     "IProcess",
+    "Namespace",
     "OutProcessorParam",
-    "FitAndEvaluateBuilders",
-    "ScatterGatherBuilders",
+    "P2Pipeline",
+    "ParamsRegistry",
+    "PipelineSessionProvider",
+    "ProcessorProps",
+    "RegistryId",
     "dag_to_svg",
     "display_dag",
-    "InputDataProcessor",
-    "PipelineRunner",
+    "fdict",
+    "frozendict",
+    "orderedset",
+    "oset",
     "CombinedPipeline",
-    "Task",
-    "PipelineBuilder",
-    "PipelineUtils",
     "Dependency",
+    "InputDataProcessor",
     "Pipeline",
+    "PipelineBuilder",
+    "PipelineInput",
+    "PipelineOutput",
+    "PipelineRunner",
+    "PipelineUtils",
+    "Task",
 ]

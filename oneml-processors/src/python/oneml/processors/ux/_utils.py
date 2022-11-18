@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Mapping, Sequence, TypeAlias, cast
+from typing import Any, Mapping, Sequence, TypeAlias, TypeVar, cast
 
-from ..dag._dag import DagNode
-from ..dag._processor import InProcessorParam, OutProcessorParam, ProcessorParam
-from ..utils._frozendict import frozendict
+from ..dag import DagNode, InProcessorParam, OutProcessorParam
 from ._pipeline import (
     InParamCollection,
     InParameter,
@@ -13,10 +11,15 @@ from ._pipeline import (
     OutParameter,
     Pipeline,
     PipelineInput,
+    PipelineIO,
     PipelineOutput,
     PipelineParam,
     PipelineParamCollection,
 )
+
+PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
+PM = TypeVar("PM", bound=PipelineParam[Any], covariant=True)
+PC = TypeVar("PC", bound=PipelineParamCollection[Any], covariant=True)
 
 UserInput: TypeAlias = Mapping[str, InParameter | InParamCollection]
 UserOutput: TypeAlias = Mapping[str, OutParameter | OutParamCollection]
@@ -27,43 +30,41 @@ DagOutput: TypeAlias = Mapping[DagNode, Mapping[str, OutProcessorParam]]
 class PipelineUtils:
     @staticmethod
     def merge_pipeline_inputs(
-        *pipelines: Pipeline, exclude: Sequence[InParameter] = ()
+        *pipelines: Pipeline, exclude: Sequence[PipelineParam[InProcessorParam]] = ()
     ) -> PipelineInput:
         params_exclude = tuple((p.node, p.param) for p in exclude)
         dag_input = {
             n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
             for pl in pipelines
-            for n, d in PipelineIO.pipeline_inputs_to_dag_inputs(pl.inputs).items()
+            for n, d in PipelineIOTransform.pipeline_inputs_to_dag_inputs(pl.inputs).items()
         }
-        return PipelineIO.dag_inputs_to_pipeline_inputs(dag_input, pipelines)
+        return PipelineIOTransform.dag_inputs_to_pipeline_inputs(dag_input, pipelines)
 
     @staticmethod
     def merge_pipeline_outputs(
-        *pipelines: Pipeline, exclude: Sequence[OutParameter] = ()
+        *pipelines: Pipeline, exclude: Sequence[PipelineParam[OutProcessorParam]] = ()
     ) -> PipelineOutput:
         params_exclude = tuple((p.node, p.param) for p in exclude)
         dag_output = {
             n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
             for pl in pipelines
-            for n, d in PipelineIO.pipeline_outputs_to_dag_outputs(pl.outputs).items()
+            for n, d in PipelineIOTransform.pipeline_outputs_to_dag_outputs(pl.outputs).items()
         }
-        return PipelineIO.dag_outputs_to_pipeline_outputs(dag_output, pipelines)
+        return PipelineIOTransform.dag_outputs_to_pipeline_outputs(dag_output, pipelines)
 
 
-class PipelineIO:
+class PipelineIOTransform:
     @classmethod
     def dag_inputs_to_pipeline_inputs(
         cls, inputs: DagInput, pipelines: Sequence[Pipeline] = ()
     ) -> PipelineInput:
-        io = cls._io2pipeline(inputs, pipelines, InParameter, InParamCollection)
-        return cast(PipelineInput, io)
+        return cls._io2pipeline(inputs, pipelines, InParameter, InParamCollection)
 
     @classmethod
     def dag_outputs_to_pipeline_outputs(
         cls, outputs: DagOutput, pipelines: Sequence[Pipeline] = ()
     ) -> PipelineOutput:
-        io = cls._io2pipeline(outputs, pipelines, OutParameter, OutParamCollection)
-        return cast(PipelineOutput, io)
+        return cls._io2pipeline(outputs, pipelines, OutParameter, OutParamCollection)
 
     @classmethod
     def user_inputs_to_pipeline_inputs(
@@ -81,23 +82,19 @@ class PipelineIO:
 
     @classmethod
     def pipeline_inputs_to_dag_inputs(cls, inputs: PipelineInput) -> DagInput:
-        dag_input = cls._io2dag(inputs, InParameter, InParamCollection)
-        return cast(DagInput, dag_input)
+        return cls._io2dag(inputs, InParameter, InParamCollection)
 
     @classmethod
     def pipeline_outputs_to_dag_outputs(cls, outputs: PipelineOutput) -> DagOutput:
-        dag_output = cls._io2dag(outputs, OutParameter, OutParamCollection)
-        return cast(DagOutput, dag_output)
+        return cls._io2dag(outputs, OutParameter, OutParamCollection)
 
     @classmethod
     def user_inputs_to_dag_inputs(cls, inputs: UserInput, name: str) -> DagInput:
-        dag_input = cls._io2dag(inputs, InParameter, InParamCollection, name)
-        return cast(DagInput, dag_input)
+        return cls._io2dag(inputs, InParameter, InParamCollection, name)
 
     @classmethod
     def user_outputs_to_dag_outputs(cls, outputs: UserOutput, name: str) -> DagOutput:
-        p_output = cls._io2dag(outputs, OutParameter, OutParamCollection, name)
-        return cast(DagOutput, p_output)
+        return cls._io2dag(outputs, OutParameter, OutParamCollection, name)
 
     @classmethod
     def pipeline_inputs_to_user_inputs(cls, inputs: PipelineInput) -> UserInput:
@@ -123,23 +120,13 @@ class PipelineIO:
 
     @staticmethod
     def _io2pipeline(
-        io: Mapping[DagNode, Mapping[str, ProcessorParam]],
+        io: Mapping[DagNode, Mapping[str, PP]],
         pipelines: Sequence[Pipeline],
-        param_type: type[PipelineParam],
-        collection_type: type[PipelineParamCollection],
-    ) -> frozendict[str, PipelineParamCollection]:
-        pipeline_parameter_type = {
-            InParameter: InProcessorParam,
-            OutParameter: OutProcessorParam,
-        }
+        param_type: type[PM],
+        collection_type: type[PC],
+    ) -> PipelineIO[PC]:
         if not all(isinstance(node, DagNode) for node in io):
             raise ValueError("Keys have to be instances of DagNode.")
-        if not all(
-            isinstance(k, str) and isinstance(p, pipeline_parameter_type[param_type])
-            for d in io.values()
-            for k, p in d.items()
-        ):
-            raise ValueError(f"values of inputs have to be Mapping[str, {param_type}].")
         if any(k.count(".") > 1 for params in io.values() for k in params):
             raise ValueError("Input keys in mapping admit single dot notation.")
 
@@ -172,23 +159,20 @@ class PipelineIO:
             )
             for name in names
         }
-        return frozendict(sig)
+        return PipelineIO(sig)
 
     @staticmethod
     def _io2dag(
-        io: Mapping[str, PipelineParam | PipelineParamCollection],
-        param_type: type[PipelineParam],
-        collection_type: type[PipelineParamCollection],
-        name: str = "",
-    ) -> Mapping[DagNode, Mapping[str, ProcessorParam]]:
-        pipeline_io: defaultdict[DagNode, dict[str, ProcessorParam]] = defaultdict(dict)
+        io: Mapping[str, PM | PC], param_type: type[PM], collection_type: type[PC], name: str = ""
+    ) -> Mapping[DagNode, Mapping[str, PP]]:
+        dag_io: defaultdict[DagNode, dict[str, PP]] = defaultdict(dict)
         for k, params in io.items():
             if isinstance(params, param_type):
-                pipeline_io[params.node.decorate(name)].update({k: params.param})
+                dag_io[params.node.decorate(name)].update({k: params.param})
             elif isinstance(params, collection_type):
                 if k.count(".") > 0 and len(params) > 1:
                     raise ValueError("Dot notation is not meaningful when assigning a collection.")
-                for space, p in params.collection.items():
+                for space, p in params.items():
                     new_space = "." + space if space != p.node.name else ""
-                    pipeline_io[p.node.decorate(name)].update({k + new_space: p.param})
-        return pipeline_io
+                    dag_io[p.node.decorate(name)].update({k + new_space: p.param})
+        return dag_io

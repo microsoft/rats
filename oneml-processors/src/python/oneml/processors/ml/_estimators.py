@@ -4,7 +4,6 @@ from typing import Iterable, Sequence, final
 
 from ..ux._client import PipelineBuilder
 from ..ux._pipeline import Dependency, Pipeline
-from ..ux._utils import PipelineUtils
 
 
 @final
@@ -13,28 +12,29 @@ class Estimator(Pipeline):
     def __init__(
         self,
         name: str,
-        train_pipeline: Pipeline,
-        eval_pipeline: Pipeline,
+        train_pl: Pipeline,
+        eval_pl: Pipeline,
         shared_params: Iterable[Sequence[Dependency]] = ((),),
     ) -> None:
         shared_params = tuple(shared_params)
-        if not all(
-            dp.in_param.node in eval_pipeline.dag for dp in chain.from_iterable(shared_params)
-        ) and not all(
-            dp.out_param.node in train_pipeline.dag for dp in chain.from_iterable(shared_params)
-        ):
-            raise ValueError(
-                "All shared parameters must flow from `train_pipeline` to `eval_pipeline`."
-            )
+        if not isinstance(name, str):
+            raise ValueError("`name` needs to be of `str` type.")
+        if not isinstance(train_pl, Pipeline):
+            raise ValueError("`train_pl` needs to be of `Pipeline` type.")
+        if not isinstance(eval_pl, Pipeline):
+            raise ValueError("`eval_pl` needs to be of `Pipeline` type.")
+        if not all(dp.in_param.node in eval_pl.dag for dp in chain.from_iterable(shared_params)):
+            raise ValueError("All shared parameters must flow from `train_pl` to `eval_pl`.")
+        if not all(dp.out_param.node in train_pl.dag for dp in chain.from_iterable(shared_params)):
+            raise ValueError("All shared parameters must flow from `train_pl` to `eval_pl`.")
 
-        train_pipeline = train_pipeline.decorate(name="train")
-        eval_pipeline = eval_pipeline.decorate(name="eval")
+        train_pl = train_pl.rename({train_pl.name: "train"}).decorate(name="train")
+        eval_pl = eval_pl.rename({eval_pl.name: "eval"}).decorate(name="eval")
         dependencies = (dp.decorate("eval", "train") for dp in chain.from_iterable(shared_params))
-        # estimators expose shared parameters from the train_pipeline
-        outputs = PipelineUtils.merge_pipeline_outputs(train_pipeline, eval_pipeline)
+        outputs = train_pl.outputs | eval_pl.outputs  # estimators expose shared parameters
         pl = PipelineBuilder.combine(
-            train_pipeline,
-            eval_pipeline,
+            train_pl,
+            eval_pl,
             name=name,
             outputs=outputs,
             dependencies=(tuple(dependencies),),
@@ -47,11 +47,11 @@ class EstimatorClient:
     def estimator(
         cls,
         name: str,
-        train_pipeline: Pipeline,
-        eval_pipeline: Pipeline,
+        train_pl: Pipeline,
+        eval_pl: Pipeline,
         shared_params: Iterable[Sequence[Dependency]] = ((),),
     ) -> Estimator:
-        return Estimator(name, train_pipeline, eval_pipeline, shared_params)
+        return Estimator(name, train_pl, eval_pl, shared_params)
 
 
 @final

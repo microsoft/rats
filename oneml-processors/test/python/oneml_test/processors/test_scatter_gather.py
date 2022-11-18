@@ -28,7 +28,10 @@ class Scatter:
 
 def get_scatter_pipeline(K: int) -> Pipeline:
     return PipelineBuilder.task(
-        "scatter", Scatter, frozendict(K=K), return_annotation=Scatter.get_return_annotation(K)
+        "scatter",
+        Scatter,
+        params_getter=frozendict(K=K),
+        return_annotation=Scatter.get_return_annotation(K),
     )
 
 

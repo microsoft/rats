@@ -6,7 +6,7 @@ from ..dag._dag import DAG, ComputeReqs, DagDependency, DagNode, ProcessorProps
 from ..dag._processor import IGetParams, OutProcessorParam
 from ..utils._frozendict import frozendict
 from ._pipeline import Dependency, InParameter, Pipeline
-from ._utils import PipelineIO, PipelineUtils, UserInput, UserOutput
+from ._utils import PipelineIOTransform, PipelineUtils, UserInput, UserOutput
 
 
 @final
@@ -23,8 +23,8 @@ class Task(Pipeline):
         name = name if name else processor_type.__name__
         node = DagNode(name)
         props = ProcessorProps(processor_type, params_getter, compute_reqs, return_annotation)
-        inputs = PipelineIO.dag_inputs_to_pipeline_inputs(frozendict({node: props.inputs}))
-        outs = PipelineIO.dag_outputs_to_pipeline_outputs(frozendict({node: props.outputs}))
+        inputs = PipelineIOTransform.dag_inputs_to_pipeline_inputs({node: props.inputs})
+        outs = PipelineIOTransform.dag_outputs_to_pipeline_outputs({node: props.outputs})
         super().__init__(name, DAG({node: props}), inputs, outs)
 
 
@@ -42,7 +42,7 @@ class CombinedPipeline(Pipeline):
             raise ValueError("Trying to combine pipelines with the same name is not supported.")
 
         def get_props(node: DagNode) -> ProcessorProps:
-            return next(iter(pl.dag.nodes[node] for pl in pipelines if node in pl))
+            return next(iter(pl.dag.nodes[node] for pl in pipelines if node in pl.dag))
 
         shared_input = tuple(dp.in_param for dp in chain.from_iterable(dependencies))
         shared_out = tuple(dp.out_param for dp in chain.from_iterable(dependencies))
@@ -52,7 +52,8 @@ class CombinedPipeline(Pipeline):
             for p in ((params,) if isinstance(params, InParameter) else params.values())
         )
         if inputs is None:  # build default inputs
-            inputs = PipelineUtils.merge_pipeline_inputs(*pipelines, exclude=shared_input)
+            pl_inputs = PipelineUtils.merge_pipeline_inputs(*pipelines, exclude=shared_input)
+            pl_inputs = pl_inputs.decorate(name)
         elif inputs is not None and not all(  # verifies all worfklow inputs have been specified
             p in provided_input_params
             for pl in pipelines
@@ -61,18 +62,23 @@ class CombinedPipeline(Pipeline):
             if p not in shared_input
         ):
             raise ValueError("Not all pipeline inputs have been specified in inputs.")
+        else:
+            pl_inputs = PipelineIOTransform.user_inputs_to_pipeline_inputs(inputs, name, pipelines)
         if outputs is None:  # build default outputs
-            outputs = PipelineUtils.merge_pipeline_outputs(*pipelines, exclude=shared_out)
+            pl_outputs = PipelineUtils.merge_pipeline_outputs(*pipelines, exclude=shared_out)
+            pl_outputs = pl_outputs.decorate(name)
+        else:
+            pl_outputs = PipelineIOTransform.user_outputs_to_pipeline_outputs(
+                outputs, name, pipelines
+            )
 
         dags = [pl.dag for pl in pipelines]
         for dp in chain.from_iterable(dependencies):
-            pdp = DagDependency(dp.out_param.node, dp.in_param.param, dp.out_param.param)
+            ddp = DagDependency(dp.out_param.node, dp.in_param.param, dp.out_param.param)
             in_node = dp.in_param.node
-            dags.append(DAG({in_node: get_props(in_node)}, {in_node: (pdp,)}))
+            dags.append(DAG({in_node: get_props(in_node)}, {in_node: (ddp,)}))
         new_pipeline = sum(dags, start=DAG()).decorate(name)
-        inputs = PipelineIO.user_inputs_to_pipeline_inputs(inputs, name, pipelines)
-        outputs = PipelineIO.user_outputs_to_pipeline_outputs(outputs, name, pipelines)
-        super().__init__(name, new_pipeline, inputs, outputs)
+        super().__init__(name, new_pipeline, pl_inputs, pl_outputs)
 
 
 class PipelineBuilder:
