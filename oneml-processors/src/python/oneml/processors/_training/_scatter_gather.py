@@ -92,10 +92,7 @@ class ScatterGatherBuilders:
                 ChainMap(
                     {port_name: scatter.inputs[port_name] for port_name in scatter.inputs},
                     {
-                        port_name
-                        + f".n{batch_key}": batch_pipelines[batch_key].inputs[port_name][
-                            "batch_process"
-                        ]
+                        port_name + f"._{batch_key}": batch_pipelines[batch_key].inputs[port_name]
                         for port_name in process_batch.inputs
                         if port_name not in batch_input_and_batch_key_to_scatter_output
                         for batch_key in batch_keys
@@ -173,8 +170,8 @@ class ScatterGatherBuilders:
                         if gather_input.startswith(port_name)
                     }
                 )
-                matching_batch_keys = oset(batch_keys_mapping)
-                assert oset(batch_keys) == matching_batch_keys
+                matching_batch_keys = set(batch_keys_mapping)
+                assert set(batch_keys) == matching_batch_keys
                 return batch_keys_mapping
 
         return frozendict(

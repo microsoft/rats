@@ -6,9 +6,9 @@
     * holdout inputs/outputs ports whose names start with "holdout_"
 
 """
-
 from collections import ChainMap
-from typing import Sequence
+from itertools import chain
+from typing import Iterable, Sequence
 
 from ..ux._client import PipelineBuilder
 from ..ux._pipeline import Dependency, Pipeline
@@ -30,7 +30,7 @@ class FitAndEvaluateBuilders:
         estimator_name: str,
         fit_pipeline: Pipeline,
         eval_pipeline: Pipeline,
-        shared_params: Sequence[Dependency] = (),
+        shared_params: Iterable[Sequence[Dependency]] = ((),),
     ) -> Pipeline:
         """Builds a FitAndEvaluate pipeline when the fit pipeline also evaluates train data.
 
@@ -71,29 +71,33 @@ class FitAndEvaluateBuilders:
           * Inputs: `train_X`, `holdout_X`
           * Outputs: `train_Z`, `holdout_Z`, `mean`, `std`.
         """
-        fitted_names_in_fit = frozenset((d.out_param for d in shared_params))
-        fitted_names_in_eval = frozenset((d.in_param for d in shared_params))
+        fitted_names_in_fit = frozenset(
+            dp.out_param.param.name for dp in chain.from_iterable(shared_params)
+        )
+        fitted_names_in_eval = frozenset(
+            dp.in_param.param.name for dp in chain.from_iterable(shared_params)
+        )
         pipeline = PipelineBuilder.combine(
             fit_pipeline,
             eval_pipeline,
-            dependencies=(shared_params,),
+            dependencies=shared_params,
             name=estimator_name,
             inputs=ChainMap(
                 {f"train_{n}": fit_pipeline.inputs[n] for n in fit_pipeline.inputs},
                 {
                     f"holdout_{n}": eval_pipeline.inputs[n]
                     for n in eval_pipeline.inputs
-                    if n not in (fn.node.name for fn in fitted_names_in_eval)
+                    if n not in (fn for fn in fitted_names_in_eval)
                 },
             ),
             outputs=ChainMap(
                 {
                     f"train_{n}": fit_pipeline.outputs[n]
                     for n in fit_pipeline.outputs
-                    if n not in (fn.node.name for fn in fitted_names_in_fit)
+                    if n not in (fn for fn in fitted_names_in_fit)
                 },
                 {f"holdout_{n}": eval_pipeline.outputs[n] for n in eval_pipeline.outputs},
-                {n: fit_pipeline.outputs[n] for n in (fn.node.name for fn in fitted_names_in_fit)},
+                {n: fit_pipeline.outputs[n] for n in (fn for fn in fitted_names_in_fit)},
             ),
         )
         return pipeline
@@ -169,28 +173,28 @@ class FitAndEvaluateBuilders:
                 )
             ),
             inputs=ChainMap(
-                {f"train.n{n}": fit_pipeline.inputs[n] for n in fit_pipeline.inputs},
+                {f"train_{n}.train": fit_pipeline.inputs[n] for n in fit_pipeline.inputs},
                 {
-                    f"train.n{n}": train_eval_pipeline.inputs[n]
+                    f"train_{n}.train_eval": train_eval_pipeline.inputs[n]
                     for n in train_eval_pipeline.inputs
                     if n not in fitted_params_used_by_train_eval
                 },
                 {
-                    f"holdout.n{n}": holdout_eval_pipeline.inputs[n]
+                    f"holdout_{n}": holdout_eval_pipeline.inputs[n]
                     for n in holdout_eval_pipeline.inputs
                     if n not in fitted_params_used_by_holdout_eval
                 },
             ),
             outputs=ChainMap(
                 {
-                    f"train.n{n}": train_eval_pipeline.outputs[n]
+                    f"train_{n}": train_eval_pipeline.outputs[n]
                     for n in train_eval_pipeline.outputs
                 },
                 {
-                    f"holdout.n{n}": holdout_eval_pipeline.outputs[n]
+                    f"holdout_{n}": holdout_eval_pipeline.outputs[n]
                     for n in holdout_eval_pipeline.outputs
                 },
-                {f"n{n}": fit_pipeline.outputs[n] for n in fit_pipeline.outputs},
+                {n: fit_pipeline.outputs[n] for n in fit_pipeline.outputs},
             ),
         )
         return pipeline
