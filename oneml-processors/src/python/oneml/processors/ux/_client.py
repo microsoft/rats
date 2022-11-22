@@ -6,7 +6,7 @@ from ..dag._dag import DAG, ComputeReqs, DagDependency, DagNode, ProcessorProps
 from ..dag._processor import IGetParams, OutProcessorParam
 from ..utils._frozendict import frozendict
 from ._pipeline import Dependency, InParameter, Pipeline
-from ._utils import PipelineIOTransform, PipelineUtils, UserInput, UserOutput
+from ._utils import PipelineUtils, UserInput, UserOutput
 
 
 @final
@@ -23,8 +23,8 @@ class Task(Pipeline):
         name = name if name else processor_type.__name__
         node = DagNode(name)
         props = ProcessorProps(processor_type, params_getter, compute_reqs, return_annotation)
-        inputs = PipelineIOTransform.dag_inputs_to_pipeline_inputs({node: props.inputs})
-        outs = PipelineIOTransform.dag_outputs_to_pipeline_outputs({node: props.outputs})
+        inputs = PipelineUtils.dag_inputs_to_pipeline_inputs({node: props.inputs})
+        outs = PipelineUtils.dag_outputs_to_pipeline_outputs({node: props.outputs})
         super().__init__(name, DAG({node: props}), inputs, outs)
 
 
@@ -52,8 +52,8 @@ class CombinedPipeline(Pipeline):
             for p in ((params,) if isinstance(params, InParameter) else params.values())
         )
         if inputs is None:  # build default inputs
-            pl_inputs = PipelineUtils.merge_pipeline_inputs(*pipelines, exclude=shared_input)
-            pl_inputs = pl_inputs.decorate(name)
+            pl_inputs = pipelines[0].inputs.union(*tuple(p.inputs for p in pipelines[1:]))
+            pl_inputs = (pl_inputs - shared_input).decorate(name)
         elif inputs is not None and not all(  # verifies all worfklow inputs have been specified
             p in provided_input_params
             for pl in pipelines
@@ -63,14 +63,12 @@ class CombinedPipeline(Pipeline):
         ):
             raise ValueError("Not all pipeline inputs have been specified in inputs.")
         else:
-            pl_inputs = PipelineIOTransform.user_inputs_to_pipeline_inputs(inputs, name, pipelines)
+            pl_inputs = PipelineUtils.user_inputs_to_pipeline_inputs(inputs, name, pipelines)
         if outputs is None:  # build default outputs
-            pl_outputs = PipelineUtils.merge_pipeline_outputs(*pipelines, exclude=shared_out)
-            pl_outputs = pl_outputs.decorate(name)
+            pl_outputs = pipelines[0].outputs.union(*tuple(p.outputs for p in pipelines[1:]))
+            pl_outputs = (pl_outputs - shared_out).decorate(name)
         else:
-            pl_outputs = PipelineIOTransform.user_outputs_to_pipeline_outputs(
-                outputs, name, pipelines
-            )
+            pl_outputs = PipelineUtils.user_outputs_to_pipeline_outputs(outputs, name, pipelines)
 
         dags = [pl.dag for pl in pipelines]
         for dp in chain.from_iterable(dependencies):

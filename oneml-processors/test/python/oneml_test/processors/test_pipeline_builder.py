@@ -83,6 +83,50 @@ def test_single_pipelineparams_assignments() -> None:
         train_standardize.outputs.scale.train << eval_standardize.inputs.scale.eval  # type: ignore
 
 
+def test_single_pipelineparams_subtract() -> None:
+    eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
+    in_collection = eval_standardize.inputs.X
+    assert len(in_collection) == 1
+
+    # Tests InParameterCollection - Iterable[str]
+    res = in_collection - ("eval",)
+    assert len(res) == 0
+
+    # Tests InParameterCollection - Iterable[InParameter]
+    res = in_collection - (in_collection.eval,)
+    assert len(res) == 0
+
+
+def test_collectionpipelineparams_subtract() -> None:
+    eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
+    inputs = eval_standardize.inputs
+    assert len(inputs) == 3
+
+    # Tests InParameterCollection - Iterable[str]
+    res0 = inputs - ("X", "shift", "scale")
+    res1 = inputs - ("X", "shift")
+    res2 = inputs - ("X",)
+    assert len(res0) == 0
+    assert len(res1) == 1
+    assert len(res2) == 2
+
+    # Tests InParameterCollection - Iterable[InParamCollection]
+    res0 = inputs - (inputs.X, inputs.shift, inputs.scale)
+    res1 = inputs - (inputs.X, inputs.shift)
+    res2 = inputs - (inputs.X,)
+    assert len(res0) == 0
+    assert len(res1) == 1
+    assert len(res2) == 2
+
+    # Tests InParameterCollection - Iterable[InParameter]
+    res0 = inputs - (inputs.X.eval, inputs.shift.eval, inputs.scale.eval)
+    res1 = inputs - (inputs.X.eval, inputs.shift.eval)
+    res2 = inputs - (inputs.X.eval,)
+    assert len(res0) == 0
+    assert len(res1) == 1
+    assert len(res2) == 2
+
+
 def test_mixed_pipelineparams_assignments() -> None:
     train_standardize = PipelineBuilder.task(
         name="train",

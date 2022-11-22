@@ -4,7 +4,6 @@ from __future__ import annotations
 from functools import reduce
 from typing import (
     TYPE_CHECKING,
-    AbstractSet,
     Any,
     Generic,
     ItemsView,
@@ -136,18 +135,16 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
         return self.__class__(new_d)
 
     @overload
-    def __sub__(self: Self, other: KeysView[_KT]) -> Self:
+    def __sub__(self: Self, other: Iterable[_KT]) -> Self:
         ...
 
     @overload
-    def __sub__(self: Self, other: AbstractSet[_KT]) -> Self:
+    def __sub__(self: Self, other: Iterable[Any]) -> Self:
         ...
 
-    @overload
-    def __sub__(self: Self, other: Mapping[_KT, _VS_co]) -> Self:
-        ...
-
-    def __sub__(self: Self, other: Any) -> Self:
+    def __sub__(self: Self, other: Iterable[Any]) -> Self:
+        if not isinstance(other, Iterable):
+            raise ValueError("`other` needs to be an iterable.")
         new_d = {k: v for k, v in self._d.items() if k not in other}
         return self.__class__(new_d)
 

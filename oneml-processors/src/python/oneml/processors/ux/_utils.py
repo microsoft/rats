@@ -8,11 +8,11 @@ from ._pipeline import (
     InCollection,
     InParameter,
     InPipeline,
+    IOPipeline,
     OutCollection,
     OutParameter,
     OutPipeline,
     Pipeline,
-    PipelineIO,
     PipelineParam,
     PipelineParamCollection,
 )
@@ -28,32 +28,6 @@ DagOutput: TypeAlias = Mapping[DagNode, Mapping[str, OutProcessorParam]]
 
 
 class PipelineUtils:
-    @staticmethod
-    def merge_pipeline_inputs(
-        *pipelines: Pipeline, exclude: Sequence[PipelineParam[InProcessorParam]] = ()
-    ) -> InPipeline:
-        params_exclude = tuple((p.node, p.param) for p in exclude)
-        dag_input = {
-            n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
-            for pl in pipelines
-            for n, d in PipelineIOTransform.pipeline_inputs_to_dag_inputs(pl.inputs).items()
-        }
-        return PipelineIOTransform.dag_inputs_to_pipeline_inputs(dag_input, pipelines)
-
-    @staticmethod
-    def merge_pipeline_outputs(
-        *pipelines: Pipeline, exclude: Sequence[PipelineParam[OutProcessorParam]] = ()
-    ) -> OutPipeline:
-        params_exclude = tuple((p.node, p.param) for p in exclude)
-        dag_output = {
-            n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
-            for pl in pipelines
-            for n, d in PipelineIOTransform.pipeline_outputs_to_dag_outputs(pl.outputs).items()
-        }
-        return PipelineIOTransform.dag_outputs_to_pipeline_outputs(dag_output, pipelines)
-
-
-class PipelineIOTransform:
     @classmethod
     def dag_inputs_to_pipeline_inputs(
         cls, inputs: DagInput, pipelines: Sequence[Pipeline] = ()
@@ -124,7 +98,7 @@ class PipelineIOTransform:
         pipelines: Sequence[Pipeline],
         param_type: type[PM],
         collection_type: type[PC],
-    ) -> PipelineIO[PC]:
+    ) -> IOPipeline[PC]:
         if not all(isinstance(node, DagNode) for node in io):
             raise ValueError("Keys have to be instances of DagNode.")
         if any(k.count(".") > 1 for params in io.values() for k in params):
@@ -159,7 +133,7 @@ class PipelineIOTransform:
             )
             for name in names
         }
-        return PipelineIO(sig)
+        return IOPipeline(sig)
 
     @staticmethod
     def _io2dag(

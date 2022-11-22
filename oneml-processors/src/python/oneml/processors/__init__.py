@@ -28,7 +28,6 @@ from .ux import (
     Pipeline,
     PipelineBuilder,
     PipelineRunner,
-    PipelineUtils,
     Task,
 )
 
@@ -65,6 +64,5 @@ __all__ = [
     "InPipeline",
     "OutPipeline",
     "PipelineRunner",
-    "PipelineUtils",
     "Task",
 ]
