@@ -108,6 +108,13 @@ stages:
       isDevBuild: true
       python_dependency_tool: "poetry"
 
+  # # build Documentations
+  - template: /.azure-pipelines/templates/jobs.docs.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      driverComponent: "oneml-processors"
+      isDevBuild: true
 
 - stage: BM
   dependsOn: CI

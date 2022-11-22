@@ -90,15 +90,15 @@ class PipelineParamCollection(frozendict[str, PM], ABC):
 
 
 @final
-class InParamCollection(PipelineParamCollection[InParameter]):
+class InCollection(PipelineParamCollection[InParameter]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if not all(isinstance(v, InParameter) for v in self.values()):
             raise ValueError("inputs values be `InParameter`.")
 
-    def __lshift__(self, other: OutParamCollection) -> tuple[Dependency, ...]:
-        if not isinstance(other, OutParamCollection):
-            raise ValueError("Dependency assignment only accepts OutParamCollection's.")
+    def __lshift__(self, other: OutCollection) -> tuple[Dependency, ...]:
+        if not isinstance(other, OutCollection):
+            raise ValueError("Dependency assignment only accepts OutCollection's.")
 
         self_counts = Counter(in_space for in_space in self)
         other_counts = Counter(out_space for out_space in other)
@@ -118,15 +118,15 @@ class InParamCollection(PipelineParamCollection[InParameter]):
 
 
 @final
-class OutParamCollection(PipelineParamCollection[OutParameter]):
+class OutCollection(PipelineParamCollection[OutParameter]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if not all(isinstance(v, OutParameter) for v in self.values()):
             raise ValueError("inputs values be `OutParameter`.")
 
-    def __rshift__(self, other: InParamCollection) -> tuple[Dependency, ...]:
-        if not isinstance(other, InParamCollection):
-            raise ValueError("Dependency assignment only accepts InParamCollection's.")
+    def __rshift__(self, other: InCollection) -> tuple[Dependency, ...]:
+        if not isinstance(other, InCollection):
+            raise ValueError("Dependency assignment only accepts InCollection's.")
 
         self_counts = Counter(out_space for out_space in self)
         other_counts = Counter(in_space for in_space in other)
@@ -180,16 +180,16 @@ class PipelineIO(frozendict[str, PC]):
         return self.__class__({k: v.rename(names) for k, v in self.items()})
 
 
-PipelineInput: TypeAlias = PipelineIO[InParamCollection]
-PipelineOutput: TypeAlias = PipelineIO[OutParamCollection]
+InPipeline: TypeAlias = PipelineIO[InCollection]
+OutPipeline: TypeAlias = PipelineIO[OutCollection]
 
 
 @dataclass(frozen=True)
 class Pipeline:
     name: str
     dag: DAG = DAG()
-    inputs: PipelineInput = PipelineInput()
-    outputs: PipelineOutput = PipelineOutput()
+    inputs: InPipeline = InPipeline()
+    outputs: OutPipeline = OutPipeline()
 
     def __len__(self) -> int:
         return len(self.dag)
@@ -200,13 +200,13 @@ class Pipeline:
         if not isinstance(self.dag, DAG):
             raise ValueError(f"{self.dag} needs to be an instance of DAG.")
         if not isinstance(self.inputs, PipelineIO):
-            raise ValueError("`inputs` need to be of `PipelineInput` type.")
+            raise ValueError("`inputs` need to be of `InPipeline` type.")
         if not isinstance(self.outputs, PipelineIO):
-            raise ValueError("`outputs` needs to be of `PipelineOutput` type.")
-        if not all(isinstance(v, InParamCollection) for v in self.inputs.values()):
-            raise ValueError("all `inputs` values need to be of `InParamCollection` type.")
-        if not all(isinstance(v, OutParamCollection) for v in self.outputs.values()):
-            raise ValueError("all `outputs` values need to be of `OutParamCollection` type.")
+            raise ValueError("`outputs` needs to be of `OutPipeline` type.")
+        if not all(isinstance(v, InCollection) for v in self.inputs.values()):
+            raise ValueError("all `inputs` values need to be of `InCollection` type.")
+        if not all(isinstance(v, OutCollection) for v in self.outputs.values()):
+            raise ValueError("all `outputs` values need to be of `OutCollection` type.")
 
     def decorate(self, name: str) -> Pipeline:
         inputs, outputs = self.inputs.decorate(name), self.outputs.decorate(name)

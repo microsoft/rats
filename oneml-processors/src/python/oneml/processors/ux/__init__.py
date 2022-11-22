@@ -1,5 +1,5 @@
 from ._client import CombinedPipeline, PipelineBuilder, Task
-from ._pipeline import Dependency, Pipeline, PipelineInput, PipelineOutput
+from ._pipeline import Dependency, InPipeline, OutPipeline, Pipeline
 from ._session import InputDataProcessor, PipelineRunner
 from ._utils import PipelineUtils
 
@@ -9,8 +9,8 @@ __all__ = [
     "Task",
     "Dependency",
     "Pipeline",
-    "PipelineInput",
-    "PipelineOutput",
+    "InPipeline",
+    "OutPipeline",
     "InputDataProcessor",
     "PipelineRunner",
     "PipelineUtils",

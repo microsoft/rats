@@ -28,8 +28,8 @@ class Scatter:
 
 def get_scatter_pipeline(K: int) -> Pipeline:
     return PipelineBuilder.task(
-        "scatter",
         Scatter,
+        "scatter",
         params_getter=frozendict(K=K),
         return_annotation=Scatter.get_return_annotation(K),
     )
@@ -44,7 +44,7 @@ class BatchProcess:
 
 
 def get_batch_process_pipeline() -> Pipeline:
-    return PipelineBuilder.task("batch_process", BatchProcess)
+    return PipelineBuilder.task(BatchProcess, "batch_process")
 
 
 ConcatStringsAsLinesOutput = TypedDict("ConcatStringsAsLinesOutput", {"out": str})
@@ -56,7 +56,7 @@ class ConcatStringsAsLines:
 
 
 def get_concat_strings_as_lines_pipeline(port_name: str) -> Pipeline:
-    w = PipelineBuilder.task(f"concat_{port_name}", ConcatStringsAsLines)
+    w = PipelineBuilder.task(ConcatStringsAsLines, f"concat_{port_name}")
     w = PipelineBuilder.combine(
         w, name=w.name, inputs={port_name: w.inputs.inp}, outputs={port_name: w.outputs.out}
     )
@@ -73,20 +73,20 @@ def get_gather_pipeline() -> Pipeline:
 
 def get_data_pipeline() -> Pipeline:
     in1 = PipelineBuilder.task(
-        "in1",
         InputDataProcessor,
+        "in1",
         params_getter=frozendict(data={"in1": "IN1"}),
         return_annotation=InputDataProcessor.get_return_annotation(in1="IN1"),
     )
     in2 = PipelineBuilder.task(
-        "in2",
         InputDataProcessor,
+        "in2",
         params_getter=frozendict(data={"in2": "IN2"}),
         return_annotation=InputDataProcessor.get_return_annotation(in2="IN2"),
     )
     in3 = PipelineBuilder.task(
-        "in3",
         InputDataProcessor,
+        "in3",
         params_getter=frozendict(data={"in3": "IN3"}),
         return_annotation=InputDataProcessor.get_return_annotation(in3="IN3"),
     )

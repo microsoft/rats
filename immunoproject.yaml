@@ -6,3 +6,4 @@ applications:
 libraries:
   - name: oneml-pipelines
   - name: oneml-processors
+    build_api_docs: true

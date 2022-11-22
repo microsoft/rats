@@ -5,14 +5,14 @@ from typing import Any, Mapping, Sequence, TypeAlias, TypeVar, cast
 
 from ..dag import DagNode, InProcessorParam, OutProcessorParam
 from ._pipeline import (
-    InParamCollection,
+    InCollection,
     InParameter,
-    OutParamCollection,
+    InPipeline,
+    OutCollection,
     OutParameter,
+    OutPipeline,
     Pipeline,
-    PipelineInput,
     PipelineIO,
-    PipelineOutput,
     PipelineParam,
     PipelineParamCollection,
 )
@@ -21,8 +21,8 @@ PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
 PM = TypeVar("PM", bound=PipelineParam[Any], covariant=True)
 PC = TypeVar("PC", bound=PipelineParamCollection[Any], covariant=True)
 
-UserInput: TypeAlias = Mapping[str, InParameter | InParamCollection]
-UserOutput: TypeAlias = Mapping[str, OutParameter | OutParamCollection]
+UserInput: TypeAlias = Mapping[str, InParameter | InCollection]
+UserOutput: TypeAlias = Mapping[str, OutParameter | OutCollection]
 DagInput: TypeAlias = Mapping[DagNode, Mapping[str, InProcessorParam]]
 DagOutput: TypeAlias = Mapping[DagNode, Mapping[str, OutProcessorParam]]
 
@@ -31,7 +31,7 @@ class PipelineUtils:
     @staticmethod
     def merge_pipeline_inputs(
         *pipelines: Pipeline, exclude: Sequence[PipelineParam[InProcessorParam]] = ()
-    ) -> PipelineInput:
+    ) -> InPipeline:
         params_exclude = tuple((p.node, p.param) for p in exclude)
         dag_input = {
             n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
@@ -43,7 +43,7 @@ class PipelineUtils:
     @staticmethod
     def merge_pipeline_outputs(
         *pipelines: Pipeline, exclude: Sequence[PipelineParam[OutProcessorParam]] = ()
-    ) -> PipelineOutput:
+    ) -> OutPipeline:
         params_exclude = tuple((p.node, p.param) for p in exclude)
         dag_output = {
             n: {k: v for k, v in d.items() if (n, v) not in params_exclude}
@@ -57,51 +57,51 @@ class PipelineIOTransform:
     @classmethod
     def dag_inputs_to_pipeline_inputs(
         cls, inputs: DagInput, pipelines: Sequence[Pipeline] = ()
-    ) -> PipelineInput:
-        return cls._io2pipeline(inputs, pipelines, InParameter, InParamCollection)
+    ) -> InPipeline:
+        return cls._io2pipeline(inputs, pipelines, InParameter, InCollection)
 
     @classmethod
     def dag_outputs_to_pipeline_outputs(
         cls, outputs: DagOutput, pipelines: Sequence[Pipeline] = ()
-    ) -> PipelineOutput:
-        return cls._io2pipeline(outputs, pipelines, OutParameter, OutParamCollection)
+    ) -> OutPipeline:
+        return cls._io2pipeline(outputs, pipelines, OutParameter, OutCollection)
 
     @classmethod
     def user_inputs_to_pipeline_inputs(
         cls, user_input: UserInput, name: str, pipelines: Sequence[Pipeline]
-    ) -> PipelineInput:
+    ) -> InPipeline:
         dag_input = cls.user_inputs_to_dag_inputs(user_input, name)
         return cls.dag_inputs_to_pipeline_inputs(dag_input, pipelines)
 
     @classmethod
     def user_outputs_to_pipeline_outputs(
         cls, user_output: UserOutput, name: str, pipelines: Sequence[Pipeline]
-    ) -> PipelineOutput:
+    ) -> OutPipeline:
         dag_output = cls.user_outputs_to_dag_outputs(user_output, name)
         return cls.dag_outputs_to_pipeline_outputs(dag_output, pipelines)
 
     @classmethod
-    def pipeline_inputs_to_dag_inputs(cls, inputs: PipelineInput) -> DagInput:
-        return cls._io2dag(inputs, InParameter, InParamCollection)
+    def pipeline_inputs_to_dag_inputs(cls, inputs: InPipeline) -> DagInput:
+        return cls._io2dag(inputs, InParameter, InCollection)
 
     @classmethod
-    def pipeline_outputs_to_dag_outputs(cls, outputs: PipelineOutput) -> DagOutput:
-        return cls._io2dag(outputs, OutParameter, OutParamCollection)
+    def pipeline_outputs_to_dag_outputs(cls, outputs: OutPipeline) -> DagOutput:
+        return cls._io2dag(outputs, OutParameter, OutCollection)
 
     @classmethod
     def user_inputs_to_dag_inputs(cls, inputs: UserInput, name: str) -> DagInput:
-        return cls._io2dag(inputs, InParameter, InParamCollection, name)
+        return cls._io2dag(inputs, InParameter, InCollection, name)
 
     @classmethod
     def user_outputs_to_dag_outputs(cls, outputs: UserOutput, name: str) -> DagOutput:
-        return cls._io2dag(outputs, OutParameter, OutParamCollection, name)
+        return cls._io2dag(outputs, OutParameter, OutCollection, name)
 
     @classmethod
-    def pipeline_inputs_to_user_inputs(cls, inputs: PipelineInput) -> UserInput:
+    def pipeline_inputs_to_user_inputs(cls, inputs: InPipeline) -> UserInput:
         return cast(UserInput, inputs)
 
     @classmethod
-    def pipeline_outputs_to_user_outputs(cls, outputs: PipelineOutput) -> UserOutput:
+    def pipeline_outputs_to_user_outputs(cls, outputs: OutPipeline) -> UserOutput:
         return cast(UserOutput, outputs)
 
     @classmethod

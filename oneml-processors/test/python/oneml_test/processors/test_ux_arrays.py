@@ -74,33 +74,33 @@ def right_config(storage: dict[str, npt.NDArray[np.float64]]) -> IGetParams:
 # PIPELINE
 @pytest.fixture(scope="module")
 def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
-    left_reader = PipelineBuilder.task("left_reader", ArrayReader, left_config)
-    right_reader = PipelineBuilder.task("right_reader", ArrayReader, right_config)
-    product = PipelineBuilder.task("array_product", ArrayProduct)
+    left_reader = PipelineBuilder.task(ArrayReader, "left_reader", left_config)
+    right_reader = PipelineBuilder.task(ArrayReader, "right_reader", right_config)
+    product = PipelineBuilder.task(ArrayProduct, "array_product")
 
     w1 = PipelineBuilder.combine(
         left_reader,
         right_reader,
         product,
+        name="w1",
         inputs={},
         outputs={"result": product.outputs.result},
         dependencies=(
             product.inputs.left_arr << left_reader.outputs.array,
             product.inputs.right_arr << right_reader.outputs.array,
         ),
-        name="w1",
     )
     w2 = PipelineBuilder.combine(
         left_reader,
         right_reader,
         product,
+        name="w2",
         inputs={},
         outputs={"result": product.outputs.result},
         dependencies=(
             product.inputs.left_arr << left_reader.outputs.array,
             product.inputs.right_arr << right_reader.outputs.array,
         ),
-        name="w2",
     )
     w3 = PipelineBuilder.combine(
         left_reader,
@@ -114,7 +114,7 @@ def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
         ),
         name="w3",
     )
-    sum_arrays = PipelineBuilder.task("sum_arrays", SumArrays)
+    sum_arrays = PipelineBuilder.task(SumArrays, "sum_arrays")
     return PipelineBuilder.combine(
         sum_arrays,
         w1,

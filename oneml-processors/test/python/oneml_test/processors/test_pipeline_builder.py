@@ -54,7 +54,7 @@ def test_single_pipelineparams_assignments() -> None:
     )
     eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
 
-    # Tests InParamCollection << OutParamCollection assignments
+    # Tests InCollection << OutCollection assignments
     dp = eval_standardize.inputs.shift << train_standardize.outputs.shift
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
@@ -68,7 +68,7 @@ def test_single_pipelineparams_assignments() -> None:
     with pytest.raises(TypeError):
         eval_standardize.inputs.shift.eval >> train_standardize.outputs.shift.train  # type: ignore
 
-    # Tests OutParamCollection >> InParamCollection assignments
+    # Tests OutCollection >> InCollection assignments
     dp = train_standardize.outputs.scale >> eval_standardize.inputs.scale
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
@@ -130,7 +130,7 @@ def test_collection_pipelineparams_assignments() -> None:
         name="stz2",
     )
 
-    # Tests InParamCollection << OutParamCollection assignments
+    # Tests InCollection << OutCollection assignments
     dps = stz2.inputs.X << stz1.outputs.Z  # many to many
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
@@ -150,7 +150,7 @@ def test_collection_pipelineparams_assignments() -> None:
         stz2.inputs.X.train >> stz1.outputs.Z.train  # type: ignore
         stz2.inputs.X.eval >> stz1.outputs.Z.eval  # type: ignore
 
-    # Tests OutParamCollection >> InParamCollection assignments
+    # Tests OutCollection >> InCollection assignments
     dps = stz1.outputs.Z >> stz2.inputs.X  # many to many
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
@@ -208,7 +208,7 @@ def w1() -> Pipeline:
         def process(self, A: str, B: str) -> W1Output:
             ...
 
-    return PipelineBuilder.task("w1", W1)
+    return PipelineBuilder.task(W1, "w1")
 
 
 @pytest.fixture
@@ -219,7 +219,7 @@ def w2() -> Pipeline:
         def process(self, D: str) -> W2Output:
             ...
 
-    return PipelineBuilder.task("w2", W2)
+    return PipelineBuilder.task(W2, "w2")
 
 
 @pytest.fixture
@@ -230,7 +230,7 @@ def w3() -> Pipeline:
         def process(self, A: str, G: str) -> W3Output:
             ...
 
-    return PipelineBuilder.task("w3", W3)
+    return PipelineBuilder.task(W3, "w3")
 
 
 @pytest.fixture
@@ -241,7 +241,7 @@ def w4() -> Pipeline:
         def process(self, A: str) -> W4Output:
             ...
 
-    return PipelineBuilder.task("w4", W4)
+    return PipelineBuilder.task(W4, "w4")
 
 
 def test_no_dependencies_default_inputs_and_outputs(w1: Pipeline, w2: Pipeline) -> None:

@@ -85,8 +85,8 @@ class PipelineBuilder:
     @classmethod
     def task(
         cls,
-        name: str,
         processor_type: type,
+        name: str | None = None,
         params_getter: IGetParams = frozendict[str, Any](),
         compute_reqs: ComputeReqs = ComputeReqs(),
         return_annotation: Mapping[str, OutProcessorParam] | None = None,
