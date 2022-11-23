@@ -170,13 +170,13 @@ accessing an entry within a collection, returns a single input or output paramet
 
 These are the returned types from the nested mappings, accessible via dot notation:
 
-| `Pipeline`        | `InPipeline`     | `InCollection`  | `InParameter`  |
+| `Pipeline`        | `PipelineInput`     | `InCollection`  | `InParameter`  |
 |-------------------|------------------|-----------------|----------------|
 | `standardization` | `.inputs`        | `.X`            | `.stz_train`   |
 | `standardization` | `.inputs`        | `.X`            | `.stz_eval`    |
 |                   |                  |                 |                |
 
-| `Pipeline`        | `OutPipeline`    | `OutCollection` | `OutParameter` |
+| `Pipeline`        | `PipelineOutput`    | `OutCollection` | `OutParameter` |
 |-------------------|------------------|-----------------|----------------|
 | `standardization` | `.outputs`       | `.Z`            | `.stz_train`   |
 | `standardization` | `.outputs`       | `.Z`            | `.stz_eval`    |

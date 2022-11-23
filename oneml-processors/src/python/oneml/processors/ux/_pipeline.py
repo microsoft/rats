@@ -4,7 +4,7 @@ from abc import ABC
 from collections import Counter
 from dataclasses import dataclass
 from sqlite3 import NotSupportedError
-from typing import Any, Generic, Iterable, Mapping, NoReturn, TypeAlias, TypeVar, final, overload
+from typing import Any, Generic, Iterable, Mapping, NoReturn, TypeAlias, TypeVar, cast, final
 
 from ..dag import DAG, DagNode, InProcessorParam, OutProcessorParam
 from ..utils import frozendict
@@ -83,22 +83,14 @@ class PipelineParamCollection(frozendict[str, PM], ABC):
     def __repr__(self) -> str:
         return "\n".join([repr(param) + "." + space for space, param in self.items()])
 
-    @overload
-    def __sub__(self: PC, other: Iterable[str]) -> PC:
-        ...
-
-    @overload
-    def __sub__(self: PC, other: Iterable[PM]) -> PC:
-        ...
-
-    def __sub__(self: PC, other: Iterable[Any]) -> PC:
+    def __sub__(self: PC, other: Iterable[str] | Iterable[PM]) -> PC:
         def get_key(param: PipelineParam[Any]) -> str | None:
             return next(iter(k for k, p in self.items() if p == param), None)
 
         if all(isinstance(i, str) for i in other):
-            return super().__sub__(other)
+            return super().__sub__(cast(Iterable[str], other))
         elif all(isinstance(i, PipelineParam) for i in other):
-            return super().__sub__(tuple(get_key(c) for c in other if get_key(c)))
+            return super().__sub__(filter(None, map(get_key, cast(Iterable[PM], other))))
         else:
             raise NotSupportedError("`other` needs to be an iterator of `str` or `PipelineParam`.")
 
@@ -166,7 +158,7 @@ class OutCollection(PipelineParamCollection[OutParameter]):
 
 
 @final
-class IOPipeline(frozendict[str, PC]):
+class PipelineIO(frozendict[str, PC]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if not all(isinstance(k, str) for k in self._d):
@@ -175,31 +167,21 @@ class IOPipeline(frozendict[str, PC]):
     def __and__(self, other: Mapping[str, Any]) -> NoReturn:
         raise NotImplementedError
 
-    def __or__(self, other: Mapping[str, Any]) -> IOPipeline[PC]:
+    def __or__(self, other: Mapping[str, Any]) -> PipelineIO[PC]:
         un, ix = set(self) | set(other), set(self) & set(other)
         d = {k: self[k] | other[k] if k in ix else self[k] if k in self else other[k] for k in un}
         return self.__class__(d)
 
-    @overload
-    def __sub__(self, other: Iterable[str]) -> IOPipeline[PC]:
-        ...
-
-    @overload
-    def __sub__(self, other: Iterable[PC]) -> IOPipeline[PC]:
-        ...
-
-    @overload
-    def __sub__(self, other: Iterable[PipelineParam[Any]]) -> IOPipeline[PC]:
-        ...
-
-    def __sub__(self, other: Iterable[Any]) -> IOPipeline[PC]:
-        def get_key(collection: PipelineParamCollection[Any]) -> str:
-            return next(iter(k for k, c in self.items() if c == collection))
+    def __sub__(
+        self, other: Iterable[str] | Iterable[PC] | Iterable[PipelineParam[Any]]
+    ) -> PipelineIO[PC]:
+        def get_key(collection: PipelineParamCollection[Any]) -> str | None:
+            return next(iter(k for k, c in self.items() if c == collection), None)
 
         if all(isinstance(i, str) for i in other):
-            return super().__sub__(other)
+            return super().__sub__(cast(Iterable[str], other))
         elif all(isinstance(i, PipelineParamCollection) for i in other):
-            return super().__sub__(tuple(get_key(c) for c in other))
+            return super().__sub__(filter(None, map(get_key, cast(Iterable[PC], other))))
         elif all(isinstance(i, PipelineParam) for i in other):
             d = dict(self)
             for k in self:
@@ -213,10 +195,10 @@ class IOPipeline(frozendict[str, PC]):
                 + "`PipelineParamCollection` or `PipelineParam`."
             )
 
-    def decorate(self, name: str) -> IOPipeline[PC]:
+    def decorate(self, name: str) -> PipelineIO[PC]:
         return self.__class__({k: v.decorate(name) for k, v in self.items()})
 
-    def rename(self, names: Mapping[str, str]) -> IOPipeline[PC]:
+    def rename(self, names: Mapping[str, str]) -> PipelineIO[PC]:
         return self.__class__({k: v.rename(names) for k, v in self.items()})
 
 
@@ -233,16 +215,16 @@ class Dependency:
         return self.__class__(self.in_param.decorate(in_name), self.out_param.decorate(out_name))
 
 
-InPipeline: TypeAlias = IOPipeline[InCollection]
-OutPipeline: TypeAlias = IOPipeline[OutCollection]
+PipelineInput: TypeAlias = PipelineIO[InCollection]
+PipelineOutput: TypeAlias = PipelineIO[OutCollection]
 
 
 @dataclass(frozen=True)
 class Pipeline:
     name: str
     dag: DAG = DAG()
-    inputs: InPipeline = InPipeline()
-    outputs: OutPipeline = OutPipeline()
+    inputs: PipelineInput = PipelineInput()
+    outputs: PipelineOutput = PipelineOutput()
 
     def __len__(self) -> int:
         return len(self.dag)
@@ -252,10 +234,10 @@ class Pipeline:
             raise ValueError("Missing pipeline name.")
         if not isinstance(self.dag, DAG):
             raise ValueError(f"{self.dag} needs to be an instance of DAG.")
-        if not isinstance(self.inputs, IOPipeline):
-            raise ValueError("`inputs` need to be of `InPipeline` type.")
-        if not isinstance(self.outputs, IOPipeline):
-            raise ValueError("`outputs` needs to be of `OutPipeline` type.")
+        if not isinstance(self.inputs, PipelineIO):
+            raise ValueError("`inputs` need to be of `PipelineInput` type.")
+        if not isinstance(self.outputs, PipelineIO):
+            raise ValueError("`outputs` needs to be of `PipelineOutput` type.")
         if not all(isinstance(v, InCollection) for v in self.inputs.values()):
             raise ValueError("all `inputs` values need to be of `InCollection` type.")
         if not all(isinstance(v, OutCollection) for v in self.outputs.values()):

@@ -96,7 +96,7 @@ There is no abstract collection to extend *serializability*, so we extend `Hasha
 ########
 
 
-#### `InPipeline` & `OutPipeline`:
+#### `PipelineInput` & `PipelineOutput`:
 
 You can subtract single or collection of parameters:
 ```

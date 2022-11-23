@@ -22,11 +22,11 @@ from .utils import fdict, frozendict, orderedset, oset
 from .ux import (
     CombinedPipeline,
     Dependency,
-    InPipeline,
     InputDataProcessor,
-    OutPipeline,
     Pipeline,
     PipelineBuilder,
+    PipelineInput,
+    PipelineOutput,
     PipelineRunner,
     Task,
 )
@@ -61,8 +61,8 @@ __all__ = [
     "InputDataProcessor",
     "Pipeline",
     "PipelineBuilder",
-    "InPipeline",
-    "OutPipeline",
+    "PipelineInput",
+    "PipelineOutput",
     "PipelineRunner",
     "Task",
 ]

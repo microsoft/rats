@@ -134,18 +134,9 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
             raise ValueError("Intersection only supported if common keys have same values.")
         return self.__class__(new_d)
 
-    @overload
     def __sub__(self: Self, other: Iterable[_KT]) -> Self:
-        ...
-
-    @overload
-    def __sub__(self: Self, other: Iterable[Any]) -> Self:
-        ...
-
-    def __sub__(self: Self, other: Iterable[Any]) -> Self:
-        if not isinstance(other, Iterable):
-            raise ValueError("`other` needs to be an iterable.")
-        new_d = {k: v for k, v in self._d.items() if k not in other}
+        other_keys = set(other)
+        new_d = {k: v for k, v in self._d.items() if k not in other_keys}
         return self.__class__(new_d)
 
     def intersection(self: Self, *s: Mapping[_KT, _VS_co]) -> Self:
