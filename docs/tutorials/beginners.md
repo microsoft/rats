@@ -17,9 +17,9 @@ class HelloWorld:
 To create a pipeline and run it, we can use the following lines:
 
 ```python
-from oneml.processors import PipelineClient, PipelineRunner
+from oneml.processors import PipelineBuilder, PipelineRunner
 
-hello_world = PipelineClient.task("hello_world", HelloWorld)  # creates a pipeline of single node
+hello_world = PipelineBuilder.task("hello_world", HelloWorld)  # creates a pipeline of single node
 runner = PipelineRunner(hello_world)  # creates a runner for the given pipeline
 runner()  # runs the pipeline
 ```
@@ -78,26 +78,25 @@ Then we combine all 4 *tasks* into a single pipeline by declaring the input/outp
 that exist between *tasks*:
 
 ```python
-from oneml.processors import PipelineClient, PipelineRunner
+from oneml.processors import PipelineBuilder, PipelineRunner, display_dag
 
-A = PipelineClient.task("A", A)
-B = PipelineClient.task("B", B)
-C = PipelineClient.task("C", C)
-D = PipelineClient.task("D", D)
+a = PipelineBuilder.task("A", A)
+b = PipelineBuilder.task("B", B)
+c = PipelineBuilder.task("C", C)
+d = PipelineBuilder.task("D", D)
 
-diamond = PipelineClient.combine(
-    A, B, C, D,
+diamond = PipelineBuilder.combine(
+    a, b, c, d,
     dependencies=(
-        B.inputs.X << A.outputs.Z1,
-        C.inputs.X << A.outputs.Z2,
-        D.inputs.X1 << B.outputs.Z,
-        D.inputs.X2 << C.outputs.Z,
+        b.inputs.X << a.outputs.Z1,
+        c.inputs.X << a.outputs.Z2,
+        d.inputs.X1 << b.outputs.Z,
+        d.inputs.X2 << c.outputs.Z,
     ),
     name="diamond"
 )
 
-runner = PipelineRunner(diamond)  # creates a runner for the given pipeline
-runner()  # runs the pipeline
+display_dag(diamond) # displays the pipeline
 ```
 
 We have seen in these examplea that pipelines, whether made from a single node or multiple, expose
@@ -125,33 +124,33 @@ Note that *processors* can depend on parameters both on the `__init__` and `proc
 shown below.
 
 ```python
- from typing import TypedDict
+from typing import TypedDict
 
 StandardizeTrainOut = TypedDict("StandardizeTrainOut", {"mean": float, "scale": float, "Z_train": float})
 StandardizeEvalOut = TypedDict("StandardizeEvalOut", {"Z_eval": float})
 LogisticRegressionTrainOut = TypedDict("LogisticRegressionTrainOut", {"model": tuple[float], "Z_train": float})
 LogisticRegressionEvalOut = TypedDict("LogisticRegressionEvalOut", {"Z_eval": float})
 
-class StandardizeTrain(self):
-    def process(X_train: float) -> StandardizeTrainOut:
+class StandardizeTrain():
+    def process(self, X_train: float) -> StandardizeTrainOut:
         ...
 
-class StandardizeEval(self):
+class StandardizeEval():
     def __init__(self, mean: float, scale: float) -> None:
         ...
 
-    def process(X_eval: float) -> StandardizeEvalOut:
+    def process(self, X_eval: float) -> StandardizeEvalOut:
         ...
 
-class LogisticRegressionTrain(self):
-    def process(X_train: float, Y_train: float) -> LogisticRegressionTrainOut:
+class LogisticRegressionTrain():
+    def process(self, X_train: float, Y_train: float) -> LogisticRegressionTrainOut:
         ...
 
-class LogisticRegressionEval(self):
+class LogisticRegressionEval():
     def __init__(self, model: tuple[float, ...]) -> None:
         ...
 
-    def process(X_eval: float, Y_eval: float) -> LogisticRegressionEvalOut:
+    def process(self, X_eval: float, Y_eval: float) -> LogisticRegressionEvalOut:
         ...
 ```
 
@@ -160,15 +159,15 @@ diamond pipeline example, to create `standardization` and `logistic_regression`.
 They are all independent, each composed of two nodes and dependencies between them:
 
 ```python
-from oneml.processors import PipelineClient, PipelineRunner
+from oneml.processors import PipelineBuilder, PipelineRunner
 
-stz_train = PipelineClient.task("stz_train", StandardizeTrain)
-stz_eval = PipelineClient.task("stz_eval", StandardizeEval)
-lr_train = PipelineClient.task("lr_train", LogisticRegressionTrain)
-lr_eval = PipelineClient.task("lr_eval", LogisticRegressionEval)
+stz_train = PipelineBuilder.task("stz_train", StandardizeTrain)
+stz_eval = PipelineBuilder.task("stz_eval", StandardizeEval)
+lr_train = PipelineBuilder.task("lr_train", LogisticRegressionTrain)
+lr_eval = PipelineBuilder.task("lr_eval", LogisticRegressionEval)
 
-standardization = PipelineClient.combine(
-    stz_train, stz_eval
+standardization = PipelineBuilder.combine(
+    stz_train, stz_eval,
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
@@ -176,8 +175,8 @@ standardization = PipelineClient.combine(
     name="standardization"
 )
 
-logistic_regression = PipelineClient.combine(
-    lr_train, lr_eval
+logistic_regression = PipelineBuilder.combine(
+    lr_train, lr_eval,
     dependencies=(
         lr_eval.inputs.model << lr_train.outputs.model,
     ),
@@ -189,14 +188,18 @@ The next step is to combine both pipelines into a single one and connect all dep
 between them.
 
 ```python
-standardized_lr = PipelineClient.combine(
+from oneml.processors import display_dag
+
+standardized_lr = PipelineBuilder.combine(
     standardization, logistic_regression,
     dependencies=(
-        logistic_regression.inputs.X_train << standardization.inputs.Z_train,
-        logistic_regression.inputs.X_eval << standardization.inputs.Z_eval,
-    )
+        logistic_regression.inputs.X_train << standardization.outputs.Z_train,
+        logistic_regression.inputs.X_eval << standardization.outputs.Z_eval,
+    ),
     name="standardized_lr"
 )
+
+display_dag(standardized_lr) # displays the pipeline
 ```
 
 There are a few points to clarify here.
@@ -225,31 +228,33 @@ them.
 The following code yields the same resulting pipeline:
 
 ```python
-train_pipeline = PipelineClient.combine(
+train_pipeline = PipelineBuilder.combine(
     stz_train, lr_train,
     dependencies=(
-        lr_train.inputs.X_train << stz_train.outputs.Z_train
-    )
+        lr_train.inputs.X_train << stz_train.outputs.Z_train,
+    ),
     name="train_pipeline"
 )
 
-eval_pipeline = PipelineClient.combine(
+eval_pipeline = PipelineBuilder.combine(
     stz_eval, lr_eval,
     dependencies=(
-        lr_eval.inputs.X_eval << stz_eval.outputs.Z_train
-    )
+        lr_eval.inputs.X_eval << stz_eval.outputs.Z_eval,
+    ),
     name="eval_pipeline"
 )
 
-standardized_lr = PipelineClient.combine(
+standardized_lr = PipelineBuilder.combine(
     train_pipeline, eval_pipeline,
     dependencies=(
         eval_pipeline.inputs.mean << train_pipeline.outputs.mean,
         eval_pipeline.inputs.scale << train_pipeline.outputs.scale,
         eval_pipeline.inputs.model << train_pipeline.outputs.model,
-    )
+    ),
     name="standardized_lr"
 )
+
+display_dag(standardized_lr) # displays the pipeline
 ```
 
 There is no difference between `standardize_lr` pipelines obtained from these two procedures, the
@@ -264,7 +269,7 @@ those explicit to share, via standardization / logistic_regression, or via train
 respectively.
 
 ```python
-standardized_lr = PipelineClient.combine(
+standardized_lr = PipelineBuilder.combine(
     stz_train, lr_train, stz_eval, lr_eval,
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
@@ -272,9 +277,11 @@ standardized_lr = PipelineClient.combine(
         lr_eval.inputs.model << lr_train.outputs.model,
         lr_train.inputs.X_train << stz_train.outputs.Z_train,
         lr_eval.inputs.X_eval << stz_eval.outputs.Z_eval
-    )
+    ),
     name="standardized_lr"
 )
+
+display_dag(standardized_lr) # displays the pipeline
 ```
 
 ## Standardized LR with Data
@@ -295,10 +302,10 @@ class LoadData:
     def process(self) -> LoadDataOut:
         ...
 
-load_data = PipelineClient.task("load_data", LoadData)
+load_data = PipelineBuilder.task("load_data", LoadData)
 
-final_pipeline = PipelineClient.combine(
-    load_data, standardize_lr,
+final_pipeline = PipelineBuilder.combine(
+    load_data, standardized_lr,
     dependencies=(
         standardized_lr.inputs.X_train << load_data.outputs.X_train,
         standardized_lr.inputs.X_eval << load_data.outputs.X_eval,
@@ -308,6 +315,5 @@ final_pipeline = PipelineClient.combine(
     name="final_pipeline"
 )
 
-runner = PipelineRunner(final_pipeline)  # creates a runner for the given pipeline
-runner()  # runs the pipeline
+display_dag(final_pipeline) # displays the pipeline
 ```
