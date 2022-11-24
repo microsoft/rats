@@ -2,7 +2,7 @@ from collections import ChainMap
 from typing import Optional, Sequence, Tuple
 
 from ..utils._frozendict import frozendict
-from ..utils._orderedset import oset
+from ..utils._orderedset import orderedset
 from ..ux._client import PipelineBuilder
 from ..ux._pipeline import Pipeline
 
@@ -46,11 +46,11 @@ class ScatterGatherBuilders:
             batch_keys,
             batch_input_and_batch_key_to_scatter_output,
         ) = cls._get_batch_input_and_batch_key_to_scatter_output(
-            oset(scatter.outputs), oset(process_batch.inputs)
+            orderedset(scatter.outputs), orderedset(process_batch.inputs)
         )
         batch_output_and_batch_key_to_gather_input = (
             cls._get_batch_output_and_batch_key_to_gather_input(
-                batch_keys, oset(process_batch.outputs), oset(gather.inputs)
+                batch_keys, orderedset(process_batch.outputs), orderedset(gather.inputs)
             )
         )
         batch_pipelines = frozendict[int, Pipeline](
@@ -124,10 +124,10 @@ class ScatterGatherBuilders:
 
     @classmethod
     def _get_batch_input_and_batch_key_to_scatter_output(
-        cls, scatter_outputs: oset[str], batch_inputs: oset[str]
+        cls, scatter_outputs: orderedset[str], batch_inputs: orderedset[str]
     ) -> Tuple[Sequence[int], frozendict[str, frozendict[int, str]]]:
         batch_inputs_by_length_downwards = sorted(batch_inputs, key=lambda s: len(s), reverse=True)
-        batch_keys: Optional[oset[int]] = None
+        batch_keys: Optional[orderedset[int]] = None
         batch_input_and_batch_key_to_scatter_output: dict[str, frozendict[int, str]] = dict()
         for batch_input in batch_inputs_by_length_downwards:
             matching_scatter_outputs = [
@@ -142,22 +142,22 @@ class ScatterGatherBuilders:
                         for scatter_output in matching_scatter_outputs
                     }
                 )
-                matching_batch_keys = oset(batch_keys_mapping)
+                matching_batch_keys = orderedset(batch_keys_mapping)
                 if batch_keys is None:
                     batch_keys = matching_batch_keys
                 else:
                     assert set(batch_keys) == set(matching_batch_keys)
                 batch_input_and_batch_key_to_scatter_output[batch_input] = batch_keys_mapping
         if batch_keys is None:
-            batch_keys = oset()
+            batch_keys = orderedset()
         return sorted(batch_keys), frozendict(batch_input_and_batch_key_to_scatter_output)
 
     @classmethod
     def _get_batch_output_and_batch_key_to_gather_input(
         cls,
         batch_keys: Sequence[int],
-        batch_outputs: oset[str],
-        gather_inputs: oset[str],
+        batch_outputs: orderedset[str],
+        gather_inputs: orderedset[str],
     ) -> frozendict[str, frozendict[int, str]]:
         def get_mapper_for_port(port_name: str) -> frozendict[int, str]:
             if port_name in gather_inputs:

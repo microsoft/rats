@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from itertools import chain
 from typing import Any, Iterable, Mapping, Sequence, final
 
 from ..dag._dag import DAG, ComputeReqs, DagDependency, DagNode, ProcessorProps
-from ..dag._processor import IGetParams, OutProcessorParam
+from ..dag._processor import IGetParams
 from ..utils._frozendict import frozendict
 from ._pipeline import Dependency, InParameter, Pipeline
 from ._utils import PipelineUtils, UserInput, UserOutput
@@ -17,12 +19,31 @@ class Task(Pipeline):
         processor_type: type,
         name: str | None = None,
         params_getter: IGetParams = frozendict[str, Any](),
+        input_annotation: Mapping[str, type] | None = None,
+        return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
-        return_annotation: Mapping[str, OutProcessorParam] | None = None,
     ) -> None:
+        if not (isinstance(processor_type, type) and callable(getattr(processor_type, "process"))):
+            raise ValueError("`processor_type` needs to satisfy the `IProcess` protocol.")
+        if name is not None and not isinstance(name, str):
+            raise ValueError("`name` needs to be string or None.")
+        if not isinstance(params_getter, IGetParams):
+            raise ValueError("`params_getter` needs to satisfy `IGetParams` protocol.")
+        if not isinstance(compute_reqs, ComputeReqs):
+            raise ValueError("`compute_reqs` needs to be `ComputeReqs` object.")
+        if return_annotation is not None and not (
+            isinstance(return_annotation, Mapping)
+            and all(
+                isinstance(k, str) and isinstance(v, type) for k, v in return_annotation.items()
+            )
+        ):
+            raise ValueError("`return_annotation` needs to be `Mapping[str, type] | None`.")
+
         name = name if name else processor_type.__name__
         node = DagNode(name)
-        props = ProcessorProps(processor_type, params_getter, compute_reqs, return_annotation)
+        props = ProcessorProps(
+            processor_type, params_getter, input_annotation, return_annotation, compute_reqs
+        )
         inputs = PipelineUtils.dag_inputs_to_pipeline_inputs({node: props.inputs})
         outs = PipelineUtils.dag_outputs_to_pipeline_outputs({node: props.outputs})
         super().__init__(name, DAG({node: props}), inputs, outs)
@@ -34,9 +55,9 @@ class CombinedPipeline(Pipeline):
         self,
         *pipelines: Pipeline,
         name: str,
+        dependencies: Iterable[Sequence[Dependency]] = ((),),
         inputs: UserInput | None = None,
         outputs: UserOutput | None = None,
-        dependencies: Iterable[Sequence[Dependency]] = ((),),
     ) -> None:
         if len(set(pl.name for pl in pipelines)) != len(pipelines):
             raise ValueError("Trying to combine pipelines with the same name is not supported.")
@@ -86,8 +107,9 @@ class PipelineBuilder:
         processor_type: type,
         name: str | None = None,
         params_getter: IGetParams = frozendict[str, Any](),
+        input_annotation: Mapping[str, type] | None = None,
+        return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
-        return_annotation: Mapping[str, OutProcessorParam] | None = None,
     ) -> Pipeline:
         """Create a single node pipeline wrapping a Processor.
 
@@ -207,15 +229,17 @@ class PipelineBuilder:
                 `PipelineBuilder.combine` how to define dependencies.
 
         """
-        return Task(processor_type, name, params_getter, compute_reqs, return_annotation)
+        return Task(
+            processor_type, name, params_getter, input_annotation, return_annotation, compute_reqs
+        )
 
     @staticmethod
     def combine(
         *pipelines: Pipeline,
         name: str,
+        dependencies: Iterable[Sequence[Dependency]] = ((),),
         inputs: UserInput | None = None,
         outputs: UserOutput | None = None,
-        dependencies: Iterable[Sequence[Dependency]] = ((),),
     ) -> Pipeline:
         """Combine multiple pipelines into one pipeline.
 

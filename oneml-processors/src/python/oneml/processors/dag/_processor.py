@@ -6,7 +6,7 @@ from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
-from typing import Any, Callable, Hashable, Mapping, Protocol, final
+from typing import Any, Callable, Hashable, Mapping, Protocol, final, runtime_checkable
 
 from ..utils._frozendict import MappingProtocol
 
@@ -22,10 +22,12 @@ _VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
 
 # IProcess protocol cannot be generic because the return type is abstract.
 # However, any IProcess can be made generic and return a generic TypedDict.
+@runtime_checkable
 class IProcess(Protocol):
     process: Callable[..., Mapping[str, Any] | None] = NotImplemented
 
 
+@runtime_checkable
 class IGetParams(MappingProtocol[str, Any], Hashable, Protocol):
     """Hashable mapping (protocol) for retrieving parameters to construct & execute an IProcess."""
 

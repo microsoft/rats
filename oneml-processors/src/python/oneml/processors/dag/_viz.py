@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Literal, Mapping, Set
+from typing import Any, Iterable, Literal, Mapping
 
 import pydot
 
@@ -16,8 +16,8 @@ class DotBuilder:
         self._g = pydot.Dot("DAG", graph_type="digraph")
         self._node_name_mapping = {}
 
-    def _format_arguments(self, arguments: Mapping[str, Any], io: Literal["i", "o"]) -> str:
-        return "|".join((f"<{io}_{arg}> {arg}" for arg in arguments.keys()))
+    def _format_arguments(self, arguments: Iterable[str], io: Literal["i", "o"]) -> str:
+        return "|".join((f"<{io}_{arg}> {arg}" for arg in arguments))
 
     def _add_name_to_mapping(self, name: str) -> None:
         if name not in self._node_name_mapping:
@@ -27,9 +27,9 @@ class DotBuilder:
         for node in dag.nodes:
             name = repr(node)
             self._add_name_to_mapping(name)
-            in_arguments = dag.nodes[node].inputs
+            in_arguments = tuple(k.name for k in dag.nodes[node].inputs.values())
             inputs = self._format_arguments(in_arguments, "i")
-            out_arguments = dag.nodes[node].outputs
+            out_arguments = tuple(k.name for k in dag.nodes[node].outputs.values())
             outputs = self._format_arguments(out_arguments, "o")
 
             label = f"{{{{{inputs}}}|{name}|{{{outputs}}}}}"
@@ -42,7 +42,8 @@ class DotBuilder:
             name = repr(node)
             for dp in dps:
                 dp_name = repr(dp.node)
-                out_arg = dp.out_arg.name if dp.node else ""
+                in_arg = dp.in_arg.name
+                out_arg = dp.out_arg.name
                 if dp_name not in self._node_name_mapping:
                     self._node_name_mapping[dp_name] = str(len(self._node_name_mapping))
                     node_name = self._node_name_mapping[dp_name]
@@ -51,10 +52,10 @@ class DotBuilder:
                         pydot.Node(name=node_name, label=label, shape="record", color="red")
                     )
                 source = self._node_name_mapping[dp_name] + f":o_{out_arg}"
-                target = self._node_name_mapping[name] + f":i_{out_arg}"
+                target = self._node_name_mapping[name] + f":i_{in_arg}"
                 self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_inputs(self, inputs: Mapping[str, Set[InParameter]]) -> None:
+    def _add_inputs(self, inputs: Mapping[str, Mapping[str, InParameter]]) -> None:
         if len(inputs) > 0:
             name = "inputs"
             self._add_name_to_mapping(name)
@@ -65,13 +66,13 @@ class DotBuilder:
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"
                 )
             )
-            for input, tasks in inputs.items():
+            for input, collection in inputs.items():
                 source = self._node_name_mapping[name] + f":o_{input}"
-                for task in tasks:
-                    target = self._node_name_mapping[repr(task.node)] + f":i_{task.param}"
+                for entry in collection.values():
+                    target = self._node_name_mapping[repr(entry.node)] + f":i_{entry.param.name}"
                     self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_outputs(self, outputs: Mapping[str, Set[OutParameter]]) -> None:
+    def _add_outputs(self, outputs: Mapping[str, Mapping[str, OutParameter]]) -> None:
         if len(outputs) > 0:
             name = "outputs"
             self._add_name_to_mapping(name)
@@ -82,16 +83,16 @@ class DotBuilder:
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"
                 )
             )
-            for output, tasks in outputs.items():
-                for task in tasks:
-                    source = self._node_name_mapping[repr(task.node)] + f":o_{task.param}"
-                    target = self._node_name_mapping[name] + f":i_{output}"
+            for output, collection in outputs.items():
+                target = self._node_name_mapping[name] + f":i_{output}"
+                for entry in collection.values():
+                    source = self._node_name_mapping[repr(entry.node)] + f":o_{entry.param.name}"
                     self._g.add_edge(pydot.Edge(source, target))
 
     def add_pipeline(self, pipeline: Pipeline) -> None:
         self._add_pipeline(pipeline.dag)
-        self._add_inputs({n: set(params.values()) for n, params in pipeline.inputs.items()})
-        self._add_outputs({n: set(params.values()) for n, params in pipeline.outputs.items()})
+        self._add_inputs(pipeline.inputs)
+        self._add_outputs(pipeline.outputs)
 
     def get_dot(self) -> pydot.Dot:  # type: ignore[no-any-unimported]
         return self._g

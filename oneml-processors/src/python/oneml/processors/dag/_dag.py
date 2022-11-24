@@ -7,7 +7,7 @@ from functools import cached_property
 from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Sequence, final
 
 from ..utils._frozendict import frozendict
-from ..utils._orderedset import oset
+from ..utils._orderedset import orderedset
 from ._processor import (
     Annotations,
     IGetParams,
@@ -56,14 +56,19 @@ class ComputeReqs:
 @dataclass(frozen=True)
 class ProcessorProps:
     processor_type: type[IProcess]
-    params_getter: IGetParams = frozendict[str, Any]()
+    params_getter: IGetParams = frozendict()
+    input_annotation: InitVar[Mapping[str, type] | None] = None
+    return_annotation: InitVar[Mapping[str, type] | None] = None
     compute_reqs: ComputeReqs = ComputeReqs()
-    return_annotation: InitVar[Mapping[str, OutProcessorParam] | None] = None
 
     inputs: frozendict[str, InProcessorParam] = field(init=False)
     outputs: frozendict[str, OutProcessorParam] = field(init=False)
 
-    def __post_init__(self, return_annotation: Mapping[str, type] | None) -> None:
+    def __post_init__(
+        self,
+        input_annotation: Mapping[str, type] | None,
+        return_annotation: Mapping[str, type] | None,
+    ) -> None:
         inputs = {
             k: v
             for k, v in Annotations.get_processor_signature(self.processor_type).items()
@@ -77,7 +82,24 @@ class ProcessorProps:
                     k, self.params_getter.__annotations__.get(k, Any), InMethod.init
                 )
 
-        if return_annotation:
+        kwargs = set(i for i in inputs.values() if i.kind == InProcessorParam.VAR_KEYWORD)
+        if len(kwargs) > 1:
+            raise ValueError("Var keyword arguments in both __init__ and process not supported.")
+        if len(kwargs) > 0 and input_annotation is None:
+            raise ValueError("Var keyword argument in processor, `input_annotation` expected.")
+        elif len(kwargs) == 0 and input_annotation is not None:
+            raise ValueError("`input_annotation` provided; processor does not have keyword vars.")
+        elif len(kwargs) == 1 and input_annotation is not None:
+            in_method = kwargs.pop().in_method
+            in_kwargs = {
+                k: InProcessorParam(k, ann, in_method, InProcessorParam.VAR_KEYWORD)
+                for k, ann in input_annotation.items()
+            }
+            if set(in_kwargs) & set(inputs):
+                raise ValueError("Duplicate vars in processor signature and input_annotation.")
+            inputs |= in_kwargs
+
+        if return_annotation is not None:
             ra = {k: OutProcessorParam(k, t) for k, t in return_annotation.items()}
         else:
             ra = dict(Annotations.get_return_annotation(self.processor_type.process))
@@ -152,20 +174,20 @@ class DagDependency:
 @final
 class DAG:
     _nodes: frozendict[DagNode, ProcessorProps]
-    _dependencies: frozendict[DagNode, oset[DagDependency]]
+    _dependencies: frozendict[DagNode, orderedset[DagDependency]]
 
     @property
     def nodes(self) -> Mapping[DagNode, ProcessorProps]:
         return self._nodes
 
     @property
-    def dependencies(self) -> Mapping[DagNode, oset[DagDependency]]:
+    def dependencies(self) -> Mapping[DagNode, orderedset[DagDependency]]:
         return self._dependencies
 
     def __init__(
         self,
         nodes: Mapping[DagNode, ProcessorProps] = {},
-        dependencies: Mapping[DagNode, Sequence[DagDependency] | oset[DagDependency]] = {},
+        dependencies: Mapping[DagNode, Sequence[DagDependency] | orderedset[DagDependency]] = {},
     ) -> None:
         if dependencies.keys() - nodes:
             raise Exception("More dependencies than nodes.")
@@ -178,17 +200,17 @@ class DAG:
         # Fill missing node dependencies for all nodes
         dependencies = dict(dependencies)
         for node_key in nodes.keys() - dependencies.keys():
-            dependencies[node_key] = oset()
+            dependencies[node_key] = orderedset()
 
         self._nodes = frozendict(nodes)
-        self._dependencies = frozendict({k: oset(dps) for k, dps in dependencies.items()})
+        self._dependencies = frozendict({k: orderedset(dps) for k, dps in dependencies.items()})
 
     def __add__(self, dag: DAG) -> DAG:
         distinct_nodes = self._nodes | dag._nodes - (self._nodes & dag._nodes)
         if len(set(repr(node) for node in distinct_nodes)) != len(distinct_nodes):
             raise Exception("Nodes in both dags with same name need to have same props.")
         new_nodes = self._nodes | dag._nodes
-        new_dependencies = defaultdict(oset, self.dependencies)
+        new_dependencies = defaultdict(orderedset, self.dependencies)
         for node, dependencies in dag.dependencies.items():
             new_dependencies[node] |= dependencies
         return self.__class__(new_nodes, new_dependencies)
@@ -213,23 +235,23 @@ class DAG:
         if node not in self:
             raise Exception("Node not in current dag; cannot add dependencies.")
 
-        new_dependencies = self._dependencies[node] | oset(dependencies)
+        new_dependencies = self._dependencies[node] | orderedset(dependencies)
         return self.__class__(self._nodes, self._dependencies.set(node, new_dependencies))
 
     def set_dependencies(self, node: DagNode, dependencies: Iterable[DagDependency]) -> DAG:
         if node not in self:
             raise Exception("Node not in current dag; cannot set dependencies.")
 
-        return self.__class__(self._nodes, self._dependencies.set(node, oset(dependencies)))
+        return self.__class__(self._nodes, self._dependencies.set(node, orderedset(dependencies)))
 
     def decorate(self, namespace: str | Namespace) -> DAG:
         nodes: dict[DagNode, ProcessorProps] = {}
-        dependencies: dict[DagNode, oset[DagDependency]] = {}
+        dependencies: dict[DagNode, orderedset[DagDependency]] = {}
 
         for node, props in self.nodes.items():
             new_node = node.decorate(namespace)
             nodes[new_node] = props
-            dependencies[new_node] = oset(
+            dependencies[new_node] = orderedset(
                 dp.decorate(namespace) if dp not in self.external_dependencies[node] else dp
                 for dp in self.dependencies[node]
             )
@@ -242,13 +264,13 @@ class DAG:
     @cached_property
     def all_dependencies(self) -> AbstractSet[DagDependency]:
         """All dependencies gathered from all nodes in the dag."""
-        return oset(dp for dps in self.dependencies.values() for dp in dps)
+        return orderedset(dp for dps in self.dependencies.values() for dp in dps)
 
     @cached_property
     def external_dependencies(self) -> Mapping[DagNode, AbstractSet[DagDependency]]:
         """Dependencies that point to other nodes not from the dag."""
         return {
-            n: oset({dp for dp in dps if dp.node not in self._nodes})
+            n: orderedset({dp for dp in dps if dp.node not in self._nodes})
             for n, dps in self._dependencies.items()
         }
 
@@ -256,7 +278,7 @@ class DAG:
     def hanging_dependencies(self) -> Mapping[DagNode, AbstractSet[InProcessorParam]]:
         """Dependencies that do not have an external DagNode assigned."""
         return {
-            n: oset(
+            n: orderedset(
                 in_arg
                 for in_arg in props.inputs.values()
                 if in_arg not in (dp.in_arg for dp in self._dependencies[n])
@@ -281,7 +303,7 @@ class DAG:
 
     def history(self, node: DagNode) -> DAG:
         nodes: dict[DagNode, ProcessorProps] = {node: self.nodes[node]}
-        dependencies: dict[DagNode, oset[DagDependency]] = {node: self.dependencies[node]}
+        dependencies: dict[DagNode, orderedset[DagDependency]] = {node: self.dependencies[node]}
         frontier: set[DagNode] = set(dp.node for dp in self.dependencies[node])
 
         while frontier:

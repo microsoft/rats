@@ -4,14 +4,7 @@ from typing import Dict, TypedDict, TypeVar
 
 import pytest
 
-from oneml.processors import (
-    Dependency,
-    IProcess,
-    OutProcessorParam,
-    Pipeline,
-    PipelineBuilder,
-    frozendict,
-)
+from oneml.processors import Dependency, IProcess, Pipeline, PipelineBuilder, frozendict
 
 Array = TypeVar("Array")
 
@@ -220,9 +213,9 @@ class Scatter:
         self._K = K
 
     @classmethod
-    def get_return_annotation(cls, K: int) -> Dict[str, OutProcessorParam]:
+    def get_return_annotation(cls, K: int) -> Dict[str, type]:
         out_names = [f"in1_n{k}" for k in range(K)] + [f"in2_n{k}" for k in range(K)]
-        return {out_name: OutProcessorParam(out_name, str) for out_name in out_names}
+        return {out_name: str for out_name in out_names}
 
     def process(self, in1: str, in2: str) -> Dict[str, str]:
         return {f"in1_n{k}": f"{in1}_n{k}" for k in range(self._K)} | {

@@ -2,7 +2,6 @@ from typing import Any, Dict, TypedDict
 
 from oneml.processors import (
     InputDataProcessor,
-    OutProcessorParam,
     Pipeline,
     PipelineBuilder,
     PipelineRunner,
@@ -16,9 +15,9 @@ class Scatter:
         self._K = K
 
     @classmethod
-    def get_return_annotation(cls, K: int) -> Dict[str, OutProcessorParam]:
+    def get_return_annotation(cls, K: int) -> Dict[str, type]:
         out_names = [f"in1_{k}" for k in range(K)] + [f"in2_{k}" for k in range(K)]
-        return {out_name: OutProcessorParam(out_name, str) for out_name in out_names}
+        return {out_name: str for out_name in out_names}
 
     def process(self, in1: str, in2: str) -> Dict[str, Any]:
         return {f"in1_{k}": f"{in1}_{k}" for k in range(self._K)} | {

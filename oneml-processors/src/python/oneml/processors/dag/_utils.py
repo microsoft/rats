@@ -4,9 +4,9 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import AbstractSet, Any, Mapping
 
-from ..utils._orderedset import oset
+from ..utils import orderedset
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
-from ._processor import IProcess, OutProcessorParam
+from ._processor import IProcess
 
 
 class NoOp(IProcess):
@@ -22,7 +22,7 @@ class HeadPipelineClient:
         head_name: str = "head",
     ) -> DAG:
         hnode = DagNode(head_name)
-        dependencies: dict[DagNode, oset[DagDependency]] = defaultdict(oset)
+        dependencies: dict[DagNode, orderedset[DagDependency]] = defaultdict(orderedset)
         for dag in dags:
             for ext_dp in dag.external_dependencies.values():
                 dependencies[hnode] |= ext_dp  # aggregate all ext dependencies on the head
@@ -63,15 +63,17 @@ class TailPipelineClient:
             raise ValueError("Missing `dags` inputs argument.")
 
         node = DagNode("tail")
-        ra: dict[str, OutProcessorParam] = {}
-        dependencies: defaultdict[DagNode, oset[DagDependency]] = defaultdict(oset)
+        ra: dict[str, type] = {}
+        dependencies: defaultdict[DagNode, orderedset[DagDependency]] = defaultdict(orderedset)
         for dag in dags:
             for end_node in dag.leaf_nodes:
                 for out_param in dag.nodes[end_node].outputs.values():
                     if out_param.name not in exclude:
                         in_param = out_param.to_inparameter()
-                        ra[in_param.name] = OutProcessorParam(in_param.name, in_param.annotation)
-                        dependencies[node] |= oset((DagDependency(end_node, in_param, out_param),))
+                        ra[in_param.name] = in_param.annotation
+                        dependencies[node] |= orderedset(
+                            (DagDependency(end_node, in_param, out_param),)
+                        )
 
         props = ProcessorProps(NoOp, return_annotation=ra)
         return DAG({node: props}, dependencies)

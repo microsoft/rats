@@ -1,4 +1,4 @@
-from typing import Mapping, TypedDict
+from typing import Any, Mapping, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -8,7 +8,6 @@ from oneml.processors import (
     DAG,
     DagDependency,
     DagNode,
-    IGetParams,
     InMethod,
     InProcessorParam,
     IProcess,
@@ -47,13 +46,23 @@ class SumArrays(IProcess):
         return SumArraysOutput(output=np.sum([np.sum(a) for a in arrays]))
 
 
-storage = {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
-left_config: IGetParams = frozendict(storage=storage, url="a")
-right_config: IGetParams = frozendict(storage=storage, url="b")
+@pytest.fixture
+def storage() -> dict[str, npt.NDArray[np.float64]]:
+    return {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
 
 
 @pytest.fixture
-def simple_pipeline() -> DAG:
+def left_config(storage: dict[str, Any]) -> frozendict[str, Any]:
+    return frozendict(storage=storage, url="a")
+
+
+@pytest.fixture
+def right_config(storage: dict[str, Any]) -> frozendict[str, Any]:
+    return frozendict(storage=storage, url="b")
+
+
+@pytest.fixture
+def simple_pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, Any]) -> DAG:
     left_arr = DagNode("left_arr")
     right_arr = DagNode("right_arr")
     multiply = DagNode("multiply")

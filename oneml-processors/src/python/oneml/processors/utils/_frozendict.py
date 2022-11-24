@@ -154,7 +154,7 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
         return reduce(lambda xi, si: xi.__or__(si), s, self)
 
 
-fdict: TypeAlias = frozendict
+fdict: TypeAlias = frozendict[_KT, _VT_co]
 
 
 class MappingProtocol(Protocol[_KT, _VT_co]):

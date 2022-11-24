@@ -21,8 +21,8 @@ class InputDataProcessor(IProcess):
         return self._data
 
     @staticmethod
-    def get_return_annotation(**inputs: Any) -> Mapping[str, OutProcessorParam]:
-        return {k: OutProcessorParam(k, type(v)) for k, v in inputs.items()}
+    def get_return_annotation(**inputs: Any) -> Mapping[str, type]:
+        return {k: type(v) for k, v in inputs.items()}
 
 
 class SessionOutputsGetter(Iterable[str]):

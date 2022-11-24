@@ -13,7 +13,7 @@ from oneml.processors import (
     OutProcessorParam,
     ProcessorProps,
     dag_to_svg,
-    oset,
+    orderedset,
 )
 
 
@@ -79,8 +79,10 @@ def estimator_from_multiple_nodes_dag() -> None:
         train_model: ProcessorProps(ModelTrain),
     }
     train_dps = {
-        train_stz: oset((DagDependency(data, InProcessorParam("X", Array, InMethod.process)),)),
-        train_model: oset(
+        train_stz: orderedset(
+            (DagDependency(data, InProcessorParam("X", Array, InMethod.process)),)
+        ),
+        train_model: orderedset(
             (
                 DagDependency(
                     train_stz,
@@ -95,8 +97,10 @@ def estimator_from_multiple_nodes_dag() -> None:
     eval_stz = DagNode("eval", namespace=Namespace("stz"))
     eval_model = DagNode("eval", namespace=Namespace("model"))
     eval_dps = {
-        eval_stz: oset((DagDependency(data, InProcessorParam("X", Array, InMethod.process)),)),
-        eval_model: oset(
+        eval_stz: orderedset(
+            (DagDependency(data, InProcessorParam("X", Array, InMethod.process)),)
+        ),
+        eval_model: orderedset(
             (
                 DagDependency(
                     eval_stz,
@@ -124,8 +128,8 @@ def estimator_from_multiple_nodes_dag() -> None:
 def concatenate_estimators_dag() -> None:
     train_nodeA = DagNode("train", namespace=Namespace("stz"))
     train_nodeB = DagNode("train", namespace=Namespace("model"))
-    train_dpsA: dict[DagNode, oset[DagDependency]] = {train_nodeA: oset()}
-    train_dpsB: dict[DagNode, oset[DagDependency]] = {train_nodeB: oset()}
+    train_dpsA: dict[DagNode, orderedset[DagDependency]] = {train_nodeA: orderedset()}
+    train_dpsB: dict[DagNode, orderedset[DagDependency]] = {train_nodeB: orderedset()}
     train_nodesA = {train_nodeA: ProcessorProps(StandardizeTrain)}
     train_nodesB = {train_nodeB: ProcessorProps(ModelTrain)}
 
@@ -134,8 +138,8 @@ def concatenate_estimators_dag() -> None:
 
     eval_nodeA = DagNode("eval", namespace=Namespace("stz"))
     eval_nodeB = DagNode("eval", namespace=Namespace("model"))
-    eval_dpsA: dict[DagNode, oset[DagDependency]] = {eval_nodeA: oset()}
-    eval_dpsB: dict[DagNode, oset[DagDependency]] = {eval_nodeB: oset()}
+    eval_dpsA: dict[DagNode, orderedset[DagDependency]] = {eval_nodeA: orderedset()}
+    eval_dpsB: dict[DagNode, orderedset[DagDependency]] = {eval_nodeB: orderedset()}
     eval_nodesA: dict[DagNode, ProcessorProps] = {eval_nodeA: ProcessorProps(StandardizeEval)}
     eval_nodesB: dict[DagNode, ProcessorProps] = {eval_nodeB: ProcessorProps(ModelEval)}
 

@@ -24,47 +24,51 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
-python = ">=3.8.10,<3.11"
-oneml-pipelines = { version = "*" }
-oneml-processors = { version = "*" }
-
-hydra-core = "^1.1.2"
-omegaconf = "*"
-optuna = "^2.10.0"
-hera-workflows = "^3.2.0"
-numpy = "^1.22.3"
-munch = "^2.5.0"
-networkx = "^2.8.1"
-sklearn = "^0.0"
-pygame = "^2.1.2"
-pydot = "*"
 colorlog = "*"
+hera-workflows = "^3.2.0"
+hydra-core = "^1.1.2"
+ipykernel = "^6.18.0"
+ipython = "^8.6.0"
+jupyter-client = "^7.4.7"
+jupyter-console = "^6.4.4"
 kubernetes = "*"
+munch = "^2.5.0"
+nbconvert = "^7.2.5"
+networkx = "^2.8.1"
+numpy = "^1.22.3"
+omegaconf = "*"
+oneml-pipelines = "*"
+oneml-processors = "*" 
+optuna = "^2.10.0"
+pydot = "*"
+pygame = "^2.1.2"
+python = ">=3.8.10,<3.11"
+sklearn = "^0.0"
 
 # These are only needed during development
+black = { version = "*", optional = true }
+coverage = { version = "*", optional = true }
 flake8 = { version = "*", optional = true }
 flake8-formatter-junit-xml = { version = "*", optional = true }
-pytest = { version = "*", optional = true }
+flake8-isort = { version = "*", optional = true }
+isort = { version = "*", optional = true }
 mypy = { version = "*", optional = true }
-coverage = { version = "*", optional = true }
+pytest = { version = "*", optional = true }
 pytest-cov = { version = "*", optional = true }
 pytest-nunit = { version = "*", optional = true }
-isort = { version = "*", optional = true }
-flake8-isort = { version = "*", optional = true }
-black = { version = "*", optional = true }
 
 [tool.poetry.extras]
 dev = [
+    "black",
+    "coverage",
     "flake8",
     "flake8-formatter-junit-xml",
-    "pytest",
+    "flake8-isort",
+    "isort",
     "mypy",
-    "coverage",
+    "pytest",
     "pytest-cov",
     "pytest-nunit",
-    "isort",
-    "flake8-isort",
-    "black",
 ]
 
 [tool.poetry.dev-dependencies]

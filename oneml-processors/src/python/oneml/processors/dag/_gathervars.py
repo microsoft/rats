@@ -2,7 +2,7 @@ from enum import Enum
 from inspect import _ParameterKind
 from typing import Any, Mapping, Sequence, TypedDict
 
-from ..utils._orderedset import oset
+from ..utils._orderedset import orderedset
 from ._dag import DAG, DagDependency, DagNode, IExpandDag, ProcessorProps
 from ._processor import InMethod, InProcessorParam, IProcess, OutProcessorParam
 
@@ -102,7 +102,7 @@ class GatherVarsDagExpander(IExpandDag):
             gathering_node: ProcessorProps(GATHERVAR2PROCESSOR[kind])
         }
         gathering_dependencies = {
-            gathering_node: oset(
+            gathering_node: orderedset(
                 DagDependency(
                     dp.node,
                     InProcessorParam(
