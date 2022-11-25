@@ -112,20 +112,22 @@ class PipelineUtils:
             return next(iter(pl.name for pl in pipelines if node in pl.dag), node.name)
 
         names: set[str] = set()
-        spaces: dict[DagNode, str] = {}
-        counter: defaultdict[tuple[str, str], int] = defaultdict(int)
+        counter: defaultdict[tuple[str, str], tuple[DagNode, ...]] = defaultdict(tuple)
         for n, in_params in io.items():
             for k in in_params:
                 name, space = split_key(k, get_default(n))
                 names.add(name)
-                spaces[n] = space
-                counter[(name, space)] += 1
-                if counter[(name, space)] > 1:
-                    raise ValueError("Multiple colliding variable names and spaces.")
+                counter[(name, space)] += (n,)
+        if any(len(nodes) > 1 for nodes in counter.values()):
+            err: tuple[str, ...] = ()
+            for (name, space), nodes in counter.items():
+                if len(nodes) > 1:
+                    err += (f"Colliding variable name and entry: {name}.{space} in {nodes};",)
+            raise ValueError("\n".join(err))
         sig = {
             name: collection_type(
                 {
-                    spaces[n]: param_type(n, p)
+                    split_key(k, get_default(n))[1]: param_type(n, p)
                     for n, in_params in io.items()
                     for k, p in in_params.items()
                     if split_key(k, get_default(n))[0] == name
@@ -147,6 +149,6 @@ class PipelineUtils:
                 if k.count(".") > 0 and len(params) > 1:
                     raise ValueError("Dot notation is not meaningful when assigning a collection.")
                 for space, p in params.items():
-                    new_space = "." + space if space != p.node.name else ""
+                    new_space = "" if k.count(".") == 1 or space == p.node.name else "." + space
                     dag_io[p.node.decorate(name)].update({k + new_space: p.param})
         return dag_io

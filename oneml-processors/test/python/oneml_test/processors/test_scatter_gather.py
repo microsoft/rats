@@ -106,8 +106,8 @@ def get_gather_pipeline_with_numbered_inputs(K: int) -> Pipeline:
         name="gather",
         dependencies=(),
         inputs=(
-            {f"out12.{k}": w12.inputs.out12.concat_out12 for k in range(K)}
-            | {f"out23.{k}": w23.inputs.out23.concat_out23 for k in range(K)}
+            {f"out12_{k}": w12.inputs.out12 for k in range(K)}
+            | {f"out23_{k}": w23.inputs.out23 for k in range(K)}
         ),
     )
 

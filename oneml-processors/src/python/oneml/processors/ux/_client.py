@@ -73,8 +73,8 @@ class CombinedPipeline(Pipeline):
             for p in ((params,) if isinstance(params, InParameter) else params.values())
         )
         if inputs is None:  # build default inputs
-            pl_inputs = pipelines[0].inputs.union(*tuple(p.inputs for p in pipelines[1:]))
-            pl_inputs = (pl_inputs - shared_input).decorate(name)
+            in_temp = tuple(map(lambda i: i - shared_input, (p.inputs for p in pipelines)))
+            pl_inputs = in_temp[0].union(*in_temp[1:]).decorate(name)
         elif inputs is not None and not all(  # verifies all worfklow inputs have been specified
             p in provided_input_params
             for pl in pipelines
@@ -86,8 +86,8 @@ class CombinedPipeline(Pipeline):
         else:
             pl_inputs = PipelineUtils.user_inputs_to_pipeline_inputs(inputs, name, pipelines)
         if outputs is None:  # build default outputs
-            pl_outputs = pipelines[0].outputs.union(*tuple(p.outputs for p in pipelines[1:]))
-            pl_outputs = (pl_outputs - shared_out).decorate(name)
+            out_temp = tuple(map(lambda i: i - shared_out, (p.outputs for p in pipelines)))
+            pl_outputs = out_temp[0].union(*out_temp[1:]).decorate(name)
         else:
             pl_outputs = PipelineUtils.user_outputs_to_pipeline_outputs(outputs, name, pipelines)
 

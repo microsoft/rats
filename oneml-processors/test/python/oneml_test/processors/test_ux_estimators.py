@@ -164,7 +164,7 @@ def standardized_lr(standardization: Pipeline, logistic_regression: Pipeline) ->
     e = CombinedPipeline(
         standardization,
         logistic_regression,
-        inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y},
+        inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y},  # redundant
         outputs={
             "mean": standardization.outputs.mean.train,
             "scale": standardization.outputs.scale,
@@ -236,6 +236,27 @@ def test_single_output_multiple_input(
     )
     assert len(pl.inputs) == 2
     assert len(pl.outputs) == 4
+
+
+def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline) -> None:
+    e = CombinedPipeline(
+        standardization,
+        logistic_regression,
+        name="standardized_lr",
+        dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
+        outputs={
+            "A.mean": standardization.outputs.mean.train,
+            "A.scale": standardization.outputs.scale,
+            "A.model": logistic_regression.outputs.model.train,
+            "A.probs_train": logistic_regression.outputs.probs.train,
+            "A.probs_eval": logistic_regression.outputs.probs.eval,
+            "A.acc": logistic_regression.outputs.acc,
+        },
+    )
+
+    assert len(e.outputs) == 1 and tuple(e.outputs) == ("A",)
+    assert len(e.outputs.A) == 6
+    assert set(e.outputs.A) == set(("mean", "scale", "model", "probs_train", "probs_eval", "acc"))
 
 
 # Fails on devops b/c the graphviz binary is not available.
