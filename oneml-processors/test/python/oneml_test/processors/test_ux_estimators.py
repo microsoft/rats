@@ -190,34 +190,31 @@ def report2() -> Pipeline:
 
 
 def test_standardized_lr(
-    call_log: defaultdict[str, int],
     standardized_lr: Pipeline,
-    params_registry: ParamsRegistry,
 ) -> None:
-    assert len(call_log) == 0
-    runner = PipelineRunner(standardized_lr, params_registry)
+    runner = PipelineRunner(standardized_lr)
     outputs = runner(
-        name="pl",
-        train_inputs=dict(X=ArrayMock("X1"), Y=ArrayMock("Y1")),
-        eval_inputs=dict(X=ArrayMock("X2"), Y=ArrayMock("Y2")),
+        inputs={
+            "X.train": ArrayMock("X1"),
+            "Y.train": ArrayMock("Y1"),
+            "X.eval": ArrayMock("X2"),
+            "Y.eval": ArrayMock("Y2"),
+        }
     )
-    # assert len(call_log) == 2
-    # assert call_log["spark"] == 1
-    # assert call_log["wb_logger"] == 1
     assert set(outputs) == set(("mean", "scale", "model", "probs", "acc"))
-    assert str(outputs["mean"]) == "mean(X1)"
-    assert str(outputs["scale"]) == "scale(X1)"
-    assert str(outputs["model"]) == "Model((X1-mean(X1))/scale(X1) ; Y1)"
+    assert str(outputs.mean) == "mean(X1)"
+    assert str(outputs.scale) == "scale(X1)"
+    assert str(outputs.model) == "Model((X1-mean(X1))/scale(X1) ; Y1)"
     assert (
-        str(outputs["probs"]["/pl/standardized_lr/logistic_regression/eval/ModelEval"])
+        str(outputs.probs.eval)
         == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1))"
     )
     assert (
-        str(outputs["acc"])
+        str(outputs.acc)
         == "acc(Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1)), Y2)"
     )
     assert (
-        str(outputs["probs"]["/pl/standardized_lr/logistic_regression/train/ModelTrain"])
+        str(outputs.probs.train)
         == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X1-mean(X1))/scale(X1))"
     )
 

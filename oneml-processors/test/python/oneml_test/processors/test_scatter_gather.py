@@ -1,7 +1,6 @@
 from typing import Any, Dict, TypedDict
 
 from oneml.processors import (
-    InputDataProcessor,
     Pipeline,
     PipelineBuilder,
     PipelineRunner,
@@ -70,46 +69,13 @@ def get_gather_pipeline() -> Pipeline:
     )
 
 
-def get_data_pipeline() -> Pipeline:
-    in1 = PipelineBuilder.task(
-        InputDataProcessor,
-        "in1",
-        params_getter=frozendict(data={"in1": "IN1"}),
-        return_annotation=InputDataProcessor.get_return_annotation(in1="IN1"),
-    )
-    in2 = PipelineBuilder.task(
-        InputDataProcessor,
-        "in2",
-        params_getter=frozendict(data={"in2": "IN2"}),
-        return_annotation=InputDataProcessor.get_return_annotation(in2="IN2"),
-    )
-    in3 = PipelineBuilder.task(
-        InputDataProcessor,
-        "in3",
-        params_getter=frozendict(data={"in3": "IN3"}),
-        return_annotation=InputDataProcessor.get_return_annotation(in3="IN3"),
-    )
-    return PipelineBuilder.combine(in1, in2, in3, name="pl")
-
-
 def test_scatter_gather() -> None:
     scatter = get_scatter_pipeline(4)
     batch_process = get_batch_process_pipeline()
     gather = get_gather_pipeline()
     sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
-    data_pl = get_data_pipeline()
-    test_sc = PipelineBuilder.combine(
-        sc,
-        data_pl,
-        name="test_sc",
-        dependencies=(
-            sc.inputs.in1 << data_pl.outputs.in1,
-            sc.inputs.in2 << data_pl.outputs.in2,
-            sc.inputs.in3 << data_pl.outputs.in3,
-        ),
-    )
-    runner = PipelineRunner(test_sc)
-    o = runner()
+    runner = PipelineRunner(sc)
+    o = runner(dict(in1="IN1", in2="IN2", in3="IN3"))
     expected_out12 = "\n".join(
         (
             "IN1_0*IN2_0",
@@ -151,19 +117,8 @@ def test_scatter_gather_with_numbered_gather_inputs() -> None:
     batch_process = get_batch_process_pipeline()
     gather = get_gather_pipeline_with_numbered_inputs(4)
     sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
-    data_pl = get_data_pipeline()
-    test_sc = PipelineBuilder.combine(
-        sc,
-        data_pl,
-        name="test_sc",
-        dependencies=(
-            sc.inputs.in1 << data_pl.outputs.in1,
-            sc.inputs.in2 << data_pl.outputs.in2,
-            sc.inputs.in3 << data_pl.outputs.in3,
-        ),
-    )
-    runner = PipelineRunner(test_sc)
-    o = runner()
+    runner = PipelineRunner(sc)
+    o = runner(dict(in1="IN1", in2="IN2", in3="IN3"))
     expected_out12 = "\n".join(
         (
             "IN1_0*IN2_0",
