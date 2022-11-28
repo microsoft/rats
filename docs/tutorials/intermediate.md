@@ -21,15 +21,16 @@ A *task* has the following construct parameters:
     whose keys & values are called to construct `processor_type` before executing it.
     Data dependencies will be grabbed automatically, but any other missing parameters for the
     constructor need to be specified here.
-* `return_annotations` (`Mapping[str, type]`): \[optional\] an argument to override the *processors*
-    original return annotation.
-    This is useful when the number of outputs a processor returns varies between pipelines, and
+* `input_annotation` (`Mapping[str, type]`): \[optional\] specifies dynamic inputs for var
+    keyword parameter, e.g., `**kwargs`; required if *processor* specifies var keyword parameters.
+* `return_annotation` (`Mapping[str, type]`): \[optional\] overrides the *processors* return
+    annotation. useful when the number of outputs a processor returns varies between pipelines, and
     only known at build time, e.g., a data splitter for cross-validation.
 * `compute_requirements` (`oneml.processors.PComputeReqs`): \[optional\] stores information about
     the resources the *processor* needs to run, e.g., CPUs, GPUs, memory, etc.
 
 
-### Passing Constructor Parameters
+### Constructor Parameters
 
 The following example implements a data loader.
 In this example the data loader will get its constructor parameters from an in-memmory immutable
@@ -53,10 +54,11 @@ storage = frozendict({"X_train": 5, "X_eval": 1, "Y_train": 0, "Y_eval": 1})
 load_data = PipelineClient.task(processor_type=LoadData, name="load_data", params_getter=storage)
 ```
 
-Here, `frozendict` is an immutable and serializable *mapping* object.
+Data structure `frozendict` is an immutable and serializable *mapping* object.
 These properties, i.e., immutability, serializability and the *mapping* interface consititute the
 requirements for providing configuration into *processors*.
-Overall, `params_getter` follows the [`IGetParams` interface](advanced.md#defining-params_getters).
+Overall, `params_getter` follows `IGetParams` [interface](contributor.md#defining-params_getters).
+
 
 ### Dynamic Annotations
 
@@ -297,6 +299,10 @@ resulting pipelines:
 4. Combine pipelines, i.e., `standartization` and `logistic_regression` to `stz_lr`.
 
 This pattern can be simplified with estimators:
+
+1. Instantiate tasks, i.e., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
+2. Instantiate estimators, i.e., `standardization` and `logistic_regression`.
+4. Combine estimators, i.e., `standartization` and `logistic_regression` to `stz_lr`.
 
 ```python
 from oneml.processors import Estimator

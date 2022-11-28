@@ -98,7 +98,7 @@ diamond = PipelineBuilder.combine(
 
 display_dag(diamond) # displays the pipeline
 ```
-![png](figures/begginers_8_0.png)
+![png](figures/beginners_8_0.png)
 
 
 We have seen in these examplea that pipelines, whether made from a single node or multiple, expose
@@ -204,7 +204,7 @@ standardized_lr = PipelineBuilder.combine(
 display_dag(standardized_lr) # displays the pipeline
 ```
 
-![png](figures/begginers_15_0.png)
+![png](figures/beginners_15_0.png)
 
 There are a few points to clarify here.
 First, combining pipelines of a single node, two nodes or more, are synthactically the same.
@@ -318,4 +318,4 @@ final_pipeline = PipelineBuilder.combine(
 display_dag(final_pipeline) # displays the pipeline
 ```
 
-![png](figures/begginers_23_0.png)
+![png](figures/beginners_23_0.png)
