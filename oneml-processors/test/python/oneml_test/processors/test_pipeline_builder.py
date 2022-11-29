@@ -1,5 +1,6 @@
 """These tests are copies of the examples in the docstrings of PipelineBuilder methods."""
 
+from itertools import chain
 from typing import Dict, TypedDict, TypeVar
 
 import pytest
@@ -8,11 +9,11 @@ from oneml.processors import Dependency, IProcess, Pipeline, PipelineBuilder, fr
 
 Array = TypeVar("Array")
 
-StandardizeOutput = TypedDict("StandardizeOutput", {"Z": float, "shift": float, "scale": float})
+StandardizeOutput = TypedDict("StandardizeOutput", {"Z": float, "shift": int, "scale": int})
 
 
 class Standardize(IProcess):
-    def __init__(self, shift: float, scale: float) -> None:
+    def __init__(self, shift: int, scale: int) -> None:
         self._shift = shift
         self._scale = scale
 
@@ -206,6 +207,64 @@ def test_collection_pipelineparams_assignments() -> None:
     with pytest.raises(TypeError):
         stz1.outputs.Z.train << stz1.inputs.X.train  # type: ignore
         stz1.outputs.Z.eval << stz1.inputs.X.eval  # type: ignore
+
+
+def test_pipelineio_assignments() -> None:
+
+    train_standardize = PipelineBuilder.task(
+        name="train",
+        processor_type=Standardize,
+        params_getter=frozendict(shift=10.0, scale=2.0),
+    )
+    eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
+    dependencies = set(
+        chain(
+            eval_standardize.inputs.shift << train_standardize.outputs.shift,
+            eval_standardize.inputs.scale << train_standardize.outputs.scale,
+        )
+    )
+
+    # Test PipelineInput << PipelineOutput
+    dps = eval_standardize.inputs << train_standardize.outputs
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
+    assert dependencies == set(dps)
+
+    with pytest.raises(TypeError):
+        train_standardize.outputs << eval_standardize.inputs  # type: ignore
+
+    # Test PipelineOutput >> PipelineInput
+    dps = train_standardize.outputs >> eval_standardize.inputs
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
+    assert dependencies == set(dps)
+
+    with pytest.raises(TypeError):
+        train_standardize.inputs >> eval_standardize.outputs  # type: ignore
+
+
+def test_pipeline_assignments() -> None:
+    train_standardize = PipelineBuilder.task(
+        name="train",
+        processor_type=Standardize,
+        params_getter=frozendict(shift=10.0, scale=2.0),
+    )
+    eval_standardize = PipelineBuilder.task(name="eval", processor_type=Standardize)
+    dependencies = set(eval_standardize.inputs << train_standardize.outputs)
+
+    # Test Pipeline << Pipeline
+    dps = eval_standardize << train_standardize
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
+    assert dependencies == set(dps)
+
+    dps = train_standardize << eval_standardize
+    assert len(dps) == 0
+
+    # Test Pipeline >> Pipeline
+    dps = train_standardize >> eval_standardize
+    assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
+    assert dependencies == set(dps)
+
+    dps = eval_standardize >> train_standardize
+    assert len(dps) == 0
 
 
 class Scatter:

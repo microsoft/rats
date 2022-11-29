@@ -20,6 +20,7 @@ from ._pipeline import (
 PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
 PM = TypeVar("PM", bound=PipelineParam[Any], covariant=True)
 PC = TypeVar("PC", bound=PipelineParamCollection[Any], covariant=True)
+PL = TypeVar("PL", bound=PipelineIO[Any], covariant=True)
 
 UserInput: TypeAlias = Mapping[str, InParameter | InCollection]
 UserOutput: TypeAlias = Mapping[str, OutParameter | OutCollection]
@@ -32,13 +33,13 @@ class PipelineUtils:
     def dag_inputs_to_pipeline_inputs(
         cls, inputs: DagInput, pipelines: Sequence[Pipeline] = ()
     ) -> PipelineInput:
-        return cls._io2pipeline(inputs, pipelines, InParameter, InCollection)
+        return cls._io2pipeline(inputs, pipelines, InParameter, InCollection, PipelineInput)
 
     @classmethod
     def dag_outputs_to_pipeline_outputs(
         cls, outputs: DagOutput, pipelines: Sequence[Pipeline] = ()
     ) -> PipelineOutput:
-        return cls._io2pipeline(outputs, pipelines, OutParameter, OutCollection)
+        return cls._io2pipeline(outputs, pipelines, OutParameter, OutCollection, PipelineOutput)
 
     @classmethod
     def user_inputs_to_pipeline_inputs(
@@ -98,7 +99,8 @@ class PipelineUtils:
         pipelines: Sequence[Pipeline],
         param_type: type[PM],
         collection_type: type[PC],
-    ) -> PipelineIO[PC]:
+        pipelineio_type: type[PL],
+    ) -> PL:
         if not all(isinstance(node, DagNode) for node in io):
             raise ValueError("Keys have to be instances of DagNode.")
         if any(k.count(".") > 1 for params in io.values() for k in params):
@@ -135,7 +137,7 @@ class PipelineUtils:
             )
             for name in names
         }
-        return PipelineIO(sig)
+        return pipelineio_type(sig)
 
     @staticmethod
     def _io2dag(

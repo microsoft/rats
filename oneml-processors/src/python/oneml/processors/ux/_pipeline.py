@@ -3,8 +3,9 @@ from __future__ import annotations
 from abc import ABC
 from collections import Counter
 from dataclasses import dataclass
+from itertools import chain
 from sqlite3 import NotSupportedError
-from typing import Any, Generic, Iterable, Mapping, NoReturn, TypeAlias, TypeVar, cast, final
+from typing import Any, Generic, Iterable, Mapping, NoReturn, TypeVar, cast, final
 
 from ..dag import DAG, DagNode, InProcessorParam, OutProcessorParam
 from ..utils import frozendict
@@ -12,6 +13,7 @@ from ..utils import frozendict
 PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
 PM = TypeVar("PM", bound="PipelineParam[Any]", covariant=True)
 PC = TypeVar("PC", bound="PipelineParamCollection[Any]", covariant=True)
+PL = TypeVar("PL", bound="PipelineIO[Any]", covariant=True)
 
 
 @dataclass(frozen=True)
@@ -157,8 +159,7 @@ class OutCollection(PipelineParamCollection[OutParameter]):
         )
 
 
-@final
-class PipelineIO(frozendict[str, PC]):
+class PipelineIO(frozendict[str, PC], ABC):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if not all(isinstance(k, str) for k in self._d):
@@ -167,14 +168,14 @@ class PipelineIO(frozendict[str, PC]):
     def __and__(self, other: Mapping[str, Any]) -> NoReturn:
         raise NotImplementedError
 
-    def __or__(self, other: Mapping[str, Any]) -> PipelineIO[PC]:
+    def __or__(self: PL, other: Mapping[str, Any]) -> PL:
         un, ix = set(self) | set(other), set(self) & set(other)
         d = {k: self[k] | other[k] if k in ix else self[k] if k in self else other[k] for k in un}
         return self.__class__(d)
 
     def __sub__(
-        self, other: Iterable[str] | Iterable[PC] | Iterable[PipelineParam[Any]]
-    ) -> PipelineIO[PC]:
+        self: PL, other: Iterable[str] | Iterable[PC] | Iterable[PipelineParam[Any]]
+    ) -> PL:
         def get_key(collection: PipelineParamCollection[Any]) -> str | None:
             return next(iter(k for k, c in self.items() if c == collection), None)
 
@@ -195,11 +196,39 @@ class PipelineIO(frozendict[str, PC]):
                 + "`PipelineParamCollection` or `PipelineParam`."
             )
 
-    def decorate(self, name: str) -> PipelineIO[PC]:
+    def decorate(self: PL, name: str) -> PL:
         return self.__class__({k: v.decorate(name) for k, v in self.items()})
 
-    def rename(self, names: Mapping[str, str]) -> PipelineIO[PC]:
+    def rename(self: PL, names: Mapping[str, str]) -> PL:
         return self.__class__({k: v.rename(names) for k, v in self.items()})
+
+
+class PipelineInput(PipelineIO[InCollection]):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if not all(isinstance(v, InCollection) for v in self.values()):
+            raise ValueError("all `inputs` values need to be of `InCollection` type.")
+
+    def __lshift__(self, other: PipelineOutput) -> tuple[Dependency, ...]:
+        if not isinstance(other, PipelineOutput):
+            raise ValueError("Dependency assignment only accepts `PipelineOutput`.")
+
+        intersecting_keys = set(self) & set(other)
+        return tuple(chain.from_iterable(self[k] << other[k] for k in intersecting_keys))
+
+
+class PipelineOutput(PipelineIO[OutCollection]):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        if not all(isinstance(v, OutCollection) for v in self.values()):
+            raise ValueError("all `outputs` values need to be of `OutCollection` type.")
+
+    def __rshift__(self, other: PipelineInput) -> tuple[Dependency, ...]:
+        if not isinstance(other, PipelineInput):
+            raise ValueError("Dependency assignment only accepts `PipelineInput`.")
+
+        intersecting_keys = set(self) & set(other)
+        return tuple(chain.from_iterable(self[k] >> other[k] for k in intersecting_keys))
 
 
 @final
@@ -213,10 +242,6 @@ class Dependency:
 
     def decorate(self, in_name: str, out_name: str) -> Dependency:
         return self.__class__(self.in_param.decorate(in_name), self.out_param.decorate(out_name))
-
-
-PipelineInput: TypeAlias = PipelineIO[InCollection]
-PipelineOutput: TypeAlias = PipelineIO[OutCollection]
 
 
 @dataclass(frozen=True)
@@ -234,14 +259,22 @@ class Pipeline:
             raise ValueError("Missing pipeline name.")
         if not isinstance(self.dag, DAG):
             raise ValueError(f"{self.dag} needs to be an instance of DAG.")
-        if not isinstance(self.inputs, PipelineIO):
+        if not isinstance(self.inputs, PipelineInput):
             raise ValueError("`inputs` need to be of `PipelineInput` type.")
-        if not isinstance(self.outputs, PipelineIO):
+        if not isinstance(self.outputs, PipelineOutput):
             raise ValueError("`outputs` needs to be of `PipelineOutput` type.")
-        if not all(isinstance(v, InCollection) for v in self.inputs.values()):
-            raise ValueError("all `inputs` values need to be of `InCollection` type.")
-        if not all(isinstance(v, OutCollection) for v in self.outputs.values()):
-            raise ValueError("all `outputs` values need to be of `OutCollection` type.")
+
+    def __lshift__(self, other: Pipeline) -> tuple[Dependency, ...]:
+        if not isinstance(other, Pipeline):
+            raise ValueError("Dependency assignment only accepts another `Pipeline`.")
+
+        return self.inputs << other.outputs
+
+    def __rshift__(self, other: Pipeline) -> tuple[Dependency, ...]:
+        if not isinstance(other, Pipeline):
+            raise ValueError("Dependency assignment only accepts `Pipeline`.")
+
+        return self.outputs >> other.inputs
 
     def decorate(self, name: str) -> Pipeline:
         inputs, outputs = self.inputs.decorate(name), self.outputs.decorate(name)

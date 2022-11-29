@@ -288,6 +288,50 @@ reports.inputs.probs << lr_eval.outputs.probs  # ok; returns two dependencies
 This syntax is particularly useful to broadcast a single result to multiple entries.
 
 
+#### `PipelineInput` & `PipelineOutput`
+
+**Left and right shift operations:**
+
+In the same spirit as with other types, one can do left and right shift operations on
+`PipelineInput` and `PipelineOutput` types.
+The behavior in this case is that shared variables will be associated together.
+
+The following example clarifies this behavior:
+```python
+stz_train.outputs >> stz_eval.inputs
+```
+which is equivalent to
+```pythyon
+stz_train.outputs.mean >> stz_eval.inputs.mean
+stz_train.outputs.scale >> stz_eval.inputs.scale
+```
+
+Using the left / right operator in the wrong direction will raise an error.
+
+#### `Pipeline` & `Pipeline`
+
+**Left and right shift operations:**
+
+The `inputs` and `outputs` attributes are slightly redundant, so one can simplify the above
+syntax directly operating with pipelines.
+Left / right shifting with pipeline objects will create the dependencies between the inputs and
+outputs of the pipelines in the direction of the shift, for equally named collections.
+
+Here is an example:
+```python
+stz_train >> stz_eval
+```
+which would be equivalent to
+```python
+stz_train.outputs >> stz_eval.inputs
+```
+
+Beware that the following would produce no dependencies, because there are no shared variable names
+```python
+dependencies = stz_train << stz_eval
+assert len(dependencies) == 0
+```
+
 ## Estimators (Recommended Pattern)
 
 We have shown a mechanism to create tasks, combine, rename inputs & outputs, and combine the

@@ -32,7 +32,8 @@
             "**/tags": true,
             "**/build": true,
             // other editor/ide settings
-            "**/.idea": true
+            "**/.idea": true,
+            "**/__pycache__": true
         },
         // settings to apply to all workspace roots
         "editor.rulers": [
@@ -71,7 +72,8 @@
         "search.exclude": {
             "**/build": true,
             "**/.tmp": true,
-            "**/outputs": true
+            "**/outputs": true,
+            "**/__pycache__": true
         }
     }
 }
