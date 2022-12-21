@@ -4,7 +4,7 @@ from typing import Any, Iterable, Literal, Mapping
 
 import pydot
 
-from ..ux._pipeline import InParameter, OutParameter, Pipeline
+from ..ux._pipeline import InCollectionEntry, OutCollectionEntry, Pipeline
 from ._dag import DAG
 
 
@@ -55,7 +55,7 @@ class DotBuilder:
                 target = self._node_name_mapping[name] + f":i_{in_arg}"
                 self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_inputs(self, inputs: Mapping[str, Mapping[str, InParameter]]) -> None:
+    def _add_inputs(self, inputs: Mapping[str, Mapping[str, InCollectionEntry]]) -> None:
         if len(inputs) > 0:
             name = "inputs"
             self._add_name_to_mapping(name)
@@ -69,10 +69,11 @@ class DotBuilder:
             for input, collection in inputs.items():
                 source = self._node_name_mapping[name] + f":o_{input}"
                 for entry in collection.values():
-                    target = self._node_name_mapping[repr(entry.node)] + f":i_{entry.param.name}"
-                    self._g.add_edge(pydot.Edge(source, target))
+                    for p in entry:
+                        target = self._node_name_mapping[repr(p.node)] + f":i_{p.param.name}"
+                        self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_outputs(self, outputs: Mapping[str, Mapping[str, OutParameter]]) -> None:
+    def _add_outputs(self, outputs: Mapping[str, Mapping[str, OutCollectionEntry]]) -> None:
         if len(outputs) > 0:
             name = "outputs"
             self._add_name_to_mapping(name)
@@ -86,8 +87,9 @@ class DotBuilder:
             for output, collection in outputs.items():
                 target = self._node_name_mapping[name] + f":i_{output}"
                 for entry in collection.values():
-                    source = self._node_name_mapping[repr(entry.node)] + f":o_{entry.param.name}"
-                    self._g.add_edge(pydot.Edge(source, target))
+                    for p in entry:
+                        source = self._node_name_mapping[repr(p.node)] + f":o_{p.param.name}"
+                        self._g.add_edge(pydot.Edge(source, target))
 
     def add_pipeline(self, pipeline: Pipeline) -> None:
         self._add_pipeline(pipeline.dag)

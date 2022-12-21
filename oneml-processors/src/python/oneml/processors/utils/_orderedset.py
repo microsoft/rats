@@ -1,15 +1,26 @@
 from __future__ import annotations
 
-from functools import reduce
+from collections.abc import Sequence
+from functools import cache, reduce
 from itertools import chain
-from typing import AbstractSet, Any, Hashable, Iterable, Iterator, TypeAlias, TypeVar, overload
+from typing import (
+    AbstractSet,
+    Any,
+    Hashable,
+    Iterable,
+    Iterator,
+    SupportsIndex,
+    TypeAlias,
+    TypeVar,
+    overload,
+)
 
 _T_co = TypeVar("_T_co", covariant=True)
 _S = TypeVar("_S")
 Self = TypeVar("Self", bound="orderedset[Any]")
 
 
-class orderedset(Hashable, AbstractSet[_T_co]):
+class orderedset(Hashable, AbstractSet[_T_co], Sequence[_T_co]):
     _d: dict[_T_co, None]
 
     @overload
@@ -40,6 +51,18 @@ class orderedset(Hashable, AbstractSet[_T_co]):
     def __eq__(self, __o: Any) -> bool:
         return self.__class__ == __o.__class__ and tuple(self._d.keys()) == tuple(__o._d.keys())
 
+    @overload
+    def __getitem__(self, __x: SupportsIndex) -> _T_co:
+        ...
+
+    @overload
+    def __getitem__(self: Self, __x: slice) -> Self:
+        ...
+
+    def __getitem__(self: Self, __x: SupportsIndex | slice) -> _T_co | Self:
+        t = self.as_tuple()
+        return self.__class__(t[__x]) if isinstance(__x, slice) else t[__x]
+
     def __hash__(self) -> int:
         return hash(tuple(self._d.keys()))
 
@@ -58,18 +81,14 @@ class orderedset(Hashable, AbstractSet[_T_co]):
     def __sub__(self: Self, other: Iterable[_T_co]) -> Self:
         return self.__class__(k for k in self._d if k not in other)
 
+    @cache
+    def as_tuple(self) -> tuple[_T_co, ...]:
+        return tuple(self)
+
     def intersection(self: Self, *s: Iterable[_S]) -> Self:
         return reduce(lambda xi, si: xi.__and__(si), s, self)
 
-    @overload
-    def union(self: Self, *s: Iterable[_S]) -> Self:
-        ...
-
-    @overload
-    def union(self: orderedset[_T_co | _S], *s: Iterable[_S]) -> orderedset[_T_co | _S]:
-        ...
-
-    def union(self: orderedset[_T_co | _S], *s: Iterable[_S]) -> orderedset[_T_co | _S]:
+    def union(self: orderedset[_T_co], *s: Iterable[_S]) -> orderedset[_T_co | _S]:
         return reduce(lambda xi, si: xi.__or__(si), s, self)
 
 

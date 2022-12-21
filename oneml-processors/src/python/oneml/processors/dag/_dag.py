@@ -187,7 +187,7 @@ class DAG:
     def __init__(
         self,
         nodes: Mapping[DagNode, ProcessorProps] = {},
-        dependencies: Mapping[DagNode, Sequence[DagDependency] | orderedset[DagDependency]] = {},
+        dependencies: Mapping[DagNode, Sequence[DagDependency]] = {},
     ) -> None:
         if dependencies.keys() - nodes:
             raise Exception("More dependencies than nodes.")

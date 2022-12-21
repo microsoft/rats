@@ -226,7 +226,7 @@ def test_single_output_multiple_input(
         report1,
         report2,
         name="reports",
-        inputs={"acc._report1": report1.inputs.acc, "acc._report2": report2.inputs.acc},
+        inputs={"acc": [report1.inputs.acc, report2.inputs.acc]},
     )
     pl = CombinedPipeline(
         standardized_lr,

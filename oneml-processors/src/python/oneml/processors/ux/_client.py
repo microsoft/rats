@@ -7,7 +7,7 @@ from typing import Any, Iterable, Mapping, Sequence, final
 from ..dag._dag import DAG, ComputeReqs, DagDependency, DagNode, ProcessorProps
 from ..dag._processor import IGetParams
 from ..utils._frozendict import frozendict
-from ._pipeline import Dependency, InParameter, Pipeline
+from ._pipeline import Dependency, InCollection, InCollectionEntry, InParameter, Pipeline
 from ._utils import PipelineUtils, UserInput, UserOutput
 
 
@@ -67,19 +67,32 @@ class CombinedPipeline(Pipeline):
 
         shared_input = tuple(dp.in_param for dp in chain.from_iterable(dependencies))
         shared_out = tuple(dp.out_param for dp in chain.from_iterable(dependencies))
-        provided_input_params = tuple(
-            p
-            for params in (inputs.values() if inputs else ())
-            for p in ((params,) if isinstance(params, InParameter) else params.values())
-        )
+        flat_input: tuple[InParameter, ...] = ()
+        for uv in inputs.values() if inputs else ():
+            if isinstance(uv, InCollectionEntry):
+                flat_input += tuple(uv)
+            elif isinstance(uv, InCollection):
+                flat_input += tuple(chain.from_iterable(chain(uv.values())))
+            elif isinstance(uv, Sequence):
+                for i in uv:
+                    if isinstance(i, InCollectionEntry):
+                        flat_input += tuple(i)
+                    elif isinstance(i, InCollection):
+                        flat_input += tuple(chain.from_iterable(chain(i.values())))
+                    else:
+                        raise ValueError(f"Invalid input type {i}.")
+            else:
+                raise ValueError(f"Invalid input type {uv}.")
+
         if inputs is None:  # build default inputs
             in_temp = tuple(map(lambda i: i - shared_input, (p.inputs for p in pipelines)))
             pl_inputs = in_temp[0].union(*in_temp[1:]).decorate(name)
         elif inputs is not None and not all(  # verifies all worfklow inputs have been specified
-            p in provided_input_params
+            p in flat_input
             for pl in pipelines
-            for params in pl.inputs.values()
-            for p in params.values()
+            for collection in pl.inputs.values()
+            for entry in collection.values()
+            for p in entry
             if p not in shared_input
         ):
             raise ValueError("Not all pipeline inputs have been specified in inputs.")

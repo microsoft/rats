@@ -49,9 +49,9 @@ class SessionOutputsGetter(Iterable[str]):
         out_params = self._pipeline.outputs[key]
         if len(out_params) == 1:
             p = next(iter(out_params.values()))
-            return get_param(p.node, p.param)
+            return get_param(p[0].node, p[0].param)
         else:
-            return frozendict({k: get_param(p.node, p.param) for k, p in out_params.items()})
+            return frozendict({k: get_param(p[0].node, p[0].param) for k, p in out_params.items()})
 
     def __getattr__(self, key: str) -> Any:
         return self[key]
