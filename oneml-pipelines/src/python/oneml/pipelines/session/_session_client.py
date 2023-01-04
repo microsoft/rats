@@ -1,19 +1,40 @@
+from abc import abstractmethod
+from typing import Protocol
+
+from oneml.pipelines.context._client import IManageExecutionContexts
+from oneml.pipelines.dag import PipelineNode
+
 from ._node_execution import IExecutePipelineNodes, IManagePipelineNodeExecutables
 from ._node_state import IManagePipelineNodeState
-from ._session import IPipelineSession
 from ._session_data_client import (
     IManagePipelineData,
     PipelineNodeDataClientFactory,
     PipelineNodeInputDataClientFactory,
 )
 from ._session_frame import IPipelineSessionFrame
-from ._session_state import IManagePipelineSessionState
+from ._session_state import IManagePipelineSessionState, PipelineSessionState
 
 
-class PipelineSessionClient:
+class IRunnablePipelineSession(Protocol):
+    @abstractmethod
+    def run(self) -> None:
+        pass
+
+
+class IStoppablePipelineSession(Protocol):
+    @abstractmethod
+    def stop(self) -> None:
+        pass
+
+
+class IPipelineSession(IRunnablePipelineSession, IStoppablePipelineSession, Protocol):
+    pass
+
+
+class PipelineSessionClient(IPipelineSession):
 
     _session_id: str
-    _session_client: IPipelineSession
+    _session_context: IManageExecutionContexts["PipelineSessionClient"]
     _session_frame: IPipelineSessionFrame
     _pipeline_data_client: IManagePipelineData
     _session_executables_client: IExecutePipelineNodes
@@ -26,7 +47,7 @@ class PipelineSessionClient:
     def __init__(
         self,
         session_id: str,
-        session_client: IPipelineSession,
+        session_context: IManageExecutionContexts["PipelineSessionClient"],
         session_frame: IPipelineSessionFrame,
         session_state_client: IManagePipelineSessionState,
         pipeline_data_client: IManagePipelineData,
@@ -37,7 +58,7 @@ class PipelineSessionClient:
         node_input_data_client_factory: PipelineNodeInputDataClientFactory,
     ):
         self._session_id = session_id
-        self._session_client = session_client
+        self._session_context = session_context
         self._session_frame = session_frame
         self._session_state_client = session_state_client
         self._pipeline_data_client = pipeline_data_client
@@ -48,10 +69,21 @@ class PipelineSessionClient:
         self._node_input_data_client_factory = node_input_data_client_factory
 
     def run(self) -> None:
-        self._session_client.run()
+        with self._session_context.execution_context(self):
+            self._session_state_client.set_state(PipelineSessionState.RUNNING)
+            while self._session_state_client.get_state() == PipelineSessionState.RUNNING:
+                self._session_frame.tick()
 
-    def pipeline_session(self) -> IPipelineSession:
-        return self._session_client
+    def run_node(self, node: PipelineNode) -> None:
+        with self._session_context.execution_context(self):
+            self._session_state_client.set_state(PipelineSessionState.RUNNING)
+            self.session_executables_client().execute_node(node)
+
+    def stop(self) -> None:
+        self._session_state_client.set_state(PipelineSessionState.STOPPED)
+
+    def session_id(self) -> str:
+        return self._session_id
 
     def pipeline_frame_client(self) -> IPipelineSessionFrame:
         return self._session_frame

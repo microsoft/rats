@@ -1,19 +1,19 @@
 from functools import lru_cache
 from typing import Any, Iterable
 
+from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineClient, PipelineDataDependency, PipelineNode
 from oneml.pipelines.session import (
+    IExecutable,
     PipelineSessionClient,
     PipelineSessionClientFactory,
     PipelineSessionPluginClient,
 )
+from oneml.pipelines.session._components import PipelineSessionComponents
+from oneml.pipelines.settings._client import IProvidePipelineSettings
 
 from ._dag_client import IPipelineDagClient, PipelineDagClient
-from ._executables_client import (
-    IManageBuilderExecutables,
-    IPipelineSessionExecutable,
-    PipelineBuilderExecutablesClient,
-)
+from ._executables_client import IManageBuilderExecutables, PipelineBuilderExecutablesClient
 from ._node_multiplexing import (
     IMultiplexPipelineNodes,
     PipelineMultiplexValuesType,
@@ -25,6 +25,7 @@ from ._node_namespacing import (
     INamespacePipelineNodes,
     PipelineNamespaceClient,
 )
+from ._remote_execution import RemoteExecutableFactory
 
 
 class PipelineBuilderClient(
@@ -34,6 +35,21 @@ class PipelineBuilderClient(
     INamespacePipelineNodes,
     IMultiplexPipelineNodes,
 ):
+
+    _session_components: PipelineSessionComponents
+    _pipeline_settings: IProvidePipelineSettings
+    _remote_executable_factory: RemoteExecutableFactory
+
+    def __init__(
+        self,
+        session_components: PipelineSessionComponents,
+        pipeline_settings: IProvidePipelineSettings,
+        remote_executable_factory: RemoteExecutableFactory,
+    ) -> None:
+        self._session_components = session_components
+        self._pipeline_settings = pipeline_settings
+        self._remote_executable_factory = remote_executable_factory
+
     def add_nodes(self, nodes: Iterable[PipelineNode]) -> None:
         self.get_dag_client().add_nodes(nodes)
 
@@ -62,10 +78,11 @@ class PipelineBuilderClient(
     def build(self) -> PipelineClient:
         return self.get_dag_client().build()
 
-    def add_executable(
-        self, node: PipelineNode, session_executable: IPipelineSessionExecutable
-    ) -> None:
-        self.get_executables_client().add_executable(node, session_executable)
+    def add_executable(self, node: PipelineNode, executable: IExecutable) -> None:
+        self.get_executables_client().add_executable(node, executable)
+
+    def remote_executable(self, executable: IExecutable) -> IExecutable:
+        return self._remote_executable_factory.get_instance(executable)
 
     def namespace(self, name: str) -> PipelineNamespaceClient:
         return self.get_namespace_client().namespace(name)
@@ -103,15 +120,35 @@ class PipelineBuilderClient(
             session_plugin_client=self.get_session_plugin_client(),
         )
 
-    @lru_cache()
     def get_session_client_factory(self) -> PipelineSessionClientFactory:
-        return PipelineSessionClientFactory(session_plugin_client=self.get_session_plugin_client())
+        return self._session_components.session_client_factory()
 
-    @lru_cache()
     def get_session_plugin_client(self) -> PipelineSessionPluginClient:
-        return PipelineSessionPluginClient()
+        return self._session_components.session_plugin_client()
+
+    def _session_context(self) -> IProvideExecutionContexts[PipelineSessionClient]:
+        return self._session_components.session_context()
 
 
 class PipelineBuilderFactory:
+
+    _session_components: PipelineSessionComponents
+    _pipeline_settings: IProvidePipelineSettings
+    _remote_executable_factory: RemoteExecutableFactory
+
+    def __init__(
+        self,
+        session_components: PipelineSessionComponents,
+        pipeline_settings: IProvidePipelineSettings,
+        remote_executable_factory: RemoteExecutableFactory,
+    ) -> None:
+        self._session_components = session_components
+        self._pipeline_settings = pipeline_settings
+        self._remote_executable_factory = remote_executable_factory
+
     def get_instance(self) -> PipelineBuilderClient:
-        return PipelineBuilderClient()
+        return PipelineBuilderClient(
+            session_components=self._session_components,
+            pipeline_settings=self._pipeline_settings,
+            remote_executable_factory=self._remote_executable_factory,
+        )

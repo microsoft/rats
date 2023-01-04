@@ -1,0 +1,16 @@
+**/.venv
+**/.tox
+**/.tox.docker
+**/.tmp
+**/.mypy_cache
+**/.pytest_cache
+**/.coverage
+**/.idea
+**/.vscode
+**/*.pyc
+
+*/src/python/*.egg-info
+*/build/
+*/dist/*.whl
+
+.git

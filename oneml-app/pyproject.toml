@@ -78,6 +78,7 @@ oneml-processors = { path = "../oneml-processors/", develop = true }
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
 
 [tool.poetry.scripts]
+democli = 'oneml.lorenzo.app1._main:entrypoint'
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

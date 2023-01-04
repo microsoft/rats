@@ -24,13 +24,12 @@ from ._node_state import (
     PipelineNodeState,
     PipelineNodeStateClient,
 )
-from ._session import (
+from ._session_client import (
     IPipelineSession,
     IRunnablePipelineSession,
     IStoppablePipelineSession,
-    PipelineSession,
+    PipelineSessionClient,
 )
-from ._session_client import PipelineSessionClient
 from ._session_client_factory import PipelineSessionClientFactory
 from ._session_data_client import (
     IManagePipelineData,
@@ -86,7 +85,6 @@ __all__ = [
     "IRunnablePipelineSession",
     "IStoppablePipelineSession",
     "IPipelineSession",
-    "PipelineSession",
     "PipelinePortDataType",
     "PipelinePort",
     "IManagePipelineData",

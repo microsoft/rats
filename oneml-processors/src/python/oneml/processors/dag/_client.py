@@ -5,17 +5,24 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Iterable, Mapping, Sequence, Tuple
 
-from oneml.pipelines.building import IPipelineSessionExecutable, PipelineBuilderFactory
+from oneml.pipelines.building import PipelineBuilderFactory
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
+from oneml.pipelines.data._memory_data_client import InMemoryDataClient
 from oneml.pipelines.session import (
+    IExecutable,
     PipelineNodeDataClient,
     PipelineNodeInputDataClient,
     PipelinePort,
     PipelineSessionClient,
 )
+from oneml.pipelines.session._components import PipelineSessionComponents
+from oneml.pipelines.settings._client import PipelineSettingsClient
 
+from ...pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
+from ...pipelines.context._client import ContextClient, IProvideExecutionContexts
+from ...pipelines.k8s._executables import IProvideK8sNodeCmds, K8sExecutableProxy
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
 from ._processor import InMethod, InProcessorParam, IProcess
 
@@ -109,17 +116,20 @@ class DataClient:
         self._output_client.publish_data(PipelinePort(name), data)
 
 
-class SessionExecutableProvider(IPipelineSessionExecutable):
+class SessionExecutableProvider(IExecutable):
+    _session_provider: IProvideExecutionContexts[PipelineSessionClient]
     _node: DagNode
     _props: ProcessorProps
     _kwargs: dict[str, Any]
 
     def __init__(
         self,
+        session_provider: IProvideExecutionContexts[PipelineSessionClient],
         node: DagNode,
         props: ProcessorProps,
         **kwargs: Any,
     ) -> None:
+        self._session_provider = session_provider
         self._node = node
         self._props = props
         self._kwargs = kwargs
@@ -129,7 +139,8 @@ class SessionExecutableProvider(IPipelineSessionExecutable):
         pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.init)
         return self._props.processor_type(*pos_args, **params, **kw_args)
 
-    def execute(self, session_client: PipelineSessionClient) -> None:
+    def execute(self) -> None:
+        session_client = self._session_provider.get_context()
         logger.debug(f"Node {self._node} execute start.")
         pipeline_node = P2Pipeline.node(self._node)
         input_client = session_client.node_input_data_client_factory().get_instance(pipeline_node)
@@ -178,6 +189,12 @@ class ParamsRegistry:
 #         return params
 
 
+class _CmdClient(IProvideK8sNodeCmds):
+    def get_k8s_node_cmd(self, node: PipelineNode) -> Tuple[str, ...]:
+        # TODO: need a way for the processors package to get app details here
+        raise NotImplementedError()
+
+
 class PipelineSessionProvider:
     @classmethod
     def get_session(
@@ -185,14 +202,40 @@ class PipelineSessionProvider:
         dag: DAG,
         params_registry: ParamsRegistry,  # TODO: this should come from session_client
     ) -> PipelineSessionClient:
-        builder = PipelineBuilderFactory().get_instance()
+        # lorenzo: the builder factory constructor is going to change over time and break this code
+        # we should find a way to have the oneml-pipelines component give this to you
+        # making this a classmethod means we cannot use dependency injection and you are acting as
+        # the global di container for pipeline sessions.
+        session_context = ContextClient[PipelineSessionClient]()
+        pipeline_settings = PipelineSettingsClient()
+        pipeline_data_client = InMemoryDataClient()
+        session_components = PipelineSessionComponents(
+            session_context=session_context,
+            pipeline_data_client=pipeline_data_client,
+        )
+        builder = PipelineBuilderFactory(
+            session_components=session_components,
+            pipeline_settings=pipeline_settings,
+            remote_executable_factory=RemoteExecutableFactory(
+                context=RemoteContext(pipeline_settings),
+                driver=K8sExecutableProxy(
+                    session_provider=session_context,
+                    settings_provider=pipeline_settings,
+                    cmd_client=_CmdClient(),
+                ),
+            ),
+        ).get_instance()
 
         for node in dag.nodes:
             builder.add_node(P2Pipeline.node(node))
             props = dag.nodes[node]
             # TODO: grab items from params_registry
 
-            sess_executable = SessionExecutableProvider(node=node, props=props)
+            sess_executable = SessionExecutableProvider(
+                session_provider=session_context,
+                node=node,
+                props=props,
+            )
             builder.add_executable(P2Pipeline.node(node), sess_executable)
 
         for node, dependencies in dag.dependencies.items():

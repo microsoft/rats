@@ -6,7 +6,6 @@ description = ""
 authors = []
 packages = [
     {include = "oneml", from = "src/python"},
-    {include = "oneml/py.typed", from = "src/python"},
 ]
 
 [[tool.poetry.source]]
@@ -26,6 +25,8 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
+# we can move the k8s dependency to another package and use plugins
+kubernetes = { version = "*" }
 
 # These are only needed during development
 flake8 = { version = "*", optional = true }
@@ -38,6 +39,7 @@ pytest-nunit = { version = "*", optional = true }
 isort = { version = "*", optional = true }
 flake8-isort = { version = "*", optional = true }
 black = { version = "*", optional = true }
+types-urllib3 = { version = "*", optional = true }
 
 [tool.poetry.extras]
 dev = [
@@ -51,6 +53,7 @@ dev = [
     "isort",
     "flake8-isort",
     "black",
+    "types-urllib3",
 ]
 
 [tool.poetry.dev-dependencies]
@@ -93,6 +96,12 @@ warn_unused_configs = true
 show_traceback = true
 show_error_codes = true
 show_column_numbers = true
+
+[[tool.mypy.overrides]]
+module = [
+    "kubernetes.*",
+]
+ignore_missing_imports = true
 
 [tool.coverage.run]
 branch = true
