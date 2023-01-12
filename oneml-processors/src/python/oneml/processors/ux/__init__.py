@@ -1,9 +1,11 @@
-from ._client import CombinedPipeline, PipelineBuilder, Task
+from ._builder import CombinedPipeline, PipelineBuilder, Task
 from ._pipeline import (
     Dependency,
     InCollection,
+    InEntry,
     InParameter,
     OutCollection,
+    OutEntry,
     OutParameter,
     Pipeline,
     PipelineInput,
@@ -17,8 +19,10 @@ __all__ = [
     "Task",
     "Dependency",
     "InCollection",
+    "InEntry",
     "InParameter",
     "OutCollection",
+    "OutEntry",
     "OutParameter",
     "Pipeline",
     "PipelineInput",

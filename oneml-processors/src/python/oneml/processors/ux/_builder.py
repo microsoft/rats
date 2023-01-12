@@ -1,14 +1,36 @@
 from __future__ import annotations
 
+from collections import ChainMap
 from dataclasses import dataclass
+from functools import reduce
 from itertools import chain
-from typing import Any, Iterable, Mapping, Sequence, final
+from typing import Any, Iterable, Mapping, Sequence, TypeAlias, TypeVar, final
 
-from ..dag._dag import DAG, ComputeReqs, DagDependency, DagNode, ProcessorProps
-from ..dag._processor import IGetParams
-from ..utils._frozendict import frozendict
-from ._pipeline import Dependency, InCollection, InCollectionEntry, InParameter, Pipeline
-from ._utils import PipelineUtils, UserInput, UserOutput
+from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IGetParams, IProcess, ProcessorProps
+from ..utils import frozendict
+from ._pipeline import (
+    Dependency,
+    InCollection,
+    InEntry,
+    InParameter,
+    OutCollection,
+    OutEntry,
+    OutParameter,
+    ParamCollection,
+    ParamEntry,
+    Pipeline,
+    PipelineInput,
+    PipelineIO,
+    PipelineOutput,
+)
+
+PE = TypeVar("PE", bound=ParamEntry[Any])
+PC = TypeVar("PC", bound=ParamCollection[Any])
+PL = TypeVar("PL", bound=PipelineIO[Any])
+
+UserIO = Mapping[str, PE | PC]
+UserInput: TypeAlias = UserIO[InEntry, InCollection]
+UserOutput: TypeAlias = UserIO[OutEntry, OutCollection]
 
 
 @final
@@ -44,9 +66,9 @@ class Task(Pipeline):
         props = ProcessorProps(
             processor_type, params_getter, input_annotation, return_annotation, compute_reqs
         )
-        inputs = PipelineUtils.dag_inputs_to_pipeline_inputs({node: props.inputs})
-        outs = PipelineUtils.dag_outputs_to_pipeline_outputs({node: props.outputs})
-        super().__init__(name, DAG({node: props}), inputs, outs)
+        inputs = {k: InEntry((InParameter(node, p),)) for k, p in props.inputs.items()}
+        outputs = {k: OutEntry((OutParameter(node, p),)) for k, p in props.outputs.items()}
+        super().__init__(name, DAG({node: props}), InCollection(inputs), OutCollection(outputs))
 
 
 @dataclass(frozen=True, init=False)
@@ -62,55 +84,138 @@ class CombinedPipeline(Pipeline):
         if len(set(pl.name for pl in pipelines)) != len(pipelines):
             raise ValueError("Trying to combine pipelines with the same name is not supported.")
 
-        def get_props(node: DagNode) -> ProcessorProps:
-            return next(iter(pl.dag.nodes[node] for pl in pipelines if node in pl.dag))
+        def get_props(node: DagNode, dags: Sequence[DAG]) -> ProcessorProps:
+            return next(iter(dag.nodes[node] for dag in dags if node in dag))
 
         shared_input = tuple(dp.in_param for dp in chain.from_iterable(dependencies))
         shared_out = tuple(dp.out_param for dp in chain.from_iterable(dependencies))
         flat_input: tuple[InParameter, ...] = ()
-        for uv in inputs.values() if inputs else ():
-            if isinstance(uv, InCollectionEntry):
+        for uv in inputs.values() if inputs else ():  # flattens user inputs
+            if isinstance(uv, InEntry):
                 flat_input += tuple(uv)
             elif isinstance(uv, InCollection):
                 flat_input += tuple(chain.from_iterable(chain(uv.values())))
-            elif isinstance(uv, Sequence):
-                for i in uv:
-                    if isinstance(i, InCollectionEntry):
-                        flat_input += tuple(i)
-                    elif isinstance(i, InCollection):
-                        flat_input += tuple(chain.from_iterable(chain(i.values())))
-                    else:
-                        raise ValueError(f"Invalid input type {i}.")
             else:
                 raise ValueError(f"Invalid input type {uv}.")
 
-        if inputs is None:  # build default inputs
-            in_temp = tuple(map(lambda i: i - shared_input, (p.inputs for p in pipelines)))
-            pl_inputs = in_temp[0].union(*in_temp[1:]).decorate(name)
-        elif inputs is not None and not all(  # verifies all worfklow inputs have been specified
-            p in flat_input
-            for pl in pipelines
-            for collection in pl.inputs.values()
-            for entry in collection.values()
-            for p in entry
-            if p not in shared_input
-        ):
-            raise ValueError("Not all pipeline inputs have been specified in inputs.")
-        else:
-            pl_inputs = PipelineUtils.user_inputs_to_pipeline_inputs(inputs, name, pipelines)
-        if outputs is None:  # build default outputs
-            out_temp = tuple(map(lambda i: i - shared_out, (p.outputs for p in pipelines)))
-            pl_outputs = out_temp[0].union(*out_temp[1:]).decorate(name)
-        else:
-            pl_outputs = PipelineUtils.user_outputs_to_pipeline_outputs(outputs, name, pipelines)
+        if set(shared_input) & set(flat_input):  # verifies no input is declared in a dependency
+            collissions = set(shared_input) & set(flat_input)
+            msg = f"Inputs declared as dependencies and inputs: {collissions}"
+            raise ValueError(msg)
 
-        dags = [pl.dag for pl in pipelines]
-        for dp in chain.from_iterable(dependencies):
+        if inputs is not None:  # verifies all pipeline inputs have been specified
+            pl_input: tuple[InParameter, ...] = ()
+            for pl in pipelines:
+                pl_input += reduce(lambda x, y: x + tuple(y), pl.inputs.values(), pl_input)
+                for c in pl.in_collections.values():
+                    pl_input += reduce(lambda x, y: x + tuple(y), c.values(), pl_input)
+            if set(pl_input) - set(flat_input) - set(shared_input):
+                missing = set(pl_input) - set(flat_input) - set(shared_input)
+                msg = f"Not all inputs have been specified as inputs or dependencies: {missing}"
+                raise ValueError(msg)
+
+        in_entries = InCollection()  # build inputs
+        in_collections = PipelineInput()
+        if inputs is None:  # build default inputs
+            for pl in pipelines:
+                in_entries |= (pl.inputs - shared_input).decorate(name)
+                in_collections |= (pl.in_collections - shared_input).decorate(name)
+        else:  # build inputs from user input
+            in_entries, in_collections = self._format_io(inputs, in_entries, in_collections)
+            in_entries, in_collections = in_entries.decorate(name), in_collections.decorate(name)
+
+        out_entries = OutCollection()  # build outputs
+        out_collections = PipelineOutput()
+        if outputs is None:  # build default outputs
+            for pl in pipelines:
+                out_entries |= (pl.outputs - shared_out).decorate(name)
+                out_collections |= (pl.out_collections - shared_out).decorate(name)
+        else:  # build outputs from user output
+            out_entries, out_collections = self._format_io(outputs, out_entries, out_collections)
+            out_entries = out_entries.decorate(name)
+            out_collections = out_collections.decorate(name)
+        gathererd_outputs = self._gather_outputs(out_collections, out_entries, name)
+        out_entries, out_collections, out_tasks, out_dependencies = gathererd_outputs
+
+        dags = [pl.dag for pl in chain(pipelines, out_tasks)]
+        for dp in chain.from_iterable(chain(dependencies, out_dependencies)):
             ddp = DagDependency(dp.out_param.node, dp.in_param.param, dp.out_param.param)
             in_node = dp.in_param.node
-            dags.append(DAG({in_node: get_props(in_node)}, {in_node: (ddp,)}))
-        new_pipeline = sum(dags, start=DAG()).decorate(name)
-        super().__init__(name, new_pipeline, pl_inputs, pl_outputs)
+            dags.append(DAG({in_node: get_props(in_node, dags)}, {in_node: (ddp,)}))
+        new_pl = sum(dags, start=DAG()).decorate(name)
+        super().__init__(name, new_pl, in_entries, out_entries, in_collections, out_collections)
+
+    @staticmethod
+    def _format_io(user_io: UserIO[PE, PC], entries: PC, collections: PL) -> tuple[PC, PL]:
+        empty_collection = entries.__class__()
+        for k, v in user_io.items():
+            if k.count(".") > 1:
+                raise ValueError(f"Invalid input name {k}.")
+            elif k.count(".") == 0 and isinstance(v, ParamEntry):
+                entries |= {k: v}  # ParamEntry or ParamCollection.ParamEntry -> ParamEntry
+            elif k.count(".") == 1 and isinstance(v, ParamEntry):
+                k0, k1 = k.split(".")
+                temp_c = collections.get(k0, empty_collection)
+                collections |= {k0: temp_c | {k1: v}}  # ParamEntry -> ParamCollection.ParamEntry
+            elif k.count(".") == 0 and isinstance(v, ParamCollection):
+                collections |= {k: v}  # ParamCollection -> ParamCollection
+            elif k.count(".") == 1 and isinstance(v, ParamCollection):
+                k0, k1 = k.split(".")  # ParamCollection -> ParamCollection.ParamEntry
+                temp_c = collections.get(k0, empty_collection)
+                collections |= {k0: temp_c | {k1: reduce(lambda x, y: x | y, v.values())}}
+            else:
+                raise ValueError(f"Invalid formatting string {k} or input type {v}.")
+        return entries, collections
+
+    @staticmethod
+    def _gather_outputs(
+        out_collections: PipelineOutput, out_entries: OutCollection, name: str
+    ) -> tuple[
+        OutCollection, PipelineOutput, tuple[Pipeline, ...], tuple[tuple[Dependency, ...], ...]
+    ]:
+        def gathering_tasks(entries: dict[str, OutEntry]) -> dict[str, Pipeline]:
+            return {
+                en: Task(
+                    GatherSequence,
+                    name="Gather_" + en,
+                    return_annotation={"output": tuple[entry[0].param.annotation, ...]},  # type: ignore[name-defined]
+                ).rename_outputs({"output": en})
+                for en, entry in entries.items()
+            }
+
+        # multiple output entries and collections
+        gathered_entries = {k: v for k, v in out_entries.items() if len(v) > 1}
+        gathered_collections = {
+            k + "." + en: entry
+            for k, v in out_collections.items()
+            for en, entry in v.items()
+            if len(entry) > 1
+        }
+        gathered_all = ChainMap(gathered_entries, gathered_collections)
+
+        # gathering tasks
+        entries_tasks = gathering_tasks(gathered_entries)
+        collections_tasks = gathering_tasks(gathered_collections)
+        all_tasks = ChainMap(entries_tasks, collections_tasks)
+
+        # dependencies from multiple output entries and collections to gathering tasks
+        dependencies = tuple(all_tasks[en].inputs.args << et for en, et in gathered_all.items())
+
+        # output entries and collections
+        entries_map = map(lambda x: x.outputs, entries_tasks.values())
+        new_entries = reduce(lambda a, b: a | b, entries_map, OutCollection())
+        new_entries = (out_entries - gathered_entries) | new_entries.decorate(name)
+
+        collections_map = map(lambda x: x.out_collections, collections_tasks.values())
+        new_collections = reduce(lambda a, b: a | b, collections_map, PipelineOutput())
+        new_collections = (out_collections - gathered_collections) | new_collections.decorate(name)
+
+        return new_entries, new_collections, tuple(all_tasks.values()), dependencies
+
+
+class GatherSequence(IProcess):
+    def process(self, *args: Any) -> Mapping[str, Sequence[Any]]:
+        return {"output": args}
 
 
 class PipelineBuilder:

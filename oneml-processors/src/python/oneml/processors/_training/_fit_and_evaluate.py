@@ -10,7 +10,7 @@ from collections import ChainMap
 from itertools import chain
 from typing import Iterable, Sequence
 
-from ..ux._client import PipelineBuilder
+from ..ux._builder import PipelineBuilder
 from ..ux._pipeline import Dependency, Pipeline
 
 

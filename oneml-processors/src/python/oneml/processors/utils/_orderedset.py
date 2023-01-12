@@ -43,7 +43,8 @@ class orderedset(Hashable, AbstractSet[_T_co], Sequence[_T_co]):
         ...
 
     def __and__(self: Self, other: Iterable[_S]) -> Self:
-        return self.__class__(k for k in self._d if k in other)
+        other_set = set(other)
+        return self.__class__(k for k in self._d if k in other_set)
 
     def __contains__(self, x: object) -> bool:
         return x in self._d
@@ -72,7 +73,7 @@ class orderedset(Hashable, AbstractSet[_T_co], Sequence[_T_co]):
     def __len__(self) -> int:
         return len(self._d)
 
-    def __or__(self, __T_co: Iterable[_S]) -> orderedset[_T_co | _S]:
+    def __or__(self: Self, __T_co: Iterable[_S]) -> Self:
         return self.__class__(chain(self._d, __T_co))
 
     def __repr__(self) -> str:
@@ -88,7 +89,7 @@ class orderedset(Hashable, AbstractSet[_T_co], Sequence[_T_co]):
     def intersection(self: Self, *s: Iterable[_S]) -> Self:
         return reduce(lambda xi, si: xi.__and__(si), s, self)
 
-    def union(self: orderedset[_T_co], *s: Iterable[_S]) -> orderedset[_T_co | _S]:
+    def union(self: Self, *s: Iterable[_S]) -> Self:
         return reduce(lambda xi, si: xi.__or__(si), s, self)
 
 

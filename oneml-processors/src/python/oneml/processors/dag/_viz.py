@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Literal, Mapping
+from itertools import chain
+from typing import Any, Iterable, Literal
 
 import pydot
 
-from ..ux._pipeline import InCollectionEntry, OutCollectionEntry, Pipeline
+from ..ux._pipeline import (
+    InCollection,
+    InEntry,
+    OutCollection,
+    OutEntry,
+    Pipeline,
+    PipelineInput,
+    PipelineOutput,
+)
 from ._dag import DAG
 
 
@@ -55,46 +64,60 @@ class DotBuilder:
                 target = self._node_name_mapping[name] + f":i_{in_arg}"
                 self._g.add_edge(pydot.Edge(source, target))
 
-    def _add_inputs(self, inputs: Mapping[str, Mapping[str, InCollectionEntry]]) -> None:
-        if len(inputs) > 0:
+    def _add_inputs(self, inputs: InCollection, in_collections: PipelineInput) -> None:
+        def add_entry(entry: InEntry) -> None:
+            for p in entry:
+                target = self._node_name_mapping[repr(p.node)] + f":i_{p.param.name}"
+                self._g.add_edge(pydot.Edge(source, target))
+
+        if len(inputs) > 0 or len(in_collections) > 0:
             name = "inputs"
             self._add_name_to_mapping(name)
-            outputs = self._format_arguments(inputs, "o")
+            outputs = self._format_arguments(chain(inputs, in_collections), "o")
             label = f"{{{{{outputs}}}}}"
             self._g.add_node(
                 pydot.Node(
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"
                 )
             )
-            for input, collection in inputs.items():
-                source = self._node_name_mapping[name] + f":o_{input}"
-                for entry in collection.values():
-                    for p in entry:
-                        target = self._node_name_mapping[repr(p.node)] + f":i_{p.param.name}"
-                        self._g.add_edge(pydot.Edge(source, target))
+            for entry_name, entry in inputs.items():
+                source = self._node_name_mapping[name] + f":o_{entry_name}"
+                add_entry(entry)
 
-    def _add_outputs(self, outputs: Mapping[str, Mapping[str, OutCollectionEntry]]) -> None:
-        if len(outputs) > 0:
+            for collection_name, collection in in_collections.items():
+                source = self._node_name_mapping[name] + f":o_{collection_name}"
+                for entry in collection.values():
+                    add_entry(entry)
+
+    def _add_outputs(self, outputs: OutCollection, out_collections: PipelineOutput) -> None:
+        def add_entry(entry: OutEntry, target: str) -> None:
+            for p in entry:
+                source = self._node_name_mapping[repr(p.node)] + f":o_{p.param.name}"
+                self._g.add_edge(pydot.Edge(source, target))
+
+        if len(outputs) > 0 or len(out_collections) > 0:
             name = "outputs"
             self._add_name_to_mapping(name)
-            inputs = self._format_arguments(outputs, "i")
+            inputs = self._format_arguments(chain(outputs, out_collections), "i")
             label = f"{{{{{inputs}}}}}"
             self._g.add_node(
                 pydot.Node(
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"
                 )
             )
-            for output, collection in outputs.items():
-                target = self._node_name_mapping[name] + f":i_{output}"
+            for entry_name, entry in outputs.items():
+                target = self._node_name_mapping[name] + f":i_{entry_name}"
+                add_entry(entry, target)
+
+            for collection_name, collection in out_collections.items():
+                target = self._node_name_mapping[name] + f":i_{collection_name}"
                 for entry in collection.values():
-                    for p in entry:
-                        source = self._node_name_mapping[repr(p.node)] + f":o_{p.param.name}"
-                        self._g.add_edge(pydot.Edge(source, target))
+                    add_entry(entry, target)
 
     def add_pipeline(self, pipeline: Pipeline) -> None:
         self._add_pipeline(pipeline.dag)
-        self._add_inputs(pipeline.inputs)
-        self._add_outputs(pipeline.outputs)
+        self._add_inputs(pipeline.inputs, pipeline.in_collections)
+        self._add_outputs(pipeline.outputs, pipeline.out_collections)
 
     def get_dot(self) -> pydot.Dot:  # type: ignore[no-any-unimported]
         return self._g

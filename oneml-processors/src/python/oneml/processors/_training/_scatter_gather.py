@@ -1,9 +1,10 @@
 from collections import ChainMap
+from functools import reduce
 from typing import Optional, Sequence, Tuple
 
 from ..utils._frozendict import frozendict
 from ..utils._orderedset import orderedset
-from ..ux._client import PipelineBuilder
+from ..ux._builder import PipelineBuilder
 from ..ux._pipeline import Pipeline
 
 
@@ -92,10 +93,15 @@ class ScatterGatherBuilders:
                 ChainMap(
                     {port_name: scatter.inputs[port_name] for port_name in scatter.inputs},
                     {
-                        port_name + f"._{batch_key}": batch_pipelines[batch_key].inputs[port_name]
+                        port_name: reduce(
+                            lambda x, y: x | y,
+                            (
+                                batch_pipelines[batch_key].inputs[port_name]
+                                for batch_key in batch_keys
+                            ),
+                        )
                         for port_name in process_batch.inputs
                         if port_name not in batch_input_and_batch_key_to_scatter_output
-                        for batch_key in batch_keys
                     },
                 )
             ),

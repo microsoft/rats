@@ -124,6 +124,10 @@ class DagNode:
         return repr(self.namespace) + self.name
 
     def __post_init__(self) -> None:
+        if not isinstance(self.name, str):
+            raise Exception("Name must be a string.")
+        if not isinstance(self.namespace, Namespace):
+            raise Exception("Namespace must be a Namespace.")
         if self.name == "":
             raise Exception("No empty names allowed.")
 

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from itertools import chain
 from typing import Iterable, Sequence, final
 
-from ..ux._client import PipelineBuilder
+from ..ux._builder import PipelineBuilder, UserOutput
 from ..ux._pipeline import Dependency, Pipeline
 
 
@@ -28,18 +28,25 @@ class Estimator(Pipeline):
         if not all(dp.out_param.node in train_pl.dag for dp in chain.from_iterable(shared_params)):
             raise ValueError("All shared parameters must flow from `train_pl` to `eval_pl`.")
 
-        train_pl = train_pl.rename({train_pl.name: "train"}).decorate(name="train")
-        eval_pl = eval_pl.rename({eval_pl.name: "eval"}).decorate(name="eval")
+        in_common = set(train_pl.inputs) & set(eval_pl.inputs)
+        out_common = set(train_pl.outputs) & set(eval_pl.outputs)
+        train_pl = train_pl.rename_inputs({v: v + ".train" for v in in_common})
+        train_pl = train_pl.rename_outputs({v: v + ".train" for v in out_common})
+        train_pl = train_pl.decorate("train")
+        eval_pl = eval_pl.rename_inputs({v: v + ".eval" for v in in_common})
+        eval_pl = eval_pl.rename_outputs({v: v + ".eval" for v in out_common})
+        eval_pl = eval_pl.decorate("eval")
         dependencies = (dp.decorate("eval", "train") for dp in chain.from_iterable(shared_params))
-        outputs = train_pl.outputs | eval_pl.outputs  # estimators expose shared parameters
-        pl = PipelineBuilder.combine(
+        outputs: UserOutput = dict(train_pl.outputs | eval_pl.outputs)
+        outputs |= dict(train_pl.out_collections | eval_pl.out_collections)
+        p = PipelineBuilder.combine(
             train_pl,
             eval_pl,
             name=name,
             outputs=outputs,
             dependencies=(tuple(dependencies),),
         )
-        super().__init__(name, pl.dag, pl.inputs, pl.outputs)
+        super().__init__(name, p.dag, p.inputs, p.outputs, p.in_collections, p.out_collections)
 
 
 class EstimatorClient:

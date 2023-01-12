@@ -164,16 +164,16 @@ def standardized_lr(standardization: Pipeline, logistic_regression: Pipeline) ->
     e = CombinedPipeline(
         standardization,
         logistic_regression,
-        inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y},  # redundant
+        inputs={"X": standardization.in_collections.X, "Y": logistic_regression.in_collections.Y},
         outputs={
-            "mean": standardization.outputs.mean.train,
+            "mean": standardization.outputs.mean,
             "scale": standardization.outputs.scale,
-            "model": logistic_regression.outputs.model.train,
-            "probs.train": logistic_regression.outputs.probs.train,
-            "probs.eval": logistic_regression.outputs.probs.eval,
+            "model": logistic_regression.outputs.model,
+            "probs.train": logistic_regression.out_collections.probs.train,
+            "probs.eval": logistic_regression.out_collections.probs.eval,
             "acc": logistic_regression.outputs.acc,
         },
-        dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
+        dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
         name="standardized_lr",
     )
     return e
@@ -226,7 +226,7 @@ def test_single_output_multiple_input(
         report1,
         report2,
         name="reports",
-        inputs={"acc": [report1.inputs.acc, report2.inputs.acc]},
+        inputs={"acc": report1.inputs.acc | report2.inputs.acc},
     )
     pl = CombinedPipeline(
         standardized_lr,
@@ -234,8 +234,10 @@ def test_single_output_multiple_input(
         name="pl",
         dependencies=(reports.inputs.acc << standardized_lr.outputs.acc,),
     )
-    assert len(pl.inputs) == 2
-    assert len(pl.outputs) == 4
+    assert len(pl.inputs) == 0
+    assert len(pl.in_collections) == 2
+    assert len(pl.outputs) == 3
+    assert len(pl.out_collections) == 1
 
 
 def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline) -> None:
@@ -243,23 +245,32 @@ def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline
         standardization,
         logistic_regression,
         name="standardized_lr",
-        dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
+        dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
         outputs={
-            "A.mean": standardization.outputs.mean.train,
+            "A.mean": standardization.outputs.mean,
             "A.scale": standardization.outputs.scale,
-            "A.model": logistic_regression.outputs.model.train,
-            "A.probs_train": logistic_regression.outputs.probs.train,
-            "A.probs_eval": logistic_regression.outputs.probs.eval,
+            "A.model": logistic_regression.outputs.model,
+            "A.probs_train": logistic_regression.out_collections.probs.train,
+            "A.probs_eval": logistic_regression.out_collections.probs.eval,
             "A.acc": logistic_regression.outputs.acc,
         },
     )
 
-    assert len(e.outputs) == 1 and tuple(e.outputs) == ("A",)
-    assert len(e.outputs.A) == 6
-    assert set(e.outputs.A) == set(("mean", "scale", "model", "probs_train", "probs_eval", "acc"))
+    assert len(e.out_collections) == 1 and tuple(e.out_collections) == ("A",)
+    assert len(e.out_collections.A) == 6
+    assert set(e.out_collections.A) == set(
+        ("mean", "scale", "model", "probs_train", "probs_eval", "acc")
+    )
 
 
 # Fails on devops b/c the graphviz binary is not available.
 # TODO: install graphviz on build machines?
 # def test_viz(standardized_lr: Pipeline) -> None:
 #     pipeline_to_svg(standardized_lr)
+
+# test svg painting
+# from oneml.processors.dag._viz import pipeline_to_dot
+
+# svg = pipeline_to_dot(e).create(format="svg")
+# with open("p.svg", "wb") as f:
+#     f.write(svg)
