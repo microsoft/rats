@@ -13,7 +13,7 @@ from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.session import IExecutable
 from oneml.pipelines.session._session_client import PipelineSessionClient
-from oneml.pipelines.settings._client import IProvidePipelineSettings
+from oneml.pipelines.settings import IProvidePipelineSettings
 
 from ._logging import LogTailerThread
 

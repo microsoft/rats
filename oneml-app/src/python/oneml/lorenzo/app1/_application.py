@@ -9,7 +9,7 @@ from oneml.lorenzo.app1._pipeline import App1Pipeline
 from oneml.lorenzo.cli import SubParsersAction
 from oneml.pipelines.building._remote_execution import NodeRole, RemotePipelineSettings
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.settings._client import PipelineSettingsClient
+from oneml.pipelines.settings import PipelineSettingsClient
 
 logger = logging.getLogger(__name__)
 #

@@ -1,29 +1,23 @@
 from abc import abstractmethod
-from dataclasses import dataclass
-from typing import Any, Dict, Generic, Protocol, TypeVar
+from typing import Any, Dict, Protocol
 
-SettingType = TypeVar("SettingType")
-
-
-@dataclass(frozen=True)
-class SettingName(Generic[SettingType]):
-    key: str
+from ._entities import SettingName, SettingType
 
 
 class IProvidePipelineSettings(Protocol):
     @abstractmethod
     def get(self, name: SettingName[SettingType]) -> SettingType:
-        pass
+        """"""
 
 
 class ISetPipelineSettings(Protocol):
     @abstractmethod
     def set(self, name: SettingName[SettingType], value: SettingType) -> None:
-        pass
+        """"""
 
 
 class IManagePipelineSettings(IProvidePipelineSettings, ISetPipelineSettings, Protocol):
-    pass
+    """"""
 
 
 class PipelineSettingsClient(IManagePipelineSettings):
@@ -40,9 +34,9 @@ class PipelineSettingsClient(IManagePipelineSettings):
         return self._settings[name]
 
     def set(self, name: SettingName[SettingType], value: SettingType) -> None:
-        # TODO: split up this class and limit things
-        #     - should not be able to overwrite settings
-        #     - should be able to layer cli settings after initialization
+        if name in self._settings:
+            raise DuplicatePipelineSettingError(name)
+
         self._settings[name] = value
 
 
@@ -53,3 +47,12 @@ class PipelineSettingNotFoundError(Exception):
     def __init__(self, setting: SettingName[Any]) -> None:
         self.setting = setting
         super().__init__(f"Pipeline Setting Not Found: {self.setting.key}")
+
+
+class DuplicatePipelineSettingError(Exception):
+
+    setting: SettingName[Any]
+
+    def __init__(self, setting: SettingName[Any]) -> None:
+        self.setting = setting
+        super().__init__(f"Duplicate Pipeline Setting Found: {self.setting.key}")

@@ -77,8 +77,8 @@ class App1Pipeline:
 
         builder.add_executable(
             builder.node("generate-samples"),
-            builder.remote_executable(generate_samples_exe),
-            # generate_samples_exe,
+            # builder.remote_executable(generate_samples_exe),
+            generate_samples_exe,
         )
         builder.add_executable(
             builder.node("count-samples"),

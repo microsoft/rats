@@ -8,8 +8,11 @@ from itertools import groupby
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
 from oneml.pipelines.building import PipelineBuilderFactory
+from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
+from oneml.pipelines.context._client import ContextClient, IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
 from oneml.pipelines.data._memory_data_client import InMemoryDataClient
+from oneml.pipelines.k8s._executables import IProvideK8sNodeCmds, K8sExecutableProxy
 from oneml.pipelines.session import (
     IExecutable,
     PipelineNodeDataClient,
@@ -18,11 +21,8 @@ from oneml.pipelines.session import (
     PipelineSessionClient,
 )
 from oneml.pipelines.session._components import PipelineSessionComponents
-from oneml.pipelines.settings._client import PipelineSettingsClient
+from oneml.pipelines.settings import PipelineSettingsClient
 
-from ...pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
-from ...pipelines.context._client import ContextClient, IProvideExecutionContexts
-from ...pipelines.k8s._executables import IProvideK8sNodeCmds, K8sExecutableProxy
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
 from ._processor import InMethod, InProcessorParam, IProcess
 

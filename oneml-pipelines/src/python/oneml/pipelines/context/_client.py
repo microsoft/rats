@@ -6,9 +6,9 @@ ContextType = TypeVar("ContextType")
 
 """
 stumped on this one:
-src/python/oneml/pipelines/context/_client.py:8:1: error: Invariant type variable "ContextType"
+src/python/oneml/pipelines/context/_pipelines.py:8:1: error: Invariant type variable "ContextType"
     used in protocol where contravariant one is expected  [misc]
-src/python/oneml/pipelines/context/_client.py:15:1: error: Invariant type variable "ContextType"
+src/python/oneml/pipelines/context/_pipelines.py:15:1: error: Invariant type variable "ContextType"
     used in protocol where covariant one is expected  [misc]
 """
 

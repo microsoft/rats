@@ -5,11 +5,9 @@ from oneml.pipelines.session import (
     BasicPipelineSessionFrameCommands,
     CallableExecutable,
     IExecutable,
-    IPipelineSessionFrame,
     PipelineNodeExecutablesClient,
     PipelineNodeState,
     PipelineNodeStateClient,
-    PipelineSessionFrame,
     PipelineSessionState,
     PipelineSessionStateClient,
 )
@@ -27,7 +25,7 @@ class TestBasicPipelineSessionFrameCommands:
     _bar: PipelineNode
     _executed_nodes: List[PipelineNode]
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._node_client = PipelineNodeClient()
         self._session_state_client = PipelineSessionStateClient()
         self._node_state_client = PipelineNodeStateClient()

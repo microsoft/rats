@@ -1,18 +1,12 @@
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.session import (
-    ILocatePipelineNodeState,
-    IManagePipelineNodeState,
-    ISetPipelineNodeState,
-    PipelineNodeState,
-    PipelineNodeStateClient,
-)
+from oneml.pipelines.session import PipelineNodeState, PipelineNodeStateClient
 
 
 class TestPipelineNodeStateClient:
 
     _client: PipelineNodeStateClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._client = PipelineNodeStateClient()
 
     def test_basics(self) -> None:

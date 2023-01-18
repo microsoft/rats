@@ -1,17 +1,11 @@
-from oneml.pipelines.session import (
-    ILocatePipelineSessionState,
-    IManagePipelineSessionState,
-    ISetPipelineSessionState,
-    PipelineSessionState,
-    PipelineSessionStateClient,
-)
+from oneml.pipelines.session import PipelineSessionState, PipelineSessionStateClient
 
 
 class TestPipelineSessionStateClient:
 
     _client: PipelineSessionStateClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._client = PipelineSessionStateClient()
 
     def test_basics(self) -> None:

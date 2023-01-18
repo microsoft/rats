@@ -6,12 +6,10 @@ from oneml.pipelines.dag import (
     PipelineNode,
 )
 from oneml.pipelines.session import (
-    IManagePipelineData,
     PipelineDataClient,
     PipelineNodeDataClient,
     PipelineNodeDataClientFactory,
     PipelinePort,
-    PipelinePortDataType,
     ReadProxyPipelineDataClient,
 )
 from oneml.pipelines.session._session_data_client import (
@@ -28,7 +26,7 @@ class TestPipelineDataClient:
 
     _client: PipelineDataClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._client = PipelineDataClient()
 
     def test_basics(self) -> None:
@@ -75,7 +73,7 @@ class TestPipelineNodeDataClient:
     _data_client: PipelineDataClient
     _client: PipelineNodeDataClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._node = PipelineNode("step-1")
         self._data_client = PipelineDataClient()
         self._client = PipelineNodeDataClient(
@@ -111,7 +109,7 @@ class TestReadProxyPipelineDataClient:
     _proxy_data_client: PipelineDataClient
     _client: ReadProxyPipelineDataClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._primary_data_client = PipelineDataClient()
         self._proxy_data_client = PipelineDataClient()
         self._client = ReadProxyPipelineDataClient(
@@ -201,7 +199,7 @@ class TestPipelineNodeInputDataClient:
     _data_client: PipelineDataClient
     _client: PipelineNodeInputDataClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._data_client = PipelineDataClient()
         self._client = PipelineNodeInputDataClient(
             data_client=self._data_client,

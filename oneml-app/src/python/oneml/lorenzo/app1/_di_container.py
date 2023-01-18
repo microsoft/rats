@@ -9,14 +9,14 @@ from oneml.pipelines.building import PipelineBuilderFactory
 from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
 from oneml.pipelines.context._client import ContextClient, IManageExecutionContexts
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.data._blob_data_client import BlobDataClient
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._serialization import DemoSerializer, SerializationClient
 from oneml.pipelines.k8s._executables import IProvideK8sNodeCmds, K8sExecutableProxy
 from oneml.pipelines.session import IManagePipelineData, PipelineSessionClient
 from oneml.pipelines.session._components import PipelineSessionComponents
-from oneml.pipelines.settings._client import PipelineSettingsClient
+from oneml.pipelines.settings import PipelineSettingsClient
 
+from ...pipelines.data._memory_data_client import InMemoryDataClient
 from ._application import App1Application, CliRequestStack
 from ._pipeline import App1Pipeline, App1PipelineExecutables
 
@@ -99,12 +99,12 @@ class App1DiContainer:
 
     @lru_cache()
     def _pipeline_data_client(self) -> IManagePipelineData:
-        # return InMemoryDataClient()
-        return BlobDataClient(
-            serializer=self._pipeline_serialization_client(),
-            type_mapping=self._pipeline_type_mapping(),
-            session_context=self._pipeline_session_context(),
-        )
+        return InMemoryDataClient()
+        # return BlobDataClient(
+        #     serializer=self._pipeline_serialization_client(),
+        #     type_mapping=self._pipeline_type_mapping(),
+        #     session_context=self._pipeline_session_context(),
+        # )
 
     @lru_cache()
     def _pipeline_serialization_client(self) -> SerializationClient:

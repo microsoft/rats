@@ -1,18 +1,7 @@
 from typing import Dict
 
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.session import (
-    CallableExecutable,
-    ContextType,
-    ContextualCallableExecutable,
-    DeferredExecutable,
-    ICallableExecutable,
-    ICallableExecutableProvider,
-    IContextualCallableExecutable,
-    IExecutable,
-    IExecutePipelineNodes,
-    NoOpExecutable,
-)
+from oneml.pipelines.session import DeferredExecutable, IExecutable, IExecutePipelineNodes
 
 
 class FakeExecutable(IExecutable):
@@ -40,7 +29,7 @@ class TestDeferredExecutable:
     _callback_called: bool
     _fake_executable: FakeExecutable
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._callback_called = False
         self._fake_executable = FakeExecutable()
 

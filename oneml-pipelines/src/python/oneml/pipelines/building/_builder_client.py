@@ -10,7 +10,7 @@ from oneml.pipelines.session import (
     PipelineSessionPluginClient,
 )
 from oneml.pipelines.session._components import PipelineSessionComponents
-from oneml.pipelines.settings._client import IProvidePipelineSettings
+from oneml.pipelines.settings import IProvidePipelineSettings
 
 from ._dag_client import IPipelineDagClient, PipelineDagClient
 from ._executables_client import IManageBuilderExecutables, PipelineBuilderExecutablesClient

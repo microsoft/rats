@@ -3,10 +3,7 @@ from typing import Tuple
 import pytest
 
 from oneml.pipelines.dag import (
-    ILocatePipelineNodeDependencies,
     ILocatePipelineNodes,
-    IManagePipelineNodeDependencies,
-    IRegisterPipelineNodeDependencies,
     NodeDependenciesRegisteredError,
     PipelineNode,
     PipelineNodeDependenciesClient,
@@ -31,7 +28,7 @@ class TestPipelineNodeDependenciesClient:
 
     _client: PipelineNodeDependenciesClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._client = PipelineNodeDependenciesClient(FakeNodeLocator())
 
     def test_dependency_registration(self) -> None:

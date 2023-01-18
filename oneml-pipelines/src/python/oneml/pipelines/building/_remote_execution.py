@@ -3,7 +3,7 @@ from enum import Enum, auto
 from typing import Any, NamedTuple, cast
 
 from oneml.pipelines.session import IExecutable
-from oneml.pipelines.settings._client import IProvidePipelineSettings, SettingName
+from oneml.pipelines.settings import IProvidePipelineSettings, SettingName
 
 logger = logging.getLogger(__name__)
 

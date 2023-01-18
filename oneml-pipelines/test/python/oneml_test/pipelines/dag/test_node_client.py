@@ -1,21 +1,13 @@
 import pytest
 
-from oneml.pipelines.dag import (
-    DuplicatePipelineNodeError,
-    ILocatePipelineNodes,
-    IManagePipelineNodes,
-    IRegisterPipelineNodes,
-    NodeNotFoundError,
-    PipelineNode,
-    PipelineNodeClient,
-)
+from oneml.pipelines.dag import PipelineNode, PipelineNodeClient
 
 
 class TestPipelineNodeClient:
 
     _client: PipelineNodeClient
 
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._client = PipelineNodeClient()
 
     def test_basics(self) -> None:
