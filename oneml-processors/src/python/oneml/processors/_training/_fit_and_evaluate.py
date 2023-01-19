@@ -35,7 +35,7 @@ class FitAndEvaluateBuilders:
         """Builds a FitAndEvaluate pipeline when the fit pipeline also evaluates train data.
 
         Args:
-        * estimator_name: ename for the built pipeline.
+        * estimator_name: name for the built pipeline.
         * fit_pipeline: A pipeline that takes data, fits parameters to it, and evaluates the data
           using these fitted parameters.
         * eval_pipeline: A pipeline that takes fitted parameters and data, and evaluates the data
@@ -44,16 +44,14 @@ class FitAndEvaluateBuilders:
           outputs to eval_pipeline inputs.
         Returns:
           A pipeline that meets the FitAndEvaluate pattern.
-          * Every inputs to `fit_pipeline` becomes an inputs to the built pipeline, with a `train_`
-            prefix added to its name.
-          * Every outputs of `fit_pipeline`, except those indicated in `shared_params` becomes an
-            outputs of the build pipeline, with a `train_` prefix added to its name.
-          * Every inputs to `eval_pipeline`, except those indicated in `shared_params` becomes an
-            inputs to the built pipeline, with a `holdout_` prefix added to its name.
-          * Every outputs of `eval_pipeline` becomes an outputs of the built pipeline, with a
-            `holdout_` prefix added to its name.
-          * Every fit parameters, i.e. outputs of `fit_pipeline` that is indicated in
-            `shared_params` becomes an outputs of the built pipeline.
+          * Inputs to `fit_pipeline` and `eval_pipeline`, except those indicated in `shared_params`
+            become collection inputs, with `train` entries going to `fit_pipeline` and `eval`
+            entries going to `eval_pipeline.
+          * Outputs from `fit_pipeline` and `eval_pipeline`, except those indicated in
+            `shared_params` become collection outputs, with `train` entries comming from
+            `fit_pipeline` and `eval` entries comming from `eval_pipeline.
+          * Fitted parameter, i.e. outputs of `fit_pipeline` that are indicated in `shared_params`
+            becomes outputs of the built pipeline.
 
         Example:
           Assuming
@@ -83,20 +81,20 @@ class FitAndEvaluateBuilders:
             dependencies=shared_params,
             name=estimator_name,
             inputs=ChainMap(
-                {f"train_{n}": fit_pipeline.inputs[n] for n in fit_pipeline.inputs},
+                {f"{n}.train": fit_pipeline.inputs[n] for n in fit_pipeline.inputs},
                 {
-                    f"holdout_{n}": eval_pipeline.inputs[n]
+                    f"{n}.eval": eval_pipeline.inputs[n]
                     for n in eval_pipeline.inputs
                     if n not in (fn for fn in fitted_names_in_eval)
                 },
             ),
             outputs=ChainMap(
                 {
-                    f"train_{n}": fit_pipeline.outputs[n]
+                    f"{n}.train": fit_pipeline.outputs[n]
                     for n in fit_pipeline.outputs
                     if n not in (fn for fn in fitted_names_in_fit)
                 },
-                {f"holdout_{n}": eval_pipeline.outputs[n] for n in eval_pipeline.outputs},
+                {f"{n}.eval": eval_pipeline.outputs[n] for n in eval_pipeline.outputs},
                 {n: fit_pipeline.outputs[n] for n in (fn for fn in fitted_names_in_fit)},
             ),
         )
@@ -157,6 +155,12 @@ class FitAndEvaluateBuilders:
         fitted_params_used_by_holdout_eval = frozenset(fit_pipeline.outputs) & frozenset(
             holdout_eval_pipeline.inputs
         )
+        inputs_used_by_train_eval = (
+            frozenset(train_eval_pipeline.inputs) - fitted_params_used_by_train_eval
+        )
+        inputs_used_by_holdout_eval = (
+            frozenset(holdout_eval_pipeline.inputs) - fitted_params_used_by_holdout_eval
+        )
         pipeline = PipelineBuilder.combine(
             fit_pipeline,
             train_eval_pipeline,
@@ -173,25 +177,30 @@ class FitAndEvaluateBuilders:
                 )
             ),
             inputs=ChainMap(
-                {f"train_{n}.train": fit_pipeline.inputs[n] for n in fit_pipeline.inputs},
                 {
-                    f"train_{n}.train_eval": train_eval_pipeline.inputs[n]
-                    for n in train_eval_pipeline.inputs
-                    if n not in fitted_params_used_by_train_eval
+                    f"{n}.train": fit_pipeline.inputs[n]
+                    for n in frozenset(fit_pipeline.inputs) - inputs_used_by_train_eval
                 },
                 {
-                    f"holdout_{n}": holdout_eval_pipeline.inputs[n]
-                    for n in holdout_eval_pipeline.inputs
-                    if n not in fitted_params_used_by_holdout_eval
+                    f"{n}.train": train_eval_pipeline.inputs[n]
+                    for n in inputs_used_by_train_eval - frozenset(fit_pipeline.inputs)
+                },
+                {
+                    f"{n}.train": fit_pipeline.inputs[n] | train_eval_pipeline.inputs[n]
+                    for n in frozenset(fit_pipeline.inputs) & inputs_used_by_train_eval
+                },
+                {
+                    f"{n}.eval": holdout_eval_pipeline.inputs[n]
+                    for n in inputs_used_by_holdout_eval
                 },
             ),
             outputs=ChainMap(
                 {
-                    f"train_{n}": train_eval_pipeline.outputs[n]
+                    f"{n}.train": train_eval_pipeline.outputs[n]
                     for n in train_eval_pipeline.outputs
                 },
                 {
-                    f"holdout_{n}": holdout_eval_pipeline.outputs[n]
+                    f"{n}.holdout": holdout_eval_pipeline.outputs[n]
                     for n in holdout_eval_pipeline.outputs
                 },
                 {n: fit_pipeline.outputs[n] for n in fit_pipeline.outputs},
