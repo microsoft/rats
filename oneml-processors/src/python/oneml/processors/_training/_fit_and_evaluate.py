@@ -1,9 +1,9 @@
 """
-    A FitAndEvaluate is a pipeline that fits using train data and evaluates on train and holdout
-    data.
-    To that end, the FitAndEvaluate has two sets of inputs ports and two sets of outputs ports:
-    * train inputs/outputs ports whose names start with "train_"
-    * holdout inputs/outputs ports whose names start with "holdout_"
+    A FitAndEvaluate is a pipeline that fits using train data and evaluates on that same train data
+    and on a separate eval data.
+    A FitAndEvaluate pipeline takes collection inputs with `train` `eval` entries, and outputs
+    collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
+    entries.
 
 """
 from collections import ChainMap
@@ -17,11 +17,11 @@ from ..ux._pipeline import Dependency, Pipeline
 class FitAndEvaluateBuilders:
     """Builders for FitAndEvaluate pipelines.
 
-    A FitAndEvaluate is a pipeline that fits using train data and evaluates on train and holdout
-    data.
-    To that end, the FitAndEvaluate has two sets of inputs ports and two sets of outputs ports:
-    * train inputs/outputs ports whose names start with "train_"
-    * holdout inputs/outputs ports whose names start with "holdout_"
+    A FitAndEvaluate is a pipeline that fits using train data and evaluates on that same train data
+    and on a separate eval data.
+    A FitAndEvaluate pipeline takes collection inputs with `train` `eval` entries, and outputs
+    collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
+    entries.
     """
 
     @classmethod
@@ -37,9 +37,11 @@ class FitAndEvaluateBuilders:
         Args:
         * estimator_name: name for the built pipeline.
         * fit_pipeline: A pipeline that takes data, fits parameters to it, and evaluates the data
-          using these fitted parameters.
+          using these fitted parameters.  Inputs and outputs are assumed to be entires, not
+          collections.
         * eval_pipeline: A pipeline that takes fitted parameters and data, and evaluates the data
-          using these fitted parameters.
+          using these fitted parameters.  Inputs and outputs are assumed to be entires, not
+          collections.
         * shared_params: A sequence of dependencies mapping the fitted parameters from fit_pipeline
           outputs to eval_pipeline inputs.
         Returns:
@@ -65,9 +67,9 @@ class FitAndEvaluateBuilders:
                   (fit.outputs.mean >> eval.inputs.offset,
                    fit.outputs.std >> eval.inputs.scale,))
           ```
-          Would create `w` as a worfkflow with the following inputs and outputs:
-          * Inputs: `train_X`, `holdout_X`
-          * Outputs: `train_Z`, `holdout_Z`, `mean`, `std`.
+          Would create `w` as a worfkflow with the following input and outputs:
+          * Inputs: `X` (`X.train`, `X.eval`).
+          * Outputs: `Z` (`Z.train`, `Z.eval`), `mean`, `std`.
         """
         fitted_names_in_fit = frozenset(
             dp.out_param.param.name for dp in chain.from_iterable(shared_params)
@@ -106,65 +108,61 @@ class FitAndEvaluateBuilders:
         estimator_name: str,
         fit_pipeline: Pipeline,
         train_eval_pipeline: Pipeline,
-        holdout_eval_pipeline: Pipeline,
+        eval_eval_pipeline: Pipeline,
     ) -> Pipeline:
-        """Builds a FitAndEvaluate pipeline, supporting different eval on train and holdout.
+        """Builds a FitAndEvaluate pipeline, supporting different eval on train and eval data.
 
         Args:
         * estimator_name: ename for the built pipeline.
         * fit_pipeline: A pipeline that takes data, and outputs models/parameters fitted from the
-          data.
+          data.  Inputs and outputs are assumed to be entires, not collections.
         * train_eval_pipeline: A pipeline that takes fitted models/parameters and data, and
           evaluates the data using these fitted parameters.  This pipeline will be used on the
-          train data.
-        * holdout_eval_pipeline: A pipeline that takes fitted models/parameters and data, and
+          train data.  Inputs and outputs are assumed to be entires, not collections.
+        * eval_eval_pipeline: A pipeline that takes fitted models/parameters and data, and
           evaluates the data using these fitted parameters.  This pipeline will be used on the
-          holdout data.
+          eval data.    Inputs and outputs are assumed to be entires, not collections.
 
         All outputs of `fit_pipeline` are assumed to be fitted models/parameters.
 
         This builder uses names to match inputs/outputs across the given pipelines, in the
         following ways:
         1. Inputs of `fit_pipeline` and `train_eval_pipeline` that share the same name, e.g. X
-          become a single inputs to the built pipeline (train_X).  That inputs is passed as X to both
-          `fit_pipeline` and `train_eval_pipeline`.
+          become a single inputs to the built pipeline (X.train).  That inputs is passed as X to
+          both `fit_pipeline` and `train_eval_pipeline`.
         2. Outputs of `fit_pipeline` are matched to inputs of `train_eval_pipeline` and
-          `holdout_eval_pipeline` by name, and passed accordingly.
+          `eval_eval_pipeline` by name, and passed accordingly.
 
         Returns:
           A pipeline that meets the FitAndEvaluate pattern.
-          * Outputs of `fit_pipeline` are matched to inputs of `train_eval_pipeline` and
-            `holdout_eval_pipeline` by name, and passed accordingly.
-          * Every inputs to `fit_pipeline` becomes an inputs to the built pipeline, with a `train_`
-            prefix added to its name.
-          * Every inputs to `train_eval_pipeline` that is not matched to an outputs of `fit_pipeline`
-            becomes an inputs to the built pipeline, with a `train_` prefix added to its name.
-          * Every inputs to `holdout_eval_pipeline` that is not matched to an outputs of
-            `fit_pipeline` becomes an inputs to the built pipeline, with a `holdout_` prefix added
-            to its name.
-          * Every outputs of `train_eval_pipeline` becomes an outputs of the built pipeline, with a
-            `train_` prefix added to its name.
-          * Every outputs of `holdout_eval_pipeline` becomes an outputs of the built pipeline, with a
-            `holdout_` prefix added to its name.
-          * Every fit parameter, i.e. outputs of `train_fit` becomes an outputs of the built
-            pipeline.
+          * Outputs of `fit_pipeline` that match to inputs of `train_eval_pipeline` or
+            `eval_eval_pipeline` by name, are assumed to be fitted parameters.  Each such fitted
+            parameter is piped from the output of `fit_pipeline` to the input of
+            `train_eval_pipeline` and/or `eval_eval_pipeline`, and also exposed as an output of
+            the FitAndEvaluate pipeline.
+          * Inputs of either of the three pipelines, except those identified as fitted parameters,
+            become collection inputs, with `train` entries going to `fit_pipeline` and
+            `train_eval_pipeline`, and `eval` entries going to `eval_eval_pipeline`.
+          * Outputs of `train_eval_pipeline` and `eval_eval_pipeline` become collection outputs,
+            with `train` entries coming from `train_eval_pipeline` and `eval` entries coming from
+            `eval_eval_pipeline`.
         """
         fitted_params_used_by_train_eval = frozenset(fit_pipeline.outputs) & frozenset(
             train_eval_pipeline.inputs
         )
-        fitted_params_used_by_holdout_eval = frozenset(fit_pipeline.outputs) & frozenset(
-            holdout_eval_pipeline.inputs
+        fitted_params_used_by_eval_eval = frozenset(fit_pipeline.outputs) & frozenset(
+            eval_eval_pipeline.inputs
         )
         inputs_used_by_train_eval = (
             frozenset(train_eval_pipeline.inputs) - fitted_params_used_by_train_eval
         )
-        inputs_used_by_holdout_eval = (
-            frozenset(holdout_eval_pipeline.inputs) - fitted_params_used_by_holdout_eval
+        inputs_used_by_eval_eval = (
+            frozenset(eval_eval_pipeline.inputs) - fitted_params_used_by_eval_eval
         )
         pipeline = PipelineBuilder.combine(
             fit_pipeline,
             train_eval_pipeline,
-            holdout_eval_pipeline,
+            eval_eval_pipeline,
             name=estimator_name,
             dependencies=(
                 tuple(
@@ -172,8 +170,8 @@ class FitAndEvaluateBuilders:
                     for n in fitted_params_used_by_train_eval
                 )
                 + tuple(
-                    fit_pipeline.outputs[n] >> holdout_eval_pipeline.inputs[n]
-                    for n in fitted_params_used_by_holdout_eval
+                    fit_pipeline.outputs[n] >> eval_eval_pipeline.inputs[n]
+                    for n in fitted_params_used_by_eval_eval
                 )
             ),
             inputs=ChainMap(
@@ -189,27 +187,21 @@ class FitAndEvaluateBuilders:
                     f"{n}.train": fit_pipeline.inputs[n] | train_eval_pipeline.inputs[n]
                     for n in frozenset(fit_pipeline.inputs) & inputs_used_by_train_eval
                 },
-                {
-                    f"{n}.eval": holdout_eval_pipeline.inputs[n]
-                    for n in inputs_used_by_holdout_eval
-                },
+                {f"{n}.eval": eval_eval_pipeline.inputs[n] for n in inputs_used_by_eval_eval},
             ),
             outputs=ChainMap(
                 {
                     f"{n}.train": train_eval_pipeline.outputs[n]
                     for n in train_eval_pipeline.outputs
                 },
-                {
-                    f"{n}.holdout": holdout_eval_pipeline.outputs[n]
-                    for n in holdout_eval_pipeline.outputs
-                },
+                {f"{n}.eval": eval_eval_pipeline.outputs[n] for n in eval_eval_pipeline.outputs},
                 {n: fit_pipeline.outputs[n] for n in fit_pipeline.outputs},
             ),
         )
         return pipeline
 
     @classmethod
-    def build_using_eval_on_train_and_holdout(
+    def build_using_eval_on_train_and_eval(
         cls,
         estimator_name: str,
         fit_pipeline: Pipeline,
@@ -220,14 +212,15 @@ class FitAndEvaluateBuilders:
         Args:
         * estimator_name: ename for the built pipeline.
         * fit_pipeline: A pipeline that takes data, and outputs models/parameters fitted from the
-          data.
+          data.  Inputs and outputs are assumed to be entires, not collections.
         * eval_pipeline: A pipeline that takes fitted models/parameters and data, and evaluates the
-          data using these fitted parameters.  Will be used on both train data and holdout data.
+          data using these fitted parameters.  Will be used on both train data and eval data.
+          Inputs and outputs are assumed to be entires, not collections.
 
         All outputs of `fit_pipeline` are assumed to be fitted models/parameters.
 
         `eval_pipeline` is duplicated.  One copy will be used to evaluate on train data and the
-        other on holdout data.
+        other on eval data.
 
         This builder uses names to match inputs/outputs across the given pipelines, in the
         following ways:
@@ -239,25 +232,19 @@ class FitAndEvaluateBuilders:
 
         Returns:
           A pipeline that meets the FitAndEvaluate pattern.
-          * `eval_pipeline` is duplicated to create a train eval pipeline and a
-            holdout eval pipeline.
-          * Outputs of `fit_pipeline` are matched to inputs of `eval_pipeline` and by name, and
-            passed accordingly to the two copies of `eval_pipeline`.
-          * Every inputs to `fit_pipeline` becomes an inputs to the built pipeline, with a `train_`
-            prefix added to its name.
-          * Every inputs to `eval_pipeline` that is not matched to an outputs of `fit_pipeline`
-            becomes two inputs to the built pipeline. One with a `train_` prefix added to its name,
-            passed to the train copy of `eval_pipeline` and one with a `holdout_` prefix add to its
-            name, passed to the holdout copy of `eval_pipeline`.
-          * Every outputs of `eval_pipeline` becomes two outputs of the built pipeline, One with a
-            `train_` prefix added to its name, taken from the train copy of `eval_pipeline` and one
-            with a `holdout_` prefix added to its name, taken from the holdout copy of
+          * Outputs of `fit_pipeline` that match to inputs of `eval_pipeline` by name, are assumed
+            to be fitted parameters.  Each such fitted parameter is piped from the output of
+            `fit_pipeline` to the input of both copies of `eval_pipeline`, and also exposed as an
+            output of the FitAndEvaluate pipeline.
+          * Inputs of either of the pipelines, except those identified as fitted parameters,
+            become collection inputs, with `train` entries going to `fit_pipeline` and the train
+            copy of `eval_pipeline`, and `eval` entries going to the eval copy of
             `eval_pipeline`.
-          * Every fit parameter, i.e. outputs of `train_fit` becomes an outputs of the built
-            pipeline.
+          * Outputs of both copies of `eval_pipeline` become collection outputs, with `train`
+            entries coming from the train copy and `eval` entries coming from the eval copy
         """
         train_eval_pipeline = PipelineBuilder.combine(eval_pipeline, name="train")
-        holdout_eval_pipeline = PipelineBuilder.combine(eval_pipeline, name="holdout")
+        eval_eval_pipeline = PipelineBuilder.combine(eval_pipeline, name="eval")
         return cls.build_using_fit_and_two_evals(
-            estimator_name, fit_pipeline, train_eval_pipeline, holdout_eval_pipeline
+            estimator_name, fit_pipeline, train_eval_pipeline, eval_eval_pipeline
         )
