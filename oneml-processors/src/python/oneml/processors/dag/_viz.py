@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from itertools import chain
-from typing import Any, Iterable, Literal
+from typing import Any, Iterable, Literal, Tuple
 
 import pydot
 
 from ..ux._pipeline import (
+    PE,
     InCollection,
     InEntry,
     OutCollection,
     OutEntry,
+    ParamCollection,
     Pipeline,
     PipelineInput,
+    PipelineIO,
     PipelineOutput,
 )
 from ._dag import DAG
@@ -25,8 +27,27 @@ class DotBuilder:
         self._g = pydot.Dot("DAG", graph_type="digraph")
         self._node_name_mapping = {}
 
-    def _format_arguments(self, arguments: Iterable[str], io: Literal["i", "o"]) -> str:
-        return "|".join((f"<{io}_{arg}> {arg}" for arg in arguments))
+    def _get_io_tag(self, io: Literal["i", "o"], port_name: str) -> str:
+        sanitized = port_name.replace("_", "__").replace(".", "_")
+        return f"{io}_{sanitized}"
+
+    def _format_arguments(self, io: Literal["i", "o"], arguments: Iterable[str]) -> str:
+        return "|".join((f"<{self._get_io_tag(io, arg)}> {arg}" for arg in sorted(arguments)))
+
+    def _format_i_arguments(self, arguments: Iterable[str]) -> str:
+        return self._format_arguments("i", arguments)
+
+    def _format_o_arguments(self, arguments: Iterable[str]) -> str:
+        return self._format_arguments("o", arguments)
+
+    def _get_port_tag(self, io: Literal["i", "o"], node_name: str, port_name: str) -> str:
+        return f"{self._node_name_mapping[node_name]}:{self._get_io_tag(io, port_name)}"
+
+    def _get_i_port_tag(self, node_name: str, port_name: str) -> str:
+        return self._get_port_tag("i", node_name, port_name)
+
+    def _get_o_port_tag(self, node_name: str, port_name: str) -> str:
+        return self._get_port_tag("o", node_name, port_name)
 
     def _add_name_to_mapping(self, name: str) -> None:
         if name not in self._node_name_mapping:
@@ -34,14 +55,15 @@ class DotBuilder:
 
     def _add_pipeline(self, dag: DAG) -> None:
         for node in dag.nodes:
+            processor_name = dag.nodes[node].processor_type.__name__
             name = repr(node)
             self._add_name_to_mapping(name)
             in_arguments = tuple(k.name for k in dag.nodes[node].inputs.values())
-            inputs = self._format_arguments(in_arguments, "i")
+            inputs = self._format_i_arguments(in_arguments)
             out_arguments = tuple(k.name for k in dag.nodes[node].outputs.values())
-            outputs = self._format_arguments(out_arguments, "o")
+            outputs = self._format_o_arguments(out_arguments)
 
-            label = f"{{{{{inputs}}}|{name}|{{{outputs}}}}}"
+            label = f"{{{{{inputs}}}|{processor_name}|{{{outputs}}}}}"
             node_name = self._node_name_mapping[name]
             self._g.add_node(
                 pydot.Node(name=node_name, label=label, shape="Mrecord", color="blue")
@@ -53,66 +75,62 @@ class DotBuilder:
                 dp_name = repr(dp.node)
                 in_arg = dp.in_arg.name
                 out_arg = dp.out_arg.name
-                if dp_name not in self._node_name_mapping:
-                    self._node_name_mapping[dp_name] = str(len(self._node_name_mapping))
-                    node_name = self._node_name_mapping[dp_name]
-                    label = f"{{{dp_name}}}|{{<o_{out_arg}> {out_arg}}}"
-                    self._g.add_node(
-                        pydot.Node(name=node_name, label=label, shape="record", color="red")
-                    )
-                source = self._node_name_mapping[dp_name] + f":o_{out_arg}"
-                target = self._node_name_mapping[name] + f":i_{in_arg}"
+                source = self._get_o_port_tag(dp_name, out_arg)
+                target = self._get_i_port_tag(name, in_arg)
                 self._g.add_edge(pydot.Edge(source, target))
 
+    def _get_io_entries(
+        self, io: ParamCollection[PE], io_collections: PipelineIO[ParamCollection[PE]]
+    ) -> Iterable[Tuple[str, PE]]:
+        for entry_name, entry in io.items():
+            yield entry_name, entry
+        for collection_name, entry_collection in io_collections.items():
+            for entry_name, entry in entry_collection.items():
+                yield f"{collection_name}.{entry_name}", entry
+
     def _add_inputs(self, inputs: InCollection, in_collections: PipelineInput) -> None:
-        def add_entry(entry: InEntry) -> None:
+        def add_entry(source: str, entry: InEntry) -> None:
             for p in entry:
-                target = self._node_name_mapping[repr(p.node)] + f":i_{p.param.name}"
+                target = self._get_i_port_tag(repr(p.node), p.param.name)
                 self._g.add_edge(pydot.Edge(source, target))
 
         if len(inputs) > 0 or len(in_collections) > 0:
+            entries = dict(self._get_io_entries(inputs, in_collections))
             name = "inputs"
             self._add_name_to_mapping(name)
-            outputs = self._format_arguments(chain(inputs, in_collections), "o")
+
+            outputs = self._format_o_arguments(entries)
             label = f"{{{{{outputs}}}}}"
             self._g.add_node(
                 pydot.Node(
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"
                 )
             )
-            for entry_name, entry in inputs.items():
-                source = self._node_name_mapping[name] + f":o_{entry_name}"
-                add_entry(entry)
-
-            for collection_name, collection in in_collections.items():
-                source = self._node_name_mapping[name] + f":o_{collection_name}"
-                for entry in collection.values():
-                    add_entry(entry)
+            for entry_name, entry in entries.items():
+                source = self._get_o_port_tag(name, entry_name)
+                add_entry(source, entry)
 
     def _add_outputs(self, outputs: OutCollection, out_collections: PipelineOutput) -> None:
         def add_entry(entry: OutEntry, target: str) -> None:
             for p in entry:
-                source = self._node_name_mapping[repr(p.node)] + f":o_{p.param.name}"
+                source = self._get_o_port_tag(repr(p.node), p.param.name)
                 self._g.add_edge(pydot.Edge(source, target))
 
         if len(outputs) > 0 or len(out_collections) > 0:
+            entries = dict(self._get_io_entries(outputs, out_collections))
             name = "outputs"
             self._add_name_to_mapping(name)
-            inputs = self._format_arguments(chain(outputs, out_collections), "i")
+
+            inputs = self._format_i_arguments(entries)
             label = f"{{{{{inputs}}}}}"
             self._g.add_node(
                 pydot.Node(
                     name=self._node_name_mapping[name], label=label, shape="record", color="red"
                 )
             )
-            for entry_name, entry in outputs.items():
-                target = self._node_name_mapping[name] + f":i_{entry_name}"
+            for entry_name, entry in entries.items():
+                target = self._get_i_port_tag(name, entry_name)
                 add_entry(entry, target)
-
-            for collection_name, collection in out_collections.items():
-                target = self._node_name_mapping[name] + f":i_{collection_name}"
-                for entry in collection.values():
-                    add_entry(entry, target)
 
     def add_pipeline(self, pipeline: Pipeline) -> None:
         self._add_pipeline(pipeline.dag)
