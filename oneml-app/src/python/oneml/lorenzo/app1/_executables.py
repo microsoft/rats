@@ -1,4 +1,3 @@
-from functools import lru_cache
 from typing import Any
 
 from oneml.lorenzo.sample_pipeline import GenerateSamples
@@ -20,10 +19,8 @@ class App1PipelineExecutables:
         self._input_provider = input_provider
         self._output_presenter = output_presenter
 
-    @lru_cache()
     def generate_samples(self) -> GenerateSamples:
         return GenerateSamples(self._output_presenter)
 
-    @lru_cache()
     def count_samples(self) -> CountSamples:
         return CountSamples(self._input_provider, self._output_presenter)

@@ -1,3 +1,4 @@
+import logging
 import logging.config
 
 
@@ -36,3 +37,7 @@ class LoggingClient:
                 "root": {"level": "DEBUG", "handlers": ["console"]},
             }
         )
+
+        # Remove noisy logs from a few libraries
+        logging.getLogger("azure").setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)

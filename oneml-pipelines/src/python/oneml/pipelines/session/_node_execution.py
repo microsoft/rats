@@ -25,16 +25,20 @@ class IRegisterPipelineNodeExecutables(Protocol):
         """ """
 
 
-class IManagePipelineNodeExecutables(
-    ILocatePipelineNodeExecutables, ILocateActiveNodes, IRegisterPipelineNodeExecutables, Protocol
-):
-    pass
-
-
 class IExecutePipelineNodes(Protocol):
     @abstractmethod
     def execute_node(self, node: PipelineNode) -> None:
         """ """
+
+
+class IManagePipelineNodeExecutables(
+    ILocatePipelineNodeExecutables,
+    ILocateActiveNodes,
+    IRegisterPipelineNodeExecutables,
+    IExecutePipelineNodes,
+    Protocol,
+):
+    pass
 
 
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables, IExecutePipelineNodes):

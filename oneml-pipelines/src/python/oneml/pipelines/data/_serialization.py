@@ -51,6 +51,7 @@ class JsonSerializer(ISerializeData[DataType]):
     def deserialize(self, data: str) -> DataType:
         # TODO: how do we return something other than dicts?
         #       maybe we need to pass in the type?
+        logger.debug(f"deserializing data: {data}")
         return json.loads(data)
 
 

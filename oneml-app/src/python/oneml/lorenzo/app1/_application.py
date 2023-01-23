@@ -103,10 +103,22 @@ class App1Application(IApplication):
             allow_abbrev=False,
         )
 
+        parser.add_argument(
+            "--local",
+            action="store_true",
+            help="force remote executables to run locally",
+        )
         parser.add_argument("--image", help="the docker image to use for node execution")
 
         result = parser.parse_args(args)
-        self._pipeline_settings.set(RemotePipelineSettings.DOCKER_IMAGE, result.image)
+
+        if result.local:
+            self._pipeline_settings.set(RemotePipelineSettings.FORCE_LOCAL, True)
+        else:
+            # TODO: need a way to set default settings
+            self._pipeline_settings.set(RemotePipelineSettings.FORCE_LOCAL, False)
+            self._pipeline_settings.set(RemotePipelineSettings.DOCKER_IMAGE, result.image)
+
         self._pipeline_settings.set(RemotePipelineSettings.NODE_ROLE, NodeRole.DRIVER)
         self._pipeline.execute()
 

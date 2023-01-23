@@ -9,10 +9,11 @@ from oneml.pipelines.session import (
     PipelineSessionClientFactory,
     PipelineSessionPluginClient,
 )
-from oneml.pipelines.session._components import PipelineSessionComponents
+from oneml.pipelines.session._client import PipelineSessionComponents
 from oneml.pipelines.settings import IProvidePipelineSettings
 
 from ._dag_client import IPipelineDagClient, PipelineDagClient
+from ._executable_pickling import PickleableExecutable
 from ._executables_client import IManageBuilderExecutables, PipelineBuilderExecutablesClient
 from ._node_multiplexing import (
     IMultiplexPipelineNodes,
@@ -78,10 +79,15 @@ class PipelineBuilderClient(
     def build(self) -> PipelineClient:
         return self.get_dag_client().build()
 
+    def add_remote_executable(self, node: PipelineNode, executable: PickleableExecutable) -> None:
+        self.add_executable(node, self._remote_executable(executable))
+
     def add_executable(self, node: PipelineNode, executable: IExecutable) -> None:
         self.get_executables_client().add_executable(node, executable)
 
-    def remote_executable(self, executable: IExecutable) -> IExecutable:
+    def _remote_executable(self, executable: PickleableExecutable) -> IExecutable:
+        # TODO: this is not an ideal API because this method is exposing the concept of
+        #       driver/executor. This might be better served in the k8s specific session logic.
         return self._remote_executable_factory.get_instance(executable)
 
     def namespace(self, name: str) -> PipelineNamespaceClient:

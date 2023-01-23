@@ -3,7 +3,7 @@ import sys
 
 from oneml.cli import CliRequest, build_cli_request
 from oneml.cli._request import clean_env
-from oneml.lorenzo.app1._di_container import App1DiContainer
+from oneml.lorenzo.app1._di_container import App1DiComponent, App1DiContainer
 
 
 def main(cli_request: CliRequest) -> None:
@@ -11,6 +11,8 @@ def main(cli_request: CliRequest) -> None:
     di.logging_client().configure_logging()
     requests = di.cli_request_stack()
     app = di.application()
+    components = di.pipeline_session_components().session_components()
+    components.add_component(App1DiComponent, di)
     with requests.open(cli_request):
         app.execute()
 

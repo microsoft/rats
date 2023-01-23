@@ -88,7 +88,7 @@ class K8sJobSettings:
     def get_labels(self) -> Dict[str, str]:
         return {
             "execution-id": self._execution_id(),
-            "aadpodbinding": "development-workflow",
+            "aadpodidbinding": "development-workflow",
         }
 
     def get_gb_memory(self) -> float:

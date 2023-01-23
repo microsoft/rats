@@ -2,12 +2,28 @@ from functools import lru_cache
 from typing import Any
 
 from oneml.pipelines.building import PipelineBuilderFactory
+from oneml.pipelines.building._executable_pickling import PickleableExecutable
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode, PipelinePort
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._serialization import DataTypeId, DemoSerializer, SerializationClient
 from oneml.pipelines.session import PipelineSessionClient
+from oneml.pipelines.session._components import ComponentId
 
+from ._di_provider import DiProvider
 from ._executables import App1PipelineExecutables
+
+
+class DeferredExecutable(PickleableExecutable):
+
+    _name: str
+
+    def __init__(self, name: str) -> None:
+        self._name = name
+
+    def execute(self, session: PipelineSessionClient) -> None:
+        di = session.get_component(ComponentId[DiProvider](key="oneml.lorenzo.app1._di_container"))
+        executables = di.pipeline_executables()
+        executables.__getattribute__(self._name)().execute()
 
 
 class App1Pipeline:
@@ -72,18 +88,13 @@ class App1Pipeline:
 
         self._serialization_client.register(type_id, self._demo_serializer)
 
-        generate_samples_exe = self._pipeline_executables.generate_samples()
-        count_samples_exe = self._pipeline_executables.count_samples()
-
-        builder.add_executable(
+        builder.add_remote_executable(
             builder.node("generate-samples"),
-            # builder.remote_executable(generate_samples_exe),
-            generate_samples_exe,
+            DeferredExecutable("generate_samples"),
         )
-        builder.add_executable(
+        builder.add_remote_executable(
             builder.node("count-samples"),
-            # builder.remote_executable(count_samples_exe),
-            count_samples_exe,
+            DeferredExecutable("count_samples"),
         )
 
         return builder.build_session()

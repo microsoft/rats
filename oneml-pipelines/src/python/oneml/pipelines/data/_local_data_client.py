@@ -43,9 +43,6 @@ class LocalDataClient(IManagePipelineData):
 
         logger.debug(f"publishing node data: {node.key}[{port.key}]")
 
-        # TODO: move this to a local file data client
-        #       and switch this to a blob upload/download once we have proper auth clients
-        #       we can use auth clients from immunodata
         type_id = self._type_mapping.get_data_id((node, port))
         serialized = self._serializer.serialize(type_id, data)
 

@@ -21,10 +21,13 @@ class TestNodeSettingsClient:
             SettingName("foo1"),
             "bar",
         )
-        assert self._client.get(
-            PipelineNode("node1"),
-            SettingName("foo1"),
-        ) == "bar"
+        assert (
+            self._client.get(
+                PipelineNode("node1"),
+                SettingName("foo1"),
+            )
+            == "bar"
+        )
 
         with pytest.raises(DuplicateNodeSettingError):
             self._client.set(

@@ -5,12 +5,15 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
+from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
 from oneml.pipelines.building import PipelineBuilderFactory
+from oneml.pipelines.building._executable_pickling import ExecutablePicklingClient
 from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
 from oneml.pipelines.context._client import ContextClient, IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
+from oneml.pipelines.data._filesystem import LocalFilesystem
 from oneml.pipelines.data._memory_data_client import InMemoryDataClient
 from oneml.pipelines.k8s._executables import IProvideK8sNodeCmds, K8sExecutableProxy
 from oneml.pipelines.session import (
@@ -20,7 +23,7 @@ from oneml.pipelines.session import (
     PipelinePort,
     PipelineSessionClient,
 )
-from oneml.pipelines.session._components import PipelineSessionComponents
+from oneml.pipelines.session._client import PipelineSessionComponents
 from oneml.pipelines.settings import PipelineSettingsClient
 
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
@@ -218,10 +221,15 @@ class PipelineSessionProvider:
             pipeline_settings=pipeline_settings,
             remote_executable_factory=RemoteExecutableFactory(
                 context=RemoteContext(pipeline_settings),
+                session_context=session_context,
                 driver=K8sExecutableProxy(
                     session_provider=session_context,
                     settings_provider=pipeline_settings,
                     cmd_client=_CmdClient(),
+                ),
+                pickler=ExecutablePicklingClient(
+                    fs_client=LocalFilesystem(directory=Path("../.tmp/")),
+                    session_context=session_context,
                 ),
             ),
         ).get_instance()

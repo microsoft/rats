@@ -1,43 +1,39 @@
-from functools import lru_cache
+import logging
+from abc import abstractmethod
+from dataclasses import dataclass
+from typing import Any, Dict, Generic, Protocol, TypeVar
 
-from oneml.pipelines.context._client import IManageExecutionContexts, IProvideExecutionContexts
-from oneml.pipelines.session import (
-    IManagePipelineData,
-    PipelineSessionClient,
-    PipelineSessionClientFactory,
-    PipelineSessionPluginClient,
-)
+logger = logging.getLogger(__name__)
+ComponentType = TypeVar("ComponentType")
 
 
-class PipelineSessionComponents:
+@dataclass(frozen=True)
+class ComponentId(Generic[ComponentType]):
+    key: str
 
-    _session_context: IManageExecutionContexts[PipelineSessionClient]
-    # might want the data layer to be done with provider classes
-    # so we can lazy load things a bit more
-    _pipeline_data_client: IManagePipelineData
 
-    def __init__(
-        self,
-        session_context: IManageExecutionContexts[PipelineSessionClient],
-        pipeline_data_client: IManagePipelineData,
-    ) -> None:
-        self._session_context = session_context
-        self._pipeline_data_client = pipeline_data_client
+class IProvideSessionComponents(Protocol):
+    @abstractmethod
+    def get_component(self, component_id: ComponentId[ComponentType]) -> ComponentType:
+        pass
 
-    def session_context(self) -> IProvideExecutionContexts[PipelineSessionClient]:
-        return self._session_context
 
-    @lru_cache()
-    def session_client_factory(self) -> PipelineSessionClientFactory:
-        return PipelineSessionClientFactory(
-            session_context=self._session_context,
-            pipeline_data_client=self._pipeline_data_client,
-            session_plugin_client=self.session_plugin_client(),
-        )
+class SessionComponents(IProvideSessionComponents):
 
-    @lru_cache()
-    def session_plugin_client(self) -> PipelineSessionPluginClient:
-        return PipelineSessionPluginClient()
+    _components: Dict[ComponentId[Any], Any]
 
-    def pipeline_data_client(self) -> IManagePipelineData:
-        return self._pipeline_data_client
+    def __init__(self) -> None:
+        self._components = {}
+
+    def add_component(self, name: ComponentId[ComponentType], component: ComponentType) -> None:
+        if name in self._components:
+            raise RuntimeError(f"Component with name {name} already exists")
+
+        logger.debug(f"Adding component {name} to session components")
+        self._components[name] = component
+
+    def get_component(self, name: ComponentId[ComponentType]) -> ComponentType:
+        if name not in self._components:
+            raise RuntimeError(f"Component with name {name} does not exist")
+
+        return self._components[name]
