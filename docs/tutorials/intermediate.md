@@ -1,47 +1,57 @@
 # Intermediate Tutorial
-
 In the [beginners tutorial](beginners.md) we have seen how to construct `hello_world`, `diamond`
 and `standardized_lr` pipelines.
-In this tutorial we will dive deeper into some of the concepts we scratched and discuss more
+In this tutorial we will dive deeper into some of the concepts we touched upon and discuss more
 complicated use cases.
 
+#### Table of Contents
+- [Defining Tasks](#defining-tasks)
+  - [Constructor Parameters](#constructor-parameters)
+  - [Dynamic Annotations](#dynamic-annotations)
+- [Combining Pipelines](#combining-pipelines)
+    - [Parameter Entries](#parameter-entries)
+    - [Parameter Collections](#parameter-collections)
+    - [Parameter Types](#parameter-types)
+    - [Defaults for `UserInput` and `UserOutput`](#defaults-for-userinput-and-useroutput)
+- [Estimators](#estimators)
 
 ## Defining Tasks
-
 A *task* is a pipeline of a single node.
-Creating a task requires specifying the pararameters needed for the *processor* class to be
-initialized (such as configuration), dynamic input and output annotations, and compute
+Creating a task requires specifying the pararameters needed for the *processor* to be
+initialized, i.e., configuration, dynamic input and output annotations, and compute
 requirements.
-
 A *task* has the following construct parameters:
-
-* `processor_type` (`type`): a reference to the processor's class.
+* `processor_type` (`type[oneml.processors.IProcess]`): a reference to the processor's class.
 * `name` (`str`): \[optional\] name of the task. If missing, `processor_type.__name__` is used.
 * `params_getter` (`oneml.processors.IGetParams`): \[optional\] a (serializable) *mapping* object
     whose keys & values are called to construct `processor_type` before executing it.
-    Data dependencies will be grabbed automatically, but any other missing parameters for the
-    constructor need to be specified here.
-* `input_annotation` (`Mapping[str, type]`): \[optional\] specifies dynamic inputs for var
-    keyword parameter, e.g., `**kwargs`; required if *processor* specifies var keyword parameters.
-* `return_annotation` (`Mapping[str, type]`): \[optional\] overrides the *processors* return
-    annotation. useful when the number of outputs a processor returns varies between pipelines, and
-    only known at build time, e.g., a data splitter for cross-validation.
+    Data dependencies will be grabbed automatically from the outputs of other processors, but any
+    other missing parameters for the constructor need to be specified here.
+* `input_annotation` (`Mapping[str, type]`): \[optional\] dynamic inputs for variable keyword
+    parameter, e.g., `**kwargs`; required if *processor* specifies
+    [var keyword](https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind)
+    parameters.
+* `return_annotation` (`Mapping[str, type]`): \[optional\] dynamic outputs; overrides the
+    *processors* return annotation. Useful when the number of outputs a processor returns varies
+    between pipelines, and only known at build time, e.g., a data splitter for cross-validation.
 * `compute_requirements` (`oneml.processors.PComputeReqs`): \[optional\] stores information about
     the resources the *processor* needs to run, e.g., CPUs, GPUs, memory, etc.
 
-
 ### Constructor Parameters
-
 The following example implements a data loader.
-In this example the data loader will get its constructor parameters from an in-memmory immutable
-dictionary, i.e., `frozendict`.
-Other mechanims are also supported, e.g., by instantiating objects from configuration.
+This example gets its constructor parameters from an in-memory immutable dictionary, i.e.,
+`frozendict`.
+Other mechanims for passing arguments are also supported, e.g., instantiating objects from
+configuration.
+
 
 ```python
 from typing import Any, Mapping, TypedDict
-from oneml.processors import frozendict, PipelineClient
+
+from oneml.processors import PipelineBuilder, frozendict
 
 LoadDataOut = TypedDict("LoadDataOut", {"data": Any})
+
 
 class LoadData:
     def __init__(self, storage: Mapping[str, float]):
@@ -50,338 +60,383 @@ class LoadData:
     def process(self, key: str) -> LoadDataOut:
         return LoadDataOut(data=self._storage["key"])
 
+
 storage = frozendict({"X_train": 5, "X_eval": 1, "Y_train": 0, "Y_eval": 1})
-load_data = PipelineClient.task(processor_type=LoadData, name="load_data", params_getter=storage)
+load_data = PipelineBuilder.task(processor_type=LoadData, name="load_data", params_getter=storage)
 ```
 
+> :bulb: **Info**:
 Data structure `frozendict` is an immutable and serializable *mapping* object.
-These properties, i.e., immutability, serializability and the *mapping* interface consititute the
-requirements for providing configuration into *processors*.
-Overall, `params_getter` follows `IGetParams` [interface](contributor.md#defining-params_getters).
-
+Immutability, serializability and following the *mapping* interface constitute the requirements for
+providing configuration into *processors*.
+Overall, `params_getter` follows the
+`oneml.processors.IGetParams` [interface](contributor.md#defining-params_getters).
 
 ### Dynamic Annotations
-
 Consider the following *processor*:
+
 
 ```python
 from typing import Any, Mapping
 
+
 class Identity:
     def process(self, **kwargs) -> Mapping[str, Any]:
         return kwargs
+
+
 ```
 
 It is a simple processor that returns all parameters it receives.
-It is a *processor* because it implements the *process* method and returns a `Mapping` with
-annotated variables.
+It implements the *process* method and returns a `Mapping` with annotated variables.
 However, `Identity` does not specify the name of the variables that it expects or returns, and we
-cannot know them a priori.
-
-That is the reason why `oneml.processors.PipelineClient.task` accepts `input_annotation` and 
-`return_annotation` parameters.
+do not know them a priori.
+That is the reason why `oneml.processors.Task` accepts `input_annotation` and `return_annotation`
+parameters.
 For most *processors* these arguments will be unncessary, but if we provide them, they will
 override the class's input or return signatures, respectively.
-
 For example,
 
-```python
-from oneml.processors import PipelineClient
 
-io_annotation = {"foo": str, "boo": bool, "hey": int}
-PipelineClient.task(Identity, input_annotation=io_annotation, return_annotation=io_annotation)
+```python
+from oneml.processors import PipelineBuilder
+
+io_annotation = {"foo": str, "boo": bool, "bee": int}
+t = PipelineBuilder.task(Identity, input_annotation=io_annotation, return_annotation=io_annotation)
 ```
 
-> **NOTE:**
-> 
-> Passing `return_annotation=None` (default) will not override the *processor's* return signature.
+> :notebook: **Note**:
+Passing `return_annotation=None` (default) will not override the *processor's* return signature.
 Only if the return signature of a processor AND if `return_annotation=None`, will the framework
 assume that the *processor* return type is actually `None`.
 Same applies to `input_annotation=None`.
 
-
 ## Combining Pipelines
+We will further explain how to combine pipelines, handle name conflicts, and expose inputs and
+outputs.
 
-We will explain how to deal with variable name reuse (collections) and how to expose or rewire
-input and output names when composing pipelines.
+### PipelineBuilder.combine
+The exact parameter signature of `PipelineBuilder.combine` is the following:
+* `*pipelines` (`Pipeline`): a sequence of `Pipeline`s to combine; must have different names.
+* `name` (`str`): name of the returned, combined pipeline.
+* `dependencies` (`Iterable[Sequence[oneml.ux.Dependency]]`): dependencies between the pipelines to
+    combine, e.g., `stz_eval.inputs.mean << stz_train.outputs.mean`.
+* `inputs` (`oneml.ux.UserInput | None`): mapping names of inputs and in_collectins of the
+  pipelines to combine.
+* `outputs` (`oneml.ux.UserOutput | None`): mapping names of outputs and out_collectins of the
+  pipelines to combine.
+Arguments `inputs` and `outputs` are optional and help configure the exposed input and output
+variables of the combined pipeline.
+The exact definitions are the following:
+* `UserInput = Mapping[str, oneml.ux.InEntry | oneml.ux.Inputs]`
+* `UserOutput = Mapping[str, oneml.ux.OutEntry | oneml.ux.Outputs]`
+Default behavior for `inputs` and `outputs` set to None is explained in the
+[section](#defaults-for-userinput-and-useroutput) below.
+> :notebook: **Note:**
+Dependencies are not expected to be created manually, but through the `<<` operator syntax.
 
-### Parameter Collections
+#### Requirements:
+* All *inputs* to the pipeline must be specified if `inputs` is not `None`.
+* Exposing `outputs` is optional.
+* `UserInput` or `UserOutput` can have at most single dot in the *mapping* keys.
+An error will be raised otherwise.
+Consider the following `standardization` example:
 
-In [begginer's tutorial](beginners.md) we wrote simple pipelines that connect tasks together
-defining their dependencies.
-However, all *processors*' inputs and outputs had unique names.
-This was an artificial requirement to simplify the exposition.
 
-Consider now the following `standardization` pipeline:
 ```python
 from typing import TypedDict
-from oneml.processors import PipelineClient
+
+from oneml.processors import PipelineBuilder
 
 StandardizeTrainOut = TypedDict("StandardizeTrainOut", {"mean": float, "scale": float, "Z": float})
 StandardizeEvalOut = TypedDict("StandardizeEvalOut", {"Z": float})
 
-class StandardizeTrain(self):
+
+class StandardizeTrain:
     def process(X: float) -> StandardizeTrainOut:
         ...
 
-class StandardizeEval(self):
+
+class StandardizeEval:
     def __init__(self, mean: float, scale: float) -> None:
         ...
 
     def process(X: float) -> StandardizeEvalOut:
         ...
 
-stz_train = PipelineClient.task(StandardizeTrain, name="stz_train")
-stz_eval = PipelineClient.task(StandardizeEval, name="stz_eval")
 
-standardization = PipelineClient.combine(
-    stz_train, stz_eval
+stz_train = PipelineBuilder.task(StandardizeTrain)
+stz_eval = PipelineBuilder.task(StandardizeEval)
+
+standardization = PipelineBuilder.combine(
+    stz_train,
+    stz_eval,
     name="standardization",
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
-    )
+    ),
+    inputs={"X.train": stz_train.inputs.X, "X.eval": stz_eval.inputs.X},
+    outputs={
+        "mean": stz_train.outputs.mean,
+        "scale": stz_train.outputs.scale,
+        "Z.train": stz_train.outputs.Z,
+        "Z.eval": stz_eval.outputs.Z,
+    },
 )
 ```
 
-What is different from before is that `StandardizeTrain` and `StandardizeEval` inputs and outputs
-are `X`, and `Z`, rather than `X_train`, `Z_train` or `X_eval`, `Z_eval`, respectively.
-Both *processors* share the same input and output variable names.
+Let's unwrap the example below.
 
-When we combine `stz_train` and `stz_eval`, inputs and outputs are extracted and made accessible
-via their variable name, as before:
+### Parameter Entries
+We have specified dependencies between the `stz_train` and `stz_eval` using the `<<` operator:
 ```python
-standardization.inputs.X  # InCollection object
-standardization.outputs.Z  # OutCollection object
+stz_eval.inputs.mean << stz_train.outputs.mean,
+stz_eval.inputs.scale << stz_train.outputs.scale,
+```
+We access single inputs and outputs of the pipelines via the `inputs` and `outputs` attributes.
+This happens with `stz_eval.inputs.mean` and `stz_train.outputs.mean`, for example
+In [begginer's tutorial](beginners.md) we saw another example:
+```python
+stz_lr_dependencies = (
+    logistic_regression.inputs.X_train << standardization.outputs.Z_train,
+    logistic_regression.inputs.X_eval << standardization.outputs.Z_eval,
+)
 ```
 
-However, both `standardization.inputs.X` and `standardization.outputs.Z` are now representing a
-two inputs and two outputs, one for each *processor*, rather than a unique one.
-The individual parameters are still accessible via
+> :notebook: **Note**:
+In these examples *processors*' inputs and outputs had unique names.
+If the variable parameters don't have unique names, we can expose them as collections of
+parameters, as explained in the next section.
+
+### Parameter Collections
+Pipelines `stz_train` and `stz_eval` both expose `X` and `Z` variable names so we needed to
+specify how `X` and `Z` are combined together.
+In the `PipelineBuilder.combine` call we specified:
 ```python
-standardization.inputs.X.stz_train  # InParameter objects
-standardization.inputs.X.stz_eval
-standardization.outputs.Z.stz_train  # OutParameter objects
-standardization.outputs.Z.stz_eval
+inputs={"X.train": stz_train.inputs.X, "X.eval": stz_eval.inputs.X},
+outputs={"Z.train": stz_train.outputs.Z, "Z.eval": stz_eval.outputs.Z}
 ```
 
-Accessing `inputs` and `outputs` attribute of a pipeline returns a mapping of the parameters it
-exposes;
-accessing a variable returns a collection;
-accessing an entry within a collection, returns a single input or output parameter.
+The combined pipeline will expose variables as collections of parameters:
+```python
+standardization.in_collections.X  # Inputs object
+standardization.out_collections.Z  # Outputs object
+```
 
-These are the returned types from the nested mappings, accessible via dot notation:
+Both `standardization.in_collections.X` and `standardization.out_collections.Z` gather two inputs
+and two outputs entries, respectively.
+The individual entries are accessible via:
+```python
+standardization.in_collections.X.train  # InEntry objects
+standardization.in_collections.X.eval
+standardization.out_collections.Z.train  # OutEntry objects
+standardization.out_collections.Z.eval
+```
 
-| `Pipeline`        | `PipelineInput`     | `InCollection`  | `InParameter`  |
-|-------------------|------------------|-----------------|----------------|
-| `standardization` | `.inputs`        | `.X`            | `.stz_train`   |
-| `standardization` | `.inputs`        | `.X`            | `.stz_eval`    |
-|                   |                  |                 |                |
+The usefulness of collections is that we can group parameters together and create dependencies.
+Here another example with `logistic_regression`:
 
-| `Pipeline`        | `PipelineOutput`    | `OutCollection` | `OutParameter` |
-|-------------------|------------------|-----------------|----------------|
-| `standardization` | `.outputs`       | `.Z`            | `.stz_train`   |
-| `standardization` | `.outputs`       | `.Z`            | `.stz_eval`    |
-|                   |                  |                 |                |   
-
-
-### Operations with Parameters and Collections
-
-Consider now the second pipeline example based on logistic regression with variable renames, e.g.,
-`X_train`, `X_eval` into `X`, and similar for `Y` and `Z`.
 
 ```python
-LogisticRegressionTrainOut = TypedDict("LogisticRegressionTrainOut", {"model": tuple[float], "Z": float})
+LogisticRegressionTrainOut = TypedDict(
+    "LogisticRegressionTrainOut", {"model": tuple[float], "Z": float}
+)
 LogisticRegressionEvalOut = TypedDict("LogisticRegressionEvalOut", {"Z": float, "probs": float})
 
-class LogisticRegressionTrain(self):
+
+class LogisticRegressionTrain:
     def process(X: float, Y: float) -> LogisticRegressionTrainOut:
         ...
 
-class LogisticRegressionEval(self):
+
+class LogisticRegressionEval:
     def __init__(self, model: tuple[float, ...]) -> None:
         ...
 
     def process(X: float, Y: float) -> LogisticRegressionEvalOut:
         ...
 
-lr_train = PipelineClient.task(ModelTrain, name="lr_train")
-lr_eval = PipelineClient.task(ModelEval, name="lr_eval")
 
-logistic_regression = PipelineClient.combine(
-    lr_train, lr_eval
+lr_train = PipelineBuilder.task(LogisticRegressionTrain, name="lr_train")
+lr_eval = PipelineBuilder.task(LogisticRegressionEval, name="lr_eval")
+
+logistic_regression = PipelineBuilder.combine(
+    lr_train,
+    lr_eval,
     name="logistic_regression",
-    dependencies=(lr_eval.inputs.model << lr_train.outputs.model,)
+    dependencies=(lr_eval.inputs.model << lr_train.outputs.model,),
+    inputs={
+        "X.train": lr_train.inputs.X,
+        "X.eval": lr_eval.inputs.X,
+        "Y.train": lr_train.inputs.Y,
+        "Y.eval": lr_eval.inputs.Y,
+    },
+    outputs={
+        "Z.train": lr_train.outputs.Z,
+        "Z.eval": lr_eval.outputs.Z,
+        "model": lr_train.outputs.model,
+        "probs": lr_eval.outputs.probs,
+    },
 )
 ```
 
-#### `InParameter` & `OutParameter`:
+The inputs and outputs automatically formed after combining `lr_train` and `lr_eval` into
+`logistic_regression` pipeline are:
 
-**Left and right shift operations:**
-
-You can create dependencies using the left and right shift operators:
 
 ```python
-standardization.outputs.Z.stz_train >> logistic_regression.inputs.X.lr_train
-logistic_regression.inputs.X.lr_eval << standardization.outputs.Z.stz_eval
+logistic_regression.outputs.probs  # OutEntry object
+
+logistic_regression.in_collections.X  # Inputs objects
+logistic_regression.in_collections.Y
+logistic_regression.out_collections.Z  # Outputs object
+
+logistic_regression.in_collections.X.train  # InEntry objects
+logistic_regression.in_collections.X.eval
+logistic_regression.in_collections.Y.train
+logistic_regression.in_collections.Y.eval
+logistic_regression.out_collections.Z.train  # OutEntry objects
+logistic_regression.out_collections.Z.eval
 ```
 
-These operators return a dependency wrapped in a tuple (for compatibility with collections), which
-can be passed as part of dependencies when combining pipelines.
+Finally, we can combine `standardization` and `logistic_regression` together:
 
-By default, the collection entry, e.g., `Z.stz_train` or `X.lr_eval` in the example, are set to the
-node's name for tasks, and to the pipeline's name when combining tasks.
-These reference names can be changed, as we show below.
-
-#### `InCollection` & `OutCollection`:
-
-**Rename:** Collections can rename entries.
 
 ```python
-lr_incollection = logistic_regression.inputs.X.rename({"lr_train": "train", "lr_eval": "eval"})
-stz_outcollection = standardization.outputs.Z.rename({"stz_train": "train", "stz_eval": "eval"})
-```
-
-The `rename` method accepts a `Mapping[str, str]` with `{"current_name": "new_name"}` format.
-Note that collections are immutable, so a new collection is returned instead.
-You can use the returned collections to operate.
-
-**Left and right shift operations:**
-
-Similar to single parameters, you can create dependencies using the left and right shift operators.
-
-```python
-lr_incollection.X << stz_outcollection.Z  # equivalent: stz_outcollection.Z >> lr_incollection.X
-```
-
-Both collections need to have same number of entries, and entry names need to be matched, i.e.,
-`Z.train` with `X.train` and `Z.eval` with `X.eval`, respectively.
-The operation returns a tuple of dependencies the size of the collections.
-In this case, it returns two dependencies, one for `train` and one for `eval`.
-
-We can use these mechansims to combine these pipelines together:
-```python
-stz_lr = PipelineBuileder(
-    standardization, logistic_regression,
+stz_lr = PipelineBuilder.combine(
+    standardization,
+    logistic_regression,
     name="stz_lr",
-    dependencies=(lr_incollection.X << stz_outcollection.Z,)  # two dependencies
+    # two dependencies returned from input-output collection assignment
+    dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
 )
 ```
 
-Alternatively, collections from one entry to many are also permitted, and names need not to match.
+Notice the simple assignment of the `stz_lr` pipeline's input and output collections.
+This mechanism generalizes to any number of parameters that share the same entry names, which is
+useful for operating on pipelines with varying number of entries.
+
+### Parameter Types
+Accessing `inputs` and `outputs` attributes of a pipeline returns a mapping of entry parameters;
+accessing `in_collections` and `out_collections` returns a mapping of collections of parameters,
+whose values are mappings of entry parameters.
+These are the types from the nested mappings, accessible via dot notation for some examples we have
+seen above:
+|     `Pipeline`    |     `Inputs`       |    `InEntry`    |
+|:-----------------:|:------------------:|:---------------:|
+|    `stz_train`    |     `.inputs`      |    `.X`         |
+|    `stz_eval`     |     `.inputs`      |    `.X`         |
+|    `stz_eval`     |     `.inputs`      |    `.mean`      |
+|    `stz_eval`     |     `.inputs`      |    `.scale`     |
+
+|     `Pipeline`    |     `Outputs`      |    `OutEntry`   |
+|:-----------------:|:------------------:|:---------------:|
+|     `stz_train`   |     `.outputs`     |    `.Z`         |
+|     `stz_train`   |     `.outputs`     |    `.mean`      |
+|     `stz_train`   |     `.outputs`     |    `.scale`     |
+|     `stz_eval`    |     `.outputs`     |    `.Z`    |
+
+
+The pipeline exposing collections of entries:
+
+|     `Pipeline`    |  `InCollections`   |  `InCollection` | `InEntry`  |
+|:-----------------:|:------------------:|:---------------:|:----------:|
+| `standardization` | `.in_collections`  |      `.X`       |  `.train`  |
+| `standardization` | `.in_collections`  |      `.X`       |  `.eval`   |
+
+|     `Pipeline`    |  `OutCollections`  | `OutCollection` | `OutEntry` |
+|:-----------------:|:------------------:|:---------------:|:----------:|
+| `standardization` | `.out_collections` |      `.Z`       |  `.train`  |
+| `standardization` | `.out_collections` |      `.Z`       |  `.eval`   |
+
+### Defaults for `UserInput` and `UserOutput`
+Leaving `inputs` and `outputs` of `PipelineBuilder.combine` unspecified or set to `None` will
+default their specificiation::
+* All `inputs` or `outputs` from pipelines to combine will be merged, after subtracting any input
+or output specified in the `dependencies` argument.
+For example,
+
+Leaving `inputs=None` is equivalent to
+
 
 ```python
-class Report:
-    def process(probs: float) -> None:
-        ...
-
-report1 = PipelineBuilder.task(Report, name="report1")
-report2 = PipelineBuilder.task(Report, name="report2")
-reports = PipelineBuileder.combine(report1, report2, name="reports")
-
-reports.inputs.probs  # InCollection of two entries
-lr_eval.outputs.probs  # InCollection of single entry
-
-reports.inputs.probs << lr_eval.outputs.probs  # ok; returns two dependencies
+inputs = {"X": standardization.in_collections.X, "Y": logistic_regression.in_collections.Y}
 ```
 
-This syntax is particularly useful to broadcast a single result to multiple entries.
+Entry `logistic_regression.inputs.X` is specified as a dependency, and is therefore not included
+in the inputs of the combined pipeline.
+Leaving `outputs=None` is equivalent to
 
 
-#### `PipelineInput` & `PipelineOutput`
-
-**Left and right shift operations:**
-
-In the same spirit as with other types, one can do left and right shift operations on
-`PipelineInput` and `PipelineOutput` types.
-The behavior in this case is that shared variables will be associated together.
-
-The following example clarifies this behavior:
 ```python
-stz_train.outputs >> stz_eval.inputs
-```
-which is equivalent to
-```pythyon
-stz_train.outputs.mean >> stz_eval.inputs.mean
-stz_train.outputs.scale >> stz_eval.inputs.scale
-```
-
-Using the left / right operator in the wrong direction will raise an error.
-
-#### `Pipeline` & `Pipeline`
-
-**Left and right shift operations:**
-
-The `inputs` and `outputs` attributes are slightly redundant, so one can simplify the above
-syntax directly operating with pipelines.
-Left / right shifting with pipeline objects will create the dependencies between the inputs and
-outputs of the pipelines in the direction of the shift, for equally named collections.
-
-Here is an example:
-```python
-stz_train >> stz_eval
-```
-which would be equivalent to
-```python
-stz_train.outputs >> stz_eval.inputs
+outputs = {
+    "mean": standardization.outputs.mean,
+    "scale": standardization.outputs.scale,
+    "model": logistic_regression.outputs.model,
+    "probs": logistic_regression.outputs.probs,
+}
 ```
 
-Beware that the following would produce no dependencies, because there are no shared variable names
-```python
-dependencies = stz_train << stz_eval
-assert len(dependencies) == 0
-```
+Only `standardization.outputs.Z` is specified in the dependencies list and excluded.
 
-## Estimators (Recommended Pattern)
-
-We have shown a mechanism to create tasks, combine, rename inputs & outputs, and combine the
-resulting pipelines:
-
-1. Instantiate tasks, i.e., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
-2. Combine tasks, i.e., `standardization` and `logistic_regression`.
-3. Rename entries, i.e., `stz_train`, `lr_train` to `train` and `stz_eval`, `lr_eval` to `eval`.
-4. Combine pipelines, i.e., `standartization` and `logistic_regression` to `stz_lr`.
-
+# Estimators
+[Combining pipelines](#combining-pipelines) for creating train and eval tasks so far:
+1. Instantiate tasks, e.g., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
+2. Combine tasks, e.g., `standardization`, `logistic_regression`.
+3. Specify dependencies, e.g., `stz_eval.inputs.mean << stz_train.outputs.mean`,
+`lr_eval.inputs.model << lr_train.outputs.model`.
+4. Specify inputs and outputs, e.g.,
+`inputs={"X.train": stz_train.inputs.X, "X.eval": stz_eval.inputs.X}`.
+5. Combine pipelines passing dependencies, inputs and outputs.
 This pattern can be simplified with estimators:
+1. Instantiate tasks, e.g., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
+2. Instantiate estimators, e.g., `standardization`, `logistic_regression`.
+4. Combine estimators, e.g., `stz_lr` below.
 
-1. Instantiate tasks, i.e., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
-2. Instantiate estimators, i.e., `standardization` and `logistic_regression`.
-4. Combine estimators, i.e., `standartization` and `logistic_regression` to `stz_lr`.
 
 ```python
-from oneml.processors import Estimator
+from oneml.processors.ml import Estimator
 
 # Instantiate tasks
-stz_train = PipelineClient.task(StandardizeTrain)
-stz_eval = PipelineClient.task(StandardizeEval)
-lr_train = PipelineClient.task(ModelTrain)
-lr_eval = PipelineClient.task(ModelEval)
+stz_train = PipelineBuilder.task(StandardizeTrain)
+stz_eval = PipelineBuilder.task(StandardizeEval)
+lr_train = PipelineBuilder.task(LogisticRegressionTrain)
+lr_eval = PipelineBuilder.task(LogisticRegressionEval)
 
 # Instantiate estimators
 standardization = Estimator(
-    stz_train, stz_eval,
     name="standardization",
+    train_pl=stz_train,
+    eval_pl=stz_eval,
     shared_params=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
-    )
+    ),
 )
 logistic_regression = Estimator(
-    lr_train, lr_eval,
     name="logistic_regression",
-    shared_params=(
-        lr_eval.inputs.model << lr_train.outputs.model,
-    )
+    train_pl=lr_train,
+    eval_pl=lr_eval,
+    shared_params=(lr_eval.inputs.model << lr_train.outputs.model,),
 )
 
 # Combine estimators
 stz_lr = PipelineBuilder.combine(
-    standardization, logistic_regression
+    standardization,
+    logistic_regression,
     name="stz_lr",
-    dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,)
+    dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
 )
 ```
 
-The main advantage for using estimators is that collections are built in a way such that they are
-compatible to combine and operate with together.
-This abstracts the number of entries that a collection encapsulates.
+The main advantage for using estimators is that collections are built so that they are compatible
+to operate together.
+If the previous *processors* had more than one evaluation task, the underlying dependency
+assignments do not change if they rely on collection assignments.
+> :notebook: **Note:**
+Combinging pipelines using `Estimator` exposes all outputs from both pipelines.
+That is why `standardization` exposes `mean` and `scale`, and why `logistic_regression` exposes
+`model`, even though they are specified as dependencies.
+This is not the default behavior of `PipelineBuilder.combine`, which does not expose outputs that
+have been specified as dependencies.

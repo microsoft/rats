@@ -1,4 +1,4 @@
-# Beginners Tutorial
+ # Beginners Tutorial
 
 ## "Hello World" Example
 
@@ -8,6 +8,8 @@ Let's start writing the most simple pipeline that takes no inputs or outputs and
 The first step is to write a *processor* with the printing functionality.
 We need to define a `process` method with no input and no output.
 
+
+
 ```python
 class HelloWorld:
     def process(self) -> None:
@@ -15,6 +17,7 @@ class HelloWorld:
 ```
 
 To create a pipeline and run it, we can use the following lines:
+
 
 ```python
 from oneml.processors import PipelineBuilder, PipelineRunner
@@ -30,14 +33,16 @@ Consider now we have four classes, i.e., `A`, `B`, `C` and `D` with some inputs 
 want to connect them following a diamond-based shape:
 
 ```
-    A           B <- A
-   / \          C <- A
-  B   C         D <- B 
-   \ /          D <- C
-    D
+  A           B <- A
+ / \          C <- A
+B   C         D <- B
+ \ /          D <- C
+  D
 ```
 
 We have the following classes and declared outputs:
+
+
 ```python
 from typing import Any, TypedDict
 
@@ -45,21 +50,27 @@ AOutput = TypedDict("AOutput", {"Z1": float, "Z2": float})
 BOutput = TypedDict("BOutput", {"Z": float})
 COutput = TypedDict("COutput", {"Z": float})
 
+
 class A:
     def process(self) -> AOutput:
         ...
+
 
 class B:
     def process(self, X: Any) -> BOutput:
         ...
 
+
 class C:
     def process(self, X: Any) -> COutput:
         ...
 
+
 class D:
     def process(self, X1: Any, X2: Any) -> None:
         ...
+
+
 ```
 
 *Processors* can have arbitrary inputs, in this case we have processors with empty, single, single
@@ -77,6 +88,8 @@ We start by creating a single node pipeline per *processor*, which we refer as a
 Then we combine all 4 *tasks* into a single pipeline by declaring the input/output *dependencies*
 that exist between *tasks*:
 
+
+
 ```python
 from oneml.processors import PipelineBuilder, PipelineRunner, display_dag
 
@@ -86,20 +99,24 @@ c = PipelineBuilder.task(C, "C")
 d = PipelineBuilder.task(D, "D")
 
 diamond = PipelineBuilder.combine(
-    a, b, c, d,
+    a,
+    b,
+    c,
+    d,
     dependencies=(
         b.inputs.X << a.outputs.Z1,
         c.inputs.X << a.outputs.Z2,
         d.inputs.X1 << b.outputs.Z,
         d.inputs.X2 << c.outputs.Z,
     ),
-    name="diamond"
+    name="diamond",
 )
 
-display_dag(diamond) # displays the pipeline
-```
-![png](figures/beginners_8_0.png)
+display_dag(diamond)  # displays the pipeline
 
+```
+
+![png](figures/beginners_8_0.png)
 
 We have seen in these examplea that pipelines, whether made from a single node or multiple, expose
 *inputs* and *outputs*, and we can access them directly to create dependencies between different
@@ -110,6 +127,7 @@ to create such *dependencies*, which will return a tuple holding the *dependency
 If the user accesses an input or output that do not exist, or confuses the direction of the
 dependency, a run-time error will be raised.
 This is why we have to declare the inputs and outputs of *processors*.
+
 
 ## Standardized Logistic Regression Example
 
@@ -125,40 +143,51 @@ We start by writing the necessary *processors*, which declare inputs and outputs
 Note that *processors* can depend on parameters both on the `__init__` and `process` methods, as
 shown below.
 
+
 ```python
 from typing import TypedDict
 
-StandardizeTrainOut = TypedDict("StandardizeTrainOut", {"mean": float, "scale": float, "Z_train": float})
+StandardizeTrainOut = TypedDict(
+    "StandardizeTrainOut", {"mean": float, "scale": float, "Z_train": float}
+)
 StandardizeEvalOut = TypedDict("StandardizeEvalOut", {"Z_eval": float})
-LogisticRegressionTrainOut = TypedDict("LogisticRegressionTrainOut", {"model": tuple[float], "Z_train": float})
+LogisticRegressionTrainOut = TypedDict(
+    "LogisticRegressionTrainOut", {"model": tuple[float], "Z_train": float}
+)
 LogisticRegressionEvalOut = TypedDict("LogisticRegressionEvalOut", {"Z_eval": float})
 
-class StandardizeTrain():
+
+class StandardizeTrain:
     def process(self, X_train: float) -> StandardizeTrainOut:
         ...
 
-class StandardizeEval():
+
+class StandardizeEval:
     def __init__(self, mean: float, scale: float) -> None:
         ...
 
     def process(self, X_eval: float) -> StandardizeEvalOut:
         ...
 
-class LogisticRegressionTrain():
+
+class LogisticRegressionTrain:
     def process(self, X_train: float, Y_train: float) -> LogisticRegressionTrainOut:
         ...
 
-class LogisticRegressionEval():
+
+class LogisticRegressionEval:
     def __init__(self, model: tuple[float, ...]) -> None:
         ...
 
     def process(self, X_eval: float, Y_eval: float) -> LogisticRegressionEvalOut:
         ...
+
+
 ```
 
 We create single node pipelines, aka. *tasks*, and combine them, similar to how we did with in the
 diamond pipeline example, to create `standardization` and `logistic_regression`.
-They are all independent, each composed of two nodes and dependencies between them:
+
 
 ```python
 from oneml.processors import PipelineBuilder, PipelineRunner
@@ -169,94 +198,97 @@ lr_train = PipelineBuilder.task(LogisticRegressionTrain, "lr_train")
 lr_eval = PipelineBuilder.task(LogisticRegressionEval, "lr_eval")
 
 standardization = PipelineBuilder.combine(
-    stz_train, stz_eval,
+    stz_train,
+    stz_eval,
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
     ),
-    name="standardization"
+    name="standardization",
 )
 
 logistic_regression = PipelineBuilder.combine(
-    lr_train, lr_eval,
-    dependencies=(
-        lr_eval.inputs.model << lr_train.outputs.model,
-    ),
-    name="logistic_regression"
+    lr_train,
+    lr_eval,
+    dependencies=(lr_eval.inputs.model << lr_train.outputs.model,),
+    name="logistic_regression",
 )
+
 ```
 
 The next step is to combine both pipelines into a single one and connect all dependencies
 between them.
 
+
+
 ```python
 from oneml.processors import display_dag
 
 standardized_lr = PipelineBuilder.combine(
-    standardization, logistic_regression,
+    standardization,
+    logistic_regression,
     name="standardized_lr",
     dependencies=(
         logistic_regression.inputs.X_train << standardization.outputs.Z_train,
         logistic_regression.inputs.X_eval << standardization.outputs.Z_eval,
-    )
+    ),
 )
 
-display_dag(standardized_lr) # displays the pipeline
+display_dag(standardized_lr)  # displays the pipeline
+
 ```
 
 ![png](figures/beginners_15_0.png)
 
 There are a few points to clarify here.
 First, combining pipelines of a single node, two nodes or more, are synthactically the same.
-It does not matter how many nodes pipeline have, as long as inputs and outputs and dependencies are
-correctly specified when combining.
+It does not matter how many nodes a pipeline has, as long as inputs and outputs and dependencies
+are correctly specified when combining.
 
 Second, pipelines can be combined in different order and the resulting pipeline can be the same.
 In this example, we first built the standardization and logistic_regression pipelines, and then
 compose these together.
-It needn't have been so and we show below two alternatives that yield the same pipeline.
+It needn't have been so and we show below two alternatives that yield the same result.
 
 Third, the *processors* that we defined above do not have conflicting output names, i.e., all
 output variable names are different.
 This simplifies the exposition of the example, but in the [intermediate tutorial](intermediate.md)
-we explain when we combine pipelines that expose the same output variable names.
-
+we explain what happens when we combine pipelines that expose the same output variable names.
 
 ### A Second Alternative to Standardized Logistic Regression Example
 
 As explained before, we built `standardized_lr` by first building `standardization` and
-`logistic_regression` first and then combining them.
+`logistic_regression` and then combining them.
+An alternative is to first build the `train` and `eval` pipelines separately, and then combine.
+The following code yields the same result as before:
 
-An alternative is to first build the `train` and `eval` pipelines separately, and then combine
-them.
-The following code yields the same resulting pipeline:
 
 ```python
 train_pipeline = PipelineBuilder.combine(
-    stz_train, lr_train,
+    stz_train,
+    lr_train,
     name="train_pipeline",
-    dependencies=(
-        lr_train.inputs.X_train << stz_train.outputs.Z_train,
-    )
+    dependencies=(lr_train.inputs.X_train << stz_train.outputs.Z_train,),
 )
 
 eval_pipeline = PipelineBuilder.combine(
-    stz_eval, lr_eval,
+    stz_eval,
+    lr_eval,
     name="eval_pipeline",
-    dependencies=(
-        lr_eval.inputs.X_eval << stz_eval.outputs.Z_eval,
-    )
+    dependencies=(lr_eval.inputs.X_eval << stz_eval.outputs.Z_eval,),
 )
 
 standardized_lr = PipelineBuilder.combine(
-    train_pipeline, eval_pipeline,
+    train_pipeline,
+    eval_pipeline,
     name="standardized_lr",
     dependencies=(
         eval_pipeline.inputs.mean << train_pipeline.outputs.mean,
         eval_pipeline.inputs.scale << train_pipeline.outputs.scale,
         eval_pipeline.inputs.model << train_pipeline.outputs.model,
-    )
+    ),
 )
+
 ```
 
 There is no difference between `standardize_lr` pipelines obtained from these two procedures, the
@@ -270,17 +302,21 @@ to share between users, whereas the first and second approach encapsulate the co
 those explicit to share, via standardization / logistic_regression, or via train / eval pipelines,
 respectively.
 
+
 ```python
 standardized_lr = PipelineBuilder.combine(
-    stz_train, lr_train, stz_eval, lr_eval,
+    stz_train,
+    lr_train,
+    stz_eval,
+    lr_eval,
     name="standardized_lr",
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
         lr_eval.inputs.model << lr_train.outputs.model,
         lr_train.inputs.X_train << stz_train.outputs.Z_train,
-        lr_eval.inputs.X_eval << stz_eval.outputs.Z_eval
-    )
+        lr_eval.inputs.X_eval << stz_eval.outputs.Z_eval,
+    ),
 )
 ```
 
@@ -291,31 +327,38 @@ unspecified.
 This means that the pipeline is not runnable yet, but if we connect the missing dependencies, the
 resulting pipeline will be runnable.
 
-As we have already discussed, in terms of results it does not matter the order in which build the
-pipelines, but encapsulating them as intermediate formulations makes it easier to reuse them.
+In terms of results it does not matter the order in which build the pipelines, but encapsulating
+them as intermediate formulations makes it easier to reuse them.
 That's why we separated connecting `standardized_lr` to any data.
 
+
 ```python
-LoadDataOut = TypedDict("LoadDataOut", {"X_train": float, "X_eval": float, "Y_train": float, "Y_eval": float})
+LoadDataOut = TypedDict(
+    "LoadDataOut", {"X_train": float, "X_eval": float, "Y_train": float, "Y_eval": float}
+)
+
 
 class LoadData:
     def process(self) -> LoadDataOut:
         ...
 
+
 load_data = PipelineBuilder.task(LoadData, "load_data")
 
 final_pipeline = PipelineBuilder.combine(
-    load_data, standardized_lr,
+    load_data,
+    standardized_lr,
     name="final_pipeline",
     dependencies=(
         standardized_lr.inputs.X_train << load_data.outputs.X_train,
         standardized_lr.inputs.X_eval << load_data.outputs.X_eval,
         standardized_lr.inputs.Y_train << load_data.outputs.Y_train,
         standardized_lr.inputs.Y_eval << load_data.outputs.Y_eval,
-    )
+    ),
 )
 
-display_dag(final_pipeline) # displays the pipeline
+display_dag(final_pipeline)  # displays the pipeline
+
 ```
 
 ![png](figures/beginners_23_0.png)

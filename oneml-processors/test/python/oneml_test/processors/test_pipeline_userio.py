@@ -29,7 +29,7 @@ def report2() -> Pipeline:
 
 
 def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) -> None:
-    # InCollection <- InCollection | InCollection
+    # Inputs <- Inputs | Inputs
     reports = CombinedPipeline(
         report1,
         report2,
@@ -47,7 +47,7 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
         == report2.decorate("reports").in_collections.acc.report2
     )
 
-    # InCollection <- InEntry
+    # Inputs <- InEntry
     reports = CombinedPipeline(
         report1,
         report2,
@@ -68,11 +68,11 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
         == report2.decorate("reports").in_collections.acc.report2
     )
 
-    # InCollection | InEntry -> raises ValueError
+    # Inputs | InEntry -> raises ValueError
     with pytest.raises(ValueError):
         report1.in_collections.acc | report2.in_collections.acc.report2
 
-    # InCollection.InEntry <- InEntry | InEntry
+    # Inputs.InEntry <- InEntry | InEntry
     reports = CombinedPipeline(
         report1,
         report2,
@@ -88,7 +88,7 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
         | report2.decorate("reports").in_collections.acc.report2
     )
 
-    # InCollection.InEntry <- InCollection | InCollection
+    # Inputs.InEntry <- Inputs | Inputs
     reports = CombinedPipeline(
         report1,
         report2,
@@ -104,7 +104,7 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
         | report2.decorate("reports").in_collections.acc.report2
     )
 
-    # InEntry <- InEntry | InCollection
+    # InEntry <- InEntry | Inputs
     with pytest.raises(ValueError):
         report1.in_collections.acc.report1 | report2.in_collections.acc
 
@@ -221,7 +221,7 @@ def test_combine_inputs(A: Pipeline, B: Pipeline, C: Pipeline, ABC: Pipeline) ->
     D = CombinedPipeline(B, C, name="D", inputs={"x": B.inputs.x | C.inputs.x}, outputs={})
     assert D.inputs.x == (B.inputs.x | C.inputs.x).decorate("D")
 
-    # InCollection.InEntry <- InEntry | InEntry
+    # Inputs.InEntry <- InEntry | InEntry
     D = CombinedPipeline(
         B,
         C,
@@ -235,7 +235,7 @@ def test_combine_inputs(A: Pipeline, B: Pipeline, C: Pipeline, ABC: Pipeline) ->
     assert D.in_collections.x.train == (B.inputs.x | C.inputs.x).decorate("D")
     assert D.in_collections.x.eval == C.inputs.x.decorate("D")
 
-    # InEntry <- InCollection | InCollection
+    # InEntry <- Inputs | Inputs
     D = CombinedPipeline(
         B,
         C,

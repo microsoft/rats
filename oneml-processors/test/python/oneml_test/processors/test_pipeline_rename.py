@@ -50,20 +50,20 @@ def stz(train_stz: Pipeline, eval_stz: Pipeline) -> Pipeline:
     )
 
 
-def test_pipelineio_rename(train_stz: Pipeline) -> None:
+def test_IOCollections_rename(train_stz: Pipeline) -> None:
     # InEntry -> InEntry
     pipeline1 = train_stz.rename_inputs({"X": "X0"})
     assert train_stz.inputs.X == pipeline1.inputs.X0
 
-    # InEntry -> InCollection.InEntry
+    # InEntry -> Inputs.InEntry
     pipeline1 = train_stz.rename_inputs({"X": "X.train"})
     assert train_stz.inputs.X == pipeline1.in_collections.X.train
 
-    # InCollection.InEntry -> InCollection.InEntry
+    # Inputs.InEntry -> Inputs.InEntry
     pipeline2 = pipeline1.rename_inputs({"X.train": "X0.train0"})
     assert pipeline1.in_collections.X.train == pipeline2.in_collections.X0.train0
 
-    # InCollection.InEntry -> InEntry
+    # Inputs.InEntry -> InEntry
     pipeline2 = pipeline1.rename_inputs({"X.train": "X"})
     assert pipeline1.in_collections.X.train == pipeline2.inputs.X
 
@@ -71,26 +71,26 @@ def test_pipelineio_rename(train_stz: Pipeline) -> None:
     pipeline1 = train_stz.rename_outputs({"Z": "Z0"})
     assert train_stz.outputs.Z == pipeline1.outputs.Z0
 
-    # OutEntry -> OutCollection.OutEntry
+    # OutEntry -> Outputs.OutEntry
     pipeline1 = train_stz.rename_outputs({"Z": "Z.train"})
     assert train_stz.outputs.Z == pipeline1.out_collections.Z.train
 
-    # OutCollection.OutEntry -> OutCollection.OutEntry
+    # Outputs.OutEntry -> Outputs.OutEntry
     pipeline2 = pipeline1.rename_outputs({"Z.train": "Z0.train0"})
     assert pipeline1.out_collections.Z.train == pipeline2.out_collections.Z0.train0
 
-    # OutCollection.OutEntry -> OutEntry
+    # Outputs.OutEntry -> OutEntry
     pipeline2 = pipeline1.rename_outputs({"Z.train": "Z"})
     assert pipeline1.out_collections.Z.train == pipeline2.outputs.Z
 
 
-def test_pipelineio_rename_and_merge_with_multiple_entries(stz: Pipeline) -> None:
-    # InCollection.InEntry -> InCollection.InEntry
+def test_IOCollections_rename_and_merge_with_multiple_entries(stz: Pipeline) -> None:
+    # Inputs.InEntry -> Inputs.InEntry
     pipeline1 = stz.rename_inputs({"X.train": "X0.train0"})
     assert stz.in_collections.X.train == pipeline1.in_collections.X0.train0
     assert stz.in_collections.X.eval == pipeline1.in_collections.X.eval
 
-    # InCollection.InEntry -> InEntry
+    # Inputs.InEntry -> InEntry
     pipeline1 = stz.rename_inputs({"X.train": "X0"})
     assert stz.in_collections.X.train == pipeline1.inputs.X0
     assert stz.in_collections.X.eval == pipeline1.in_collections.X.eval
@@ -100,18 +100,18 @@ def test_pipelineio_rename_and_merge_with_multiple_entries(stz: Pipeline) -> Non
     assert pipeline1.inputs.X0 == pipeline2.inputs.X1
     assert pipeline1.in_collections.X.eval == pipeline2.in_collections.X.eval
 
-    # InEntry -> InCollection.InEntry
+    # InEntry -> Inputs.InEntry
     pipeline2 = pipeline1.rename_inputs({"X0": "X.train"})
     assert stz.in_collections.X.train == pipeline2.in_collections.X.train
     assert pipeline1.in_collections.X.eval == pipeline2.in_collections.X.eval
 
-    # InEntry | InCollection.InEntry
+    # InEntry | Inputs.InEntry
     pipeline2 = pipeline1.rename_inputs({"X0": "X.eval"})
     assert set(pipeline2.in_collections.X.eval) == set(
         stz.in_collections.X.train | stz.in_collections.X.eval
     )
 
-    # InCollection.InEntry | InEntry
+    # Inputs.InEntry | InEntry
     pipeline2 = pipeline1.rename_inputs({"X.eval": "X0"})
     assert set(pipeline2.inputs.X0) == set(stz.in_collections.X.train | stz.in_collections.X.eval)
 
@@ -120,18 +120,18 @@ def test_pipelineio_rename_and_merge_with_multiple_entries(stz: Pipeline) -> Non
     pipeline2 = pipeline2.rename_inputs({"X1": "X0"})
     assert set(pipeline2.inputs.X0) == set(stz.in_collections.X.train | stz.in_collections.X.eval)
 
-    # InCollection.InEntry | InCollection.InEntry
+    # Inputs.InEntry | Inputs.InEntry
     pipeline2 = stz.rename_inputs({"X.eval": "X.train"})
     assert set(pipeline2.in_collections.X.train) == set(
         stz.in_collections.X.train | stz.in_collections.X.eval
     )
 
-    # OutCollection.OutEntry -> OutCollection.OutEntry
+    # Outputs.OutEntry -> Outputs.OutEntry
     pipeline1 = stz.rename_outputs({"Z.train": "Z0.train0"})
     assert stz.out_collections.Z.train == pipeline1.out_collections.Z0.train0
     assert stz.out_collections.Z.eval == pipeline1.out_collections.Z.eval
 
-    # OutCollection.OutEntry -> OutEntry
+    # Outputs.OutEntry -> OutEntry
     pipeline1 = stz.rename_outputs({"Z.train": "Z0"})
     assert stz.out_collections.Z.train == pipeline1.outputs.Z0
     assert stz.out_collections.Z.eval == pipeline1.out_collections.Z.eval
@@ -141,18 +141,18 @@ def test_pipelineio_rename_and_merge_with_multiple_entries(stz: Pipeline) -> Non
     assert pipeline1.outputs.Z0 == pipeline2.outputs.Z1
     assert pipeline1.out_collections.Z.eval == pipeline2.out_collections.Z.eval
 
-    # OutEntry -> OutCollection.OutEntry
+    # OutEntry -> Outputs.OutEntry
     pipeline2 = pipeline1.rename_outputs({"Z0": "Z.train"})
     assert stz.out_collections.Z.train == pipeline2.out_collections.Z.train
     assert pipeline1.out_collections.Z.eval == pipeline2.out_collections.Z.eval
 
-    # OutEntry | OutCollection.OutEntry
+    # OutEntry | Outputs.OutEntry
     pipeline2 = pipeline1.rename_outputs({"Z0": "Z.eval"})
     assert set(pipeline2.out_collections.Z.eval) == set(
         stz.out_collections.Z.train | stz.out_collections.Z.eval
     )
 
-    # OutCollection.OutEntry | OutEntry
+    # Outputs.OutEntry | OutEntry
     pipeline2 = pipeline1.rename_outputs({"Z.eval": "Z0"})
     assert set(pipeline2.outputs.Z0) == set(
         stz.out_collections.Z.train | stz.out_collections.Z.eval
@@ -165,7 +165,7 @@ def test_pipelineio_rename_and_merge_with_multiple_entries(stz: Pipeline) -> Non
         stz.out_collections.Z.train | stz.out_collections.Z.eval
     )
 
-    # OutCollection.OutEntry | OutCollection.OutEntry
+    # Outputs.OutEntry | Outputs.OutEntry
     pipeline2 = stz.rename_outputs({"Z.eval": "Z.train"})
     assert set(pipeline2.out_collections.Z.train) == set(
         stz.out_collections.Z.train | stz.out_collections.Z.eval

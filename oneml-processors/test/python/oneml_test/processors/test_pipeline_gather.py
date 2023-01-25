@@ -51,7 +51,7 @@ def test_gather_inputs_to_single_output(acc1: Pipeline, acc2: Pipeline) -> None:
     assert set(outputs) == set(("acc",))
     assert outputs.acc == (0.0, 0.0)
 
-    # OutEntry | OutEntry -> OutCollection.OutEntry
+    # OutEntry | OutEntry -> Outputs.OutEntry
     p = CombinedPipeline(
         acc1,
         acc2,

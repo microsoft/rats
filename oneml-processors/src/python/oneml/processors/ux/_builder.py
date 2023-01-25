@@ -10,27 +10,27 @@ from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IGetParams, IProcess
 from ..utils import frozendict
 from ._pipeline import (
     Dependency,
-    InCollection,
+    InCollections,
     InEntry,
     InParameter,
-    OutCollection,
+    Inputs,
+    IOCollections,
+    OutCollections,
     OutEntry,
     OutParameter,
+    Outputs,
     ParamCollection,
     ParamEntry,
     Pipeline,
-    PipelineInput,
-    PipelineIO,
-    PipelineOutput,
 )
 
 PE = TypeVar("PE", bound=ParamEntry[Any])
 PC = TypeVar("PC", bound=ParamCollection[Any])
-PL = TypeVar("PL", bound=PipelineIO[Any])
+PL = TypeVar("PL", bound=IOCollections[Any])
 
 UserIO = Mapping[str, PE | PC]
-UserInput: TypeAlias = UserIO[InEntry, InCollection]
-UserOutput: TypeAlias = UserIO[OutEntry, OutCollection]
+UserInput: TypeAlias = UserIO[InEntry, Inputs]
+UserOutput: TypeAlias = UserIO[OutEntry, Outputs]
 
 
 @final
@@ -68,7 +68,7 @@ class Task(Pipeline):
         )
         inputs = {k: InEntry((InParameter(node, p),)) for k, p in props.inputs.items()}
         outputs = {k: OutEntry((OutParameter(node, p),)) for k, p in props.outputs.items()}
-        super().__init__(name, DAG({node: props}), InCollection(inputs), OutCollection(outputs))
+        super().__init__(name, DAG({node: props}), Inputs(inputs), Outputs(outputs))
 
 
 @dataclass(frozen=True, init=False)
@@ -93,7 +93,7 @@ class CombinedPipeline(Pipeline):
         for uv in inputs.values() if inputs else ():  # flattens user inputs
             if isinstance(uv, InEntry):
                 flat_input += tuple(uv)
-            elif isinstance(uv, InCollection):
+            elif isinstance(uv, Inputs):
                 flat_input += tuple(chain.from_iterable(chain(uv.values())))
             else:
                 raise ValueError(f"Invalid input type {uv}.")
@@ -114,8 +114,8 @@ class CombinedPipeline(Pipeline):
                 msg = f"Not all inputs have been specified as inputs or dependencies: {missing}"
                 raise ValueError(msg)
 
-        in_entries = InCollection()  # build inputs
-        in_collections = PipelineInput()
+        in_entries = Inputs()  # build inputs
+        in_collections = InCollections()
         if inputs is None:  # build default inputs
             for pl in pipelines:
                 in_entries |= (pl.inputs - shared_input).decorate(name)
@@ -124,8 +124,8 @@ class CombinedPipeline(Pipeline):
             in_entries, in_collections = self._format_io(inputs, in_entries, in_collections)
             in_entries, in_collections = in_entries.decorate(name), in_collections.decorate(name)
 
-        out_entries = OutCollection()  # build outputs
-        out_collections = PipelineOutput()
+        out_entries = Outputs()  # build outputs
+        out_collections = OutCollections()
         if outputs is None:  # build default outputs
             for pl in pipelines:
                 out_entries |= (pl.outputs - shared_out).decorate(name)
@@ -137,7 +137,7 @@ class CombinedPipeline(Pipeline):
         gathererd_outputs = self._gather_outputs(out_collections, out_entries, name)
         out_entries, out_collections, out_tasks, out_dependencies = gathererd_outputs
 
-        dags = [pl.dag for pl in chain(pipelines, out_tasks)]
+        dags = [pl._dag for pl in chain(pipelines, out_tasks)]
         for dp in chain.from_iterable(chain(dependencies, out_dependencies)):
             ddp = DagDependency(dp.out_param.node, dp.in_param.param, dp.out_param.param)
             in_node = dp.in_param.node
@@ -169,10 +169,8 @@ class CombinedPipeline(Pipeline):
 
     @staticmethod
     def _gather_outputs(
-        out_collections: PipelineOutput, out_entries: OutCollection, name: str
-    ) -> tuple[
-        OutCollection, PipelineOutput, tuple[Pipeline, ...], tuple[tuple[Dependency, ...], ...]
-    ]:
+        out_collections: OutCollections, out_entries: Outputs, name: str
+    ) -> tuple[Outputs, OutCollections, tuple[Pipeline, ...], tuple[tuple[Dependency, ...], ...]]:
         def gathering_tasks(entries: dict[str, OutEntry]) -> dict[str, Pipeline]:
             return {
                 en: Task(
@@ -203,11 +201,11 @@ class CombinedPipeline(Pipeline):
 
         # output entries and collections
         entries_map = map(lambda x: x.outputs, entries_tasks.values())
-        new_entries = reduce(lambda a, b: a | b, entries_map, OutCollection())
+        new_entries = reduce(lambda a, b: a | b, entries_map, Outputs())
         new_entries = (out_entries - gathered_entries) | new_entries.decorate(name)
 
         collections_map = map(lambda x: x.out_collections, collections_tasks.values())
-        new_collections = reduce(lambda a, b: a | b, collections_map, PipelineOutput())
+        new_collections = reduce(lambda a, b: a | b, collections_map, OutCollections())
         new_collections = (out_collections - gathered_collections) | new_collections.decorate(name)
 
         return new_entries, new_collections, tuple(all_tasks.values()), dependencies

@@ -1,15 +1,15 @@
 from ._builder import CombinedPipeline, PipelineBuilder, Task
 from ._pipeline import (
     Dependency,
-    InCollection,
+    InCollections,
     InEntry,
     InParameter,
-    OutCollection,
+    Inputs,
+    OutCollections,
     OutEntry,
     OutParameter,
+    Outputs,
     Pipeline,
-    PipelineInput,
-    PipelineOutput,
 )
 from ._session import InputDataProcessor, PipelineRunner
 
@@ -18,15 +18,15 @@ __all__ = [
     "PipelineBuilder",
     "Task",
     "Dependency",
-    "InCollection",
+    "InCollections",
     "InEntry",
     "InParameter",
-    "OutCollection",
+    "Inputs",
+    "OutCollections",
     "OutEntry",
     "OutParameter",
+    "Outputs",
     "Pipeline",
-    "PipelineInput",
-    "PipelineOutput",
     "InputDataProcessor",
     "PipelineRunner",
 ]

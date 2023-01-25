@@ -4,261 +4,325 @@ In this tutorial we will dive deeper into concepts, and will allow you to reconf
 and build your own meta-pipelines.
 
 
-## Inputs & Outputs of Pipelines
+#### Table of Contents
 
-In the [intermediate tutorial](intermediate.md) we explained how collections of parameters are
-created and some of the operations they support, e.g., left/right shift and rename.
-Collections simplify operating with compatible pipelines that expose equal-named variables, such as
-`X` for input features, `Z` for output features, for train and eval operations, respectively.
+- [Operations with Parameter Entries and Collections](#operations-with-parameter-entries-and-collections)
+    - [`InEntry` & `OutEntry`](#inentry--outentry)
+        - [Left and right shift operations](#left-and-right-shift-operations)
+        - [Merge `InEntry`](#merge-inentry)
+        - [Merge `OutEntry`](#merge-outentry)
+    - [`Inputs` & `Outputs`](#inputs--outputs)
+        - [Left and right shift operations](#left-and-right-shift-operations-1)
+        - [Merge operations](#merge-operations)
+        - [Subtract operations](#subtract-operations)
+    - [`InCollections` & `OutCollections`](#incollections--outcollections)
+        - [Left and right shift operations](#left-and-right-shift-operations-2)
+        - [Merge operations](#merge-operations-1)
+        - [Subtract operations](#subtract-operations-1)
+    - [`Pipeline`](#pipeline)
+        - [Left and right shift operations](#left-and-right-shift-operations-3)
+        - [Rename inputs and outputs](#rename-inputs-and-outputs)
+        - [Decorate pipelines](#decorate-pipelines)
+- [Pipelines Definition](#pipelines-definition)
+- [Meta-Pipelines](#meta-pipelines)
+    - [`Estimator` Example](#estimator-example)
 
-Collections are convenient for grouping equal-named parameters, but they were created automatically
-and users may require more granular control, or make want to make more arbitrary groupings to
-define such collections.
-This is what the `inputs` and `outputs` arguments of `PipelineBuilder.combine` are for.
 
-`PipelineBuilder.combine` has the following parameter specification:
+## Operations with Parameter Entries and Collections
 
-* `*pipelines` (`Pipeline`): a sequence of `Pipeline`s to combine; must have different names.
-* `name` (`str`): name of the returned, combined pipeline.
-* `dependencies` (`Iterable[Sequence[Dependency]]`): \[optional\] the dependencies between the
-    pipelines to combine, e.g., `(logistic_regression.inputs.X << standardization.outputs.Z,)`.
-* `inputs` (`UserInput | None`): input names that the returned pipeline exposes; `UserInput`
-    is a `Mapping` in `{variable.collection_entry: InParameter | InCollection}` format.
-* `outputs` (`UserOutput | None`): ouput names that the returned pipeline exposes; `UserOutput`
-    is a `Mapping` in `{variable.collection_entry: OutParameter | OutCollection}` format.
+Consider the `standardization`, `logistic_regression` and `stz_lr` examples from the
+[intermediate tutorial](intermediate.md).
+
+![stz_lr](figures/stz_lr.png){ width="300" }
 
 
-### Requirements of `UserInput` and `UserOutput`
+### `InEntry` & `OutEntry`:
 
-The full specification of `inputs` and `outputs` has several requirements.
-Let's consider the following example for illustrative purposes:
+#### Left and right shift operations:
+
+You can create dependencies using left and right shift operators:
 
 ```python
-from oneml.processors import PipelineBuilder
-from oneml.processors.ml import Estimator
+stz_train.outputs.mean >> lr_eval.inputs.mean
+lr_eval.inputs.scale << stz_train.outputs.scale
+```
 
-standardization = Estimator(
-    name="standardization",
-    train_pl=standardize_train,
-    eval_pl=standardize_eval,
-    shared_params=(
-        standardize_eval.inputs.mean << standardize_train.outputs.mean,
-        standardize_eval.inputs.scale << standardize_train.outputs.scale,
-    ),
+or
+
+```python
+standardization.out_collections.Z.train >> logistic_regression.in_collections.X.train
+logistic_regression.in_collections.X.eval << standardization.out_collections.Z.eval
+```
+
+These operators return a dependency wrapped in a tuple (for compatibility with collections).
+They can be passed as part of dependencies for combining pipelines.
+
+
+#### Merge `InEntry`:
+
+You can merge two `InEntry` into a single one using `|` between entries, which will bind the inputs
+together, exposing a single entry.
+For example, 
+
+```python
+ReportOut = TypedDict("ReportOut", {"acc": float})
+
+class Report:
+    def process(probs: float) -> ReportOut:
+        ...
+
+r1 = PipelineBuilder.task(Report, name="r1")
+r1 = PipelineBuilder.task(Report, name="r2")
+reports = PipelineBuilder.combine(
+    r1, r2,
+    name="reports",
+    inputs={"probs": r1.inputs.probs | r2.inputs.probs},  # merge operation
 )
-
-logistic_regression = Estimator(
-    name="logistic_regression",
-    train_pl=model_train,
-    eval_pl=model_eval,
-    shared_params=(model_eval.inputs.model << model_train.outputs.model,),
-)
-
-stz_lr = PipelineBuilder.combine(
-    standardization,
-    logistic_regression,
-    name="stz_lr",
-    dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
-    inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y},
-    outputs={
-        "mean": standardization.outputs.mean.train,
-        "scale": standardization.outputs.scale,
-        "model": logistic_regression.outputs.model.train,
-        "probs.train": logistic_regression.outputs.probs.train,
-        "probs.eval": logistic_regression.outputs.probs.eval,
-        "acc": logistic_regression.outputs.acc,
-    },
-)
+reports.inputs.probs << logistic_regression.outputs.probs  # will return two dependencies
 ```
 
-* `.collection_entry` is optional if the value assignment is an `InParameter` / `OutParameter` or
-    an `InCollection` / `OutCollection` of length one (single entry); 
+We combine `r1` and `r2` into a single pipeline and we expose `probs` as single input, which is the
+merge of `probs` from `r1` and `r2`.
+Therefore, when used in as a dependency assignment, a broadcast operation will be performed
+mapping the `probs` from `logistic_regression` to both `r1` and `r2`.
 
-```python
-outputs = {"mean": standardization.outputs.mean.train, "scale": standardization.outputs.scale}
-```
-
-In the above example `standardization.outputs.mean.train` is an `OutParameter`, and 
-`standardization.outputs.scale` is an `OutCollection` of length one.
-Therefore the dot notation becomes optional;
-
-* `.collection_entry` must be empty if the value assignment is an `InCollection` / `OutCollection`
-    of length greather than one.
-
-```python
-inputs = {"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y}
-```
-
-In the above example both `standardization.inputs.X` and `logistic_regression.inputs.Y` are input
-collections of length two, with collection entries `train` and `eval` in both cases.
-
-On the other hand, this would be equivalent to the above:
-```python
-inputs = {
-    "X.train": standardization.inputs.X.train,
-    "X.eval": standardization.inputs.X.eval,
-    "Y.train": logistic_regression.inputs.Y.train,
-    "Y.eval": logistic_regression.inputs.Y.eval
-}
-```
-
-* All *inputs* (all collection entries from all variables) to the pipeline must be specified:
-
-```python
-
-inputs = {
-    "X.train": standardization.inputs.X.train,
-    # "X.eval": standardization.inputs.X.eval,
-    "Y.train": logistic_regression.inputs.Y.train,
-    "Y.eval": logistic_regression.inputs.Y.eval
-}  # missing one entry will raise an error
-```
-
-* Exposing any `outputs` is optional:
-
-```python
-outputs = {}  # ok; no outputs are exposed
-outputs = {
-    "model.train": logistic_regression.outputs.model.train,  # OutParameter assignment
-    "probs": logistic_regression.outputs.probs,  # OutCollection of length 2
-    "acc": logistic_regression.outputs.acc,  # OutCollection of length 1
-}  # ok; `standardization.outputs.mean` and `standardization.outputs.scale` are NOT exposed
-```
-
-* Any reassignment of `variable` and/or `.collection_entry` names are valid for re-specifying the
-inputs and/or outputs of pipelines:
-
-```python
-outputs = {
-    "A.mean": standardization.outputs.mean.train,
-    "A.scale": standardization.outputs.scale,
-    "A.model": logistic_regression.outputs.model.train,
-    "A.probs_train": logistic_regression.outputs.probs.train,
-    "A.probs_eval": logistic_regression.outputs.probs.eval,
-    "acc": logistic_regression.outputs.acc,
-}
-```
-
-In the above example we are combining the outputs of several pipelines into `A` by specifying
-five collection entries with new and/or old entry names.
-The above combined `UserOutput` would expose two variables, i.e., `A` and `acc`.
-
-* `UserInput` or `UserOutput` can have at most single dot in the *mapping* keys.
-An error will be raised otherwise.
+![broadcast](figures/broadcast.png){ width="300" }
 
 
-### Defaults for `UserInput` and `UserOutput`
+#### Merge `OutEntry`:
 
-If you leave `inputs` and `outputs` of `PipelineBuilder.combine` unspecified or set to `None`, a
-default specificiation will be made automatically:
-
-* All `inputs` or `outputs` from pipelines to combine will be merged, after subtracting any input
-or output specified in the `dependencies` argument`.
-
+If you merge `OutEntry`s with `|` operator you will indicate that the outputs are to be
+concatenated.
 For example,
-```
-stz_lr = PipelineBuilder.combine(
-    standardization,
-    logistic_regression,
-    name="stz_lr",
-    dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
-    inputs=None,
-    outputs=None,
+
+```python
+ReportOut = TypedDict("ReportOut", {"acc": float})
+
+class Report:
+    def process(probs: float) -> ReportOut:
+        ...
+
+class Summary:
+    def process(accuracies: Sequence[float]) -> None:
+        ...
+
+r1 = PipelineBuilder.task(Report, name="r1")
+r1 = PipelineBuilder.task(Report, name="r2")
+summary = PipelineBuilder.task(Summary, name="summary")
+reports = PipelineBuilder.combine(
+    r1, r2,
+    name="reports",
+    outputs={"acc": r1.outputs.acc | r2.outputs.acc},  # merge operation
 )
+# will return single dependency that is the concatenatation of r1.outputs.acc and r2.outputs.acc:
+summary.inputs.accuracies << reports.outputs.acc
 ```
 
-Leaving `inputs=None` is equivalent to
-`inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y}`.
-The reason is because `logistic_regression.inputs.X` is specified as a dependency, and is removed
-from the default merge.
+We combine `r1` and `r2` into a single pipeline and we expose `acc` as single output, which is the
+concatenation of `acc` from `r1` and `r2`.
+Therefore, when used in as a dependency assignment, a concatenation operation will be performed
+gathering the `acc` from `r1` and `r2` into a single `acc` before passing it to `summary`.
 
-Leaving `outputs=None` is equivalent to
+Order is preserved in all merge operations.
+
+![concatenate](figures/concatenate.png){ width="300" }
+
+
+### `Inputs` & `Outputs` and `InCollection` & `OutCollection`:
+
+`InCollection` and `OutCollection` are aliases of `Inputs` and `Outputs`, respectively, and
+operations between them are identical.
+
+#### Left and right shift operations:
+
+Similar to entry assignments, you can create dependencies using the left and right shift operators.
+
 ```python
-outputs={
-    "mean": standardization.outputs.mean,
-    "scale": standardization.outputs.scale,
-    "model": logistic_regression.outputs.model,
-    "probs": logistic_regression.outputs.probs,
-    "acc": logistic_regression.outputs.acc,}
+stz_eval.inputs << stz_train.outputs  
 ```
-because only `standardization.outputs.Z` is specified in the dependencies and, therefore, removed.
 
-> **NOTE:**
-> 
-> Combinging pipelines with `Estimator` exposes all outputs from both pipelines.
-That is why `standardization` exposes `mean` and `scale`, and why `logistic_regression` exposes
-`model`, even though they are specified as dependencies.
+which is equivalent to:
 
-
-## Pipelines
-
-A `Pipeline` is a (frozen) dataclass with the following attributes:
-
-* `name` (`str`): of the pipeline; used as the default value for collection entries; useful to
-    distinguiss pipelines when combining.
-* `dag` (`oneml.processors._dag.DAG`): graph representation of nodes, dependencies and properties
-    of processors.
-* `inputs` (`oneml.processors.PipelineInput`): exposure of inputs of a pipeline, as explained in
-    the [intermediate tutorial](intermediate.md#parameter-collections)
-* `outputs` (`oneml.processors.PipelineOutput`): exposure of outputs of a pipeline, as explained in
-    the [intermediate tutorial](intermediate.md#parameter-collections)
-
-`Pipeline`s should not be instantiated directly.
-Instead, `Pipeline`s should be created by creating `Task`s, combining other `Pipeline`s, or via
-wrappers that output the desired `dag` structure, e.g., *cross-validation*.
-
-In the rest of this tutorial we will explain how to write the mechanisms that operate with
-`Pipeline`s to return new `Pipeline`s.
-
-
-## Meta-Pipelines
-
-In the [intermediate tutorial](intermediate.md) we explained the operations that can be performed
-with `InParameter` / `OutParameter` and `InCollection` / `OutCollection`.
-
-Let's now discuss operations with `PipelineInput` and `PipelineOutput`.
-These operations will be useful to construct the classes that operate on top of pipelines and
-return new pipelines (like `oneml.processor.ml.Estimator`).
-
-### Operations with `PipelineInput` & `PipelineOutput`:
-
-* You can subtract variables, single parameters, or collection of parameters:
 ```python
-new_inputs = my_pipeline.inputs - ("X",)
-new_inputs = my_pipeline.inputs - (my_pipeline.inputs.X,)
-new_inputs = my_pipeline.inputs - (my_pipeline.inputs.X.train,)
+stz_eval.inputs.mean << stz_train.outputs.mean
+stz_eval.inputs.scale << stz_train.outputs.scale
 ```
 
-All of the above are equivalent if `X` is a collection of length one.
+or alternatively, operating with collections:
+    
+```python
+logistic_regression.in_collections.X << standardization.out_collections.Z
+```
+
+which is equivalent to:
+
+```python
+logistic_regression.in_collections.X.train << standardization.out_collections.Z.train
+logistic_regression.in_collections.X.eval << standardization.out_collections.Z.eval
+```
+
+> :bulb: **Info:**
+The set of names of the two collections need to be identical. 
+Entries will be matched by name to create depedencies, e.g.,
+`Z.train` with `X.train` and `Z.eval` with `X.eval`, respectively, in the above example.
+
+The operation returns a tuple of dependencies created.
+
+
+#### Merge operations:
+
+You can merge two collections into a single one using `|` between collections.
+For example, 
+```python
+stz_train = stz_train.rename_inputs({"X": "X.train"})
+stz_eval = stz_eval.rename_inputs({"X": "X.eval"})
+X_collection = stz_train.in_collections.X | stz_eval.in_collections.X
+X_collection.train  # OutEntry objects
+X_collection.eval
+```
+
+The above example will create a single collection with two entries, `X.train` and `X.eval`.
+The entries come from the merge of `X` from `stz_train` and `stz_eval`, respectively.
+If the collections share the same entry names, entries will be merged together as well.
+
+This behavior is the same for `Outputs` objects.
+
+The behavior for creating collections via `rename_inputs` or `rename_outputs` is explained in this
+[section](##rename-inputs-and-outputs) below.
+
+
+#### Subtract operations:
+
+You can subtract variable names or entry parameters:
+```python
+new_inputs = standardization.in_collections - ("X",)
+new_inputs = standardization.in_collections - (standardization.in_collections.X.train,)
+```
+
 The syntax requires subtracting an `Iterable` (like `tuple`, `list`, `set`, etc.).
 If what you are trying to subtract does not exist, no error will be issued.
 
-* You can merge pipeline inputs, or outputs:
+
+### `InCollections` & `OutCollections`:
+
+#### Left and right shift operations:
+
+In the same spirit as with other types, one can do left and right shift operations on
+`InCollections` and `OutCollections` types.
+
+Shared variables between pipelines will be associated together:
+
 ```python
-standardization.inputs | logistic_regression.inputs
+logistic_regression.out_collections >> logistic_regression.in_collections
+```
+which is equivalent to
+```pythyon
+logistic_regression.out_collections.X >> logistic_regression.in_collections.X
+logistic_regression.out_collections.Y >> logistic_regression.in_collections.Y
 ```
 
-Duplicates of the form `variable.collection_entry` are not permitted when merging and an error
-will be raised if they occur.
+Using the left / right operator in the wrong direction will raise an error.
 
-* You can rename pipeline inputs, or outputs, similar to
-[collections](intermediate.md#incollection--outcollection): 
 
+#### Merge operations:
+
+Similar to `Inputs` and `Outputs`, one can merge `InCollections` and `OutCollections`.
+Collections and entries will be merged together.
+
+
+#### Subtract operations:
+
+You can subtract variables, single parameters, or collection of parameters:
 ```python
-new_inputs = my_pipeline.inputs.rename({"lr_train": "train", "lr_eval": "eval"})
-new_outputs = my_pipeline.inputs.rename({"Z": "Z_train", "acc": "acc_eval"})
+new_inputs = standardization.in_collections - ("X",)
+new_inputs = standardization.in_collections - (standardization.in_collections.X,)
+new_inputs = standardization.in_collections - (standardization.in_collections.X.train,)
 ```
 
-Rename happens for all collection entries in all variables.
-The specification is `Mapping[str, str]` where keys specify current names, and values new names.
+All of the above are equivalent for `X` a collection of length one.
+Otherwise, the whole collection will be subtracted if you pass `X` or
+`standardization.in_collections.X`.
 
-* You can `decorate` a pipeline, i.e., wrap a pipeline under another name:
+Note that the syntax requires subtracting an `Iterable` (like `tuple`, `list`, `set`, etc.).
+If what you are trying to subtract does not exist, no error will be issued.
+
+
+### `Pipeline`
+
+#### Left and right shift operations:
+
+The IO attributes above are slightly redundant in the above example, so one can simplify
+directly operating with pipelines.
+
+Left / right shifting with pipeline objects will create the dependencies between the `inputs` and
+`outputs`, `in_collections` and `out_collections`, of the pipelines in the direction of the shift,
+for equally named collections.
+
+Here is an example:
+```python
+stz_train >> stz_eval
+```
+which would be equivalent to
+```python
+stz_train.outputs.mean >> stz_eval.inputs.mean
+stz_train.outputs.scale >> stz_eval.inputs.scale
+```
+
+Beware that the following would produce no dependencies, because there are no shared variable names
+```python
+dependencies = stz_train << stz_eval
+assert len(dependencies) == 0
+```
+
+#### Rename inputs and outputs:
+
+You can rename inputs and outputs of a pipeline with `rename_inputs` and `rename_outputs`.
+
+The syntax is {"<old_name>": "<new_name>"} as single method's argument.
+The methods will return a new pipeline with same structure, and renamed inputs / outputs,
+according to the given mapping.
+
+For example, if we want to rename the `X` input of `stz_train` to `features`:
+
+```python
+stz_train = stz_train.rename_inputs({"X": "features"})
+stz_train.inputs.features  # InEntry object
+```
+
+You can transform single entries into collections, or entries from collections into entries via dot
+notation:
+
+```python
+standardization = standardization.rename_inputs({"X.train": "X_train", "X.eval": "X_eval"})
+standardization.inputs.X_train  # InEntry objects
+standardization.inputs.X_eval
+# standardization.in_collections.X.train  # raises error
+```
+
+If the new name of an entry already exists, or repeats, a merge operation will be performed.
+
+```python
+r1 = PipelineBuilder.task(Report, name="r1")
+r2 = PipelineBuilder.task(Report, name="r2")
+reports = PipelineBuilder.combine(
+    r1, r2,
+    name="reports",
+    inputs={"acc.r1": r1.outputs.acc, "acc.r2": r2.outputs.acc}
+)
+reports.in_collection.acc  # Inputs collection with two entries
+reports.rename_inputs({"acc.r1": "acc", "acc.r2": "acc"})  # rename / merge operation
+reports.inputs.acc # InEntry object with two entries merged together
+```
+
+#### Decorate pipelines:
+
+You can `decorate` a pipeline, i.e., wrap a pipeline under another name:
 ```python
 new_pipeline = my_pipeline.decorate("p")
 ```
 
 This is useful when combining pipelines of the same type that need to be unique.
-Consider for example the following (dummy) example with some report generators:
+Consider the following example:
 
 ```python
 class Report:
@@ -268,7 +332,7 @@ class Report:
 report = PipelineBuilder.task(Report)
 r1 = report.decorate("r1")
 r2 = report.decorate("r2")
-reports = PipelineBuileder.combine(
+reports = PipelineBuilder.combine(
     r1, r2,
     name="reports",
     dependencies=(
@@ -278,9 +342,32 @@ reports = PipelineBuileder.combine(
 )
 ```
 
+To combine pipelines with the same name, you can decorate them first and then combine.
+
+
+## Pipelines Definition
+
+A `Pipeline` is a (frozen) dataclass with the following attributes:
+
+* `name` (`str`): of the pipeline; used as the default value for collection entries; useful to
+    distinguiss pipelines when combining.
+* `inputs` (`oneml.processors.Inputs`): exposure of `Inputs` of a pipeline.
+* `outputs` (`oneml.processors.Outputs`): exposure of `Outputs` of a pipeline.
+* `in_collections` (`oneml.processors.InCollections`): exposure of `InCollections` of a pipeline.
+* `out_collections` (`oneml.processors.OutCollections`): exposure of `OutCollections` of a
+    pipeline.
+
+`Pipeline`s should not be instantiated directly.
+Instead, `Pipeline`s should be created via `Task`s, combining other `Pipeline`s, or other
+constructors, e.g., `Estimator`.
+
+
+## Meta-Pipelines
+
+We will see a few examples on how to use operations to create and compose pipelines.
+
 ### `Estimator` Example:
 
-We can create the `Estimator` operator using the above operations:
 
 ```python
 @dataclass(frozen=True, init=False)
@@ -292,20 +379,36 @@ class Estimator(Pipeline):
         eval_pl: Pipeline,
         shared_params: Iterable[Sequence[Dependency]] = ((),),
     ) -> None:
-        # skip validation of arguments
+        # find shared parameters between train and eval
+        in_common = set(train_pl.inputs) & set(eval_pl.inputs)
+        out_common = set(train_pl.outputs) & set(eval_pl.outputs)
 
-        train_pl = train_pl.rename({train_pl.name: "train"}).decorate(name="train")
-        eval_pl = eval_pl.rename({eval_pl.name: "eval"}).decorate(name="eval")
+        # rename shared parameters into train & eval entries of collections
+        train_pl = train_pl.rename_inputs({v: v + ".train" for v in in_common})
+        train_pl = train_pl.rename_outputs({v: v + ".train" for v in out_common})
+        eval_pl = eval_pl.rename_inputs({v: v + ".eval" for v in in_common})
+        eval_pl = eval_pl.rename_outputs({v: v + ".eval" for v in out_common})
+
+        # decorate train and eval pipelines for tracking purposes
+        train_pl = train_pl.decorate("train")
+        eval_pl = eval_pl.decorate("eval")
+
+        # decorate shared dependencies to match newly decorated train and eval pipelines
         dependencies = (dp.decorate("eval", "train") for dp in chain.from_iterable(shared_params))
-        outputs = train_pl.outputs | eval_pl.outputs  # estimators expose shared parameters
-        pl = PipelineBuilder.combine(
+
+        # merge the `outputs` and `out_collections` of train and eval pipelines
+        outputs: UserOutput = dict(train_pl.outputs | eval_pl.outputs)
+        outputs |= dict(train_pl.out_collections | eval_pl.out_collections)
+
+        # combine all ingredients into a new pipeline
+        p = PipelineBuilder.combine(
             train_pl,
             eval_pl,
             name=name,
             outputs=outputs,
             dependencies=(tuple(dependencies),),
         )
-        super().__init__(name, pl.dag, pl.inputs, pl.outputs)  # calls the Pipeline constructor
+        super().__init__(name, p._dag, p.inputs, p.outputs, p.in_collections, p.out_collections)
 ```
 
 A few clarifications:
@@ -315,15 +418,15 @@ A few clarifications:
 
 2. Arguments include a `train` and `eval` pipelines, estimator's name, and dependencies.
 
-3. The first step is to try to rename the collection entries: any entry with the pipeline's name is
-renamed into `train` and `eval`, respectively. This is because `Task`s use the task name as default
-for entry names.
+3. The first step is to find the common inputs/outputs between the `train` and `eval` pipelines.
+Then, rename inputs/outputs into collection entries: any entry with the pipeline's name is renamed
+into `train` and `eval`, respectively.
 
-4. We decorate the `train` and `eval` pipelines before merging. This will ensure the combinantion
+4. We decorate the `train` and `eval` pipelines before merging. This will ensure the combination
 is valid.
 
 5. Outputs are specified by merging the outputs of the `train` and `eval` pipelines, before
-subtracting the specified dependencies.
+subtracting specified dependencies.
 
 6. Inputs are merged by subtracting the specified dependencies, default behavior.
 

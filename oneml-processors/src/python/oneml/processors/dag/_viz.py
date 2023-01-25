@@ -6,15 +6,15 @@ import pydot
 
 from ..ux._pipeline import (
     PE,
-    InCollection,
+    InCollections,
     InEntry,
-    OutCollection,
+    Inputs,
+    IOCollections,
+    OutCollections,
     OutEntry,
+    Outputs,
     ParamCollection,
     Pipeline,
-    PipelineInput,
-    PipelineIO,
-    PipelineOutput,
 )
 from ._dag import DAG
 
@@ -80,7 +80,7 @@ class DotBuilder:
                 self._g.add_edge(pydot.Edge(source, target))
 
     def _get_io_entries(
-        self, io: ParamCollection[PE], io_collections: PipelineIO[ParamCollection[PE]]
+        self, io: ParamCollection[PE], io_collections: IOCollections[ParamCollection[PE]]
     ) -> Iterable[Tuple[str, PE]]:
         for entry_name, entry in io.items():
             yield entry_name, entry
@@ -88,7 +88,7 @@ class DotBuilder:
             for entry_name, entry in entry_collection.items():
                 yield f"{collection_name}.{entry_name}", entry
 
-    def _add_inputs(self, inputs: InCollection, in_collections: PipelineInput) -> None:
+    def _add_inputs(self, inputs: Inputs, in_collections: InCollections) -> None:
         def add_entry(source: str, entry: InEntry) -> None:
             for p in entry:
                 target = self._get_i_port_tag(repr(p.node), p.param.name)
@@ -110,7 +110,7 @@ class DotBuilder:
                 source = self._get_o_port_tag(name, entry_name)
                 add_entry(source, entry)
 
-    def _add_outputs(self, outputs: OutCollection, out_collections: PipelineOutput) -> None:
+    def _add_outputs(self, outputs: Outputs, out_collections: OutCollections) -> None:
         def add_entry(entry: OutEntry, target: str) -> None:
             for p in entry:
                 source = self._get_o_port_tag(repr(p.node), p.param.name)
@@ -133,7 +133,7 @@ class DotBuilder:
                 add_entry(entry, target)
 
     def add_pipeline(self, pipeline: Pipeline) -> None:
-        self._add_pipeline(pipeline.dag)
+        self._add_pipeline(pipeline._dag)
         self._add_inputs(pipeline.inputs, pipeline.in_collections)
         self._add_outputs(pipeline.outputs, pipeline.out_collections)
 

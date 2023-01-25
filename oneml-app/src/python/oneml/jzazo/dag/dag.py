@@ -100,13 +100,12 @@ class DAG(Task):
 
 class DAGRunner:
 
-    dag: DAG
-
+    _dag: DAG
     _nodes: Dict[TaskName, Task]
     _injections: Dict[TaskName, List[TaskName]]  # downstream tasks
 
     def __init__(self, dag: DAG) -> None:
-        self.dag = dag
+        self._dag = dag
         self._nodes = self._infer_nodes(dag)
         self._injections = self._infer_injections()
         self._validate()

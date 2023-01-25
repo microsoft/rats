@@ -39,7 +39,7 @@ def eval_stz() -> Pipeline:
 
 
 def test_single_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
-    # Tests InCollection << OutCollection assignments
+    # Tests Inputs << Outputs assignments
     dp = eval_stz.inputs.shift << train_stz.outputs.shift
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
@@ -53,7 +53,7 @@ def test_single_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipeli
     with pytest.raises(TypeError):
         eval_stz.in_collections.X.eval >> train_stz.out_collections.Z.train  # type: ignore
 
-    # Tests OutCollection >> InCollection assignments
+    # Tests Outputs >> Inputs assignments
     dp = train_stz.outputs.scale >> eval_stz.inputs.scale
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
@@ -102,7 +102,7 @@ def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pi
         name="stz2",
     )
 
-    # Tests InCollection << OutCollection assignments
+    # Tests Inputs << Outputs assignments
     dps = stz2.in_collections.X << stz1.out_collections.Z  # many to many
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
@@ -119,7 +119,7 @@ def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pi
         stz2.in_collections.X.train >> stz1.out_collections.Z.train  # type: ignore
         stz2.in_collections.X.eval >> stz1.out_collections.Z.eval  # type: ignore
 
-    # Tests OutCollection >> InCollection assignments
+    # Tests Outputs >> Inputs assignments
     dps = stz1.out_collections.Z >> stz2.in_collections.X  # many to many
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
@@ -137,7 +137,7 @@ def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pi
         stz1.out_collections.Z.eval << stz1.in_collections.X.eval  # type: ignore
 
 
-def test_pipelineio_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
+def test_IOCollections_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
     dependencies = set(
         chain(
             eval_stz.inputs.shift << train_stz.outputs.shift,
@@ -145,7 +145,7 @@ def test_pipelineio_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None
         )
     )
 
-    # Test PipelineInput << PipelineOutput
+    # Test InCollections << OutCollections
     dps = eval_stz.inputs << train_stz.outputs
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
     assert dependencies == set(dps)
@@ -153,7 +153,7 @@ def test_pipelineio_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None
     with pytest.raises(TypeError):
         train_stz.outputs << eval_stz.inputs  # type: ignore
 
-    # Test PipelineOutput >> PipelineInput
+    # Test OutCollections >> InCollections
     dps = train_stz.outputs >> eval_stz.inputs
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
     assert dependencies == set(dps)

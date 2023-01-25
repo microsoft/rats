@@ -10,7 +10,7 @@ from ..dag._dag import DagNode
 from ..dag._processor import IProcess, OutProcessorParam
 from ..utils._frozendict import frozendict
 from ._builder import CombinedPipeline, Task
-from ._pipeline import OutCollection, OutEntry, Pipeline
+from ._pipeline import OutEntry, Outputs, Pipeline
 
 
 class InputDataProcessor(IProcess):
@@ -47,7 +47,7 @@ class SessionOutputsGetter(Iterable[str]):
             output_client = self._session.node_data_client_factory().get_instance(pipeline_node)
             return output_client.get_data(pipeline_port)
 
-        out_params: OutEntry | OutCollection = (
+        out_params: OutEntry | Outputs = (
             self._pipeline.outputs[key]
             if key in self._pipeline.outputs
             else self._pipeline.out_collections[key]
@@ -107,6 +107,6 @@ class PipelineRunner:
             )
         if len(set(chain(pipeline.inputs, pipeline.in_collections))) > 0:
             raise ValueError(f"Missing pipeline inputs: {set(pipeline.inputs)}.")
-        session = PipelineSessionProvider.get_session(pipeline.dag, self._params_registry)
+        session = PipelineSessionProvider.get_session(pipeline._dag, self._params_registry)
         session.run()
         return SessionOutputsGetter(pipeline, session)
