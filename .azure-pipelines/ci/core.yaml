@@ -5,10 +5,10 @@ trigger:
   batch: true
   branches:
     include:
-      - "main"
+    - "main"
   tags:
     include:
-      - "v*"
+    - "v*"
 
 pr: none
 
@@ -21,123 +21,145 @@ parameters:
     default: "2022-10-21.19-47-38"
 
 stages:
-  - stage: CI
-    jobs:
-      # APPLICATIONS
-      # oneml-app
-      - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-app"
-          toxEnvs: "{.python-version},cilint,citype"
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
-      # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
-      - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-app"
-          publishWheel: false
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
-      - template: /.azure-pipelines/templates/jobs.application-ci.docker.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-app"
-          # This is a production build
-          isDevBuild: false
-          namespace: "production"
-          python_dependency_tool: "poetry"
-      # oneml-devtools
-      - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-devtools"
-          toxEnvs: "{.python-version},cilint,citype"
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
-      # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
-      - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-devtools"
-          publishWheel: false
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
-      - template: /.azure-pipelines/templates/jobs.application-ci.docker.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-devtools"
-          # This is a production build
-          isDevBuild: false
-          namespace: "production"
-          python_dependency_tool: "poetry"
-      # oneml-pipelines
-      - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-pipelines"
-          toxEnvs: "{.python-version},cilint,citype"
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
-      # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
-      - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-pipelines"
-          publishWheel: true
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
-      # oneml-processors
-      - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-processors"
-          toxEnvs: "{.python-version},cilint,citype"
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
-      # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
-      - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          component: "oneml-processors"
-          publishWheel: true
-          # This is a production build
-          isDevBuild: false
-          python_dependency_tool: "poetry"
+- stage: CI
+  jobs:
 
-      # # build Documentations
-      - template: /.azure-pipelines/templates/jobs.docs.yaml
-        parameters:
-          appBuilderImageName: ${{ parameters.appBuilderImageName }}
-          appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-          driverComponent: "oneml-processors"
-          isDevBuild: false
+# APPLICATIONS
+# oneml-app
+  - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-app"
+      toxEnvs: "{.python-version},cilint,citype"
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+  # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
+  - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-app"
+      publishWheel: false
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+  - template: /.azure-pipelines/templates/jobs.application-ci.docker.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-app"
+      # This is a production build
+      isDevBuild: false
+      namespace: "production"
+      python_dependency_tool: "poetry"
+# oneml-devtools
+  - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-devtools"
+      toxEnvs: "{.python-version},cilint,citype"
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+  # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
+  - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-devtools"
+      publishWheel: false
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+  - template: /.azure-pipelines/templates/jobs.application-ci.docker.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-devtools"
+      # This is a production build
+      isDevBuild: false
+      namespace: "production"
+      python_dependency_tool: "poetry"
+# oneml-habitats
+  - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-habitats"
+      toxEnvs: "{.python-version},cilint,citype"
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+  # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
+  - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-habitats"
+      publishWheel: true
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+# oneml-pipelines
+  - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-pipelines"
+      toxEnvs: "{.python-version},cilint,citype"
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+  # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
+  - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-pipelines"
+      publishWheel: true
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+# oneml-processors
+  - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-processors"
+      toxEnvs: "{.python-version},cilint,citype"
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
+  # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
+  - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      component: "oneml-processors"
+      publishWheel: true
+      # This is a production build
+      isDevBuild: false
+      python_dependency_tool: "poetry"
 
-  - stage: BM
-    dependsOn: CI
-    condition: succeeded('CI')
-    displayName: Build Marker
-    jobs:
-      - template: /.azure-pipelines/templates/jobs.build-dataset-marker.yaml
-        parameters:
-          builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
-          project: "oneml"
-          namespace: production
+  # # build Documentations
+  - template: /.azure-pipelines/templates/jobs.docs.yaml
+    parameters:
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      driverComponent: "oneml-processors"
+      isDevBuild: false
+
+- stage: BM
+  dependsOn: CI
+  condition: succeeded('CI')
+  displayName: Build Marker
+  jobs:
+  - template: /.azure-pipelines/templates/jobs.build-dataset-marker.yaml
+    parameters:
+      builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
+      project: "oneml"
+      namespace: production
+

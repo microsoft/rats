@@ -11,6 +11,7 @@ parameters:
     values:
     - oneml-app
     - oneml-devtools
+    - oneml-habitats
     - oneml-pipelines
     - oneml-processors
   - name: isDevBuild

@@ -21,7 +21,7 @@ parameters:
     values:
     - oneml-app
     - oneml-devtools
-    - oneml-pipelines
+    - oneml-habitats
     - oneml-processors
 
 jobs:
@@ -37,9 +37,9 @@ jobs:
       mkdir -p .tmp/artifacts
     displayName: "Artifacts Directory"
 
-  - template: /.azure-pipelines/templates/steps.authenticate.yaml
+  - template: /.azure-habitats/templates/steps.authenticate.yaml
 
-  - template: /.azure-pipelines/templates/steps.define-build-variables.yaml
+  - template: /.azure-habitats/templates/steps.define-build-variables.yaml
     parameters:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
@@ -47,21 +47,21 @@ jobs:
       isDevBuild: ${{ parameters.isDevBuild }}
 
   - ${{ if eq(parameters.python_dependency_tool, 'pipenv') }}:
-    - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
+    - template: /.azure-habitats/templates/steps.immunodata-app-builder.command.yaml
       parameters:
         builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
         command: "immunocli-next -vvv ci pipenv-install --component ${{ parameters.component }} --path $PWD"
         name: Pipenv Install
 
   - ${{ if eq(parameters.python_dependency_tool, 'poetry') }}:
-    - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
+    - template: /.azure-habitats/templates/steps.immunodata-app-builder.command.yaml
       parameters:
         builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
         command: "immunocli-next -vvv ci poetry-install --component ${{ parameters.component }} --path $PWD"
         name: Poetry Install
         retryCountOnTaskFailure: 1
 
-  - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
+  - template: /.azure-habitats/templates/steps.immunodata-app-builder.command.yaml
     parameters:
       builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
       command: "immunocli-next ci run-command ${{ parameters.component }} --command \"immunocli-next list-configs --output atlas\""

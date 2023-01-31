@@ -6,6 +6,16 @@ parameters:
     type: string
   - name: appBuilderImageTag
     type: string
+  - name: isDevBuild
+    type: boolean
+  - name: subscription
+    type: string
+    default: "Immunomics R&D (7bd3802d-452e-4b2a-964e-e2c996bc7477)"
+  - name: python_dependency_tool
+    type: string
+    values:
+    - "pipenv"
+    - "poetry"
   - name: component
     type: string
     values:
@@ -14,19 +24,10 @@ parameters:
     - oneml-habitats
     - oneml-pipelines
     - oneml-processors
-  - name: isDevBuild
-    type: boolean
-  - name: toxEnvs
-    type: string
-  - name: python_dependency_tool
-    type: string
-    values:
-    - "pipenv"
-    - "poetry"
 
 jobs:
 - job:
-  displayName: "Check-All: ${{ parameters.component }}"
+  displayName: "Build Experiment Configs and Modelers: ${{ parameters.component }}"
   pool:
     vmImage: "ubuntu-latest"
 
@@ -38,6 +39,7 @@ jobs:
     displayName: "Artifacts Directory"
 
   - template: /.azure-pipelines/templates/steps.authenticate.yaml
+
   - template: /.azure-pipelines/templates/steps.define-build-variables.yaml
     parameters:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
@@ -63,14 +65,13 @@ jobs:
   - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
     parameters:
       builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
-      command: "immunocli-next -vvv ci check-all ${{ parameters.component }} --path $PWD"
-      name: Check All
+      command: "immunocli-next ci run-command ${{ parameters.component }} --command \"immunocli-next list-experiments --type config --output atlas\""
+      name: Run List Experiment Config Command
+      retryCountOnTaskFailure: 1
 
-  - template: /.azure-pipelines/templates/steps.publish-reports.yaml
+  - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
     parameters:
-      junit_path: '.tmp/${{ parameters.component }}/reports/*-junit.xml'
-      coverage_path: '.tmp/${{ parameters.component }}/reports/coverage.xml'
-
-  - publish: ".tmp/artifacts"
-    artifact: "ci.artifacts.${{ parameters.component }}.tox"
-    displayName: "Publish: .tmp/artifacts"
+      builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
+      command: "immunocli-next ci run-command ${{ parameters.component }} --command \"immunocli-next list-experiments --type modeler --output atlas --base-module immunopipeline.sparkml.modelers\""
+      name: Run List Experiment Modeler Command
+      retryCountOnTaskFailure: 1

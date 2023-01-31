@@ -17,6 +17,7 @@ WORKDIR $APP_PATH
 
 # Copy just the pyproject.toml files required to be able to install local python packages
 COPY oneml-devtools/pyproject.toml $PROJECT_PATH/oneml-devtools/pyproject.toml
+COPY oneml-habitats/pyproject.toml $PROJECT_PATH/oneml-habitats/pyproject.toml
 COPY oneml-pipelines/pyproject.toml $PROJECT_PATH/oneml-pipelines/pyproject.toml
 COPY oneml-processors/pyproject.toml $PROJECT_PATH/oneml-processors/pyproject.toml
 COPY $APP_NAME/pyproject.toml $APP_PATH/pyproject.toml
@@ -24,11 +25,13 @@ COPY $APP_NAME/pyproject.toml $APP_PATH/pyproject.toml
 # Create src dirs of local packages, the bare minimum needed to install local packages
 RUN \
     mkdir -p $PROJECT_PATH/oneml-devtools/src/python/$PROJECT_NAME/devtools && \
+    mkdir -p $PROJECT_PATH/oneml-habitats/src/python/$PROJECT_NAME/habitats && \
     mkdir -p $PROJECT_PATH/oneml-pipelines/src/python/$PROJECT_NAME/pipelines && \
     mkdir -p $PROJECT_PATH/oneml-processors/src/python/$PROJECT_NAME/processors && \
     mkdir -p $PROJECT_PATH/$APP_NAME/src/python/$PROJECT_NAME/app && \
     # Poetry, unlike pipenv, needs these to be valid python packages so we stub out empty ones.
     touch $PROJECT_PATH/oneml-devtools/src/python/$PROJECT_NAME/devtools/__init__.py && \
+    touch $PROJECT_PATH/oneml-habitats/src/python/$PROJECT_NAME/habitats/__init__.py && \
     touch $PROJECT_PATH/oneml-pipelines/src/python/$PROJECT_NAME/pipelines/__init__.py && \
     touch $PROJECT_PATH/oneml-processors/src/python/$PROJECT_NAME/processors/__init__.py && \
     touch $PROJECT_PATH/$APP_NAME/src/python/$PROJECT_NAME/app/__init__.py

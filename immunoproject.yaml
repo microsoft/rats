@@ -4,6 +4,7 @@ applications:
   - name: oneml-app
   - name: oneml-devtools
 libraries:
+  - name: oneml-habitats
   - name: oneml-pipelines
   - name: oneml-processors
     build_api_docs: true
