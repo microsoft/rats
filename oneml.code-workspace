@@ -10,6 +10,9 @@
             "path": "oneml-app"
         },
         {
+            "path": "oneml-habitats"
+        },
+        {
             "path": "oneml-pipelines"
         },
         {
