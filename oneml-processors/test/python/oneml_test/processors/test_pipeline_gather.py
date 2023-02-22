@@ -2,9 +2,8 @@ from typing import Sequence, TypedDict
 
 import pytest
 
-from oneml.processors import CombinedPipeline, IProcess, Pipeline, Task
+from oneml.processors import CombinedPipeline, IProcess, Pipeline, PipelineRunnerFactory, Task
 from oneml.processors.utils import frozendict
-from oneml.processors.ux import PipelineRunner
 
 AccOutput = TypedDict("AccOutput", {"acc": float})
 
@@ -34,7 +33,9 @@ def report() -> Pipeline:
     return Task(ReportGenerator, "report")
 
 
-def test_gather_inputs_to_single_output(acc1: Pipeline, acc2: Pipeline) -> None:
+def test_gather_inputs_to_single_output_1(
+    pipeline_runner_factory: PipelineRunnerFactory, acc1: Pipeline, acc2: Pipeline
+) -> None:
     # OutEntry | OutEntry -> OutEntry
     p = CombinedPipeline(
         acc1,
@@ -46,11 +47,15 @@ def test_gather_inputs_to_single_output(acc1: Pipeline, acc2: Pipeline) -> None:
     assert len(p.outputs.acc) == 1
     assert p.outputs.acc[0].param.annotation == tuple[float, ...]
 
-    runner = PipelineRunner(p)
+    runner = pipeline_runner_factory(p)
     outputs = runner()
     assert set(outputs) == set(("acc",))
     assert outputs.acc == (0.0, 0.0)
 
+
+def test_gather_inputs_to_single_output_2(
+    pipeline_runner_factory: PipelineRunnerFactory, acc1: Pipeline, acc2: Pipeline
+) -> None:
     # OutEntry | OutEntry -> Outputs.OutEntry
     p = CombinedPipeline(
         acc1,
@@ -64,7 +69,7 @@ def test_gather_inputs_to_single_output(acc1: Pipeline, acc2: Pipeline) -> None:
     assert len(p.out_collections.acc.nested) == 1
     assert p.out_collections.acc.nested[0].param.annotation == tuple[float, ...]
 
-    runner = PipelineRunner(p)
+    runner = pipeline_runner_factory(p)
     outputs = runner()
     assert set(outputs) == set(("acc",))
     assert outputs.acc == frozendict(nested=(0.0, 0.0))

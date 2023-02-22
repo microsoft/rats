@@ -5,7 +5,7 @@ from typing import Any, Iterable, Iterator, Mapping
 
 from oneml.pipelines.session import PipelinePort, PipelineSessionClient
 
-from ..dag._client import P2Pipeline, ParamsRegistry, PipelineSessionProvider
+from ..dag._client import P2Pipeline, PipelineSessionProvider
 from ..dag._dag import DagNode
 from ..dag._processor import IProcess, OutProcessorParam
 from ..utils._frozendict import frozendict
@@ -73,12 +73,24 @@ class SessionOutputsGetter(Iterable[str]):
         yield from chain(self._pipeline.outputs, self._pipeline.out_collections)
 
 
+class PipelineRunnerFactory:
+    _pipeline_session_provider: PipelineSessionProvider
+
+    def __init__(self, pipeline_session_provider: PipelineSessionProvider):
+        self._pipeline_session_provider = pipeline_session_provider
+
+    def __call__(self, pipeline: Pipeline) -> PipelineRunner:
+        return PipelineRunner(self._pipeline_session_provider, pipeline)
+
+
 class PipelineRunner:
+    _pipeline_session_provider: PipelineSessionProvider
+
     def __init__(
-        self, pipeline: Pipeline, params_registry: ParamsRegistry = ParamsRegistry()
+        self, pipeline_session_provider: PipelineSessionProvider, pipeline: Pipeline
     ) -> None:
+        self._pipeline_session_provider = pipeline_session_provider
         self._pipeline = pipeline
-        self._params_registry = params_registry
 
     def __call__(self, inputs: Mapping[str, Any] = {}) -> SessionOutputsGetter:
         pipeline = self._pipeline
@@ -107,6 +119,6 @@ class PipelineRunner:
             )
         if len(set(chain(pipeline.inputs, pipeline.in_collections))) > 0:
             raise ValueError(f"Missing pipeline inputs: {set(pipeline.inputs)}.")
-        session = PipelineSessionProvider.get_session(pipeline._dag, self._params_registry)
+        session = self._pipeline_session_provider.get_session(pipeline._dag)
         session.run()
         return SessionOutputsGetter(pipeline, session)

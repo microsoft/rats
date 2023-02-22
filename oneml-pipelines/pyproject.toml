@@ -76,6 +76,7 @@ src_paths = "src/python"
 known_first_party = ["oneml"]
 
 [tool.mypy]
+packages = ["oneml", "oneml_test"]
 cache_dir = "../.tmp/oneml-pipelines/.mypy_cache"
 namespace_packages = true
 mypy_path = "src/python/:test/python/"

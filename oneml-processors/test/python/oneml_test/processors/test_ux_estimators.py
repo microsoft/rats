@@ -11,7 +11,7 @@ from oneml.processors import (
     IProcess,
     ParamsRegistry,
     Pipeline,
-    PipelineRunner,
+    PipelineRunnerFactory,
     RegistryId,
     Task,
 )
@@ -190,9 +190,10 @@ def report2() -> Pipeline:
 
 
 def test_standardized_lr(
+    pipeline_runner_factory: PipelineRunnerFactory,
     standardized_lr: Pipeline,
 ) -> None:
-    runner = PipelineRunner(standardized_lr)
+    runner = pipeline_runner_factory(standardized_lr)
     outputs = runner(
         inputs={
             "X.train": ArrayMock("X1"),

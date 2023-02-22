@@ -18,13 +18,13 @@ class TestNodeSettingsClient:
     def test_basics(self) -> None:
         self._client.set(
             PipelineNode("node1"),
-            SettingName("foo1"),
+            SettingName[str]("foo1"),
             "bar",
         )
         assert (
             self._client.get(
                 PipelineNode("node1"),
-                SettingName("foo1"),
+                SettingName[str]("foo1"),
             )
             == "bar"
         )
@@ -32,18 +32,18 @@ class TestNodeSettingsClient:
         with pytest.raises(DuplicateNodeSettingError):
             self._client.set(
                 PipelineNode("node1"),
-                SettingName("foo1"),
+                SettingName[str]("foo1"),
                 "baz",
             )
 
         with pytest.raises(NodeSettingNotFoundError):
             self._client.get(
                 PipelineNode("node1"),
-                SettingName("foo2"),
+                SettingName[str]("foo2"),
             )
 
         with pytest.raises(NodeSettingNotFoundError):
             self._client.get(
                 PipelineNode("node2"),
-                SettingName("foo1"),
+                SettingName[str]("foo1"),
             )

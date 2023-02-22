@@ -7,7 +7,7 @@ from oneml.pipelines.session import DeferredExecutable, IExecutable, IExecutePip
 class FakeExecutable(IExecutable):
     called: bool
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.called = False
 
     def execute(self) -> None:
@@ -18,7 +18,7 @@ class FakeExecutionContext(IExecutePipelineNodes):
 
     execution_counts: Dict[PipelineNode, int]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.execution_counts = {}
 
     def execute_node(self, node: PipelineNode) -> None:

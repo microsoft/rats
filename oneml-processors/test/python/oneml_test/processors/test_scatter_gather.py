@@ -3,7 +3,7 @@ from typing import Any, Dict, TypedDict
 from oneml.processors import (
     Pipeline,
     PipelineBuilder,
-    PipelineRunner,
+    PipelineRunnerFactory,
     ScatterGatherBuilders,
     frozendict,
 )
@@ -69,12 +69,12 @@ def get_gather_pipeline() -> Pipeline:
     )
 
 
-def test_scatter_gather() -> None:
+def test_scatter_gather(pipeline_runner_factory: PipelineRunnerFactory) -> None:
     scatter = get_scatter_pipeline(4)
     batch_process = get_batch_process_pipeline()
     gather = get_gather_pipeline()
     sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
-    runner = PipelineRunner(sc)
+    runner = pipeline_runner_factory(sc)
     o = runner(dict(in1="IN1", in2="IN2", in3="IN3"))
     expected_out12 = "\n".join(
         (
@@ -112,12 +112,14 @@ def get_gather_pipeline_with_numbered_inputs(K: int) -> Pipeline:
     )
 
 
-def test_scatter_gather_with_numbered_gather_inputs() -> None:
+def test_scatter_gather_with_numbered_gather_inputs(
+    pipeline_runner_factory: PipelineRunnerFactory,
+) -> None:
     scatter = get_scatter_pipeline(4)
     batch_process = get_batch_process_pipeline()
     gather = get_gather_pipeline_with_numbered_inputs(4)
     sc = ScatterGatherBuilders.build("sc", scatter, batch_process, gather)
-    runner = PipelineRunner(sc)
+    runner = pipeline_runner_factory(sc)
     o = runner(dict(in1="IN1", in2="IN2", in3="IN3"))
     expected_out12 = "\n".join(
         (

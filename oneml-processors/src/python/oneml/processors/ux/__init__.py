@@ -11,7 +11,7 @@ from ._pipeline import (
     Outputs,
     Pipeline,
 )
-from ._session import InputDataProcessor, PipelineRunner
+from ._session import InputDataProcessor, PipelineRunner, PipelineRunnerFactory
 
 __all__ = [
     "CombinedPipeline",
@@ -29,4 +29,5 @@ __all__ = [
     "Pipeline",
     "InputDataProcessor",
     "PipelineRunner",
+    "PipelineRunnerFactory",
 ]

@@ -56,6 +56,9 @@ class ComputeReqs:
 @dataclass(frozen=True)
 class ProcessorProps:
     processor_type: type[IProcess]
+    # TODO: maybe separate to a dictionary of known params (param_name->value) and a dictionary of
+    # params who's value will be provided by session_client.get_component
+    # (param_name->ComponentId)?
     params_getter: IGetParams = frozendict()
     input_annotation: InitVar[Mapping[str, type] | None] = None
     return_annotation: InitVar[Mapping[str, type] | None] = None

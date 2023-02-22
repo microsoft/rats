@@ -66,7 +66,8 @@ oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 oneml-processors = { path = "../oneml-processors/", develop = true }
 
-[tool.poetry.scripts]
+[tool.poetry.plugins."immunocli.plugins"]
+"oneml-habitats" = "oneml.habitats.immunocli._plugin:OnemlHabitatsCliPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
@@ -82,6 +83,7 @@ src_paths = "src/python"
 known_first_party = ["oneml"]
 
 [tool.mypy]
+packages = ["oneml", "oneml_test"]
 cache_dir = "../.tmp/oneml-habitats/.mypy_cache"
 namespace_packages = true
 mypy_path = "src/python/:test/python/"

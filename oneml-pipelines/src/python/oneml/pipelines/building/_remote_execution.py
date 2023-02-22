@@ -1,14 +1,19 @@
 import logging
+from abc import abstractmethod
 from enum import Enum, auto
-from typing import Any, NamedTuple, cast
+from typing import Any, NamedTuple, Protocol, cast
 
 from oneml.pipelines.building._executable_pickling import (
     ExecutablePicklingClient,
     PickleableExecutable,
 )
 from oneml.pipelines.context._client import IProvideExecutionContexts
-from oneml.pipelines.session import IExecutable, PipelineSessionClient
-from oneml.pipelines.settings import IProvidePipelineSettings, SettingName
+from oneml.pipelines.session import CallableExecutable, IExecutable, PipelineSessionClient
+from oneml.pipelines.settings import (
+    IProvidePipelineSettings,
+    PipelineSettingNotFoundError,
+    SettingName,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +51,10 @@ class RemoteContext:
         return self._pipeline_settings.get(RemotePipelineSettings.NODE_ROLE) == NodeRole.DRIVER
 
     def is_force_local(self) -> bool:
-        return self._pipeline_settings.get(RemotePipelineSettings.FORCE_LOCAL)
+        try:
+            return self._pipeline_settings.get(RemotePipelineSettings.FORCE_LOCAL)
+        except PipelineSettingNotFoundError:
+            return False
 
 
 class RemoteExecutable(IExecutable):
@@ -87,7 +95,14 @@ class RemoteExecutable(IExecutable):
             self._executor.execute(self._session_context.get_context())
 
 
-class RemoteExecutableFactory:
+class IProvideRemoteExecutables(Protocol):
+
+    @abstractmethod
+    def get_instance(self, executor: PickleableExecutable) -> IExecutable:
+        pass
+
+
+class RemoteExecutableFactory(IProvideRemoteExecutables):
     _context: RemoteContext
     _session_context: IProvideExecutionContexts[PipelineSessionClient]
     _driver: IExecutable
@@ -113,3 +128,16 @@ class RemoteExecutableFactory:
             executor=executor,
             pickler=self._pickler,
         )
+
+
+class FakeRemoteExecutableFactory(IProvideRemoteExecutables):
+    _session_context: IProvideExecutionContexts[PipelineSessionClient]
+
+    def __init__(self, session_context: IProvideExecutionContexts[PipelineSessionClient]) -> None:
+        self._session_context = session_context
+
+    def get_instance(self, executor: PickleableExecutable) -> CallableExecutable:
+        return CallableExecutable(lambda: self._callback(executor))
+
+    def _callback(self, executor: PickleableExecutable) -> None:
+        executor.execute(self._session_context.get_context())

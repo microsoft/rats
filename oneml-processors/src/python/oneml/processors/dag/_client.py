@@ -5,17 +5,11 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from itertools import groupby
-from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence, Tuple
+from typing import Any, Iterable, Mapping, Sequence
 
 from oneml.pipelines.building import PipelineBuilderFactory
-from oneml.pipelines.building._executable_pickling import ExecutablePicklingClient
-from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
-from oneml.pipelines.context._client import ContextClient, IProvideExecutionContexts
+from oneml.pipelines.context._client import IManageExecutionContexts, IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
-from oneml.pipelines.data._filesystem import LocalFilesystem
-from oneml.pipelines.data._memory_data_client import InMemoryDataClient
-from oneml.pipelines.k8s._executables import IProvideK8sNodeCmds, K8sExecutableProxy
 from oneml.pipelines.session import (
     IExecutable,
     PipelineNodeDataClient,
@@ -23,8 +17,7 @@ from oneml.pipelines.session import (
     PipelinePort,
     PipelineSessionClient,
 )
-from oneml.pipelines.session._client import PipelineSessionComponents
-from oneml.pipelines.settings import PipelineSettingsClient
+from oneml.pipelines.session._components import ComponentId
 
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
 from ._processor import InMethod, InProcessorParam, IProcess
@@ -123,22 +116,26 @@ class SessionExecutableProvider(IExecutable):
     _session_provider: IProvideExecutionContexts[PipelineSessionClient]
     _node: DagNode
     _props: ProcessorProps
-    _kwargs: dict[str, Any]
 
     def __init__(
         self,
         session_provider: IProvideExecutionContexts[PipelineSessionClient],
         node: DagNode,
         props: ProcessorProps,
-        **kwargs: Any,
     ) -> None:
         self._session_provider = session_provider
         self._node = node
         self._props = props
-        self._kwargs = kwargs
 
-    def get_processor(self, data_client: DataClient) -> IProcess:
-        params = dict(self._props.params_getter.items(**self._kwargs))
+    def get_processor(
+        self, data_client: DataClient, session_client: PipelineSessionClient
+    ) -> IProcess:
+        params = {
+            k: session_client.get_component(ComponentId(v.name))
+            if isinstance(v, RegistryId)
+            else v
+            for k, v in self._props.params_getter.items()
+        }
         pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.init)
         return self._props.processor_type(*pos_args, **params, **kw_args)
 
@@ -149,7 +146,7 @@ class SessionExecutableProvider(IExecutable):
         input_client = session_client.node_input_data_client_factory().get_instance(pipeline_node)
         output_client = session_client.node_data_client_factory().get_instance(pipeline_node)
         data_client = DataClient(input_client, output_client)
-        processor = self.get_processor(data_client)
+        processor = self.get_processor(data_client, session_client)
         pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.process)
         outputs = processor.process(*pos_args, **kw_args)
         if outputs:
@@ -192,55 +189,28 @@ class ParamsRegistry:
 #         return params
 
 
-class _CmdClient(IProvideK8sNodeCmds):
-    def get_k8s_node_cmd(self, node: PipelineNode) -> Tuple[str, ...]:
-        # TODO: need a way for the processors package to get app details here
-        raise NotImplementedError()
-
-
 class PipelineSessionProvider:
-    @classmethod
-    def get_session(
-        cls,
-        dag: DAG,
-        params_registry: ParamsRegistry,  # TODO: this should come from session_client
-    ) -> PipelineSessionClient:
-        # lorenzo: the builder factory constructor is going to change over time and break this code
-        # we should find a way to have the oneml-pipelines component give this to you
-        # making this a classmethod means we cannot use dependency injection and you are acting as
-        # the global di container for pipeline sessions.
-        session_context = ContextClient[PipelineSessionClient]()
-        pipeline_settings = PipelineSettingsClient()
-        pipeline_data_client = InMemoryDataClient()
-        session_components = PipelineSessionComponents(
-            session_context=session_context,
-            pipeline_data_client=pipeline_data_client,
-        )
-        builder = PipelineBuilderFactory(
-            session_components=session_components,
-            pipeline_settings=pipeline_settings,
-            remote_executable_factory=RemoteExecutableFactory(
-                context=RemoteContext(pipeline_settings),
-                session_context=session_context,
-                driver=K8sExecutableProxy(
-                    session_provider=session_context,
-                    settings_provider=pipeline_settings,
-                    cmd_client=_CmdClient(),
-                ),
-                pickler=ExecutablePicklingClient(
-                    fs_client=LocalFilesystem(directory=Path("../.tmp/")),
-                    session_context=session_context,
-                ),
-            ),
-        ).get_instance()
+
+    _builder_factory: PipelineBuilderFactory
+    _session_context: IManageExecutionContexts[PipelineSessionClient]
+
+    def __init__(
+        self,
+        builder_factory: PipelineBuilderFactory,
+        session_context: IManageExecutionContexts[PipelineSessionClient],
+    ) -> None:
+        self._builder_factory = builder_factory
+        self._session_context = session_context
+
+    def get_session(self, dag: DAG) -> PipelineSessionClient:
+        builder = self._builder_factory.get_instance()
 
         for node in dag.nodes:
             builder.add_node(P2Pipeline.node(node))
             props = dag.nodes[node]
-            # TODO: grab items from params_registry
 
             sess_executable = SessionExecutableProvider(
-                session_provider=session_context,
+                session_provider=self._session_context,
                 node=node,
                 props=props,
             )

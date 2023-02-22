@@ -7,10 +7,9 @@ import pytest
 from oneml.processors import (
     IGetParams,
     IProcess,
-    ParamsRegistry,
     Pipeline,
     PipelineBuilder,
-    PipelineRunner,
+    PipelineRunnerFactory,
     frozendict,
 )
 
@@ -131,13 +130,10 @@ def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
     )
 
 
-@pytest.fixture(scope="module")
-def params_registry() -> ParamsRegistry:
-    return ParamsRegistry()
-
-
-def test_final_pipeline(pipeline: Pipeline, params_registry: ParamsRegistry) -> None:
-    runner = PipelineRunner(pipeline, params_registry)
+def test_final_pipeline(
+    pipeline_runner_factory: PipelineRunnerFactory, pipeline: Pipeline
+) -> None:
+    runner = pipeline_runner_factory(pipeline)
     outputs = runner()
     assert len(set(outputs)) == 1
     assert outputs["result"] == -1800

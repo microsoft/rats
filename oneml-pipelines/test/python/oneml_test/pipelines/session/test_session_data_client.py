@@ -32,14 +32,14 @@ class TestPipelineDataClient:
     def test_basics(self) -> None:
         self._client.publish_data(
             node=PipelineNode("step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="some-data",
         )
 
         assert (
             self._client.get_data(
                 node=PipelineNode("step-1"),
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
             )
             == "some-data"
         )
@@ -47,7 +47,7 @@ class TestPipelineDataClient:
     def test_validation(self) -> None:
         self._client.publish_data(
             node=PipelineNode("step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="some-data",
         )
 
@@ -55,7 +55,7 @@ class TestPipelineDataClient:
             # We can't publish the same key twice
             self._client.publish_data(
                 node=PipelineNode("step-1"),
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
                 data="some-other-data",
             )
 
@@ -63,7 +63,7 @@ class TestPipelineDataClient:
             # Try to load data that doesn't exist
             self._client.get_data(
                 node=PipelineNode("step-2"),
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
             )
 
 
@@ -83,13 +83,13 @@ class TestPipelineNodeDataClient:
 
     def test_basics(self) -> None:
         self._client.publish_data(
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="some-data",
         )
 
         assert (
             self._client.get_data(
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
             )
             == "some-data"
         )
@@ -97,7 +97,7 @@ class TestPipelineNodeDataClient:
         assert (
             self._data_client.get_data(
                 node=PipelineNode("step-1"),
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
             )
             == "some-data"
         )
@@ -126,14 +126,14 @@ class TestReadProxyPipelineDataClient:
         # you can publish data normally
         self._client.publish_data(
             node=PipelineNode("step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="some-data",
         )
         # and you can retrieve data normally
         assert (
             self._client.get_data(
                 node=PipelineNode("step-1"),
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
             )
             == "some-data"
         )
@@ -141,23 +141,23 @@ class TestReadProxyPipelineDataClient:
     def test_proxy_reads(self) -> None:
         self._primary_data_client.publish_data(
             node=PipelineNode("step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="primary-data",
         )
         self._proxy_data_client.publish_data(
             node=PipelineNode("step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="proxied-data",
         )
 
         self._primary_data_client.publish_data(
             node=PipelineNode("proxied-step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="primary-data",
         )
         self._proxy_data_client.publish_data(
             node=PipelineNode("proxied-step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="proxied-data",
         )
 
@@ -165,7 +165,7 @@ class TestReadProxyPipelineDataClient:
         assert (
             self._client.get_data(
                 node=PipelineNode("step-1"),
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
             )
             == "primary-data"
         )
@@ -174,7 +174,7 @@ class TestReadProxyPipelineDataClient:
         assert (
             self._client.get_data(
                 node=PipelineNode("proxied-step-1"),
-                port=PipelinePort("port-1"),
+                port=PipelinePort[str]("port-1"),
             )
             == "proxied-data"
         )
@@ -182,14 +182,14 @@ class TestReadProxyPipelineDataClient:
     def test_we_cannot_publish_to_proxy_nodes(self) -> None:
         self._client.publish_data(
             node=PipelineNode("step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="some-data",
         )
 
         with pytest.raises(RuntimeError):
             self._client.publish_data(
                 node=PipelineNode("proxied-step-1"),
-                port=PipelinePort("port-2"),
+                port=PipelinePort[str]("port-2"),
                 data="some-data",
             )
 
@@ -211,7 +211,7 @@ class TestPipelineNodeInputDataClient:
     def test_basics(self) -> None:
         self._data_client.publish_data(
             node=PipelineNode("step-1"),
-            port=PipelinePort("port-1"),
+            port=PipelinePort[str]("port-1"),
             data="some-data",
         )
 

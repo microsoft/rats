@@ -7,7 +7,7 @@ from oneml.pipelines.session import IExecutable, PipelineNodeExecutablesClient
 class FakeExecutable(IExecutable):
     called: bool
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.called = False
 
     def execute(self) -> None:

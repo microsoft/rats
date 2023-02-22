@@ -26,7 +26,7 @@ from ._node_namespacing import (
     INamespacePipelineNodes,
     PipelineNamespaceClient,
 )
-from ._remote_execution import RemoteExecutableFactory
+from ._remote_execution import IProvideRemoteExecutables
 
 
 class PipelineBuilderClient(
@@ -39,13 +39,13 @@ class PipelineBuilderClient(
 
     _session_components: PipelineSessionComponents
     _pipeline_settings: IProvidePipelineSettings
-    _remote_executable_factory: RemoteExecutableFactory
+    _remote_executable_factory: IProvideRemoteExecutables
 
     def __init__(
         self,
         session_components: PipelineSessionComponents,
         pipeline_settings: IProvidePipelineSettings,
-        remote_executable_factory: RemoteExecutableFactory,
+        remote_executable_factory: IProvideRemoteExecutables,
     ) -> None:
         self._session_components = session_components
         self._pipeline_settings = pipeline_settings
@@ -140,13 +140,13 @@ class PipelineBuilderFactory:
 
     _session_components: PipelineSessionComponents
     _pipeline_settings: IProvidePipelineSettings
-    _remote_executable_factory: RemoteExecutableFactory
+    _remote_executable_factory: IProvideRemoteExecutables
 
     def __init__(
         self,
         session_components: PipelineSessionComponents,
         pipeline_settings: IProvidePipelineSettings,
-        remote_executable_factory: RemoteExecutableFactory,
+        remote_executable_factory: IProvideRemoteExecutables,
     ) -> None:
         self._session_components = session_components
         self._pipeline_settings = pipeline_settings

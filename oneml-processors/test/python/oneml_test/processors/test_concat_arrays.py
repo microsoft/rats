@@ -13,7 +13,6 @@ from oneml.processors import (
     IProcess,
     Namespace,
     OutProcessorParam,
-    ParamsRegistry,
     PipelineSessionProvider,
     ProcessorProps,
     frozendict,
@@ -134,16 +133,17 @@ def complex_pipeline(simple_pipeline: DAG) -> DAG:
     return p1 + p2 + p3 + concat_pipeline
 
 
-@pytest.fixture
-def params_registry() -> ParamsRegistry:
-    return ParamsRegistry()
-
-
-def test_simple_pipeline(simple_pipeline: DAG, params_registry: ParamsRegistry) -> None:
-    session = PipelineSessionProvider.get_session(simple_pipeline, params_registry)
+def test_simple_pipeline(
+    pipeline_session_provider: PipelineSessionProvider,
+    simple_pipeline: DAG,
+) -> None:
+    session = pipeline_session_provider.get_session(simple_pipeline)
     session.run()
 
 
-def test_complex_pipeline(complex_pipeline: DAG, params_registry: ParamsRegistry) -> None:
-    session = PipelineSessionProvider.get_session(complex_pipeline, params_registry)
+def test_complex_pipeline(
+    pipeline_session_provider: PipelineSessionProvider,
+    complex_pipeline: DAG,
+) -> None:
+    session = pipeline_session_provider.get_session(complex_pipeline)
     session.run()
