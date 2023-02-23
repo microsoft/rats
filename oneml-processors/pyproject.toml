@@ -44,6 +44,7 @@ mypy = { version = "*", optional = true }
 pytest = { version = "*", optional = true }
 pytest-cov = { version = "*", optional = true }
 pytest-nunit = { version = "*", optional = true }
+sphinx-autodoc-typehints = {version = "1.19.5", optional = true}  # remove when sphinx builds
 
 [tool.poetry.extras]
 dev = [
@@ -58,6 +59,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-nunit",
+    "sphinx-autodoc-typehints",
 ]
 
 [tool.poetry.dev-dependencies]
@@ -82,6 +84,7 @@ src_paths = "src/python"
 known_first_party = ["oneml"]
 
 [tool.mypy]
+packages = ["oneml", "oneml_test"]
 cache_dir = "../.tmp/oneml-processors/.mypy_cache"
 namespace_packages = true
 mypy_path = "src/python/:test/python/"

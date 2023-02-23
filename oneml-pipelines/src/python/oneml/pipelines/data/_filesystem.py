@@ -2,7 +2,7 @@ import logging
 from abc import abstractmethod
 from functools import lru_cache
 from pathlib import Path
-from typing import Iterable, Protocol, cast
+from typing import Protocol
 
 from azure.core.credentials import TokenCredential
 from azure.storage.blob import BlobClient, BlobServiceClient
@@ -21,7 +21,6 @@ class IManageFiles(Protocol):
 
 
 class LocalFilesystem(IManageFiles):
-
     _directory: Path
 
     def __init__(self, directory: Path) -> None:
@@ -37,7 +36,6 @@ class LocalFilesystem(IManageFiles):
 
 
 class BlobFilesystem(IManageFiles):
-
     _credentials: TokenCredential
     _account: str
     _container: str
@@ -49,11 +47,11 @@ class BlobFilesystem(IManageFiles):
 
     def read(self, path: str) -> bytes:
         logger.debug(f"reading data from {self._account}:{self._container}@{path}")
-        return cast(bytes, self._get_blob_client(path).download_blob().readall())
+        return self._get_blob_client(path).download_blob().readall()
 
     def write(self, path: str, data: bytes) -> None:
         logger.debug(f"writing data to {self._account}:{self._container}@{path}")
-        self._get_blob_client(path).upload_blob(cast(Iterable[str], data))
+        self._get_blob_client(path).upload_blob(data)
 
     @lru_cache()
     def _get_blob_client(self, path: str) -> BlobClient:

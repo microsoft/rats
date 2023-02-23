@@ -1,0 +1,3 @@
+scratch:
+  storage_account_name: "adptrwdscratch1"
+  container_name: "jupyterscratch"

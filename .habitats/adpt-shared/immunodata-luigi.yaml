@@ -1,0 +1,2 @@
+production_dataset_storage_account: "adptsharedfiles1"
+development_dataset_storage_account: "adptsharedfilesdev1"

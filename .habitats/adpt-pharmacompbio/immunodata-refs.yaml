@@ -1,0 +1,3 @@
+scratch:
+  storage_account_name: "adptpcbscratch1"
+  container_name: "jupyterscratch"

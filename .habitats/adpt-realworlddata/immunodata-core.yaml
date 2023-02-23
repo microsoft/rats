@@ -1,0 +1,320 @@
+external_dataset_storage_accounts:
+  - storage_account_name: "ampdatasets01"
+    identity_name: "msft.immunodata-adpt-habitat"
+  - storage_account_name: "ampdatasetsdev01"
+    identity_name: "msft.immunodata-adpt-habitat"
+  - storage_account_name: "jupyterscratch01"
+    identity_name: "msft.immunodata-adpt-habitat"
+identity:
+  identity_vault:
+    key_vault_name: "adpt-rwd-ids-kv"
+    resource_group_name: "habitats-rg-adpt-realworlddata"
+    subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+    tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+    key_rotation_user_group_object_id: "5e8ccb74-7801-4c8c-ba16-afb23fe79fc4"
+    key_rotation_user_group_tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+  default_azure_identity_name: default
+  azure_identities:
+  # Default credential used when wanting to authenticate as the local user (us or managed identity)
+  - name: "default"
+    type: "local"
+  - name: "azure-cli.msft"
+    type: "azure-cli"
+    azure_cli_config:
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+  - name: "azure-cli.habitatadptrwd"
+    type: "azure-cli"
+    azure_cli_config:
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+      subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+  # A service principal from MSFT exported to ADPT as credentials to access MSFT resources
+  - name: "msft.immunodata-adpt-habitat"
+    type: "external-client-secret"
+    external_client_secret_config:
+      # Identity provisioned by the MSFT SW team
+      # https://ms.portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/c89b5a0b-153c-4c79-a9ac-97e442b43aab/isMSAApp/
+      client_id: "c89b5a0b-153c-4c79-a9ac-97e442b43aab"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      external_key_vault_name: "immunodata-msft-adpt"
+      external_key_vault_secret: "immunodata-msft-adpt-secret"
+      key_vault_name: "adpt-rwd-ids-kv"
+      key_vault_secret: "msft-immunodata-adpt-habitat-identity-secret"
+      key_vault_cli_identity: "azure-cli.habitatadptrwd"
+  - name: "jupyter-lab"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-lab"
+      resource_group_name: "habitats-rg-adpt-realworlddata"
+      subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-lab"
+        kubernetes_namespace: "jupyter"
+  - name: "jupyter-kernel"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-jupyter-kernel"
+      resource_group_name: "habitats-rg-adpt-realworlddata"
+      subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+      kubernetes_binding:
+        azure_identity_crd_name: "jupyter-kernel"
+        kubernetes_namespace: "jupyter-kernels"
+  - name: "workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-workflows"
+      resource_group_name: "habitats-rg-adpt-realworlddata"
+      subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+      kubernetes_binding:
+        azure_identity_crd_name: "workflow"
+        kubernetes_namespace: "workflows"
+  - name: "development-workflows"
+    type: "managed-identity"
+    managed_identity_config:
+      managed_identity_name: "k8s-pods-development-workflows"
+      resource_group_name: "habitats-rg-adpt-realworlddata"
+      subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+      kubernetes_binding:
+        azure_identity_crd_name: "development-workflow"
+        kubernetes_namespace: "development-workflows"
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "habitats-rg-adpt-realworlddata"
+      Segment: "untagged"
+kubernetes:
+  namespaces:
+    - "jupyter-kernels"
+    - "jupyter"
+    - "workflows"
+    - "development-workflows"
+    - "documentation"
+  infrastructure:
+    resource_tags:
+      azure-native:
+        ApplicationName: "Habitats"
+        BusinessUnit: "Research Data Platform"
+        CostCenter: "US065"
+        Env: "production"
+        Owner: "esilgard@adaptivebiotech.com"
+        RG: "habitats-rg-adpt-realworlddata"
+        Segment: "untagged"
+    cluster_name: "habitats-aks-adpt-rwd"
+    location: "westus2"
+    kubernetes_version: "1.24.6"
+    resource_group_name: "habitats-rg-adpt-realworlddata"
+    subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+    tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+    agent_pool_profiles:
+      - name: "common1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 5
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_D8s_v4"
+        node_labels:
+          purpose: "common"
+      - name: "jupytercore1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 5
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 2048
+        vm_size: "Standard_E64s_v4"
+        node_labels:
+          purpose: "jupyter-core"
+      - name: "kernels1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 10
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v4"
+        node_labels:
+          purpose: "jupyter-kernels"
+      - name: "workflows1"
+        count: 3
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 5
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v4"
+        node_labels:
+          purpose: "workflows"
+      - name: "system1"
+        count: 3
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "System"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_D4_v4"
+        node_taints:
+          - "CriticalAddonsOnly=true:NoSchedule"
+    log_analytics:
+      workspace_name: "habitats-log-adpt-rwd"
+      retention_in_days: 30
+    network:
+      service_cidr: "10.11.0.0/16"
+      dns_service_ip: "10.11.0.10"
+      docker_bridge_cidr: "10.12.0.1/16"
+    public_ip:
+      name: "habitats-pip-adpt-rwd"
+    vnet:
+      name: "habitats-vnet-adpt-rwd"
+      address_prefix: "10.10.0.0/16"
+      subnet:
+        - name: "habitats-snet-adpt-rwd"
+          address_prefix: "10.10.128.0/17"
+        - name: "habitats-snet-adpt-rwd-as"
+          address_prefix: "10.10.0.0/28"
+          delegation: "Microsoft.Web/serverfarms"
+traefik:
+  load_balancer_ip: "10.10.210.20"
+  image_tag: "traefik:v2.8"
+  helm_namespace: "helm-releases"
+  traefik_pod_replicas: 1
+  whoami_replicas: 1
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "habitats-rg-adpt-realworlddata"
+      Segment: "untagged"
+storage:
+  accounts:
+  - account_name: "adptrwdmetadata1"
+    resource_group_name: "habitats-rg-adpt-realworlddata"
+    subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+    owner_user_group_id: "5e8ccb74-7801-4c8c-ba16-afb23fe79fc4"
+    cli_identity_name: "azure-cli.habitatadptrwd"
+    containers:
+    - container_name: "production"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+    - container_name: "development"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+  - account_name: "adptrwdscratch1"
+    resource_group_name: "habitats-rg-adpt-realworlddata"
+    subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+    owner_user_group_id: "5e8ccb74-7801-4c8c-ba16-afb23fe79fc4"
+    cli_identity_name: "azure-cli.habitatadptrwd"
+    containers:
+    - container_name: "jupyterscratch"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "write"
+      - identity_name: "jupyter-kernel"
+        access_level: "write"
+  - account_name: "adptrwdfiles1"
+    resource_group_name: "habitats-rg-adpt-realworlddata"
+    subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+    owner_user_group_id: "5e8ccb74-7801-4c8c-ba16-afb23fe79fc4"
+    cli_identity_name: "azure-cli.habitatadptrwd"
+    containers:
+    - container_name: "general"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+    - container_name: "sideloaded"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+    - container_name: "immunodata-annotations-raw-batches"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "workflows"
+        access_level: "write"
+      - identity_name: "development-workflows"
+        access_level: "read"
+  - account_name: "adptrwdfilesdev1"
+    resource_group_name: "habitats-rg-adpt-realworlddata"
+    subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+    owner_user_group_id: "5e8ccb74-7801-4c8c-ba16-afb23fe79fc4"
+    cli_identity_name: "azure-cli.habitatadptrwd"
+    containers:
+    - container_name: "general"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+    - container_name: "tmp"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+    - container_name: "sideloaded"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+    - container_name: "immunodata-annotations-raw-batches"
+      permissions:
+      - identity_name: "jupyter-lab"
+        access_level: "read"
+      - identity_name: "jupyter-kernel"
+        access_level: "read"
+      - identity_name: "development-workflows"
+        access_level: "write"
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "habitats-rg-adpt-realworlddata"
+      Segment: "untagged"

@@ -10,7 +10,9 @@ identity:
     key_vault_name: "platinum-vault"
     resource_group_name: "AnalyticsWorkbenchIACTest"
     subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+    tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
     key_rotation_user_group_object_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
+    key_rotation_user_group_tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
   default_azure_identity_name: default
   azure_identities:
   # Default credential used when wanting to authenticate as the local user (us or managed identity)
@@ -31,6 +33,16 @@ identity:
     azure_cli_config:
       tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+  - name: "adpt-dataset-transfer"
+    type: "client-secret"
+    client_secret_config:
+    # Identity provisioned by the ADPT Cloud IT team
+      client_id: "d7954695-a9ad-48f2-b5d5-0ce1fb6e59d8"
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+      key_vault_name: "platinum-vault"
+      key_vault_secret: "adpt-export-dataset-transfer-identity-secret"
+      key_vault_cli_identity: "azure-cli.adpt"
   # A service principal given to msft for them to push data into the adpt tenant
   # This identity is not used for any API calls on the adpt habitat
   - name: "adpt-export"
@@ -102,6 +114,15 @@ identity:
       kubernetes_binding:
         azure_identity_crd_name: "tekton-pipeline"
         kubernetes_namespace: "ci-builds"
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "AnalyticsWorkbenchIACTest"
+      Segment: "untagged"
 kubernetes:
   namespaces:
     - "jupyter-kernels"
@@ -111,9 +132,18 @@ kubernetes:
     - "ci-builds"
     - "documentation"
   infrastructure:
+    resource_tags:
+      azure-native:
+        ApplicationName: "Habitats"
+        BusinessUnit: "Research Data Platform"
+        CostCenter: "US065"
+        Env: "production"
+        Owner: "esilgard@adaptivebiotech.com"
+        RG: "AnalyticsWorkbenchIACTest"
+        Segment: "untagged"
     cluster_name: "platinum"
     location: "westus2"
-    kubernetes_version: "1.22.11"
+    kubernetes_version: "1.24.6"
     resource_group_name: "AnalyticsWorkbenchIACTest"
     subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
     tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
@@ -138,7 +168,7 @@ kubernetes:
         max_count: 3
         max_pods: 30
         mode: "User"
-        os_disk_size_gb: 50
+        os_disk_size_gb: 1023
         vm_size: "Standard_D8_v4"
         node_labels:
           purpose: "common"
@@ -149,7 +179,7 @@ kubernetes:
         max_count: 5
         max_pods: 30
         mode: "User"
-        os_disk_size_gb: 50
+        os_disk_size_gb: 2048
         vm_size: "Standard_E64s_v4"
         node_labels:
           purpose: "jupyter-core"
@@ -160,7 +190,7 @@ kubernetes:
         max_count: 10
         max_pods: 30
         mode: "User"
-        os_disk_size_gb: 50
+        os_disk_size_gb: 1023
         vm_size: "Standard_E64s_v4"
         node_labels:
           purpose: "jupyter-kernels"
@@ -171,7 +201,7 @@ kubernetes:
         max_count: 5
         max_pods: 30
         mode: "User"
-        os_disk_size_gb: 50
+        os_disk_size_gb: 1023
         vm_size: "Standard_E64s_v4"
         node_labels:
           purpose: "workflows"
@@ -180,7 +210,7 @@ kubernetes:
         enable_auto_scaling: false
         max_pods: 30
         mode: "System"
-        os_disk_size_gb: 50
+        os_disk_size_gb: 1023
         vm_size: "Standard_D4_v4"
         node_taints:
           - "CriticalAddonsOnly=true:NoSchedule"
@@ -193,9 +223,6 @@ kubernetes:
       docker_bridge_cidr: "10.12.0.1/16"
     public_ip:
       name: "platinum-public-ip"
-    tags:
-      "application": "immunodata"
-      "environment": "production"
     vnet:
       name: "platinum-vnet"
       address_prefix: "10.10.0.0/16"
@@ -208,6 +235,15 @@ traefik:
   helm_namespace: "helm-releases"
   traefik_pod_replicas: 1
   whoami_replicas: 1
+  resource_tags:
+      azure-native:
+        ApplicationName: "Habitats"
+        BusinessUnit: "Research Data Platform"
+        CostCenter: "US065"
+        Env: "production"
+        Owner: "esilgard@adaptivebiotech.com"
+        RG: "AnalyticsWorkbenchIACTest"
+        Segment: "untagged"
 storage:
   accounts:
   - account_name: "adptplatinummetadata"
@@ -320,3 +356,12 @@ storage:
         access_level: "read"
       - identity_name: "development-workflows"
         access_level: "write"
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "AnalyticsWorkbenchIACTest"
+      Segment: "untagged"

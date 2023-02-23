@@ -1,0 +1,31 @@
+image_registry: "habitatsacradptshared"
+image_registry_cli_identity_name: "azure-cli.habitatadptshared"
+external_registries:
+  - identity_name: "msft.immunodata-adpt-habitat"
+    cli_identity_name: "azure-cli.msft"
+    registry_name: "immunodata.azurecr.io"
+    secret_name: "immunodata-pull-secret"
+infrastructure:
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "habitats-rg-adpt-shared"
+      Segment: "untagged"
+  contributor_user_group_object_id: "2f636d6f-0717-4224-be35-c6501fd7d5ab"
+  contributor_user_group_subscription_id: "bf17fa2f-2cf3-4eba-940c-f0dd01b0ffc9"
+  contributor_user_group_tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+  identity_name: "azure-cli.habitatadptshared"
+  management_resource_group_name: "habitats-rg-adpt-shared-mgmt"
+  management_subscription_id: "bf17fa2f-2cf3-4eba-940c-f0dd01b0ffc9"
+  state_storage_account_name: "adptsharedinfra1"
+  state_storage_account_container_name: "pulumi"
+  secrets_encryption_key_vault_name: "adpt-shared-infra-kv"
+  secrets_encryption_key_vault_tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+  secrets_encryption_key_vault_secret: "platform-infrastructure-encryption-secret"
+acr:
+  acr_resource_group_name: "habitats-rg-adpt-shared"
+  subscription_id: "bf17fa2f-2cf3-4eba-940c-f0dd01b0ffc9"

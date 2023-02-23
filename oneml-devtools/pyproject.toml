@@ -25,14 +25,12 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
-immunodata-cli = "0.45.*"
-immunodata-core = "0.45.*"
-immunodata-datasets = "0.45.*"
-immunodata-devops = "0.45.*"
-immunodata-docslib = "0.45.*"
-immunodata-workflows = "0.45.*"
-# TODO: remove this once immunodata fixes the issue upstream (pulumi).
-protobuf = "3.20.*"
+immunodata-cli = "0.46.*"
+immunodata-core = "0.46.*"
+immunodata-datasets = "0.46.*"
+immunodata-devops = "0.46.*"
+immunodata-docslib = "0.46.*"
+immunodata-workflows = "0.46.*"
 
 # These are only needed during development
 flake8 = { version = "*", optional = true }
@@ -78,6 +76,7 @@ src_paths = "src/python"
 known_first_party = ["oneml"]
 
 [tool.mypy]
+packages = ["oneml", "oneml_test"]
 cache_dir = "../.tmp/oneml-devtools/.mypy_cache"
 namespace_packages = true
 mypy_path = "src/python/:test/python/"

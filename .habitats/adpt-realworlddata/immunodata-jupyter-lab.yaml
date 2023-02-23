@@ -1,0 +1,40 @@
+# TODO - clean this up so we're not writing these twice (here and below as managed identities)
+identity_names:
+  lab_identity_name: "jupyter-lab"
+  kernel_identity_name: "jupyter-kernel"
+database:
+  account_name: "adpt-jupyterlab-db"
+  container_name: "notebooks"
+  db_name: "jupyterlab"
+  key_vault_name: "platinum-vault"
+  secret_name: "jupyterlab-db-rw"
+notebook_fileshare:
+  fileshare_name: jupyter-notebooks
+  secret_name: jupyter-notebooks-secret
+  # TODO - set this to the right value
+  identity_name: "msft.immunodata-adpt-habitat"
+# all external registries for images used by Juptyer lab containers (lab, enterprise-gateway)
+image_pull_secrets:
+  - secret_name: "immunodata-pull-secret"
+    registry_name: "immunodata.azurecr.io"
+    identity_name: "msft.immunodata-adpt-habitat"
+users:
+  - "afigpope@adaptivebiotech.com"
+infrastructure:
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "habitats-rg-adpt-realworlddata"
+      Segment: "untagged"
+  resource_group_name: "habitats-rg-adpt-realworlddata"
+  subscription_id: "a58af6b0-6c0b-41ac-912c-5ac85c6f73f3"
+  jupyter_lab_kubernetes_namespace: "jupyter"
+  jupyter_kernel_kubernetes_namespace: "jupyter-kernels"
+  jupyter_lab_service_account_name: "jupyter-lab"
+  jupyter_kernel_service_account_name: "jupyter-kernel"
+  jupyter_lab_managed_identity_name: "jupyter-lab"
+  jupyter_kernel_managed_identity_name: "jupyter-kernel"

@@ -3,7 +3,9 @@ identity:
     key_vault_name: "immunodata-infra"
     resource_group_name: "immunodata.aks"
     subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
     key_rotation_user_group_object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
+    key_rotation_user_group_tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
   default_azure_identity_name: default
   azure_identities:
   # Default credential used when wanting to authenticate as the local user (us or managed identity)

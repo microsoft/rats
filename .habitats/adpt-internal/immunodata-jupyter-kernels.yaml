@@ -1,0 +1,6 @@
+# all external registries for images used by Juptyer lab containers (lab, enterprise-gateway)
+kernelspec_namespace: "jupyter"
+image_pull_secrets:
+  - secret_name: "immunodata-pull-secret"
+    registry_name: "immunodata.azurecr.io"
+    identity_name: "msft.immunodata-adpt-habitat"

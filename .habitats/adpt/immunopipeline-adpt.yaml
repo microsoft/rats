@@ -1,5 +1,0 @@
-agate_downloads:
-  agate_auth_user_secret: "agate-auth-user"
-  agate_auth_user_token_secret: "dorsey-auth-token"
-  identity_name: "default"
-  key_vault_name: "platinum-vault"

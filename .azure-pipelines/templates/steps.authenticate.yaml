@@ -5,6 +5,12 @@ steps:
 - task: Docker@2
   displayName: 'Authenticate: Docker'
   inputs:
+    containerRegistry: 'immunomics-acr-v2'
+    command: 'login'
+
+- task: Docker@2
+  displayName: 'Authenticate: Docker'
+  inputs:
     containerRegistry: 'immunodata-acr-v2'
     command: 'login'
 
