@@ -24,6 +24,7 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
+python = ">=3.8.10,<3.11"
 colorlog = "*"
 hera-workflows = "^3.2.0"
 hydra-core = "^1.1.2"
@@ -43,42 +44,30 @@ oneml-processors = "*"
 optuna = "^2.10.0"
 pydot = "*"
 pygame = "^2.1.2"
-python = ">=3.8.10,<3.11"
-
-# These are only needed during development
-black = { version = "*", optional = true }
-coverage = { version = "*", optional = true }
-flake8 = { version = "*", optional = true }
-flake8-formatter-junit-xml = { version = "*", optional = true }
-flake8-isort = { version = "*", optional = true }
-isort = { version = "*", optional = true }
-mypy = { version = "*", optional = true }
-pytest = { version = "*", optional = true }
-pytest-cov = { version = "*", optional = true }
-pytest-nunit = { version = "*", optional = true }
 dagster = "^1.1.14"
 dagit = "^1.1.14"
+#oneml-habitats = "*"
+#oneml-pipelines = "*"
+#oneml-processors = "*"
 
 [tool.poetry.extras]
-dev = [
-    "black",
-    "coverage",
-    "flake8",
-    "flake8-formatter-junit-xml",
-    "flake8-isort",
-    "isort",
-    "mypy",
-    "pytest",
-    "pytest-cov",
-    "pytest-nunit",
-]
+dev = []
 
-[tool.poetry.dev-dependencies]
-# Dev dependencies are used to overwrite configuration of local dependencies to be editable
+[tool.poetry.group.dev.dependencies]
+oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-habitats = { path = "../oneml-habitats/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 oneml-processors = { path = "../oneml-processors/", develop = true }
-oneml-devtools = { path = "../oneml-devtools/", develop = true }
+black = "*"
+coverage = "*"
+flake8 = "*"
+flake8-formatter-junit-xml = "*"
+flake8-isort = "*"
+isort = "*"
+mypy = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-nunit = "*"
 
 [tool.poetry.scripts]
 democli = 'oneml.lorenzo.app1._main:entrypoint'

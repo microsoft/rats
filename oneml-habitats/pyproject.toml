@@ -33,38 +33,24 @@ immunodata-workflows = { version = "*" }
 oneml-pipelines = "*"
 oneml-processors = "*"
 
-# These are only needed during development
-flake8 = { version = "*", optional = true }
-flake8-formatter-junit-xml = { version = "*", optional = true }
-pytest = { version = "*", optional = true }
-mypy = { version = "*", optional = true }
-coverage = { version = "*", optional = true }
-pytest-cov = { version = "*", optional = true }
-pytest-nunit = { version = "*", optional = true }
-isort = { version = "*", optional = true }
-flake8-isort = { version = "*", optional = true }
-black = { version = "*", optional = true }
-types-urllib3 = { version = "*", optional = true }
-
 [tool.poetry.extras]
-dev = [
-    "flake8",
-    "flake8-formatter-junit-xml",
-    "pytest",
-    "mypy",
-    "coverage",
-    "pytest-cov",
-    "pytest-nunit",
-    "isort",
-    "flake8-isort",
-    "black",
-    "types-urllib3",
-]
+dev = []
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 oneml-processors = { path = "../oneml-processors/", develop = true }
+flake8 = "*"
+flake8-formatter-junit-xml = "*"
+pytest = "*"
+mypy = "*"
+coverage = "*"
+pytest-cov = "*"
+pytest-nunit = "*"
+isort = "*"
+flake8-isort = "*"
+black = "*"
+types-urllib3 = "*"
 
 [tool.poetry.plugins."immunocli.plugins"]
 "oneml-habitats" = "oneml.habitats.immunocli._plugin:OnemlHabitatsCliPlugin"

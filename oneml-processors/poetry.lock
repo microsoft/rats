@@ -4,7 +4,7 @@
 name = "alabaster"
 version = "0.7.13"
 description = "A configurable sidebar-enabled Sphinx theme"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -58,7 +58,7 @@ reference = "immunomics-artifacts"
 name = "attrs"
 version = "22.2.0"
 description = "Classes Without Boilerplate"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -259,7 +259,7 @@ reference = "immunomics-artifacts"
 name = "babel"
 version = "2.11.0"
 description = "Internationalization utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -303,8 +303,8 @@ reference = "immunomics-artifacts"
 name = "black"
 version = "23.1.0"
 description = "The uncompromising code formatter."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "black-23.1.0-cp310-cp310-macosx_10_16_arm64.whl", hash = "sha256:b6a92a41ee34b883b359998f0c8e6eb8e99803aa8bf3123bf2b2e6fec505a221"},
@@ -611,7 +611,7 @@ reference = "immunomics-artifacts"
 name = "click"
 version = "8.1.3"
 description = "Composable command line interface toolkit"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -631,7 +631,7 @@ reference = "immunomics-artifacts"
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 files = [
@@ -671,8 +671,8 @@ reference = "immunomics-artifacts"
 name = "coverage"
 version = "7.2.0"
 description = "Code coverage measurement for Python"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "coverage-7.2.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:90e7a4cbbb7b1916937d380beb1315b12957b8e895d7d9fb032e2038ac367525"},
@@ -760,8 +760,6 @@ files = [
     {file = "cryptography-39.0.1-cp36-abi3-win32.whl", hash = "sha256:fe913f20024eb2cb2f323e42a64bdf2911bb9738a15dba7d3cce48151034e3a8"},
     {file = "cryptography-39.0.1-cp36-abi3-win_amd64.whl", hash = "sha256:ced4e447ae29ca194449a3f1ce132ded8fcab06971ef5f618605aacaa612beac"},
     {file = "cryptography-39.0.1-pp38-pypy38_pp73-macosx_10_12_x86_64.whl", hash = "sha256:807ce09d4434881ca3a7594733669bd834f5b2c6d5c7e36f8c00f691887042ad"},
-    {file = "cryptography-39.0.1-pp38-pypy38_pp73-manylinux_2_28_aarch64.whl", hash = "sha256:c5caeb8188c24888c90b5108a441c106f7faa4c4c075a2bcae438c6e8ca73cef"},
-    {file = "cryptography-39.0.1-pp38-pypy38_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:4789d1e3e257965e960232345002262ede4d094d1a19f4d3b52e48d4d8f3b885"},
     {file = "cryptography-39.0.1-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:96f1157a7c08b5b189b16b47bc9db2332269d6680a196341bf30046330d15388"},
     {file = "cryptography-39.0.1-pp39-pypy39_pp73-macosx_10_12_x86_64.whl", hash = "sha256:e422abdec8b5fa8462aa016786680720d78bdce7a30c652b7fadf83a4ba35336"},
     {file = "cryptography-39.0.1-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_24_aarch64.whl", hash = "sha256:b0afd054cd42f3d213bf82c629efb1ee5f22eba35bf0eec88ea9ea7304f511a2"},
@@ -925,7 +923,7 @@ reference = "immunomics-artifacts"
 name = "docutils"
 version = "0.19"
 description = "Docutils -- Python Documentation Utilities"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -942,8 +940,8 @@ reference = "immunomics-artifacts"
 name = "exceptiongroup"
 version = "1.1.0"
 description = "Backport of PEP 654 (exception groups)"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "exceptiongroup-1.1.0-py3-none-any.whl", hash = "sha256:327cbda3da756e2de031a3107b81ab7b3770a602c4d16ca618298c526f4bec1e"},
@@ -962,8 +960,8 @@ reference = "immunomics-artifacts"
 name = "flake8"
 version = "6.0.0"
 description = "the modular source code checker: pep8 pyflakes and co"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.8.1"
 files = [
     {file = "flake8-6.0.0-py2.py3-none-any.whl", hash = "sha256:3833794e27ff64ea4e9cf5d410082a8b97ff1a06c16aa3d2027339cd0f1195c7"},
@@ -984,8 +982,8 @@ reference = "immunomics-artifacts"
 name = "flake8-formatter-junit-xml"
 version = "0.0.6"
 description = "JUnit XML Formatter for flake8"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 files = [
     {file = "flake8_formatter_junit_xml-0.0.6-py2.py3-none-any.whl", hash = "sha256:6358a44ecafdf0f9c8ee5314859b8d6f553dc2e55e946a24c538185e1eba7ce6"},
@@ -1005,8 +1003,8 @@ reference = "immunomics-artifacts"
 name = "flake8-isort"
 version = "6.0.0"
 description = "flake8 plugin that integrates isort ."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "flake8-isort-6.0.0.tar.gz", hash = "sha256:537f453a660d7e903f602ecfa36136b140de279df58d02eb1b6a0c84e83c528c"},
@@ -1162,7 +1160,7 @@ reference = "immunomics-artifacts"
 name = "imagesize"
 version = "1.4.1"
 description = "Getting image size from png/jpeg/jpeg2000/gif file"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 files = [
@@ -1373,7 +1371,7 @@ reference = "immunomics-artifacts"
 name = "importlib-metadata"
 version = "6.0.0"
 description = "Read metadata from Python packages"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1398,8 +1396,8 @@ reference = "immunomics-artifacts"
 name = "iniconfig"
 version = "2.0.0"
 description = "brain-dead simple config-ini parsing"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "iniconfig-2.0.0-py3-none-any.whl", hash = "sha256:b6a85871a79d2e3b22d2d1b94ac2824226a63c6b741c88f7ae975f18b6778374"},
@@ -1435,8 +1433,8 @@ reference = "immunomics-artifacts"
 name = "isort"
 version = "5.12.0"
 description = "A Python utility / library to sort Python imports."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.8.0"
 files = [
     {file = "isort-5.12.0-py3-none-any.whl", hash = "sha256:f84c2818376e66cf843d497486ea8fed8700b340f308f076c6fb1229dff318b6"},
@@ -1458,7 +1456,7 @@ reference = "immunomics-artifacts"
 name = "jinja2"
 version = "3.1.2"
 description = "A very fast and expressive template engine."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1481,8 +1479,8 @@ reference = "immunomics-artifacts"
 name = "junit-xml"
 version = "1.9"
 description = "Creates JUnit XML test result documents that can be read by tools such as Jenkins"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 files = [
     {file = "junit-xml-1.9.tar.gz", hash = "sha256:de16a051990d4e25a3982b2dd9e89d671067548718866416faec14d9de56db9f"},
@@ -1654,7 +1652,7 @@ reference = "immunomics-artifacts"
 name = "markupsafe"
 version = "2.1.2"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -1719,8 +1717,8 @@ reference = "immunomics-artifacts"
 name = "mccabe"
 version = "0.7.0"
 description = "McCabe checker, plugin for flake8"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
@@ -1953,8 +1951,8 @@ reference = "immunomics-artifacts"
 name = "mypy"
 version = "1.0.1"
 description = "Optional static typing for Python"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "mypy-1.0.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:71a808334d3f41ef011faa5a5cd8153606df5fc0b56de5b2e89566c8093a0c9a"},
@@ -2005,8 +2003,8 @@ reference = "immunomics-artifacts"
 name = "mypy-extensions"
 version = "1.0.0"
 description = "Type system extensions for programs checked with the mypy type checker."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.5"
 files = [
     {file = "mypy_extensions-1.0.0-py3-none-any.whl", hash = "sha256:4392f6c0eb8a5668a69e23d168ffa70f0be9ccfd32b5cc2d26a34ae5b844552d"},
@@ -2067,8 +2065,8 @@ reference = "immunomics-artifacts"
 name = "numpy"
 version = "1.24.2"
 description = "Fundamental package for array computing in Python"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "numpy-1.24.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:eef70b4fc1e872ebddc38cddacc87c19a3709c0e3e5d20bf3954c147b1dd941d"},
@@ -2189,7 +2187,7 @@ dill = "*"
 kubernetes = "*"
 
 [package.extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "isort", "mypy", "pytest", "pytest-cov", "pytest-nunit", "types-urllib3"]
+dev = []
 
 [package.source]
 type = "directory"
@@ -2199,7 +2197,7 @@ url = "../oneml-pipelines"
 name = "packaging"
 version = "23.0"
 description = "Core utilities for Python packages"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -2244,8 +2242,8 @@ reference = "immunomics-artifacts"
 name = "pathspec"
 version = "0.11.0"
 description = "Utility library for gitignore style pattern matching of file paths."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "pathspec-0.11.0-py3-none-any.whl", hash = "sha256:3a66eb970cbac598f9e5ccb5b2cf58930cd8e3ed86d393d541eaf2d8b1705229"},
@@ -2261,8 +2259,8 @@ reference = "immunomics-artifacts"
 name = "platformdirs"
 version = "3.0.0"
 description = "A small Python package for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "platformdirs-3.0.0-py3-none-any.whl", hash = "sha256:b1d5eb14f221506f50d6604a561f4c5786d9e80355219694a1b244bcd96f4567"},
@@ -2282,8 +2280,8 @@ reference = "immunomics-artifacts"
 name = "pluggy"
 version = "1.0.0"
 description = "plugin and hook calling mechanisms for python"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "pluggy-1.0.0-py2.py3-none-any.whl", hash = "sha256:74134bbf457f031a36d68416e1509f34bd5ccc019f0bcc952c7b909d06b37bd3"},
@@ -2470,8 +2468,8 @@ reference = "immunomics-artifacts"
 name = "pycodestyle"
 version = "2.10.0"
 description = "Python style guide checker"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "pycodestyle-2.10.0-py2.py3-none-any.whl", hash = "sha256:8a4eaf0d0495c7395bdab3589ac2db602797d76207242c17d470186815706610"},
@@ -2582,8 +2580,8 @@ reference = "immunomics-artifacts"
 name = "pyflakes"
 version = "3.0.1"
 description = "passive checker of Python programs"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "pyflakes-3.0.1-py2.py3-none-any.whl", hash = "sha256:ec55bf7fe21fff7f1ad2f7da62363d749e2a470500eab1b555334b67aa1ef8cf"},
@@ -2599,7 +2597,7 @@ reference = "immunomics-artifacts"
 name = "pygments"
 version = "2.14.0"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -2685,8 +2683,8 @@ reference = "immunomics-artifacts"
 name = "pytest"
 version = "7.2.1"
 description = "pytest: simple powerful testing with Python"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "pytest-7.2.1-py3-none-any.whl", hash = "sha256:c7c6ca206e93355074ae32f7403e8ea12163b1163c976fee7d4d84027c162be5"},
@@ -2714,8 +2712,8 @@ reference = "immunomics-artifacts"
 name = "pytest-cov"
 version = "4.0.0"
 description = "Pytest plugin for measuring coverage."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "pytest-cov-4.0.0.tar.gz", hash = "sha256:996b79efde6433cdbd0088872dbc5fb3ed7fe1578b68cdbba634f14bb8dd0470"},
@@ -2738,8 +2736,8 @@ reference = "immunomics-artifacts"
 name = "pytest-nunit"
 version = "1.0.3"
 description = "A pytest plugin for generating NUnit3 test result XML output"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "pytest-nunit-1.0.3.tar.gz", hash = "sha256:90ec736016103aac8fbadb9a74596a9cc8422e1d8b0777df7c13ac66cfaa6b35"},
@@ -2806,7 +2804,7 @@ reference = "immunomics-artifacts"
 name = "pytz"
 version = "2022.7.1"
 description = "World timezone definitions, modern and historical"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 files = [
@@ -3173,7 +3171,7 @@ reference = "immunomics-artifacts"
 name = "snowballstemmer"
 version = "2.2.0"
 description = "This package provides 29 stemmers for 28 languages generated from Snowball algorithms."
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 files = [
@@ -3207,7 +3205,7 @@ reference = "immunomics-artifacts"
 name = "sphinx"
 version = "6.1.3"
 description = "Python documentation generator"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -3248,7 +3246,7 @@ reference = "immunomics-artifacts"
 name = "sphinx-autodoc-typehints"
 version = "1.19.5"
 description = "Type hints (PEP 484) support for the Sphinx autodoc extension"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3300,7 +3298,7 @@ reference = "immunomics-artifacts"
 name = "sphinxcontrib-applehelp"
 version = "1.0.4"
 description = "sphinxcontrib-applehelp is a Sphinx extension which outputs Apple help books"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -3321,7 +3319,7 @@ reference = "immunomics-artifacts"
 name = "sphinxcontrib-devhelp"
 version = "1.0.2"
 description = "sphinxcontrib-devhelp is a sphinx extension which outputs Devhelp document."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -3342,7 +3340,7 @@ reference = "immunomics-artifacts"
 name = "sphinxcontrib-htmlhelp"
 version = "2.0.1"
 description = "sphinxcontrib-htmlhelp is a sphinx extension which renders HTML help files"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
@@ -3363,7 +3361,7 @@ reference = "immunomics-artifacts"
 name = "sphinxcontrib-jsmath"
 version = "1.0.1"
 description = "A sphinx extension which renders display math in HTML via JavaScript"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -3383,7 +3381,7 @@ reference = "immunomics-artifacts"
 name = "sphinxcontrib-qthelp"
 version = "1.0.3"
 description = "sphinxcontrib-qthelp is a sphinx extension which outputs QtHelp document."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -3404,7 +3402,7 @@ reference = "immunomics-artifacts"
 name = "sphinxcontrib-serializinghtml"
 version = "1.1.5"
 description = "sphinxcontrib-serializinghtml is a sphinx extension which outputs \"serialized\" HTML files (json and pickle)."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -3479,8 +3477,8 @@ reference = "immunomics-artifacts"
 name = "tomli"
 version = "2.0.1"
 description = "A lil' TOML parser"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
@@ -3496,7 +3494,7 @@ reference = "immunomics-artifacts"
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3640,7 +3638,7 @@ reference = "immunomics-artifacts"
 name = "zipp"
 version = "3.14.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -3658,9 +3656,9 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "isort", "numpy", "mypy", "pytest", "pytest-cov", "pytest-nunit", "sphinx-autodoc-typehints"]
+dev = []
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "6ca2ffb623d504fd4d394d6c20cecbfd56f28e126ae97865d707880ff8a19512"
+content-hash = "328905d747e938abb416edfcedb8994c3d7a430f61706677c7e6591c1d1ce290"
