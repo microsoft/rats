@@ -1,7 +1,7 @@
 from abc import abstractmethod
-from contextlib import contextmanager
-from typing import Dict, Generator, Optional, Protocol
+from typing import Dict, Protocol, TypeAlias
 
+from oneml.pipelines.context._client import IManageExecutionContexts
 from oneml.pipelines.dag import PipelineNode
 
 from ._executable import IExecutable
@@ -41,32 +41,24 @@ class IManagePipelineNodeExecutables(
     pass
 
 
+PipelineNodeContext: TypeAlias = IManageExecutionContexts[PipelineNode]
+
+
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables, IExecutePipelineNodes):
 
     _executables: Dict[PipelineNode, IExecutable]
-    _active_node: Optional[PipelineNode]
+    _node_context: PipelineNodeContext
 
-    def __init__(self) -> None:
+    def __init__(self, node_context: PipelineNodeContext) -> None:
+        self._node_context = node_context
         self._executables = {}
-        self._active_node = None
 
     def get_active_node(self) -> PipelineNode:
-        if not self._active_node:
-            raise RuntimeError("No active node")
-        return self._active_node
+        return self._node_context.get_context()
 
     def execute_node(self, node: PipelineNode) -> None:
-        with self.execution_context(node):
+        with self._node_context.execution_context(node):
             self.get_node_executable(node).execute()
-
-    @contextmanager
-    def execution_context(self, node: PipelineNode) -> Generator[None, None, None]:
-        current = self._active_node
-        self._active_node = node
-        try:
-            yield
-        finally:
-            self._active_node = current
 
     def get_node_executable(self, node: PipelineNode) -> IExecutable:
         if node not in self._executables:

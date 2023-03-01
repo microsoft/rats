@@ -5,6 +5,8 @@ from immunodata.cli import CliCommand, OnCommandRegistrationEvent
 from immunodata.core.immunocli import OnPackageResourceRegistrationEvent
 from immunodata.immunocli.next import BasicCliPlugin, OnPluginConfigurationEvent
 
+from oneml.habitats._components import OnemlHabitatsComponents
+
 from ._di_container import OnemlHabitatsDiContainer
 
 logger = logging.getLogger(__name__)
@@ -28,7 +30,22 @@ class OnemlHabitatsCliPlugin(BasicCliPlugin[None]):
         )
 
     def _configure_plugin(self, event: OnPluginConfigurationEvent) -> None:
+        pipelines_container = self._container.pipelines_container()
+
         registry = self._container.session_registry()
+        # TODO: we have two things called session components
+        components = self._container.session_components().session_components()
+
+        components.register_component(OnemlHabitatsComponents.DI_LOCATOR, lambda: self.app)
+        components.register_component(
+            OnemlHabitatsComponents.NODE_PUBLISHER,
+            pipelines_container.node_publisher,
+        )
+        components.register_component(
+            OnemlHabitatsComponents.SINGLE_PORT_PUBLISHER,
+            pipelines_container.single_port_publisher,
+        )
+
         hello_example = self._container.example_hello_world()
         diamond_example = self._container.example_diamond()
         registry.register_session_provider("hello-world", hello_example.get_local_session)

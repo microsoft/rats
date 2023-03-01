@@ -1,79 +1,55 @@
 import uuid
-from typing import Generic, TypeVar
 
+from oneml.habitats._components import OnemlHabitatsComponents
+from oneml.habitats._publishers import SinglePortPublisher
 from oneml.pipelines.building import PipelineBuilderFactory
 from oneml.pipelines.context._client import IProvideExecutionContexts
-from oneml.pipelines.dag import PipelinePort, PipelinePortDataType
 from oneml.pipelines.session import IExecutable, PipelineSessionClient
 
 
-class NodeBasedPublisher:
-
+class HelloExecutable(IExecutable):
+    _output_presenter: SinglePortPublisher[str]
     _session_context: IProvideExecutionContexts[PipelineSessionClient]
 
-    def __init__(self, session_context: IProvideExecutionContexts[PipelineSessionClient]) -> None:
-        self._session_context = session_context
-
-    def publish(
+    def __init__(
         self,
-        port: PipelinePort[PipelinePortDataType],
-        data: PipelinePortDataType,
+        output_presenter: SinglePortPublisher[str],
+        session_context: IProvideExecutionContexts[PipelineSessionClient],
     ) -> None:
-        session = self._session_context.get_context()
-        exe_client = session.node_executables_client()
-        node = exe_client.get_active_node()
-        data_client = session.pipeline_data_client()
-        data_client.publish_data(node, port, data)
-
-
-T = TypeVar("T")
-
-
-class SimplePublisher(Generic[T]):
-
-    _publisher: NodeBasedPublisher
-
-    def __init__(self, publisher: NodeBasedPublisher) -> None:
-        self._publisher = publisher
-
-    def publish(self, data: T) -> None:
-        self._publisher.publish(PipelinePort[T]("output"), data)
-
-
-class HelloExecutable(IExecutable):
-
-    _output_presenter: SimplePublisher[str]
-
-    def __init__(self, output_presenter: SimplePublisher[str]) -> None:
         self._output_presenter = output_presenter
+        self._session_context = session_context
 
     def execute(self) -> None:
         rnd = str(uuid.uuid4())
+        session = self._session_context.get_context()
+        node_publisher = session.get_component(OnemlHabitatsComponents.NODE_PUBLISHER)
+        print(node_publisher)
         self._output_presenter.publish(f"hello world! {rnd}")
 
 
 class HelloWorldPipelineSession:
-
     _builder_factory: PipelineBuilderFactory
-    _simple_publisher: SimplePublisher[str]
+    _single_port_publisher: SinglePortPublisher[str]
 
     def __init__(
         self,
         builder_factory: PipelineBuilderFactory,
-        simple_publisher: SimplePublisher[str],
+        single_port_publisher: SinglePortPublisher[str],
     ) -> None:
         self._builder_factory = builder_factory
-        self._simple_publisher = simple_publisher
+        self._single_port_publisher = single_port_publisher
 
     def get_local_session(self) -> PipelineSessionClient:
         """
-        An example pipeline that executed a few steps locally.
+        An example pipeline that executes a few steps locally.
         """
+        builder = self._builder_factory.get_instance()
+
         hello = HelloExecutable(
-            output_presenter=self._simple_publisher,
+            output_presenter=self._single_port_publisher,
+            session_context=builder._session_context(),
         )
 
-        builder = self._builder_factory.get_instance()
         builder.add_node(builder.node("a"))
         builder.add_node(builder.node("b"))
         builder.add_executable(builder.node("a"), hello)

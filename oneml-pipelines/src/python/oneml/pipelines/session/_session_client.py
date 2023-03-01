@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Protocol
+from typing import Protocol, TypeAlias
 
 from oneml.pipelines.context._client import IManageExecutionContexts
 from oneml.pipelines.dag import PipelineNode
@@ -115,3 +115,6 @@ class PipelineSessionClient(IPipelineSession, IProvideSessionComponents):
 
     def node_input_data_client_factory(self) -> PipelineNodeInputDataClientFactory:
         return self._node_input_data_client_factory
+
+
+PipelineSessionContext: TypeAlias = IManageExecutionContexts[PipelineSessionClient]

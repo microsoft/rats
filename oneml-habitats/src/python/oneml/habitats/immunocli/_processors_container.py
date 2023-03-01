@@ -6,7 +6,6 @@ from ._pipelines_container import OnemlHabitatsPipelinesDiContainer
 
 
 class OnemlHabitatsProcessorsDiContainer:
-
     _pipelines_container: OnemlHabitatsPipelinesDiContainer
 
     def __init__(self, pipelines_container: OnemlHabitatsPipelinesDiContainer) -> None:

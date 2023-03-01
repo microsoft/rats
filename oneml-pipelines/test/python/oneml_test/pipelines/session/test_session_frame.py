@@ -1,5 +1,6 @@
 from typing import List
 
+from oneml.pipelines.context._client import ContextClient
 from oneml.pipelines.dag import PipelineNode, PipelineNodeClient, PipelineNodeDependenciesClient
 from oneml.pipelines.session import (
     BasicPipelineSessionFrameCommands,
@@ -30,7 +31,9 @@ class TestBasicPipelineSessionFrameCommands:
         self._session_state_client = PipelineSessionStateClient()
         self._node_state_client = PipelineNodeStateClient()
         self._node_dependencies_client = PipelineNodeDependenciesClient(self._node_client)
-        self._node_executable_client = PipelineNodeExecutablesClient()
+        self._node_executable_client = PipelineNodeExecutablesClient(
+            node_context=ContextClient(),
+        )
 
         self._frame_commands = BasicPipelineSessionFrameCommands(
             session_state_client=self._session_state_client,

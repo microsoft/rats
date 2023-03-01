@@ -5,7 +5,6 @@ from ._processors import A, B, C, D
 
 
 class DiamondPipelineSession:
-
     _session_provider: PipelineSessionProvider
 
     def __init__(self, session_provider: PipelineSessionProvider) -> None:

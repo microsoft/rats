@@ -18,10 +18,10 @@ from oneml.habitats.immunocli._commands import (
 from oneml.habitats.immunocli._pipelines_container import OnemlHabitatsPipelinesDiContainer
 from oneml.habitats.immunocli._processors_container import OnemlHabitatsProcessorsDiContainer
 from oneml.habitats.registry._session_registry import PipelineSessionRegistry
+from oneml.pipelines.session._client import PipelineSessionComponents
 
 
 class OnemlHabitatsDiContainer:
-
     _app: ILocateDiContainers
 
     def __init__(self, app: ILocateDiContainers):
@@ -35,14 +35,14 @@ class OnemlHabitatsDiContainer:
     def oneml_run_pipeline_command(self) -> RunOnemlPipelineCommand:
         return RunOnemlPipelineCommand(
             registry=self.session_registry(),
-            pipeline_settings=self._pipelines_container().pipeline_settings(),
+            pipeline_settings=self.pipelines_container().pipeline_settings(),
         )
 
     @lru_cache()
     def oneml_run_pipeline_node_command(self) -> RunOnemlPipelineNodeCommand:
         return RunOnemlPipelineNodeCommand(
             registry=self.session_registry(),
-            pipeline_settings=self._pipelines_container().pipeline_settings(),
+            pipeline_settings=self.pipelines_container().pipeline_settings(),
         )
 
     @lru_cache()
@@ -52,15 +52,18 @@ class OnemlHabitatsDiContainer:
     @lru_cache()
     def example_hello_world(self) -> HelloWorldPipelineSession:
         return HelloWorldPipelineSession(
-            builder_factory=self._pipelines_container().pipeline_builder_factory(),
-            simple_publisher=self._pipelines_container().simple_publisher(),
+            builder_factory=self.pipelines_container().pipeline_builder_factory(),
+            single_port_publisher=self.pipelines_container().single_port_publisher(),
         )
 
     @lru_cache()
     def example_diamond(self) -> DiamondPipelineSession:
         return DiamondPipelineSession(
-            session_provider=self._processors_container().pipeline_session_provider(),
+            session_provider=self.processors_container().pipeline_session_provider(),
         )
+
+    def session_components(self) -> PipelineSessionComponents:
+        return self.pipelines_container().pipeline_session_components()
 
     @lru_cache()
     def resources_locator(self) -> ImmunodataResourceLocator:
@@ -90,11 +93,11 @@ class OnemlHabitatsDiContainer:
         return self._app.find_container(ImmunocliContainer)
 
     @lru_cache()
-    def _processors_container(self) -> OnemlHabitatsProcessorsDiContainer:
+    def processors_container(self) -> OnemlHabitatsProcessorsDiContainer:
         return OnemlHabitatsProcessorsDiContainer(
-            pipelines_container=self._pipelines_container(),
+            pipelines_container=self.pipelines_container(),
         )
 
     @lru_cache()
-    def _pipelines_container(self) -> OnemlHabitatsPipelinesDiContainer:
+    def pipelines_container(self) -> OnemlHabitatsPipelinesDiContainer:
         return OnemlHabitatsPipelinesDiContainer()

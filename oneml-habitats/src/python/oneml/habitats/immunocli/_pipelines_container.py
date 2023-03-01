@@ -4,12 +4,13 @@ from typing import Any, Union
 
 from azure.identity import ManagedIdentityCredential
 
-from oneml.habitats.example_hello_world._builder import NodeBasedPublisher, SimplePublisher
+from oneml.habitats._publishers import NodeBasedPublisher, SinglePortPublisher
 from oneml.habitats.immunocli._commands import OnemlPipelineNodeCommandFactory
 from oneml.pipelines.building import PipelineBuilderFactory
 from oneml.pipelines.building._executable_pickling import ExecutablePicklingClient
 from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
 from oneml.pipelines.context._client import ContextClient, IManageExecutionContexts
+from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
 from oneml.pipelines.data._memory_data_client import InMemoryDataClient
@@ -30,12 +31,16 @@ class OnemlHabitatsPipelinesDiContainer:
         )
 
     @lru_cache()
-    def simple_publisher(self) -> SimplePublisher[Any]:
-        node_publisher = NodeBasedPublisher(
-            session_context=self.pipeline_session_context()
+    def single_port_publisher(self) -> SinglePortPublisher[Any]:
+        return SinglePortPublisher(
+            publisher=self.node_publisher(),
         )
-        return SimplePublisher(
-            publisher=node_publisher,
+
+    @lru_cache()
+    def node_publisher(self) -> NodeBasedPublisher:
+        return NodeBasedPublisher(
+            session_context=self.pipeline_session_context(),
+            node_context=self.pipeline_node_context(),
         )
 
     @lru_cache()
@@ -58,6 +63,7 @@ class OnemlHabitatsPipelinesDiContainer:
     def pipeline_session_components(self) -> PipelineSessionComponents:
         return PipelineSessionComponents(
             session_context=self.pipeline_session_context(),
+            node_context=self.pipeline_node_context(),
             pipeline_data_client=self._pipeline_data_client(),
         )
 
@@ -110,6 +116,10 @@ class OnemlHabitatsPipelinesDiContainer:
 
     @lru_cache()
     def pipeline_session_context(self) -> IManageExecutionContexts[PipelineSessionClient]:
+        return ContextClient()
+
+    @lru_cache()
+    def pipeline_node_context(self) -> IManageExecutionContexts[PipelineNode]:
         return ContextClient()
 
     @lru_cache()

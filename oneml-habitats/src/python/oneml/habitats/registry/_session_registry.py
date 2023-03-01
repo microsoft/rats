@@ -6,7 +6,6 @@ SessionProvider: TypeAlias = Callable[[], PipelineSessionClient]
 
 
 class PipelineSessionRegistry:
-
     _providers: Dict[str, SessionProvider]
 
     def __init__(self) -> None:

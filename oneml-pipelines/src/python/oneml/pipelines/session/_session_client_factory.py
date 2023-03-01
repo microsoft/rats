@@ -1,14 +1,13 @@
 import os
 import uuid
 
-from oneml.pipelines.context._client import IManageExecutionContexts
 from oneml.pipelines.dag import PipelineClient
 
 from ._components import IProvideSessionComponents
 from ._executable import CallableExecutable
-from ._node_execution import PipelineNodeExecutablesClient
+from ._node_execution import PipelineNodeContext, PipelineNodeExecutablesClient
 from ._node_state import PipelineNodeState, PipelineNodeStateClient
-from ._session_client import PipelineSessionClient
+from ._session_client import PipelineSessionClient, PipelineSessionContext
 from ._session_data_client import (
     IManagePipelineData,
     PipelineNodeDataClientFactory,
@@ -28,19 +27,22 @@ class PipelineSessionClientFactory:
     # _session_state_client: PipelineSessionStateClient
     # _node_state_client: PipelineNodeStateClient
     _components: IProvideSessionComponents
-    _session_context: IManageExecutionContexts[PipelineSessionClient]
+    _session_context: PipelineSessionContext
+    _node_context: PipelineNodeContext
     _pipeline_data_client: IManagePipelineData
     _session_plugin_client: IActivatePipelineSessionPlugins
 
     def __init__(
         self,
         components: IProvideSessionComponents,
-        session_context: IManageExecutionContexts[PipelineSessionClient],
+        session_context: PipelineSessionContext,
+        node_context: PipelineNodeContext,
         pipeline_data_client: IManagePipelineData,
         session_plugin_client: IActivatePipelineSessionPlugins,
     ) -> None:
         self._components = components
         self._session_context = session_context
+        self._node_context = node_context
         self._pipeline_data_client = pipeline_data_client
         self._session_plugin_client = session_plugin_client
 
@@ -57,7 +59,7 @@ class PipelineSessionClientFactory:
         session_state_client = PipelineSessionStateClient()
         node_state_client = PipelineNodeStateClient()
         pipeline_data_client = self._pipeline_data_client
-        node_executables_client = PipelineNodeExecutablesClient()
+        node_executables_client = PipelineNodeExecutablesClient(self._node_context)
         node_input_data_client_factory = PipelineNodeInputDataClientFactory(
             data_dependencies_client=data_dependencies_client,
             data_client=pipeline_data_client,

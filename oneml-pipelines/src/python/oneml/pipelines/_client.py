@@ -5,9 +5,12 @@ from typing import Protocol
 from .building import PipelineBuilderClient
 from .building._remote_execution import FakeRemoteExecutableFactory, IProvideRemoteExecutables
 from .context._client import ContextClient, IManageExecutionContexts
+from .dag import PipelineNode
 from .data._memory_data_client import InMemoryDataClient
 from .session import PipelineSessionClient
 from .session._client import PipelineSessionComponents
+from .session._node_execution import PipelineNodeContext
+from .session._session_client import PipelineSessionContext
 from .settings import PipelineSettingsClient
 
 
@@ -61,6 +64,7 @@ class SimplePipelineFactory(PipelineFactory):
 
         return PipelineSessionComponents(
             session_context=self._pipeline_session_context(),
+            node_context=self._pipeline_node_context(),
             pipeline_data_client=self._pipeline_data_client(),
         )
 
@@ -73,5 +77,9 @@ class SimplePipelineFactory(PipelineFactory):
         return PipelineSettingsClient()
 
     @lru_cache()
-    def _pipeline_session_context(self) -> IManageExecutionContexts[PipelineSessionClient]:
-        return ContextClient()
+    def _pipeline_session_context(self) -> PipelineSessionContext:
+        return ContextClient[PipelineSessionClient]()
+
+    @lru_cache()
+    def _pipeline_node_context(self) -> PipelineNodeContext:
+        return ContextClient[PipelineNode]()

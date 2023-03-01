@@ -11,13 +11,11 @@ from oneml.pipelines.settings import PipelineSettingsClient
 
 
 class OnemlCliCommand(CliCommand):
-
     command_help = "manage oneml pipelines"
     command_name = "oneml"
 
 
 class RunOnemlPipelineCommand(CliCommand):
-
     command_parent = OnemlCliCommand
     command_help = "run a oneml pipeline"
     command_name = "run-pipeline"
@@ -44,7 +42,6 @@ class RunOnemlPipelineCommand(CliCommand):
 
 
 class RunOnemlPipelineNodeCommand(CliCommand):
-
     command_parent = OnemlCliCommand
     command_help = "run a oneml pipeline node"
     command_name = "run-pipeline-node"
