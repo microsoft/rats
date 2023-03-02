@@ -39,6 +39,10 @@
             "**/__pycache__": true
         },
         // settings to apply to all workspace roots
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+        },
         "editor.rulers": [
             99
         ],
@@ -48,6 +52,7 @@
         // turn off Pylance native typechecking (leaves MyPy intact as Pylance treats it as a linter)
         "python.analysis.typeCheckingMode": "off",
         "python.linting.pylintEnabled": false,
+        "python.linting.flake8Enabled": true,
         "python.linting.mypyEnabled": true,
         "python.linting.mypyArgs": [
             // vscode lints files on save by calling `mypy <some/single/file-you-just-saved.py>`.
@@ -62,16 +67,12 @@
             "--explicit-package-bases",
             // default mypyArgs are wrong for us anyway (ignore missing imports, etc)
         ],
-        "python.linting.flake8Enabled": true,
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": true
-        },
-        "python.formatting.provider": "black",
-        "editor.formatOnSave": true,
-        "markdown.validate.enabled": true,
-        "diffEditor.diffAlgorithm": "experimental",
+        "python.analysis.inlayHints.pytestParameters": true,
         "python.analysis.autoImportCompletions": true,
         "python.envFile": "${workspaceFolder}/.envrc",
+        "python.formatting.provider": "black",
+        "markdown.validate.enabled": true,
+        "diffEditor.diffAlgorithm": "experimental",
         "search.exclude": {
             "**/build": true,
             "**/.tmp": true,

@@ -70,7 +70,7 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
 
     # Inputs | InEntry -> raises ValueError
     with pytest.raises(ValueError):
-        report1.in_collections.acc | report2.in_collections.acc.report2
+        report1.in_collections.acc | report2.in_collections.acc.report2  # type: ignore[operator]
 
     # Inputs.InEntry <- InEntry | InEntry
     reports = CombinedPipeline(
