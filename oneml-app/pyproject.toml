@@ -24,8 +24,9 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
-python = ">=3.8.10,<3.11"
 colorlog = "*"
+dagster = "^1.1.14"
+dagit = "^1.1.14"
 hera-workflows = "^3.2.0"
 hydra-core = "^1.1.2"
 ipykernel = "^6.18.0"
@@ -38,14 +39,13 @@ nbconvert = "^7.2.5"
 networkx = "^2.8.1"
 numpy = "^1.22.3"
 omegaconf = "*"
-optuna = "^2.10.0"
-pydot = "*"
-pygame = "^2.1.2"
-dagster = "^1.1.14"
-dagit = "^1.1.14"
 oneml-habitats = "*"
 oneml-pipelines = "*"
 oneml-processors = "*"
+optuna = "^2.10.0"
+pydot = "*"
+pygame = "^2.1.2"
+python = ">=3.8.10,<3.11"
 
 [tool.poetry.extras]
 dev = []

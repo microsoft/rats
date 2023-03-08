@@ -40,16 +40,16 @@ dev = []
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 oneml-processors = { path = "../oneml-processors/", develop = true }
+black = "*"
+coverage = "*"
 flake8 = "*"
 flake8-formatter-junit-xml = "*"
-pytest = "*"
+flake8-isort = "*"
+isort = "*"
 mypy = "*"
-coverage = "*"
+pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
-isort = "*"
-flake8-isort = "*"
-black = "*"
 types-urllib3 = "*"
 
 [tool.poetry.plugins."immunocli.plugins"]

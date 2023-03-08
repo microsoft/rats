@@ -24,25 +24,26 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
+azure-devops = "^6.0.0-beta.4"
 colorlog = "*"
 oneml-pipelines = { version = "*" }
 python = ">=3.8.10,<3.11"
-azure-devops = "^6.0.0-beta.4"
 
 [tool.poetry.extras]
 dev = []
 
 [tool.poetry.group.dev.dependencies]
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
+black = "*"
+coverage = "*"
 flake8 = "*"
 flake8-formatter-junit-xml = "*"
-pytest = "*"
+flake8-isort = "*"
+isort = "*"
 mypy = "*"
-coverage = "*"
+pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
-isort = "*"
-flake8-isort = "*"
 
 [tool.poetry.scripts]
 adocli = 'oneml.adocli._main:entrypoint'

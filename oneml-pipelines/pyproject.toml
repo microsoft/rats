@@ -24,27 +24,26 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
-python = ">=3.8.10,<3.11"
+dill = "*"
 # we can move the k8s dependency to another package and use plugins
 kubernetes = { version = "*" }
-dill = "*"
+python = ">=3.8.10,<3.11"
 
 [tool.poetry.extras]
-# Just here to ensure `-E dev` still works since CI runs that for now.
 dev = []
 
 [tool.poetry.group.dev.dependencies]
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
+black = "*"
+coverage = "*"
 flake8 = "*"
 flake8-formatter-junit-xml = "*"
-pytest = "*"
+flake8-isort = "*"
+isort = "*"
 mypy = "*"
-coverage = "*"
+pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
-isort = "*"
-flake8-isort = "*"
-black = "*"
 types-urllib3 = "*"
 
 [tool.poetry.scripts]
