@@ -7,48 +7,47 @@ identity:
     key_rotation_user_group_object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
     key_rotation_user_group_tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
   default_azure_identity_name: default
+  default_azure_cli_identity_name: "azure-cli.msft"
   azure_identities:
   # Default credential used when wanting to authenticate as the local user (us or managed identity)
   - name: "default"
-    type: "local"
+    identity_config:
+      identity_type: "local"
   - name: "azure-cli.msft"
-    type: "azure-cli"
-    azure_cli_config:
+    identity_config:
+      identity_type: "azure-cli"
       tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
       subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
   # A service principal used when we export data from msft to adpt subscriptions
   - name: "adpt-export"
-    type: "client-secret"
-    client_secret_config:
+    identity_config:
+      identity_type: "client-secret"
       tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       client_id: "9aa27dd4-f083-4cd2-b865-6ecf7620ffe6"
       key_vault_name: "immunodata-infra"
       key_vault_secret: "adpt-export-identity-secret"
-      key_vault_cli_identity: "azure-cli.msft"
   # An identity from MSFT used to generate secrets
   - name: "msft.immunodata-adpt-habitat"
-    type: "client-secret"
-    client_secret_config:
+    identity_config:
+      identity_type: "client-secret"
       tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
       subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
       client_id: "c89b5a0b-153c-4c79-a9ac-97e442b43aab"
       key_vault_name: "immunodata-msft-adpt"
       key_vault_secret: "immunodata-msft-adpt-secret"
-      key_vault_cli_identity: "azure-cli.msft"
   # An identity from MSFT that is used to generate secrets for CAM test habitat 
   - name: "msft.immunodata-cam-test-habitat"
-    type: "client-secret"
-    client_secret_config:
+    identity_config:
+      identity_type: "client-secret"
       tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
       subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
       client_id: "521b24ff-6ee9-4ed2-9c37-15b168af23ae"
       key_vault_name: "immunodata-msft-adpt"
       key_vault_secret: "immunodata-msft-cam-test-secret"
-      key_vault_cli_identity: "azure-cli.msft"
   - name: "jupyter-lab"
-    type: "managed-identity"
-    managed_identity_config:
+    identity_config:
+      identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-jupyter-lab"
       resource_group_name: "immunodata.aks"
       subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
@@ -56,8 +55,8 @@ identity:
         azure_identity_crd_name: "jupyter-lab"
         kubernetes_namespace: "jupyter"
   - name: "jupyter-kernel"
-    type: "managed-identity"
-    managed_identity_config:
+    identity_config:
+      identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-jupyter-kernel"
       resource_group_name: "immunodata.aks"
       subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
@@ -65,8 +64,8 @@ identity:
         azure_identity_crd_name: "jupyter-kernel"
         kubernetes_namespace: "jupyter-kernels"
   - name: "workflows"
-    type: "managed-identity"
-    managed_identity_config:
+    identity_config:
+      identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-workflows"
       resource_group_name: "immunodata.aks"
       subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
@@ -74,8 +73,8 @@ identity:
         azure_identity_crd_name: "workflow"
         kubernetes_namespace: "workflows"
   - name: "development-workflows"
-    type: "managed-identity"
-    managed_identity_config:
+    identity_config:
+      identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-development-workflows"
       resource_group_name: "immunodata.aks"
       subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
@@ -267,7 +266,7 @@ kubernetes:
       "environment": "production"
       "role": "immunodata.aks.production"
       "service": "immunodata-platform"
-    # TODO - ensure address prefix is sync'd
+    dns_prefix: "platinum-dns"
     vnet:
       name: "immunodata-test"
       address_prefix: "10.10.0.0/16"
@@ -282,27 +281,47 @@ traefik:
   whoami_replicas: 1
 storage:
   accounts:
-  - account_name: "datasetmetadata"
-    resource_group_name: "immunodata.dataset-metadata"
-    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-    owner_user_group_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
+  - name: "immunomicsinfra01"
+    account_type: "external"
     cli_identity_name: "azure-cli.msft"
-    containers:
-    - container_name: "production"
-      permissions:
-      - identity_name: "jupyter-lab"
-        access_level: "read"
-      - identity_name: "jupyter-kernel"
-        access_level: "read"
-      - identity_name: "workflows"
-        access_level: "write"
-      - identity_name: "development-workflows"
-        access_level: "read"
-    - container_name: "development"
-      permissions:
-      - identity_name: "jupyter-lab"
-        access_level: "read"
-      - identity_name: "jupyter-kernel"
-        access_level: "read"
-      - identity_name: "development-workflows"
-        access_level: "write"
+    storage_account_name: "immunomicsinfra01"
+  - name: "datasetmetadata"
+    account_type: "managed"
+    storage_account_name: "datasetmetadata"
+    cli_identity_name: "azure-cli.msft"
+    managed:
+      resource_group_name: "immunodata.dataset-metadata"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      owner_user_group_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
+      containers:
+      - container_name: "production"
+        permissions:
+        - identity_name: "jupyter-lab"
+          access_level: "read"
+        - identity_name: "jupyter-kernel"
+          access_level: "read"
+        - identity_name: "workflows"
+          access_level: "write"
+        - identity_name: "development-workflows"
+          access_level: "read"
+      - container_name: "development"
+        permissions:
+        - identity_name: "jupyter-lab"
+          access_level: "read"
+        - identity_name: "jupyter-kernel"
+          access_level: "read"
+        - identity_name: "development-workflows"
+          access_level: "write"
+  # TODO - bring these under management once someone on the MSFT side provides the right info
+  - name: "ampdatasets01"
+    account_type: "external"
+    storage_account_name: "ampdatasets01"
+  - name: "ampdata02"
+    account_type: "external"
+    storage_account_name: "ampdata02"
+  - name: "ampdatasetsdev01"
+    account_type: "external"
+    storage_account_name: "ampdatasetsdev01"
+  - name: "jupyterscratch01"
+    account_type: "external"
+    storage_account_name: "jupyterscratch01"

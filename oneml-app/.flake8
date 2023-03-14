@@ -2,3 +2,6 @@
 max-line-length = 99
 extend-select = B950
 extend-ignore = E203, E501
+filename =
+    src/python
+    test/python

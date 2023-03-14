@@ -26,6 +26,7 @@ users:
   - "arhine@adaptivebiotech.com"
   - "awallace@adaptivebiotech.com"
   - "aye@adaptivebiotech.com"
+  - "bzhang@adaptivebiotech.com"
   - "cloo@adaptivebiotech.com"
   - "dbrandon@adaptivebiotech.com"
   - "dmattox@adaptivebiotech.com"
@@ -36,6 +37,7 @@ users:
   - "halasadi@adaptivebiotech.com"
   - "hchen@adaptivebiotech.com"
   - "hnesse@adaptivebiotech.com"
+  - "jjones@adaptivebiotech.com"
   - "jmoharil@adaptivebiotech.com"
   - "kakers@adaptivebiotech.com"
   - "kdoroschak@adaptivebiotech.com"
@@ -65,9 +67,11 @@ users:
 infrastructure:
   resource_group_name: "immunodata.aks"
   subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-  jupyter_lab_kubernetes_namespace: "jupyter"
-  jupyter_kernel_kubernetes_namespace: "jupyter-kernels"
-  jupyter_lab_service_account_name: "jupyter-lab"
-  jupyter_kernel_service_account_name: "jupyter-kernel"
-  jupyter_lab_managed_identity_name: "jupyter-lab"
-  jupyter_kernel_managed_identity_name: "jupyter-kernel"
+  jupyter_lab:
+    kubernetes_namespace: "jupyter"
+    service_account_name: "jupyter-lab"
+    managed_identity_name: "jupyter-lab"
+  jupyter_kernels:
+    kubernetes_namespace: "jupyter-kernels"
+    service_account_name: "jupyter-kernel"
+    managed_identity_name: "jupyter-kernel"

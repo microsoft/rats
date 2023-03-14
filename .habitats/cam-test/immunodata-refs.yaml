@@ -1,4 +1,0 @@
-# TODO: change storage account for IAC
-scratch:
-  storage_account_name: "camtestjupyterscratch01"
-  container_name: "jupyterscratch01"

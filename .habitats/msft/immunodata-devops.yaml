@@ -1,18 +1,24 @@
-image_registry: "immunodata"
-image_registry_cli_identity_name: "azure-cli.msft"
-infrastructure:
-  contributor_user_group_object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
-  contributor_user_group_subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-  contributor_user_group_tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
-  # TODO - does this get used anywhere?
-  identity_name: "azure-cli.msft"
-  management_resource_group_name: "immunodata.habitats-iac-mgmt"
-  management_subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-  state_storage_account_name: "immunomicsinfra01"
-  state_storage_account_container_name: "pulumi"
-  secrets_encryption_key_vault_name: "immunomicskeyvault01"
-  secrets_encryption_key_vault_secret: "platform-infrastructure-encryption-secret"
-  secrets_encryption_key_vault_tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
-acr:
-  acr_resource_group_name: "immunodata.aks"
+registries:
+  default_managed_registry: "immunodata"
+  managed:
+  - name: "immunodata"
+    identity_name: "default"
+    cli_identity_name: "azure-cli.msft"
+    infrastructure:
+      resource_group_name: "immunodata.aks"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+infrastructure_management:
+  tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
   subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+  resource_group_name: "immunodata.habitats-iac-mgmt"
+  identity_name: "azure-cli.msft"
+  state:
+    storage_account_name: "immunomicsinfra01"
+    container_name: "pulumi"
+  secrets_encryption:
+    key_vault_name: "immunomicskeyvault01"
+    encryption_key_secret_name: "platform-infrastructure-encryption-secret"
+  contributor_user_group:
+    object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
+    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+    tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"

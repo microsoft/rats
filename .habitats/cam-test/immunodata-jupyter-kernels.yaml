@@ -1,7 +1,0 @@
-# TODO: refactor this to more visible component once component boundaries are clearly established
-# all external registries from which workflows should be able to pull context images
-kernelspec_namespace: "jupyter"
-image_pull_secrets:
-  - identity_name: "msft.immunodata-cam-test-habitat"
-    registry_name: "immunodata.azurecr.io"
-    secret_name: "immunodata-pull-secret"

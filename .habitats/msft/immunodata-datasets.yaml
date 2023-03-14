@@ -2,4 +2,3 @@ writeable_catalog:
   storage_account: "datasetmetadata"
   production_container: "production"
   development_container: "development"
-  cli_identity_name: "azure-cli.msft"

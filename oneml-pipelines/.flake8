@@ -5,3 +5,6 @@ extend-ignore = E203, E501
 ; allow unused imports in the test directory
 per-file-ignores =
     test/*:F401
+filename =
+    src/python
+    test/python

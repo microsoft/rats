@@ -1,3 +1,0 @@
-scratch:
-  storage_account_name: "adptsharedscratch1"
-  container_name: "jupyterscratch"

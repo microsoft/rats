@@ -18,31 +18,10 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
-name = "arpeggio"
-version = "2.0.0"
-description = "Packrat parser interpreter"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "Arpeggio-2.0.0-py2.py3-none-any.whl", hash = "sha256:448e332deb0e9ccd04046f1c6c14529d197f41bc2fdb3931e43fc209042fbdd3"},
-    {file = "Arpeggio-2.0.0.tar.gz", hash = "sha256:d6b03839019bb8a68785f9292ee6a36b1954eb84b925b84a6b8a5e1e26d3ed3d"},
-]
-
-[package.extras]
-dev = ["mike", "mkdocs", "twine", "wheel"]
-test = ["coverage", "coveralls", "flake8", "pytest"]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
 name = "attrs"
 version = "22.2.0"
 description = "Classes Without Boilerplate"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -779,120 +758,6 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
-name = "dependency-injector"
-version = "4.41.0"
-description = "Dependency injection framework for Python"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "dependency-injector-4.41.0.tar.gz", hash = "sha256:939dfc657104bc3e66b67afd3fb2ebb0850c9a1e73d0d26066f2bbdd8735ff9c"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:a2381a251b04244125148298212550750e6e1403e9b2850cc62e0e829d050ad3"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:75280dfa23f7c88e1bf56c3920d58a43516816de6f6ab2a6650bb8a0f27d5c2c"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:63bfba21f8bff654a80e9b9d06dd6c43a442990b73bf89cd471314c11c541ec2"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3535d06416251715b45f8412482b58ec1c6196a4a3baa207f947f0b03a7c4b44"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:d09c08c944a25dabfb454238c1a889acd85102b93ae497de523bf9ab7947b28a"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:586a0821720b15932addbefb00f7370fbcd5831d6ebbd6494d774b44ff96d23a"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:7fa4970f12a3fc95d8796938b11c41276ad1ff4c447b0e589212eab3fc527a90"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-win32.whl", hash = "sha256:d557e40673de984f78dab13ebd68d27fbb2f16d7c4e3b663ea2fa2f9fae6765b"},
-    {file = "dependency_injector-4.41.0-cp310-cp310-win_amd64.whl", hash = "sha256:3744c327d18408e74781bd6d8b7738745ee80ef89f2c8daecf9ebd098cb84972"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:89c67edffe7007cf33cee79ecbca38f48efcc2add5c280717af434db6c789377"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:786f7aac592e191c9caafc47732161d807bad65c62f260cd84cd73c7e2d67d6d"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b8b61a15bc46a3aa7b29bd8a7384b650aa3a7ef943491e93c49a0540a0b3dda4"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a4f113e5d4c3070973ad76e5bda7317e500abae6083d78689f0b6e37cf403abf"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:5fa3ed8f0700e47a0e7363f949b4525ffa8277aa1c5b10ca5b41fce4dea61bb9"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:05e15ea0f2b14c1127e8b0d1597fef13f98845679f63bf670ba12dbfc12a16ef"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:3055b3fc47a0d6e5f27defb4166c0d37543a4967c279549b154afaf506ce6efc"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-win32.whl", hash = "sha256:37d5954026e3831663518d78bdf4be9c2dbfea691edcb73c813aa3093aa4363a"},
-    {file = "dependency_injector-4.41.0-cp311-cp311-win_amd64.whl", hash = "sha256:f89a507e389b7e4d4892dd9a6f5f4da25849e24f73275478634ac594d621ab3f"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:ac79f3c05747f9724bd56c06985e78331fc6c85eb50f3e3f1a35e0c60f9977e9"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:75e7a733b372db3144a34020c4233f6b94db2c6342d6d16bc5245b1b941ee2bd"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:40936d9384363331910abd59dd244158ec3572abf9d37322f15095315ac99893"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:4a31d9d60be4b585585081109480cfb2ef564d3b851cb32a139bf8408411a93a"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-musllinux_1_1_aarch64.whl", hash = "sha256:953bfac819d32dc72b963767589e0ed372e5e9e78b03fb6b89419d0500d34bbe"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-musllinux_1_1_i686.whl", hash = "sha256:8f0090ff14038f17a026ca408a3a0b0e7affb6aa7498b2b59d670f40ac970fbe"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-musllinux_1_1_x86_64.whl", hash = "sha256:6b29abac56ce347d2eb58a560723e1663ee2125cf5cc38866ed92b84319927ec"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-win32.whl", hash = "sha256:059fbb48333148143e8667a5323d162628dfe27c386bd0ed3deeecfc390338bf"},
-    {file = "dependency_injector-4.41.0-cp36-cp36m-win_amd64.whl", hash = "sha256:16de2797dcfcc2263b8672bf0751166f7c7b369ca2ff9246ceb67b65f8e1d802"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:c71d30b6708438050675f338edb9a25bea6c258478dbe5ec8405286756a2d347"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d283aee588a72072439e6721cb64aa6cba5bc18c576ef0ab28285a6ec7a9d655"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bc852da612c7e347f2fcf921df2eca2718697a49f648a28a63db3ab504fd9510"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:02620454ee8101f77a317f3229935ce687480883d72a40858ff4b0c87c935cce"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-musllinux_1_1_aarch64.whl", hash = "sha256:7a92680bea1c260e5c0d2d6cd60b0c913cba76a456a147db5ac047ecfcfcc758"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:168334cba3f1cbf55299ef38f0f2e31879115cc767b780c859f7814a52d80abb"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:48b6886a87b4ceb9b9f78550f77b2a5c7d2ce33bc83efd886556ad468cc9c85a"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-win32.whl", hash = "sha256:87be84084a1b922c4ba15e2e5aa900ee24b78a5467997cb7aec0a1d6cdb4a00b"},
-    {file = "dependency_injector-4.41.0-cp37-cp37m-win_amd64.whl", hash = "sha256:8b8cf1c6c56f5c18bdbd9f5e93b52ca29cb4d99606d4056e91f0c761eef496dc"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:a8686fa330c83251c75c8238697686f7a0e0f6d40658538089165dc72df9bcff"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8d670a844268dcd758195e58e9a5b39fc74bb8648aba99a13135a4a10ec9cfac"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9e3b9d41e0eff4c8e16fea1e33de66ff0030fe51137ca530f3c52ce110447914"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:33a724e0a737baadb4378f5dc1b079867cc3a88552fcca719b3dba84716828b2"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:3588bd887b051d16b8bcabaae1127eb14059a0719a8fe34c8a75ba59321b352c"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:409441122f40e1b4b8582845fdd76deb9dc5c9d6eb74a057b85736ef9e9c671f"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:7dcba8665cafec825b7095d5dd80afb5cf14404450eca3fe8b66e1edbf4dbc10"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-win32.whl", hash = "sha256:8b51efeaebacaf79ef68edfc65e9687699ccffb3538c4a3ab30d0d77e2db7189"},
-    {file = "dependency_injector-4.41.0-cp38-cp38-win_amd64.whl", hash = "sha256:1662e2ef60ac6e681b9e11b5d8b7c17a0f733688916cf695f9540f8f50a61b1e"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:51217cb384b468d7cc355544cec20774859f00812f9a1a71ed7fa701c957b2a7"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b3890a12423ae3a9eade035093beba487f8d092ee6c6cb8706f4e7080a56e819"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:99ed73b1521bf249e2823a08a730c9f9413a58f4b4290da022e0ad4fb333ba3d"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:300838e9d4f3fbf539892a5a4072851728e23b37a1f467afcf393edd994d88f0"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:56d37b9d2f50a18f059d9abdbea7669a7518bd42b81603c21a27910a2b3f1657"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:4a44ca3ce5867513a70b31855b218be3d251f5068ce1c480cc3a4ad24ffd3280"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:67b369592c57549ccdcad0d5fef1ddb9d39af7fed8083d76e789ab0111fc6389"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-win32.whl", hash = "sha256:740a8e8106a04d3f44b52b25b80570fdac96a8a3934423de7c9202c5623e7936"},
-    {file = "dependency_injector-4.41.0-cp39-cp39-win_amd64.whl", hash = "sha256:22b11dbf696e184f0b3d5ac4e5418aeac3c379ba4ea758c04a83869b7e5d1cbf"},
-    {file = "dependency_injector-4.41.0-pp37-pypy37_pp73-macosx_10_9_x86_64.whl", hash = "sha256:b365a8548e9a49049fa6acb24d3cd939f619eeb8e300ca3e156e44402dcc07ec"},
-    {file = "dependency_injector-4.41.0-pp37-pypy37_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5168dc59808317dc4cdd235aa5d7d556d33e5600156acaf224cead236b48a3e8"},
-    {file = "dependency_injector-4.41.0-pp37-pypy37_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e3229d83e99e255451605d5276604386e06ad948e3d60f31ddd796781c77f76f"},
-    {file = "dependency_injector-4.41.0-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1baee908f21190bdc46a65ce4c417a5175e9397ca62354928694fce218f84487"},
-    {file = "dependency_injector-4.41.0-pp37-pypy37_pp73-win_amd64.whl", hash = "sha256:b37f36ecb0c1227f697e1d4a029644e3eda8dd0f0716aa63ad04d96dbb15bbbb"},
-    {file = "dependency_injector-4.41.0-pp38-pypy38_pp73-macosx_10_9_x86_64.whl", hash = "sha256:b0c9c966ff66c77364a2d43d08de9968aff7e3903938fe912ba49796b2133344"},
-    {file = "dependency_injector-4.41.0-pp38-pypy38_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:12e91ac0333e7e589421943ff6c6bf9cf0d9ac9703301cec37ccff3723406332"},
-    {file = "dependency_injector-4.41.0-pp38-pypy38_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:b2440b32474d4e747209528ca3ae48f42563b2fbe3d74dbfe949c11dfbfef7c4"},
-    {file = "dependency_injector-4.41.0-pp38-pypy38_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:54032d62610cf2f4421c9d92cef52957215aaa0bca403cda580c58eb3f726eda"},
-    {file = "dependency_injector-4.41.0-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:76b94c8310929e54136f3cb3de3adc86d1a657b3984299f40bf1cd2ba0bae548"},
-    {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-macosx_10_9_x86_64.whl", hash = "sha256:6ee9810841c6e0599356cb884d16453bfca6ab739d0e4f0248724ed8f9ee0d79"},
-    {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6b98945edae88e777091bf0848f869fb94bd76dfa4066d7c870a5caa933391d0"},
-    {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a2dee5d4abdd21f1a30a51d46645c095be9dcc404c7c6e9f81d0a01415a49e64"},
-    {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d03f5fa0fa98a18bd0dfce846db80e2798607f0b861f1f99c97f441f7669d7a2"},
-    {file = "dependency_injector-4.41.0-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:f2842e15bae664a9f69932e922b02afa055c91efec959cb1896f6c499bf68180"},
-]
-
-[package.dependencies]
-six = ">=1.7.0,<=1.16.0"
-
-[package.extras]
-aiohttp = ["aiohttp"]
-flask = ["flask"]
-pydantic = ["pydantic"]
-yaml = ["pyyaml"]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
-name = "dill"
-version = "0.3.6"
-description = "serialize all of python"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "dill-0.3.6-py3-none-any.whl", hash = "sha256:a07ffd2351b8c678dfc4a856a3005f8067aea51d6ba6c700796a4d9e280f39f0"},
-    {file = "dill-0.3.6.tar.gz", hash = "sha256:e5db55f3687856d8fbdab002ed78544e1c4559a130302693d839dfe8f93f2373"},
-]
-
-[package.extras]
-graph = ["objgraph (>=1.7.2)"]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
 name = "docutils"
 version = "0.19"
 description = "Docutils -- Python Documentation Utilities"
@@ -1050,69 +915,6 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
-name = "grpcio"
-version = "1.52.0"
-description = "HTTP/2-based RPC framework"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "grpcio-1.52.0-cp310-cp310-linux_armv7l.whl", hash = "sha256:7a6f6e2857908f9d7dc9a3150d45c72a35c351aa74621100145bd8ce4d083cac"},
-    {file = "grpcio-1.52.0-cp310-cp310-macosx_12_0_universal2.whl", hash = "sha256:b0c55958d3aa9b60eabd1cb230e2d80e48bc4baa2f7e90e7637dc8429538599a"},
-    {file = "grpcio-1.52.0-cp310-cp310-manylinux_2_17_aarch64.whl", hash = "sha256:ef46f86aabc254d1599adf00eaa47f9d8b8c2af51b89934f0dbe2309b829c778"},
-    {file = "grpcio-1.52.0-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:5d767848c6540130b00255d062e0eee7e8fe53dabef6c7bdf19b8e12085324f7"},
-    {file = "grpcio-1.52.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c07775ad29baaa957e13a2fdb9724aa734b81be9be015c25d36bd93544a9279e"},
-    {file = "grpcio-1.52.0-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:8e64e5d2e76745584c193e29f68fa038ad516e3b03fb16ccff9cc6c416c08b94"},
-    {file = "grpcio-1.52.0-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:bc9467256c0525f83cadf0a77141ea393d3ed1bd1c218ac835e073d8a56d3c50"},
-    {file = "grpcio-1.52.0-cp310-cp310-win32.whl", hash = "sha256:7d4da24ec79183a27e690de06e7b5765734fe958651473b27c7d0020a2e465e4"},
-    {file = "grpcio-1.52.0-cp310-cp310-win_amd64.whl", hash = "sha256:b274c8240b30cccca70128051e767b498679040f29304b904e463249c06f37ab"},
-    {file = "grpcio-1.52.0-cp311-cp311-linux_armv7l.whl", hash = "sha256:9cb42152c9880d340fc879ef86c9362014d029c1aac5629b1ff6b013e7722965"},
-    {file = "grpcio-1.52.0-cp311-cp311-macosx_10_10_universal2.whl", hash = "sha256:fefbf58dd05b6aaf39dfe1df4a1464680b44496cc617083cb141ec18aac1d6d4"},
-    {file = "grpcio-1.52.0-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:0ed59aeb98cd95ba794d6fc77623f4bb340d1a362c0e156c086e942d21403d2a"},
-    {file = "grpcio-1.52.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3c5553e5d881a733512cca25f810d746d7f405dcaddf0525bf99c8e7953c4ecd"},
-    {file = "grpcio-1.52.0-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:24fdf136bc0ccf85a3c0a572c3ea71957529299d4ec208eb1f2a1d06f2b17cf2"},
-    {file = "grpcio-1.52.0-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:bc7976baed22b87548bfd37defddb4344f4a9959bf3d276ae2cb624caa11c234"},
-    {file = "grpcio-1.52.0-cp311-cp311-win32.whl", hash = "sha256:84edd2ae3c0e4ca320dfc79c24ea554e06faf1a21e5ebdb1441450dec702444e"},
-    {file = "grpcio-1.52.0-cp311-cp311-win_amd64.whl", hash = "sha256:ae38c4f5e724fe85550714d56213a2eb4335a1a795bff88b3dbc75cfbc036ef2"},
-    {file = "grpcio-1.52.0-cp37-cp37m-linux_armv7l.whl", hash = "sha256:10ac3d9cbc576642257c5bc674b3f6349ebcfd0ce198630423c4dedae4e545ec"},
-    {file = "grpcio-1.52.0-cp37-cp37m-macosx_10_10_universal2.whl", hash = "sha256:e61683fd0a8a05ba788a067942c2bc73368cbf7836f0071268fc0abadc287dea"},
-    {file = "grpcio-1.52.0-cp37-cp37m-manylinux_2_17_aarch64.whl", hash = "sha256:f290c80604a0fd0e202b4f76f3bc6eed6c0750e88525f91219ccb5cc99213fca"},
-    {file = "grpcio-1.52.0-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7bb4cae47cf9fe2bd51ddabb14f310dc35812c3676c8972006119a8b01050567"},
-    {file = "grpcio-1.52.0-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:25175ed51891150e16bc63b69fb96db71b04080a17c09e83f750e118fa5b775a"},
-    {file = "grpcio-1.52.0-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:d9e06472f59f585235ac51e4645f42a02a262fc7480fad13ede0b3c11cefa8a1"},
-    {file = "grpcio-1.52.0-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:c073f4fdcbdac14fbb1b9c001222c76c446874a8ec6def028e72a746cc9cc20e"},
-    {file = "grpcio-1.52.0-cp37-cp37m-win32.whl", hash = "sha256:acf13fabfb5d974e5c489c6fabe3037a6d8105030e9571cf7f8f6f92c49e734c"},
-    {file = "grpcio-1.52.0-cp37-cp37m-win_amd64.whl", hash = "sha256:53406f1384406a66c18a9034265d0ad7eeafd3579da552c459bfa330ef43fcf8"},
-    {file = "grpcio-1.52.0-cp38-cp38-linux_armv7l.whl", hash = "sha256:b49126b66bde56d90d970e9d091e26b600d345a8222f4214f732b30cf63756d9"},
-    {file = "grpcio-1.52.0-cp38-cp38-macosx_10_10_universal2.whl", hash = "sha256:9b929fb9ee7ae082c7930aa58128138ab26f1c60e205b541f0a18975a74c2641"},
-    {file = "grpcio-1.52.0-cp38-cp38-manylinux_2_17_aarch64.whl", hash = "sha256:434a693418dd706f6ba27d9b5ee5a6c7ee0302b197ac3e05e4080501a31b0b73"},
-    {file = "grpcio-1.52.0-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:d05eef8a94d74459582cd36dbc34aa6f2e0dcb4d59f08c8093b9728f0ccf694a"},
-    {file = "grpcio-1.52.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6354bc9083a57b1c6e0cc87065733c356806fa8260ec055387a73d445cf5a1d6"},
-    {file = "grpcio-1.52.0-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:f34376ef75d7f70ad2c07fc7750a3293c034cce09aafc82fe7ae782542cce687"},
-    {file = "grpcio-1.52.0-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:2f86596763fe0c2077c7193c9d941d282b4bd7c086262e797e8d4290a3cfa9d5"},
-    {file = "grpcio-1.52.0-cp38-cp38-win32.whl", hash = "sha256:d37b32f043f7f1a0d6512cabb0439e987a2c7f946e97c87fa4e26e46dfce8ef0"},
-    {file = "grpcio-1.52.0-cp38-cp38-win_amd64.whl", hash = "sha256:92602fc9457f2957a9505a2e8d53e8382345494b32b551626723c4ead304c539"},
-    {file = "grpcio-1.52.0-cp39-cp39-linux_armv7l.whl", hash = "sha256:486632391067cfa9acd0d58d76543fe26449d8d647ab5f24b24879f4fa45846b"},
-    {file = "grpcio-1.52.0-cp39-cp39-macosx_10_10_universal2.whl", hash = "sha256:c73cfc5ef2193b2ab215576524e915bf38ed96b3557086e8e9d8c8ea43c9b02c"},
-    {file = "grpcio-1.52.0-cp39-cp39-manylinux_2_17_aarch64.whl", hash = "sha256:3bbea65a62ab8a1bc3180aa24dd0d049216856a5c6b470b88769a47bc4b59d8a"},
-    {file = "grpcio-1.52.0-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7128eaf3c789f7043cdecf7849efb9bb5dddc53f9f753f77613796bf6ea73515"},
-    {file = "grpcio-1.52.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:81cc7210dc4735200d81764ad8c3761845a6b95fad36d586fa10cc4f95dc3106"},
-    {file = "grpcio-1.52.0-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:2e85431a3f2970303d34596ae5bd6d07842255f897009b63b23d27b315b6ef69"},
-    {file = "grpcio-1.52.0-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:71e3185ac3425efc45e7999acba25dc5cc12a8abea46b2dd0f460c50df804974"},
-    {file = "grpcio-1.52.0-cp39-cp39-win32.whl", hash = "sha256:44b326a7ffa56dd44168e067e076121d68a11eeccdcbcf804e9b9bd02e7bc6d8"},
-    {file = "grpcio-1.52.0-cp39-cp39-win_amd64.whl", hash = "sha256:a6329dc693f0ac781219063c4b2c4bedc5519e280fe2f55ce6abc15b05a40d05"},
-    {file = "grpcio-1.52.0.tar.gz", hash = "sha256:a5d4a83d29fc39af429c10b9b326c174fec49b73398e4a966a1f2a4f30aa4fdb"},
-]
-
-[package.extras]
-protobuf = ["grpcio-tools (>=1.52.0)"]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
 name = "idna"
 version = "3.4"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -1148,26 +950,21 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-cli"
-version = "0.46.7"
+version = "0.47.4"
 description = "The immunocli command line tool and SDK."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_cli-0.46.7-py3-none-any.whl", hash = "sha256:855f6433fae97336f1367a54dafdf8edd9b79a8ad88561bbdd06fbdbdb241f03"},
+    {file = "immunodata_cli-0.47.4-py3-none-any.whl", hash = "sha256:9526676ad1d60f35ae5290d27c69874d7762de0b180d8fffacd64fc2a0df0643"},
 ]
 
 [package.dependencies]
-dependency-injector = "*"
 immunodata-core = "*"
 immunodata-datasets = "*"
 immunodata-devops = "*"
-immunodata-workflows = "*"
 pydantic = "*"
 pyyaml = "*"
-
-[package.extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "immunodata-docslib", "isort", "mypy", "pytest", "pytest-cov", "pytest-nunit", "setuptools-scm", "types-PyYAML", "types-dataclasses", "types-pkg_resources", "types-python-dateutil", "types-requests"]
 
 [package.source]
 type = "legacy"
@@ -1176,13 +973,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-core"
-version = "0.46.7"
+version = "0.47.4"
 description = "The immunodata dataset libraries and SDK."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_core-0.46.7-py3-none-any.whl", hash = "sha256:485f13bab5308e8cf050b156fa2776882607b334a3279be7fd3d4d05278e1d53"},
+    {file = "immunodata_core-0.47.4-py3-none-any.whl", hash = "sha256:1ded88eb52f450d65b4f7a92809400a097ea698cb11ae5a2e132e84bae8573a8"},
 ]
 
 [package.dependencies]
@@ -1192,16 +989,14 @@ azure-keyvault-secrets = "*"
 azure-mgmt-containerservice = "*"
 azure-storage-blob = "*"
 colorlog = "*"
-dependency-injector = "*"
 immunodata-cli = "*"
 immunodata-datasets = "*"
 immunodata-devops = "*"
-immunodata-workflows = "*"
 pyyaml = "*"
 tenacity = "*"
 
 [package.extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "immunodata-docslib", "isort", "mypy", "pytest", "pytest-cov", "pytest-nunit", "setuptools-scm", "types-PyYAML", "types-dataclasses", "types-pkg_resources", "types-python-dateutil", "types-requests"]
+infra = ["pulumi", "pulumi-azure-native", "pulumi-kubernetes"]
 
 [package.source]
 type = "legacy"
@@ -1210,13 +1005,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-datasets"
-version = "0.46.7"
+version = "0.47.4"
 description = "The immunodata dataset libraries and SDK."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_datasets-0.46.7-py3-none-any.whl", hash = "sha256:51dd7a1966730749b72a9fbb281e05c3f31f8ec272cfb5c7ae54e1ca6ba364c0"},
+    {file = "immunodata_datasets-0.47.4-py3-none-any.whl", hash = "sha256:275f17cbf798449e415907524dd5439448121cbb28de0bb91d0453ac7f15bf98"},
 ]
 
 [package.dependencies]
@@ -1224,15 +1019,8 @@ azure-storage-blob = "*"
 immunodata-cli = "*"
 immunodata-core = "*"
 immunodata-devops = "*"
-immunodata-workflows = "*"
-protobuf = ">=3.6.0,<4"
-pulumi = "*"
-pulumi-azure-native = "*"
-pulumi-kubernetes = "*"
+msgspec = "*"
 python-dateutil = "*"
-
-[package.extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "immunodata-docslib", "isort", "mypy", "pytest", "pytest-cov", "pytest-nunit", "setuptools-scm", "types-PyYAML", "types-dataclasses", "types-pkg_resources", "types-python-dateutil", "types-requests"]
 
 [package.source]
 type = "legacy"
@@ -1241,29 +1029,25 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-devops"
-version = "0.46.7"
+version = "0.47.4"
 description = "The immunodata devops libraries."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_devops-0.46.7-py3-none-any.whl", hash = "sha256:073702055e1f87287bd81261d79254e5add2531219cfa80d9963741ce946fe1c"},
+    {file = "immunodata_devops-0.47.4-py3-none-any.whl", hash = "sha256:cc5d109782168511746aa51061ff3821b31eaf10bfe51604b972932109135bdd"},
 ]
 
 [package.dependencies]
 chevron = "*"
-dependency-injector = "*"
 immunodata-cli = "*"
 immunodata-core = "*"
 immunodata-datasets = "*"
-immunodata-workflows = "*"
 kubernetes = "*"
-pulumi = "*"
-pulumi-azure-native = "*"
 toml = "*"
 
 [package.extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "immunodata-docslib", "isort", "mypy", "pytest", "pytest-cov", "pytest-nunit", "setuptools-scm", "types-PyYAML", "types-dataclasses", "types-pkg_resources", "types-python-dateutil", "types-requests", "types-toml"]
+infra = ["pulumi", "pulumi-azure-native", "pulumi-kubernetes"]
 
 [package.source]
 type = "legacy"
@@ -1272,23 +1056,21 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-docslib"
-version = "0.46.7"
+version = "0.47.4"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_docslib-0.46.7-py3-none-any.whl", hash = "sha256:f64f82bd6ef7d396db84d40c3101ee0af0653ee37d228011a3ad2efc7c4b2cdc"},
+    {file = "immunodata_docslib-0.47.4-py3-none-any.whl", hash = "sha256:bed630e8228bb5c12d2f37d7b9b9430fa748b98649d60ecd54f86ab1b8d73207"},
 ]
 
 [package.dependencies]
 chevron = "*"
-dependency-injector = "*"
 immunodata-cli = "*"
 immunodata-core = "*"
 immunodata-datasets = "*"
 immunodata-devops = "*"
-immunodata-workflows = "*"
 mkdocs = "*"
 mkdocs-awesome-pages-plugin = "*"
 mkdocs-material = "*"
@@ -1300,9 +1082,6 @@ sphinx-autodoc-typehints = "*"
 sphinx-material = "*"
 watchdog = "*"
 
-[package.extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "isort", "mypy", "pytest", "pytest-cov", "pytest-nunit", "types-PyYAML", "types-dataclasses", "types-pkg_resources", "types-python-dateutil", "types-requests"]
-
 [package.source]
 type = "legacy"
 url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
@@ -1310,30 +1089,27 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-workflows"
-version = "0.46.7"
+version = "0.47.4"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_workflows-0.46.7-py3-none-any.whl", hash = "sha256:bbe0ef8bace7da60503641c531959a97fec094d7e67339f77a12fc6ded7be1e0"},
+    {file = "immunodata_workflows-0.47.4-py3-none-any.whl", hash = "sha256:ad928f156328181de848d88f57433f82c48d2f20bf0622d88e47b45929650b82"},
 ]
 
 [package.dependencies]
 azure-devops = "6.0.0b2"
 chevron = "*"
-dependency-injector = "*"
 immunodata-cli = "*"
 immunodata-core = "*"
 immunodata-datasets = "*"
 immunodata-devops = "*"
 kubernetes = "*"
-pulumi = "*"
-pulumi-kubernetes = "*"
 pyyaml = "*"
 
 [package.extras]
-dev = ["black", "coverage", "flake8", "flake8-formatter-junit-xml", "flake8-isort", "immunodata-docslib", "isort", "mypy", "pytest", "pytest-cov", "types-PyYAML", "types-dataclasses", "types-pkg_resources", "types-python-dateutil", "types-requests"]
+infra = ["pulumi", "pulumi-azure-native", "pulumi-kubernetes"]
 
 [package.source]
 type = "legacy"
@@ -1871,6 +1647,57 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
+name = "msgspec"
+version = "0.13.1"
+description = "A fast serialization and validation library, with builtin support for JSON, MessagePack, YAML, and TOML."
+category = "main"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "msgspec-0.13.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:a07a50afb119728e4969ab58602985549b8b9af6cf565873fad28365eb7dbf7b"},
+    {file = "msgspec-0.13.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:014e6e0b01946528f609102c5624749501f63ebdeba386855948185288bc299d"},
+    {file = "msgspec-0.13.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ea1d6de944dd2d369186ce9f3d98119980427fd8fba0788d819d775fe0440442"},
+    {file = "msgspec-0.13.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:037ff80d956bb13fc8c221a386f7ba97f6e55d0dc84f4bfe92226df570140802"},
+    {file = "msgspec-0.13.1-cp310-cp310-musllinux_1_1_aarch64.whl", hash = "sha256:8f0679fbafb889e4165bf49c2afd342716dcee2fe13de3777f1613c09740f304"},
+    {file = "msgspec-0.13.1-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:99d239343d2b78ad139277067e727ad573445eec6b7ba113e4b987e15728d9d4"},
+    {file = "msgspec-0.13.1-cp310-cp310-win_amd64.whl", hash = "sha256:88466f804b817151cbff9e53d698f86a9280b0d00896302abb528be01c46701a"},
+    {file = "msgspec-0.13.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:494de96dc6ad90c2f3ba96130591ade518dfd019be767e6030c73ea3e9eb6df9"},
+    {file = "msgspec-0.13.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:b8853fdf1c44cb874c786133ce1062b6d9a484e0fa48f7174035eb506f462042"},
+    {file = "msgspec-0.13.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ac902ccdfa4574498342d06f4c49bfa60317724737985b2fc954e8c8eb009910"},
+    {file = "msgspec-0.13.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7b0e594996a042fb6dcd9839094b6ef8768e7707bf1567e4d61cbf07c1d12f24"},
+    {file = "msgspec-0.13.1-cp311-cp311-musllinux_1_1_aarch64.whl", hash = "sha256:2d32dedfeb5646ac339eb4602886861756f050c6307e2177b7c68f5084519069"},
+    {file = "msgspec-0.13.1-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:de920ff863aceef8304a1c5c3855f089782429f6fdbfea1321061f37e4ba418a"},
+    {file = "msgspec-0.13.1-cp311-cp311-win_amd64.whl", hash = "sha256:36b919dad8cbf98d1e2b3d829bf26fbe64205a08ee1caa6988581e5850bcb6b1"},
+    {file = "msgspec-0.13.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:30c80380bfe3a03b2e968f08bdbec8a9fc1619cd2555cc8334774c475296faaa"},
+    {file = "msgspec-0.13.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:0e12db829b670159780d4483248c5099b99cc487f3c134f2d3e6ce59fa18ce67"},
+    {file = "msgspec-0.13.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:aa7febe37689642a1a2ccdeecf3a8b820ea043cd142438bd0a88714c982555a0"},
+    {file = "msgspec-0.13.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:317ec8e80cf919c42b6defb375e12ad49af649238327d0abaed980c4d72a7bea"},
+    {file = "msgspec-0.13.1-cp38-cp38-musllinux_1_1_aarch64.whl", hash = "sha256:d51cdd579b632e3686c14eee9948aeba056ea969b85b60e09aa9811cea3524cd"},
+    {file = "msgspec-0.13.1-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:348415004e907c856e22884485c9f91dc8f39317ce365b0881a08ac35f234afe"},
+    {file = "msgspec-0.13.1-cp38-cp38-win_amd64.whl", hash = "sha256:b80b58d8fa70f881701a3bff50661327b4f5a50441d33386fac95a94eb3cad1d"},
+    {file = "msgspec-0.13.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:96f7898b4433a2570636cf0659ac7cedd1b753f0a108fa0ff82a813a830c5a98"},
+    {file = "msgspec-0.13.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:fae7c7e6f7715cebc34ce616b078dc2c021651115915d0c2ea507d9c9074e34d"},
+    {file = "msgspec-0.13.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:050af5e263eece6a16c07ba651ab83208acccfccc5ab8b47fa6cf99c135f01a9"},
+    {file = "msgspec-0.13.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e143da1561b6a766c2fccdb9c487dfcf1d56c8c1b9c8c8c5c3e322f02fbb8c11"},
+    {file = "msgspec-0.13.1-cp39-cp39-musllinux_1_1_aarch64.whl", hash = "sha256:59e572b78da8264b2ce3dbb65bec6a4a65cb355046b0d5fc16df24626e889947"},
+    {file = "msgspec-0.13.1-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:bf92cbef573127966cccce71eb9368a6ce36c847ee128e048c7c04724daae855"},
+    {file = "msgspec-0.13.1-cp39-cp39-win_amd64.whl", hash = "sha256:358da53e870d8bdb890b27c2cd9a670bc17c1d4330908d3fb6e00dcdc8d9c54c"},
+    {file = "msgspec-0.13.1.tar.gz", hash = "sha256:b252174d33c7d7885e5efe8009147f09da4bf6655b86dba9128a2a4d4c1fb6ee"},
+]
+
+[package.extras]
+dev = ["coverage", "furo", "gcovr", "ipython", "msgpack", "mypy", "pre-commit", "pyright", "pytest", "pyyaml", "sphinx", "sphinx-copybutton", "sphinx-design", "tomli", "tomli-w"]
+doc = ["furo", "ipython", "sphinx", "sphinx-copybutton", "sphinx-design"]
+test = ["msgpack", "mypy", "pyright", "pytest", "pyyaml", "tomli", "tomli-w"]
+toml = ["tomli", "tomli-w"]
+yaml = ["pyyaml"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
 name = "msrest"
 version = "0.6.21"
 description = "AutoRest swagger generator Python client runtime."
@@ -2026,34 +1853,6 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
-name = "parver"
-version = "0.4"
-description = "Parse and manipulate version numbers."
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "parver-0.4-py3-none-any.whl", hash = "sha256:c66d3347a4858643875ef959d8ba7a269d5964bfb690b0dd998b8f39da930be2"},
-    {file = "parver-0.4.tar.gz", hash = "sha256:d4a3dbb93c53373ee9a0ba055e4858c44169b204b912e49d003ead95db9a9bca"},
-]
-
-[package.dependencies]
-arpeggio = ">=1.7"
-attrs = ">=19.2"
-typing-extensions = {version = "*", markers = "python_version < \"3.10\""}
-
-[package.extras]
-docs = ["furo", "sphinx"]
-docstest = ["doc8"]
-pep8test = ["flake8", "pep8-naming"]
-test = ["hypothesis", "pretend", "pytest"]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
 name = "pathspec"
 version = "0.11.0"
 description = "Utility library for gitignore style pattern matching of file paths."
@@ -2131,111 +1930,6 @@ pywin32 = {version = ">=226", markers = "platform_system == \"Windows\""}
 docs = ["sphinx (>=1.7.1)"]
 redis = ["redis"]
 tests = ["pytest (>=5.4.1)", "pytest-cov (>=2.8.1)", "pytest-mypy (>=0.8.0)", "pytest-timeout (>=2.1.0)", "redis", "sphinx (>=6.0.0)"]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
-name = "protobuf"
-version = "3.20.3"
-description = "Protocol Buffers"
-category = "main"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "protobuf-3.20.3-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:f4bd856d702e5b0d96a00ec6b307b0f51c1982c2bf9c0052cf9019e9a544ba99"},
-    {file = "protobuf-3.20.3-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:9aae4406ea63d825636cc11ffb34ad3379335803216ee3a856787bcf5ccc751e"},
-    {file = "protobuf-3.20.3-cp310-cp310-win32.whl", hash = "sha256:28545383d61f55b57cf4df63eebd9827754fd2dc25f80c5253f9184235db242c"},
-    {file = "protobuf-3.20.3-cp310-cp310-win_amd64.whl", hash = "sha256:67a3598f0a2dcbc58d02dd1928544e7d88f764b47d4a286202913f0b2801c2e7"},
-    {file = "protobuf-3.20.3-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:899dc660cd599d7352d6f10d83c95df430a38b410c1b66b407a6b29265d66469"},
-    {file = "protobuf-3.20.3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:e64857f395505ebf3d2569935506ae0dfc4a15cb80dc25261176c784662cdcc4"},
-    {file = "protobuf-3.20.3-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:d9e4432ff660d67d775c66ac42a67cf2453c27cb4d738fc22cb53b5d84c135d4"},
-    {file = "protobuf-3.20.3-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:74480f79a023f90dc6e18febbf7b8bac7508420f2006fabd512013c0c238f454"},
-    {file = "protobuf-3.20.3-cp37-cp37m-win32.whl", hash = "sha256:b6cc7ba72a8850621bfec987cb72623e703b7fe2b9127a161ce61e61558ad905"},
-    {file = "protobuf-3.20.3-cp37-cp37m-win_amd64.whl", hash = "sha256:8c0c984a1b8fef4086329ff8dd19ac77576b384079247c770f29cc8ce3afa06c"},
-    {file = "protobuf-3.20.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:de78575669dddf6099a8a0f46a27e82a1783c557ccc38ee620ed8cc96d3be7d7"},
-    {file = "protobuf-3.20.3-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:f4c42102bc82a51108e449cbb32b19b180022941c727bac0cfd50170341f16ee"},
-    {file = "protobuf-3.20.3-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:44246bab5dd4b7fbd3c0c80b6f16686808fab0e4aca819ade6e8d294a29c7050"},
-    {file = "protobuf-3.20.3-cp38-cp38-win32.whl", hash = "sha256:c02ce36ec760252242a33967d51c289fd0e1c0e6e5cc9397e2279177716add86"},
-    {file = "protobuf-3.20.3-cp38-cp38-win_amd64.whl", hash = "sha256:447d43819997825d4e71bf5769d869b968ce96848b6479397e29fc24c4a5dfe9"},
-    {file = "protobuf-3.20.3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:398a9e0c3eaceb34ec1aee71894ca3299605fa8e761544934378bbc6c97de23b"},
-    {file = "protobuf-3.20.3-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:bf01b5720be110540be4286e791db73f84a2b721072a3711efff6c324cdf074b"},
-    {file = "protobuf-3.20.3-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:daa564862dd0d39c00f8086f88700fdbe8bc717e993a21e90711acfed02f2402"},
-    {file = "protobuf-3.20.3-cp39-cp39-win32.whl", hash = "sha256:819559cafa1a373b7096a482b504ae8a857c89593cf3a25af743ac9ecbd23480"},
-    {file = "protobuf-3.20.3-cp39-cp39-win_amd64.whl", hash = "sha256:03038ac1cfbc41aa21f6afcbcd357281d7521b4157926f30ebecc8d4ea59dcb7"},
-    {file = "protobuf-3.20.3-py2.py3-none-any.whl", hash = "sha256:a7ca6d488aa8ff7f329d4c545b2dbad8ac31464f1d8b1c87ad1346717731e4db"},
-    {file = "protobuf-3.20.3.tar.gz", hash = "sha256:2e3427429c9cffebf259491be0af70189607f365c2f41c7c3764af6f337105f2"},
-]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
-name = "pulumi"
-version = "3.33.1"
-description = "Pulumi's Python SDK"
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pulumi-3.33.1-py2.py3-none-any.whl", hash = "sha256:931d838dabb85db663cf359a43d2b0e9f5c0903a488a798de6c57a34ced479b6"},
-]
-
-[package.dependencies]
-dill = ">=0.3.0"
-grpcio = ">=1.33.2"
-protobuf = ">=3.6.0"
-pyyaml = ">=5.3.1"
-semver = ">=2.8.1"
-six = ">=1.12.0"
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
-name = "pulumi-azure-native"
-version = "1.73.0"
-description = "A native Pulumi package for creating and managing Azure resources."
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pulumi_azure_native-1.73.0.tar.gz", hash = "sha256:885107f4b609eeb564584178d9373a637f25a92e14314147d62cc6e9a809f5db"},
-]
-
-[package.dependencies]
-parver = ">=0.2.1"
-pulumi = ">=3.0.0,<4.0.0"
-semver = ">=2.8.1"
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
-name = "pulumi-kubernetes"
-version = "3.24.1"
-description = "A Pulumi package for creating and managing Kubernetes resources."
-category = "main"
-optional = false
-python-versions = "*"
-files = [
-    {file = "pulumi_kubernetes-3.24.1.tar.gz", hash = "sha256:e1d5af829512f645d2ad594c61cf4e83e046b0558d5a4aa3770f11b962b0bf64"},
-]
-
-[package.dependencies]
-parver = ">=0.2.1"
-pulumi = ">=3.25.0,<4.0.0"
-pyyaml = ">=5.3.1"
-requests = ">=2.21,<3.0"
-semver = ">=2.8.1"
 
 [package.source]
 type = "legacy"
@@ -2888,23 +2582,6 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
-name = "semver"
-version = "2.13.0"
-description = "Python helper for Semantic Versioning (http://semver.org/)"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-files = [
-    {file = "semver-2.13.0-py2.py3-none-any.whl", hash = "sha256:ced8b23dceb22134307c1b8abfa523da14198793d9787ac838e70e29e77458d4"},
-    {file = "semver-2.13.0.tar.gz", hash = "sha256:fa0fe2722ee1c3f57eac478820c3a5ae2f624af8264cbdf9000c980ff7f75e3f"},
-]
-
-[package.source]
-type = "legacy"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-reference = "immunomics-artifacts"
-
-[[package]]
 name = "setuptools"
 version = "67.5.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -3437,4 +3114,4 @@ dev = []
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "e4bc1f1c784a6d0f4a246f94ae5520e69828a66f57eaac357808c988d6ba0180"
+content-hash = "fd87afa7eb035135247eef479cf960df5e30af66b56c168c795f5567b93f0cc9"

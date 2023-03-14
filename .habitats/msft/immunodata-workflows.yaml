@@ -10,3 +10,4 @@ kubernetes_environments:
   service_account_name: "development-workflow"
 # all external registries from which workflows should be able to pull context images
 image_pull_secrets: []
+scheduled_workflows_utc_offset_hrs: "3"

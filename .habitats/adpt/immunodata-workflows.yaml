@@ -22,5 +22,6 @@ resource_tags:
     CostCenter: "US065"
     Env: "production"
     Owner: "esilgard@adaptivebiotech.com"
-    RG: "AnalyticsWorkbenchIACTest"
+    RG: "AFPFedRAMPIaCTest"
     Segment: "untagged"
+scheduled_workflows_utc_offset_hrs: "3"
