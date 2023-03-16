@@ -21,19 +21,18 @@ logger = logging.getLogger(__name__)
 
 
 @final
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class Namespace:
-    key: str = ""
+    key: str
+
+    def __init__(self, key: str = "") -> None:
+        object.__setattr__(self, "key", key.strip("/"))
 
     def __bool__(self) -> bool:
         return bool(self.key)
 
     def __contains__(self, namespace: Namespace) -> bool:
         return namespace.key in self.key
-
-    def __post_init__(self) -> None:
-        if len(self.key) > 0:
-            assert self.key[0] != "/" and self.key[-1] != "/", """No leading nor trailing "/"."""
 
     def __repr__(self) -> str:
         return "/" + self.key + ("/" if self.key else "")
@@ -93,12 +92,12 @@ class ProcessorProps:
         elif len(kwargs) == 0 and input_annotation is not None:
             raise ValueError("`input_annotation` provided; processor does not have keyword vars.")
         elif len(kwargs) == 1 and input_annotation is not None:
-            in_method = kwargs.pop().in_method
+            in_method = next(iter(kwargs)).in_method
             in_kwargs = {
                 k: InProcessorParam(k, ann, in_method, InProcessorParam.VAR_KEYWORD)
                 for k, ann in input_annotation.items()
             }
-            if set(in_kwargs) & set(inputs):
+            if set(in_kwargs) & set(inputs) - set(k.name for k in kwargs):
                 raise ValueError("Duplicate vars in processor signature and input_annotation.")
             inputs |= in_kwargs
 
@@ -115,10 +114,18 @@ class ProcessorProps:
 
 
 @final
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class DagNode:
     name: str
-    namespace: Namespace = Namespace()
+    namespace: Namespace
+
+    def __init__(self, name: str, namespace: str | Namespace = Namespace()) -> None:
+        object.__setattr__(self, "name", name)
+        object.__setattr__(
+            self,
+            "namespace",
+            namespace if isinstance(namespace, Namespace) else Namespace(namespace),
+        )
 
     def __contains__(self, namespace: Namespace) -> bool:
         return namespace in self.namespace
@@ -170,6 +177,17 @@ class DagDependency:
         self._node = node
         self._in_arg = in_arg
         self._out_arg = out_arg
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            self.__class__ == other.__class__
+            and self.node == other.node
+            and self.in_arg == other.in_arg
+            and self.out_arg == other.out_arg
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.node, self.in_arg, self.out_arg))
 
     def __repr__(self) -> str:
         return "self." + repr(self.in_arg) + " <- " + repr(self.node) + "." + repr(self.out_arg)
@@ -224,6 +242,16 @@ class DAG:
 
     def __contains__(self, node: DagNode) -> bool:
         return node in self.nodes
+
+    def __eq__(self, other: Any) -> bool:
+        return (
+            self.__class__ == other.__class__
+            and self.nodes == other.nodes
+            and self.dependencies == other.dependencies
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.nodes, self.dependencies))
 
     def __len__(self) -> int:
         return len(self.nodes)

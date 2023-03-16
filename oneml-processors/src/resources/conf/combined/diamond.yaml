@@ -1,0 +1,42 @@
+defaults:
+  - /combined/base@_here_
+  - /task/diamond@pipelines.A: A
+  - /task/diamond@pipelines.B: B
+  - /task/diamond@pipelines.C: C
+  - /task/diamond@pipelines.D: D
+  # - /dependency@dependencies.d0: entry
+  # - /dependency@dependencies.d1: entry
+  # - /dependency@dependencies.d2: entry
+  # - /dependency@dependencies.d3: entry
+  - _self_
+
+name: diamond
+dependencies:
+  d0:
+    in_entry:
+      pipeline: pipelines.B
+      port: inputs.X
+    out_entry:
+      pipeline: pipelines.A
+      port: outputs.Z1
+  d1:
+    in_entry:
+      pipeline: pipelines.C
+      port: inputs.X
+    out_entry:
+      pipeline: pipelines.A
+      port: outputs.Z2
+  d2:
+    in_entry:
+      pipeline: pipelines.D
+      port: inputs.X1
+    out_entry:
+      pipeline: pipelines.B
+      port: outputs.Z
+  d3:
+    in_entry:
+      pipeline: pipelines.D
+      port: inputs.X2
+    out_entry:
+      pipeline: pipelines.C
+      port: outputs.Z

@@ -123,7 +123,7 @@ def w4() -> Pipeline:
 
 
 def test_no_dependencies_default_inputs_and_outputs(w1: Pipeline, w2: Pipeline) -> None:
-    combined = PipelineBuilder.combine(w1, w2, name="combined")
+    combined = PipelineBuilder.combine(pipelines=[w1, w2], name="combined")
 
     assert set(combined.inputs) == set(("A", "B", "D"))
     assert set(combined.outputs) == set(("C", "E", "F"))
@@ -133,9 +133,7 @@ def test_with_dependencies_default_inputs_and_outputs(
     w1: Pipeline, w2: Pipeline, w3: Pipeline
 ) -> None:
     combined = PipelineBuilder.combine(
-        w1,
-        w2,
-        w3,
+        pipelines=[w1, w2, w3],
         name="combined",
         dependencies=(
             w1.outputs.C >> w2.inputs.D,
@@ -152,9 +150,7 @@ def test_with_dependencies_default_inputs_and_outputs_with_shared_input(
     w1: Pipeline, w2: Pipeline, w3: Pipeline
 ) -> None:
     combined = PipelineBuilder.combine(
-        w1,
-        w2,
-        w3,
+        pipelines=[w1, w2, w3],
         name="combined",
         dependencies=(
             w1.outputs.C >> w2.inputs.D,
@@ -170,10 +166,7 @@ def test_with_dependencies_inputs_and_outputs_specified(
     w1: Pipeline, w2: Pipeline, w3: Pipeline, w4: Pipeline
 ) -> None:
     combined = PipelineBuilder.combine(
-        w1,
-        w2,
-        w3,
-        w4,
+        pipelines=[w1, w2, w3, w4],
         name="combined",
         dependencies=(
             w1.outputs.C >> w2.inputs.D,
@@ -193,8 +186,7 @@ def test_with_dependencies_inputs_and_outputs_specified(
 
     with pytest.raises(ValueError):
         PipelineBuilder.combine(
-            w1,
-            w3,
+            pipelines=[w1, w3],
             name="combined",
             dependencies=(w1.outputs.C >> w3.inputs.A,),
             inputs={"a2": w3.inputs.A},  # inputs are specified also as dependencies
@@ -205,16 +197,14 @@ def test_with_dependencies_inputs_and_outputs_specified(
 def test_missing_input_error(w1: Pipeline, w2: Pipeline) -> None:
     with pytest.raises(ValueError):
         _ = PipelineBuilder.combine(
-            w1,
-            w2,
+            pipelines=[w1, w2],
             name="combined",
             dependencies=(w1.outputs.C >> w2.inputs.D,),
             inputs={"a": w1.inputs.A},
         )
 
     mitigated_combined = PipelineBuilder.combine(
-        w1,
-        w2,
+        pipelines=[w1, w2],
         name="combined",
         dependencies=(w1.outputs.C >> w2.inputs.D,),
         inputs={
@@ -228,14 +218,14 @@ def test_missing_input_error(w1: Pipeline, w2: Pipeline) -> None:
 
 
 def test_clashing_outputs_error(w2: Pipeline, w4: Pipeline) -> None:
-    combined = PipelineBuilder.combine(w2, w4, name="combined")
+    combined = PipelineBuilder.combine(pipelines=[w2, w4], name="combined")
     assert set(combined.inputs) == set(("D", "A"))
     assert set(combined.outputs) == set(("F", "E"))
     assert set(combined.outputs.F) == set(w2.decorate("combined").outputs.F)
     assert len(combined.outputs.E) == 1
 
     mitigated_combined = PipelineBuilder.combine(
-        w2, w4, name="combined", outputs={"e": w2.outputs.E}
+        pipelines=[w2, w4], name="combined", outputs={"e": w2.outputs.E}
     )
     assert set(mitigated_combined.inputs) == set(("D", "A"))
     assert set(mitigated_combined.outputs) == set(("e"))

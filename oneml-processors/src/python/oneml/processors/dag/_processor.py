@@ -41,9 +41,13 @@ class InMethod(Enum):
     process = 1
 
 
+@dataclass(frozen=True)
 class ProcessorParam(ABC):
     name: str
     annotation: Any
+
+    def __eq__(self, other: Any) -> bool:
+        return self.__class__ == other.__class__ and self.name == other.name
 
     def __repr__(self) -> str:
         return self.name + ": " + formatannotation(self.annotation)

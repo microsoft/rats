@@ -31,8 +31,7 @@ def report2() -> Pipeline:
 def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) -> None:
     # Inputs <- Inputs | Inputs
     reports = CombinedPipeline(
-        report1,
-        report2,
+        pipelines=[report1, report2],
         name="reports",
         inputs={"acc": report1.in_collections.acc | report2.in_collections.acc},
     )
@@ -49,8 +48,7 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
 
     # Inputs <- InEntry
     reports = CombinedPipeline(
-        report1,
-        report2,
+        pipelines=[report1, report2],
         name="reports",
         inputs={
             "acc.report1": report1.in_collections.acc.report1,
@@ -74,8 +72,7 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
 
     # Inputs.InEntry <- InEntry | InEntry
     reports = CombinedPipeline(
-        report1,
-        report2,
+        pipelines=[report1, report2],
         name="reports",
         inputs={"acc.r": report1.in_collections.acc.report1 | report2.in_collections.acc.report2},
     )
@@ -90,8 +87,7 @@ def test_sequence_inputs_to_single_output(report1: Pipeline, report2: Pipeline) 
 
     # Inputs.InEntry <- Inputs | Inputs
     reports = CombinedPipeline(
-        report1,
-        report2,
+        pipelines=[report1, report2],
         name="reports",
         inputs={"acc.r": report1.in_collections.acc | report2.in_collections.acc},
     )
@@ -164,25 +160,23 @@ def CEval() -> Pipeline:
 
 @pytest.fixture
 def A(ATrain: Pipeline, AEval: Pipeline) -> Pipeline:
-    return CombinedPipeline(ATrain, AEval, name="A")
+    return CombinedPipeline(pipelines=[ATrain, AEval], name="A")
 
 
 @pytest.fixture
 def B(BTrain: Pipeline) -> Pipeline:
-    return CombinedPipeline(BTrain, name="B")
+    return CombinedPipeline(pipelines=[BTrain], name="B")
 
 
 @pytest.fixture
 def C(CTrain: Pipeline, CEval: Pipeline) -> Pipeline:
-    return CombinedPipeline(CTrain, CEval, name="C")
+    return CombinedPipeline(pipelines=[CTrain, CEval], name="C")
 
 
 @pytest.fixture
 def ABC(A: Pipeline, B: Pipeline, C: Pipeline) -> Pipeline:
     return CombinedPipeline(
-        A,
-        B,
-        C,
+        pipelines=[A, B, C],
         name="ABC",
         dependencies=(
             # should we allow B.inputs.X << A.outputs.z when B.inputs.X is a strict subset of
@@ -218,13 +212,14 @@ def test_combine_inputs(A: Pipeline, B: Pipeline, C: Pipeline, ABC: Pipeline) ->
     assert ABC.out_collections.z.C_train == C.outputs.z.decorate("ABC")
 
     # InEntry <- InEntry | InEntry
-    D = CombinedPipeline(B, C, name="D", inputs={"x": B.inputs.x | C.inputs.x}, outputs={})
+    D = CombinedPipeline(
+        pipelines=[B, C], name="D", inputs={"x": B.inputs.x | C.inputs.x}, outputs={}
+    )
     assert D.inputs.x == (B.inputs.x | C.inputs.x).decorate("D")
 
     # Inputs.InEntry <- InEntry | InEntry
     D = CombinedPipeline(
-        B,
-        C,
+        pipelines=[B, C],
         name="D",
         inputs={
             "x.train": B.inputs.x | C.inputs.x,
@@ -237,8 +232,7 @@ def test_combine_inputs(A: Pipeline, B: Pipeline, C: Pipeline, ABC: Pipeline) ->
 
     # InEntry <- Inputs | Inputs
     D = CombinedPipeline(
-        B,
-        C,
+        pipelines=[B, C],
         name="D",
         inputs={
             "x": B.inputs.x | C.inputs.x,

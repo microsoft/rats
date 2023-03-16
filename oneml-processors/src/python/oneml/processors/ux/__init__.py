@@ -1,6 +1,27 @@
-from ._builder import CombinedPipeline, PipelineBuilder, Task
-from ._pipeline import (
+from ._builder import (
+    CombinedConf,
+    CombinedPipeline,
+    PipelineBuilder,
+    Task,
+    TaskConf,
+    UserInput,
+    UserOutput,
+)
+from ._omegaconf import register_resolvers
+from ._ops import (
+    CollectionDependencyOp,
+    CollectionDependencyOpConf,
     Dependency,
+    DependencyOp,
+    EntryDependencyOp,
+    EntryDependencyOpConf,
+    IOCollectionDependencyOp,
+    IOCollectionDependencyOpConf,
+    PipelineDependencyOp,
+    PipelineDependencyOpConf,
+    PipelinePortConf,
+)
+from ._pipeline import (
     InCollections,
     InEntry,
     InParameter,
@@ -10,14 +31,30 @@ from ._pipeline import (
     OutParameter,
     Outputs,
     Pipeline,
+    PipelineConf,
 )
 from ._session import InputDataProcessor, PipelineRunner, PipelineRunnerFactory
 
 __all__ = [
+    "CombinedConf",
     "CombinedPipeline",
     "PipelineBuilder",
     "Task",
+    "TaskConf",
+    "UserInput",
+    "UserOutput",
+    "register_resolvers",
+    "CollectionDependencyOp",
+    "CollectionDependencyOpConf",
     "Dependency",
+    "DependencyOp",
+    "EntryDependencyOp",
+    "EntryDependencyOpConf",
+    "IOCollectionDependencyOp",
+    "IOCollectionDependencyOpConf",
+    "PipelineDependencyOp",
+    "PipelineDependencyOpConf",
+    "PipelinePortConf",
     "InCollections",
     "InEntry",
     "InParameter",
@@ -27,6 +64,8 @@ __all__ = [
     "OutParameter",
     "Outputs",
     "Pipeline",
+    "PipelineConf",
+    "PipelinePort",
     "InputDataProcessor",
     "PipelineRunner",
     "PipelineRunnerFactory",

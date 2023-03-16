@@ -1,7 +1,6 @@
+from dataclasses import dataclass
 from typing import Mapping, TypedDict
 
-import numpy as np
-import numpy.typing as npt
 import pytest
 
 from oneml.processors import (
@@ -17,11 +16,17 @@ from oneml.processors import (
 
 # PROCESSORS (aka they do stuff; aka almost transformers)
 
-ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": npt.NDArray[np.float64]})
+
+@dataclass
+class Array:
+    x: list[float]
+
+
+ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": Array})
 
 
 class ArrayReader(IProcess):
-    def __init__(self, storage: Mapping[str, npt.NDArray[np.float64]], url: str) -> None:
+    def __init__(self, storage: dict[str, Array], url: str) -> None:
         super().__init__()
         self._storage = storage
         self._url = url
@@ -30,22 +35,22 @@ class ArrayReader(IProcess):
         return ArrayReaderOutput(array=self._storage[self._url])
 
 
-ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"result": npt.NDArray[np.float64]})
+ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"result": float})
 
 
 class ArrayProduct(IProcess):
-    def process(
-        self, left_arr: npt.NDArray[np.float64], right_arr: npt.NDArray[np.float64]
-    ) -> ArrayDotProductOutput:
-        return ArrayDotProductOutput(result=np.dot(left_arr, right_arr))
+    def process(self, left_arr: Array, right_arr: Array) -> ArrayDotProductOutput:
+        return ArrayDotProductOutput(
+            result=sum([xi * xj for xi, xj in zip(left_arr.x, right_arr.x)])
+        )
 
 
-SumArraysOutput = TypedDict("SumArraysOutput", {"result": npt.NDArray[np.float64]})
+SumFloatsOutput = TypedDict("SumFloatsOutput", {"result": float})
 
 
-class SumArrays(IProcess):
-    def process(self, *arrays: npt.NDArray[np.float64]) -> SumArraysOutput:
-        return SumArraysOutput(result=np.sum([np.sum(a) for a in arrays]))
+class SumFloats(IProcess):
+    def process(self, *floats: float) -> SumFloatsOutput:
+        return SumFloatsOutput(result=sum(floats))
 
 
 ########
@@ -54,21 +59,22 @@ class SumArrays(IProcess):
 
 
 @pytest.fixture(scope="module")
-def storage() -> dict[str, npt.NDArray[np.float64]]:
-    return {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
+def storage() -> dict[str, Array]:
+    return {"a": Array([10.0, 20.0, 30.0]), "b": Array([-10.0, 20.0, -30.0])}
 
 
 @pytest.fixture(scope="module")
-def left_config(storage: dict[str, npt.NDArray[np.float64]]) -> IGetParams:
+def left_config(storage: dict[str, Array]) -> IGetParams:
     return frozendict(storage=storage, url="a")
 
 
 @pytest.fixture(scope="module")
-def right_config(storage: dict[str, npt.NDArray[np.float64]]) -> IGetParams:
+def right_config(storage: dict[str, Array]) -> IGetParams:
     return frozendict(storage=storage, url="b")
 
 
 #######
+
 
 # PIPELINE
 @pytest.fixture(scope="module")
@@ -78,9 +84,7 @@ def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
     product = PipelineBuilder.task(ArrayProduct, "array_product")
 
     w1 = PipelineBuilder.combine(
-        left_reader,
-        right_reader,
-        product,
+        pipelines=[left_reader, right_reader, product],
         name="w1",
         inputs={},
         outputs={"result": product.outputs.result},
@@ -90,9 +94,7 @@ def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
         ),
     )
     w2 = PipelineBuilder.combine(
-        left_reader,
-        right_reader,
-        product,
+        pipelines=[left_reader, right_reader, product],
         name="w2",
         inputs={},
         outputs={"result": product.outputs.result},
@@ -102,9 +104,7 @@ def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
         ),
     )
     w3 = PipelineBuilder.combine(
-        left_reader,
-        right_reader,
-        product,
+        pipelines=[left_reader, right_reader, product],
         inputs={},
         outputs={"result": product.outputs.result},
         dependencies=(
@@ -113,18 +113,15 @@ def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
         ),
         name="w3",
     )
-    sum_arrays = PipelineBuilder.task(SumArrays, "sum_arrays")
+    sum_arrays = PipelineBuilder.task(SumFloats, "sum_floats")
     return PipelineBuilder.combine(
-        sum_arrays,
-        w1,
-        w2,
-        w3,
+        pipelines=[sum_arrays, w1, w2, w3],
         inputs={},
         outputs={"result": sum_arrays.outputs.result},
         dependencies=(
-            sum_arrays.inputs.arrays << w1.outputs.result,
-            sum_arrays.inputs.arrays << w2.outputs.result,
-            sum_arrays.inputs.arrays << w3.outputs.result,
+            sum_arrays.inputs.floats << w1.outputs.result,
+            sum_arrays.inputs.floats << w2.outputs.result,
+            sum_arrays.inputs.floats << w3.outputs.result,
         ),
         name="p",
     )

@@ -38,8 +38,7 @@ def eval_stz() -> Pipeline:
 @pytest.fixture
 def stz(train_stz: Pipeline, eval_stz: Pipeline) -> Pipeline:
     return PipelineBuilder.combine(
-        train_stz,
-        eval_stz,
+        pipelines=[train_stz, eval_stz],
         name="stz",
         dependencies=(
             eval_stz.inputs.mean << train_stz.outputs.mean,

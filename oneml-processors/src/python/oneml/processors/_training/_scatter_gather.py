@@ -57,15 +57,13 @@ class ScatterGatherBuilders:
         batch_pipelines = frozendict[int, Pipeline](
             {
                 batch_key: PipelineBuilder.combine(
-                    process_batch, name=cls._get_batch_pipeline_name(batch_key)
+                    pipelines=[process_batch], name=cls._get_batch_pipeline_name(batch_key)
                 )
                 for batch_key in batch_keys
             }
         )
         w = PipelineBuilder.combine(
-            scatter,
-            gather,
-            *batch_pipelines.values(),
+            pipelines=[scatter, gather] + list(batch_pipelines.values()),
             name=name,
             dependencies=(
                 tuple(

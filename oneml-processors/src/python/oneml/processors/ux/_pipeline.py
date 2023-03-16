@@ -5,8 +5,17 @@ from dataclasses import dataclass
 from itertools import chain
 from typing import Any, Generic, Iterable, Mapping, TypeAlias, TypeVar, final
 
+from omegaconf import MISSING
+
 from ..dag import DAG, DagNode, InProcessorParam, OutProcessorParam
 from ..utils import frozendict, orderedset
+from ._ops import (
+    CollectionDependencyOp,
+    Dependency,
+    EntryDependencyOp,
+    IOCollectionDependencyOp,
+    PipelineDependencyOp,
+)
 
 PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
 PM = TypeVar("PM", bound="PipelineParam[Any]", covariant=True)
@@ -78,11 +87,11 @@ class InEntry(ParamEntry[InParameter]):
         if not all(isinstance(in_param, InParameter) for in_param in self):
             raise ValueError("All elements of `InEntry` must be `InParameter`s.")
 
-    def __lshift__(self, other: OutEntry) -> tuple[Dependency, ...]:
+    def __lshift__(self, other: OutEntry) -> EntryDependencyOp:
         if not isinstance(other, OutEntry):
             raise ValueError("Cannot assign to `InEntry`; `other` must be `OutEntry`.")
 
-        return tuple(in_param << out_param for in_param in self for out_param in other)
+        return EntryDependencyOp(self, other)
 
 
 @final
@@ -92,11 +101,11 @@ class OutEntry(ParamEntry[OutParameter]):
         if not all(isinstance(out_param, OutParameter) for out_param in self):
             raise ValueError("All elements of `OutEntry` must be `OutParameter`s.")
 
-    def __rshift__(self, other: InEntry) -> tuple[Dependency, ...]:
+    def __rshift__(self, other: InEntry) -> EntryDependencyOp:
         if not isinstance(other, InEntry):
             raise ValueError("Cannot assign to `OutEntry`; `other` must be `InEntry`.")
 
-        return tuple(out_param >> in_param for in_param in other for out_param in self)
+        return EntryDependencyOp(other, self)
 
 
 class ParamCollection(frozendict[str, PE], ABC):
@@ -152,20 +161,14 @@ class Inputs(ParamCollection[InEntry]):
         if not all(isinstance(entry, InEntry) for entry in self.values()):
             raise ValueError("Input values need to be `InEntry` types.")
 
-    def __lshift__(self, other: Outputs) -> tuple[Dependency, ...]:
+    def __lshift__(self, other: Outputs) -> CollectionDependencyOp:
         if not isinstance(other, Outputs):
             raise ValueError("Cannot assign to `Inputs`; `other` must be `Outputs`.")
 
         if set(self) != set(other):
             raise ValueError("Node names in collections have to match.")
 
-        return tuple(
-            dependency
-            for in_entryname, in_entry in self.items()
-            for out_entryname, out_entry in other.items()
-            if in_entryname == out_entryname
-            for dependency in in_entry << out_entry
-        )
+        return CollectionDependencyOp(self, other)
 
 
 @final
@@ -175,20 +178,14 @@ class Outputs(ParamCollection[OutEntry]):
         if not all(isinstance(entry, OutEntry) for entry in self.values()):
             raise ValueError("Inputs values need to be `OutEntry` types.")
 
-    def __rshift__(self, other: Inputs) -> tuple[Dependency, ...]:
+    def __rshift__(self, other: Inputs) -> CollectionDependencyOp:
         if not isinstance(other, Inputs):
             raise ValueError("Cannot assign to `Outputs`; `other` must be `Inputs`.")
 
         if set(self) != set(other):
             raise ValueError("Node names in collections have to match.")
 
-        return tuple(
-            dependency
-            for in_entryname, in_entry in other.items()
-            for out_entryname, out_entry in self.items()
-            if in_entryname == out_entryname
-            for dependency in out_entry >> in_entry
-        )
+        return CollectionDependencyOp(other, self)
 
 
 class IOCollections(frozendict[str, PC], ABC):
@@ -198,11 +195,6 @@ class IOCollections(frozendict[str, PC], ABC):
             raise ValueError("inputs keys be `str`.")
         if not all(isinstance(e, ParamCollection) for e in self.values()):
             raise ValueError("inputs values be `ParamCollection`.")
-        # params: list[ParamEntry[Any]] = reduce(
-        #     lambda x, y: x + list(y), chain.from_iterable(c.values() for c in self.values()), []
-        # )
-        # if len(params) != len(set(params)):  # find duplicate params
-        #     raise ValueError("Duplicate parameters are not allowed.")
 
     def __or__(self: PL, other: Mapping[str, Any]) -> PL:
         if not isinstance(other, Mapping):
@@ -274,12 +266,11 @@ class InCollections(IOCollections[InCollection]):
         if not all(isinstance(v, Inputs) for v in self.values()):
             raise ValueError("all `inputs` values need to be `Inputs` type.")
 
-    def __lshift__(self, other: OutCollections) -> tuple[Dependency, ...]:
+    def __lshift__(self, other: OutCollections) -> IOCollectionDependencyOp:
         if not isinstance(other, OutCollections):
             raise ValueError("Dependency assignment only accepts `OutCollections`.")
 
-        intersecting_keys = set(self) & set(other)
-        return tuple(chain.from_iterable(self[k] << other[k] for k in intersecting_keys))
+        return IOCollectionDependencyOp(self, other)
 
 
 class OutCollections(IOCollections[OutCollection]):
@@ -288,43 +279,32 @@ class OutCollections(IOCollections[OutCollection]):
         if not all(isinstance(v, Outputs) for v in self.values()):
             raise ValueError("all `outputs` values need to be `Outputs` type.")
 
-    def __rshift__(self, other: InCollections) -> tuple[Dependency, ...]:
+    def __rshift__(self, other: InCollections) -> IOCollectionDependencyOp:
         if not isinstance(other, InCollections):
             raise ValueError("Dependency assignment only accepts `InCollections`.")
 
-        intersecting_keys = set(self) & set(other)
-        return tuple(chain.from_iterable(self[k] >> other[k] for k in intersecting_keys))
+        return IOCollectionDependencyOp(other, self)
 
 
-@final
-@dataclass(frozen=True)
-class Dependency:
-    in_param: InParameter
-    out_param: OutParameter
-
-    def __repr__(self) -> str:
-        return f"{repr(self.in_param)} <- {repr(self.out_param)}"
-
-    def decorate(self, in_name: str, out_name: str) -> Dependency:
-        return self.__class__(self.in_param.decorate(in_name), self.out_param.decorate(out_name))
+@dataclass
+class PipelineConf:
+    name: str = MISSING
 
 
-@dataclass(frozen=True, init=False)
 class Pipeline:
-    name: str
-    inputs: Inputs = Inputs()
-    outputs: Outputs = Outputs()
-    in_collections: InCollections = InCollections()
-    out_collections: OutCollections = OutCollections()
+    _name: str
     _dag: DAG = DAG()
-
-    def __len__(self) -> int:
-        return len(self._dag)
+    _config: PipelineConf = PipelineConf()
+    _inputs: Inputs = Inputs()
+    _outputs: Outputs = Outputs()
+    _in_collections: InCollections = InCollections()
+    _out_collections: OutCollections = OutCollections()
 
     def __init__(
         self,
         name: str,
         dag: DAG,
+        config: PipelineConf,
         inputs: Inputs = Inputs(),
         outputs: Outputs = Outputs(),
         in_collections: InCollections = InCollections(),
@@ -342,25 +322,42 @@ class Pipeline:
             raise ValueError("`in_collections` need to be of `InCollections` type.")
         if not isinstance(out_collections, OutCollections):
             raise ValueError("`out_collections` needs to be of `OutCollections` type.")
+        # if not isinstance(config, PipelineConf):
+        #     raise ValueError("`config` needs to be of `PipelineConf` type.")
 
-        object.__setattr__(self, "name", name)
-        object.__setattr__(self, "inputs", inputs)
-        object.__setattr__(self, "outputs", outputs)
-        object.__setattr__(self, "in_collections", in_collections)
-        object.__setattr__(self, "out_collections", out_collections)
-        object.__setattr__(self, "_dag", dag)
+        self._name = name
+        self._inputs = inputs
+        self._outputs = outputs
+        self._in_collections = in_collections
+        self._out_collections = out_collections
+        self._dag = dag
+        self._config = config
 
-    def __lshift__(self, other: Pipeline) -> tuple[Dependency, ...]:
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, Pipeline):
+            return self._dag == other._dag
+        return False
+
+    def __hash__(self) -> int:
+        return hash(self._dag)
+
+    def __len__(self) -> int:
+        return len(self._dag)
+
+    def __repr__(self) -> str:
+        return f"{self.name}({self._dag})"
+
+    def __lshift__(self, other: Pipeline) -> PipelineDependencyOp:
         if not isinstance(other, Pipeline):
             raise ValueError("Dependency assignment only accepts another `Pipeline`.")
 
-        return (self.inputs << other.outputs) + (self.in_collections << other.out_collections)
+        return PipelineDependencyOp(self, other)
 
-    def __rshift__(self, other: Pipeline) -> tuple[Dependency, ...]:
+    def __rshift__(self, other: Pipeline) -> PipelineDependencyOp:
         if not isinstance(other, Pipeline):
             raise ValueError("Dependency assignment only accepts `Pipeline`.")
 
-        return (self.outputs >> other.inputs) + (self.out_collections >> other.in_collections)
+        return PipelineDependencyOp(other, self)
 
     def decorate(self, name: str) -> Pipeline:
         dag = self._dag.decorate(name)
@@ -368,7 +365,7 @@ class Pipeline:
         outputs = self.outputs.decorate(name)
         in_collections = self.in_collections.decorate(name)
         out_collections = self.out_collections.decorate(name)
-        return Pipeline(name, dag, inputs, outputs, in_collections, out_collections)
+        return Pipeline(name, dag, self._config, inputs, outputs, in_collections, out_collections)
 
     def _rename(self, names: Mapping[str, str], collection: PCi, io: PLi) -> tuple[PCi, PLi]:
         if any(k.count(".") > 1 for k in chain.from_iterable(names.items())):
@@ -396,8 +393,32 @@ class Pipeline:
 
     def rename_inputs(self, names: Mapping[str, str]) -> Pipeline:
         new_PC, new_PL = self._rename(names, self.inputs, self.in_collections)
-        return Pipeline(self.name, self._dag, new_PC, self.outputs, new_PL, self.out_collections)
+        return Pipeline(
+            self.name, self._dag, self._config, new_PC, self.outputs, new_PL, self.out_collections
+        )
 
     def rename_outputs(self, names: Mapping[str, str]) -> Pipeline:
         new_PC, new_PL = self._rename(names, self.outputs, self.out_collections)
-        return Pipeline(self.name, self._dag, self.inputs, new_PC, self.in_collections, new_PL)
+        return Pipeline(
+            self.name, self._dag, self._config, self.inputs, new_PC, self.in_collections, new_PL
+        )
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def inputs(self) -> Inputs:
+        return self._inputs
+
+    @property
+    def outputs(self) -> Outputs:
+        return self._outputs
+
+    @property
+    def in_collections(self) -> InCollections:
+        return self._in_collections
+
+    @property
+    def out_collections(self) -> OutCollections:
+        return self._out_collections

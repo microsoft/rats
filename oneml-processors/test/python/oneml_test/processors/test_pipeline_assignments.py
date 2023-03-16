@@ -84,8 +84,7 @@ def test_mixed_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipelin
 
 def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
     stz1 = PipelineBuilder.combine(
-        train_stz,
-        eval_stz,
+        pipelines=[train_stz, eval_stz],
         dependencies=(
             train_stz.outputs.shift >> eval_stz.inputs.shift,
             train_stz.outputs.scale >> eval_stz.inputs.scale,
@@ -93,8 +92,7 @@ def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pi
         name="stz1",
     )
     stz2 = PipelineBuilder.combine(
-        train_stz,
-        eval_stz,
+        pipelines=[train_stz, eval_stz],
         dependencies=(
             train_stz.outputs.shift >> eval_stz.inputs.shift,
             train_stz.outputs.scale >> eval_stz.inputs.scale,

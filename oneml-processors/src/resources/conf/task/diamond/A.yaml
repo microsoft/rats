@@ -1,0 +1,5 @@
+defaults:
+  - /task/base@_here_
+  - _self_
+
+processor_type: oneml_test.processors.test_diamond_yaml.A

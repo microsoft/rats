@@ -1,0 +1,16 @@
+defaults:
+  - /estimator/base@_here_
+  - /task/lr@train_pl: lr_train
+  - /task/lr@eval_pl: lr_eval
+  - /dependency@dependencies.d0: entry
+  - _self_
+
+name: lr
+dependencies:
+  d0:
+    in_entry:
+      pipeline: eval_pl
+      port: inputs.model
+    out_entry:
+      pipeline: train_pl
+      port: outputs.model

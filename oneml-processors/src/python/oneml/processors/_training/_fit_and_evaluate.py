@@ -8,10 +8,9 @@
 """
 from collections import ChainMap
 from itertools import chain
-from typing import Iterable, Sequence
+from typing import Sequence
 
-from ..ux._builder import PipelineBuilder
-from ..ux._pipeline import Dependency, Pipeline
+from ..ux import DependencyOp, Pipeline, PipelineBuilder
 
 
 class FitAndEvaluateBuilders:
@@ -30,7 +29,7 @@ class FitAndEvaluateBuilders:
         estimator_name: str,
         fit_pipeline: Pipeline,
         eval_pipeline: Pipeline,
-        shared_params: Iterable[Sequence[Dependency]] = ((),),
+        dependencies: Sequence[DependencyOp] = (),
     ) -> Pipeline:
         """Builds a FitAndEvaluate pipeline when the fit pipeline also evaluates train data.
 
@@ -42,17 +41,17 @@ class FitAndEvaluateBuilders:
         * eval_pipeline: A pipeline that takes fitted parameters and data, and evaluates the data
           using these fitted parameters.  Inputs and outputs are assumed to be entires, not
           collections.
-        * shared_params: A sequence of dependencies mapping the fitted parameters from fit_pipeline
+        * dependencies: A sequence of dependencies mapping the fitted parameters from fit_pipeline
           outputs to eval_pipeline inputs.
         Returns:
           A pipeline that meets the FitAndEvaluate pattern.
-          * Inputs to `fit_pipeline` and `eval_pipeline`, except those indicated in `shared_params`
+          * Inputs to `fit_pipeline` and `eval_pipeline`, except those indicated in `dependencies`
             become collection inputs, with `train` entries going to `fit_pipeline` and `eval`
             entries going to `eval_pipeline.
           * Outputs from `fit_pipeline` and `eval_pipeline`, except those indicated in
-            `shared_params` become collection outputs, with `train` entries comming from
+            `dependencies` become collection outputs, with `train` entries comming from
             `fit_pipeline` and `eval` entries comming from `eval_pipeline.
-          * Fitted parameter, i.e. outputs of `fit_pipeline` that are indicated in `shared_params`
+          * Fitted parameter, i.e. outputs of `fit_pipeline` that are indicated in `dependencies`
             becomes outputs of the built pipeline.
 
         Example:
@@ -72,15 +71,14 @@ class FitAndEvaluateBuilders:
           * Outputs: `Z` (`Z.train`, `Z.eval`), `mean`, `std`.
         """
         fitted_names_in_fit = frozenset(
-            dp.out_param.param.name for dp in chain.from_iterable(shared_params)
+            dp.out_param.param.name for dp in chain.from_iterable(dependencies)
         )
         fitted_names_in_eval = frozenset(
-            dp.in_param.param.name for dp in chain.from_iterable(shared_params)
+            dp.in_param.param.name for dp in chain.from_iterable(dependencies)
         )
         pipeline = PipelineBuilder.combine(
-            fit_pipeline,
-            eval_pipeline,
-            dependencies=shared_params,
+            pipelines=[fit_pipeline, eval_pipeline],
+            dependencies=dependencies,
             name=estimator_name,
             inputs=ChainMap(
                 {f"{n}.train": fit_pipeline.inputs[n] for n in fit_pipeline.inputs},
@@ -160,9 +158,7 @@ class FitAndEvaluateBuilders:
             frozenset(eval_eval_pipeline.inputs) - fitted_params_used_by_eval_eval
         )
         pipeline = PipelineBuilder.combine(
-            fit_pipeline,
-            train_eval_pipeline,
-            eval_eval_pipeline,
+            pipelines=[fit_pipeline, train_eval_pipeline, eval_eval_pipeline],
             name=estimator_name,
             dependencies=(
                 tuple(
@@ -243,8 +239,8 @@ class FitAndEvaluateBuilders:
           * Outputs of both copies of `eval_pipeline` become collection outputs, with `train`
             entries coming from the train copy and `eval` entries coming from the eval copy
         """
-        train_eval_pipeline = PipelineBuilder.combine(eval_pipeline, name="train")
-        eval_eval_pipeline = PipelineBuilder.combine(eval_pipeline, name="eval")
+        train_eval_pipeline = PipelineBuilder.combine(pipelines=[eval_pipeline], name="train")
+        eval_eval_pipeline = PipelineBuilder.combine(pipelines=[eval_pipeline], name="eval")
         return cls.build_using_fit_and_two_evals(
             estimator_name, fit_pipeline, train_eval_pipeline, eval_eval_pipeline
         )

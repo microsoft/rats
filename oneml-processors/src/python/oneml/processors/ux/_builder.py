@@ -1,15 +1,25 @@
 from __future__ import annotations
 
 from collections import ChainMap
-from dataclasses import dataclass
 from functools import reduce
 from itertools import chain
-from typing import Any, Iterable, Mapping, Sequence, TypeAlias, TypeVar, final
+from typing import Any, Mapping, Sequence, TypeAlias, TypeVar, final
+
+from hydra_zen import hydrated_dataclass
+from omegaconf import MISSING
 
 from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IGetParams, IProcess, ProcessorProps
 from ..utils import frozendict
+from ._ops import (
+    CollectionDependencyOpConf,
+    DependencyOp,
+    DependencyOpConf,
+    EntryDependencyOpConf,
+    IOCollectionDependencyOpConf,
+    PipelineDependencyOpConf,
+    PipelinePortConf,
+)
 from ._pipeline import (
-    Dependency,
     InCollections,
     InEntry,
     InParameter,
@@ -22,6 +32,14 @@ from ._pipeline import (
     ParamCollection,
     ParamEntry,
     Pipeline,
+    PipelineConf,
+)
+from ._utils import (
+    _input_annotation,
+    _parse_dependencies_to_list,
+    _parse_pipelines_to_list,
+    _processor_type,
+    _return_annotation,
 )
 
 PE = TypeVar("PE", bound=ParamEntry[Any])
@@ -34,13 +52,14 @@ UserOutput: TypeAlias = UserIO[OutEntry, Outputs]
 
 
 @final
-@dataclass(frozen=True, init=False)
 class Task(Pipeline):
+    _config: TaskConf
+
     def __init__(
         self,
         processor_type: type,
         name: str | None = None,
-        params_getter: IGetParams = frozendict[str, Any](),
+        params_getter: IGetParams | None = None,
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
@@ -49,7 +68,7 @@ class Task(Pipeline):
             raise ValueError("`processor_type` needs to satisfy the `IProcess` protocol.")
         if name is not None and not isinstance(name, str):
             raise ValueError("`name` needs to be string or None.")
-        if not isinstance(params_getter, IGetParams):
+        if params_getter is not None and not isinstance(params_getter, IGetParams):
             raise ValueError("`params_getter` needs to satisfy `IGetParams` protocol.")
         if not isinstance(compute_reqs, ComputeReqs):
             raise ValueError("`compute_reqs` needs to be `ComputeReqs` object.")
@@ -63,21 +82,33 @@ class Task(Pipeline):
 
         name = name if name else processor_type.__name__
         node = DagNode(name)
+        params_getter = params_getter if params_getter is not None else frozendict()
         props = ProcessorProps(
             processor_type, params_getter, input_annotation, return_annotation, compute_reqs
         )
         inputs = {k: InEntry((InParameter(node, p),)) for k, p in props.inputs.items()}
         outputs = {k: OutEntry((OutParameter(node, p),)) for k, p in props.outputs.items()}
-        super().__init__(name, DAG({node: props}), Inputs(inputs), Outputs(outputs))
+        config = TaskConf(
+            name=name,
+            processor_type=processor_type.__module__ + "." + processor_type.__name__,
+            input_annotation={k: str(v) for k, v in input_annotation.items()}
+            if input_annotation is not None
+            else None,
+            return_annotation={k: str(v) for k, v in return_annotation.items()}
+            if return_annotation is not None
+            else None,
+        )
+        super().__init__(name, DAG({node: props}), config, Inputs(inputs), Outputs(outputs))
 
 
-@dataclass(frozen=True, init=False)
 class CombinedPipeline(Pipeline):
+    _config: CombinedConf
+
     def __init__(
         self,
-        *pipelines: Pipeline,
+        pipelines: Sequence[Pipeline],
         name: str,
-        dependencies: Iterable[Sequence[Dependency]] = ((),),
+        dependencies: Sequence[DependencyOp] | None = None,
         inputs: UserInput | None = None,
         outputs: UserOutput | None = None,
     ) -> None:
@@ -87,6 +118,8 @@ class CombinedPipeline(Pipeline):
         def get_props(node: DagNode, dags: Sequence[DAG]) -> ProcessorProps:
             return next(iter(dag.nodes[node] for dag in dags if node in dag))
 
+        if dependencies is None:
+            dependencies = ()
         shared_input = tuple(dp.in_param for dp in chain.from_iterable(dependencies))
         shared_out = tuple(dp.out_param for dp in chain.from_iterable(dependencies))
         flat_input: tuple[InParameter, ...] = ()
@@ -143,7 +176,17 @@ class CombinedPipeline(Pipeline):
             in_node = dp.in_param.node
             dags.append(DAG({in_node: get_props(in_node, dags)}, {in_node: (ddp,)}))
         new_pl = sum(dags, start=DAG()).decorate(name)
-        super().__init__(name, new_pl, in_entries, out_entries, in_collections, out_collections)
+
+        config = CombinedConf(
+            name=name,
+            pipelines={pl.name: pl._config for pl in pipelines},
+            dependencies={
+                f"d{i}": v.get_dependencyopconf(pipelines) for i, v in enumerate(dependencies)
+            },
+        )
+        super().__init__(
+            name, new_pl, config, in_entries, out_entries, in_collections, out_collections
+        )
 
     @staticmethod
     def _format_io(user_io: UserIO[PE, PC], entries: PC, collections: PL) -> tuple[PC, PL]:
@@ -170,7 +213,7 @@ class CombinedPipeline(Pipeline):
     @staticmethod
     def _gather_outputs(
         out_collections: OutCollections, out_entries: Outputs, name: str
-    ) -> tuple[Outputs, OutCollections, tuple[Pipeline, ...], tuple[tuple[Dependency, ...], ...]]:
+    ) -> tuple[Outputs, OutCollections, tuple[Pipeline, ...], tuple[DependencyOp, ...]]:
         def gathering_tasks(entries: dict[str, OutEntry]) -> dict[str, Pipeline]:
             return {
                 en: Task(
@@ -351,9 +394,9 @@ class PipelineBuilder:
 
     @staticmethod
     def combine(
-        *pipelines: Pipeline,
+        pipelines: Sequence[Pipeline],
         name: str,
-        dependencies: Iterable[Sequence[Dependency]] = ((),),
+        dependencies: Sequence[DependencyOp] | None = None,
         inputs: UserInput | None = None,
         outputs: UserOutput | None = None,
     ) -> Pipeline:
@@ -499,5 +542,30 @@ class PipelineBuilder:
                 )
         """
         return CombinedPipeline(
-            *pipelines, name=name, inputs=inputs, outputs=outputs, dependencies=dependencies
+            pipelines, name=name, inputs=inputs, outputs=outputs, dependencies=dependencies
         )
+
+
+@hydrated_dataclass(Task, zen_wrappers=[_processor_type, _input_annotation, _return_annotation])
+class TaskConf(PipelineConf):
+    processor_type: str = MISSING
+    name: str = "${parent_or_processor_name:}"
+    params_getter: Any = None
+    input_annotation: dict[str, str] | None = None
+    return_annotation: dict[str, str] | None = None
+
+
+@hydrated_dataclass(
+    CombinedPipeline,
+    zen_wrappers=[
+        "${parse_dependencies: ${..dependencies}}",
+        _parse_pipelines_to_list,
+        _parse_dependencies_to_list,
+    ],
+)
+class CombinedConf(PipelineConf):
+    pipelines: Any = MISSING
+    name: str = MISSING
+    dependencies: Any = None
+    inputs: dict[str, Any] | None = None
+    outputs: dict[str, Any] | None = None

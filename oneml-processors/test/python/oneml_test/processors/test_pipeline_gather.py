@@ -38,8 +38,7 @@ def test_gather_inputs_to_single_output_1(
 ) -> None:
     # OutEntry | OutEntry -> OutEntry
     p = CombinedPipeline(
-        acc1,
-        acc2,
+        pipelines=[acc1, acc2],
         name="p",
         outputs={"acc": acc1.outputs.acc | acc2.outputs.acc},
     )
@@ -58,8 +57,7 @@ def test_gather_inputs_to_single_output_2(
 ) -> None:
     # OutEntry | OutEntry -> Outputs.OutEntry
     p = CombinedPipeline(
-        acc1,
-        acc2,
+        pipelines=[acc1, acc2],
         name="p",
         outputs={"acc.nested": acc1.outputs.acc | acc2.outputs.acc},
     )

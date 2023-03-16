@@ -1994,6 +1994,32 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
+name = "hydra-zen"
+version = "0.9.1"
+description = "Configurable, reproducible, and scalable workflows in Python, via Hydra"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "hydra_zen-0.9.1-py3-none-any.whl", hash = "sha256:379dfd2340b079832f2880d7bb8338aade35a64d5b4a47bbb125984ac847fc48"},
+    {file = "hydra_zen-0.9.1.tar.gz", hash = "sha256:3f119d1e565fd4820c770643dc761370cc8d4abdc3414ed07f87d434a50b6e46"},
+]
+
+[package.dependencies]
+hydra-core = ">=1.1.0"
+typing-extensions = ">=4.1.0"
+
+[package.extras]
+beartype = ["beartype (>=0.8.0)"]
+pydantic = ["pydantic (>=1.8.2)"]
+test = ["hypothesis (>=6.28.0)", "pytest (>=3.8)"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
 name = "idna"
 version = "3.4"
 description = "Internationalized Domain Names in Applications (IDNA)"
@@ -3639,9 +3665,8 @@ develop = true
 
 [package.dependencies]
 dill = "^0.3.5"
-munch = "^2.5.0"
-networkx = "^2.8.4"
-numpy = "*"
+hydra-core = "^1.3.2"
+hydra-zen = "^0.9.1"
 omegaconf = "*"
 oneml-pipelines = "*"
 pydot = "^1.4.2"
@@ -5496,7 +5521,7 @@ greenlet = {version = "!=0.4.17", markers = "python_version >= \"3\" and (platfo
 
 [package.extras]
 aiomysql = ["aiomysql", "greenlet (!=0.4.17)"]
-aiosqlite = ["aiosqlite", "greenlet (!=0.4.17)", "typing_extensions (!=3.10.0.1)"]
+aiosqlite = ["aiosqlite", "greenlet (!=0.4.17)", "typing-extensions (!=3.10.0.1)"]
 asyncio = ["greenlet (!=0.4.17)"]
 asyncmy = ["asyncmy (>=0.2.3,!=0.2.4)", "greenlet (!=0.4.17)"]
 mariadb-connector = ["mariadb (>=1.0.1,!=1.1.2)"]
@@ -5506,14 +5531,14 @@ mssql-pyodbc = ["pyodbc"]
 mypy = ["mypy (>=0.910)", "sqlalchemy2-stubs"]
 mysql = ["mysqlclient (>=1.4.0)", "mysqlclient (>=1.4.0,<2)"]
 mysql-connector = ["mysql-connector-python"]
-oracle = ["cx_oracle (>=7)", "cx_oracle (>=7,<8)"]
+oracle = ["cx-oracle (>=7)", "cx-oracle (>=7,<8)"]
 postgresql = ["psycopg2 (>=2.7)"]
 postgresql-asyncpg = ["asyncpg", "greenlet (!=0.4.17)"]
 postgresql-pg8000 = ["pg8000 (>=1.16.6,!=1.29.0)"]
 postgresql-psycopg2binary = ["psycopg2-binary"]
 postgresql-psycopg2cffi = ["psycopg2cffi"]
 pymysql = ["pymysql", "pymysql (<1)"]
-sqlcipher = ["sqlcipher3_binary"]
+sqlcipher = ["sqlcipher3-binary"]
 
 [package.source]
 type = "legacy"

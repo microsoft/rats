@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Literal, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Literal, Tuple
 
 import pydot
 
-from ..ux._pipeline import (
-    PE,
-    InCollections,
-    InEntry,
-    Inputs,
-    IOCollections,
-    OutCollections,
-    OutEntry,
-    Outputs,
-    ParamCollection,
-    Pipeline,
-)
-from ._dag import DAG
+if TYPE_CHECKING:
+    from ..ux._pipeline import (
+        PE,
+        InCollections,
+        InEntry,
+        Inputs,
+        IOCollections,
+        OutCollections,
+        OutEntry,
+        Outputs,
+        ParamCollection,
+        Pipeline,
+    )
+    from ._dag import DAG
 
 
 class DotBuilder:

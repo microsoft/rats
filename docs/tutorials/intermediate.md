@@ -409,7 +409,7 @@ standardization = Estimator(
     name="standardization",
     train_pl=stz_train,
     eval_pl=stz_eval,
-    shared_params=(
+    dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
     ),
@@ -418,7 +418,7 @@ logistic_regression = Estimator(
     name="logistic_regression",
     train_pl=lr_train,
     eval_pl=lr_eval,
-    shared_params=(lr_eval.inputs.model << lr_train.outputs.model,),
+    dependencies=(lr_eval.inputs.model << lr_train.outputs.model,),
 )
 
 # Combine estimators

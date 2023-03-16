@@ -1,3 +1,3 @@
-from ._estimators import Estimator, EstimatorClient
+from ._estimators import Estimator, EstimatorClient, EstimatorConf
 
-__all__ = ["Estimator", "EstimatorClient"]
+__all__ = ["Estimator", "EstimatorClient", "EstimatorConf"]

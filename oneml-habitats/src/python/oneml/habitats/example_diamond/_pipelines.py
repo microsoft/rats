@@ -17,10 +17,7 @@ class DiamondPipelineSession:
         d = PipelineBuilder.task(D, "D")
 
         diamond = PipelineBuilder.combine(
-            a,
-            b,
-            c,
-            d,
+            pipelines=[a, b, c, d],
             dependencies=(
                 b.inputs.x << a.outputs.z1,
                 c.inputs.x << a.outputs.z2,

@@ -45,7 +45,7 @@ RUN --mount=type=secret,id=build-envs \
     && export POETRY_DYNAMIC_VERSIONING_BYPASS=0.0.0 \
     && poetry config virtualenvs.in-project true \
     && poetry run pip install -U pip \
-    && poetry install \
+    && poetry install --only main \
     && rm -rf /root/.cache
 
 # Copy in the full contents of local packages (after `poetry install`,

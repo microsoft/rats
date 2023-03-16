@@ -56,15 +56,20 @@ class ConcatStringsAsLines:
 def get_concat_strings_as_lines_pipeline(port_name: str) -> Pipeline:
     w = PipelineBuilder.task(ConcatStringsAsLines, f"concat_{port_name}")
     w = PipelineBuilder.combine(
-        w, name=w.name, inputs={port_name: w.inputs.inp}, outputs={port_name: w.outputs.out}
+        pipelines=[w],
+        name=w.name,
+        inputs={port_name: w.inputs.inp},
+        outputs={port_name: w.outputs.out},
     )
     return w
 
 
 def get_gather_pipeline() -> Pipeline:
     return PipelineBuilder.combine(
-        get_concat_strings_as_lines_pipeline("out12"),
-        get_concat_strings_as_lines_pipeline("out23"),
+        pipelines=[
+            get_concat_strings_as_lines_pipeline("out12"),
+            get_concat_strings_as_lines_pipeline("out23"),
+        ],
         name="gather",
     )
 
@@ -101,8 +106,7 @@ def get_gather_pipeline_with_numbered_inputs(K: int) -> Pipeline:
     w12 = get_concat_strings_as_lines_pipeline("out12")
     w23 = get_concat_strings_as_lines_pipeline("out23")
     return PipelineBuilder.combine(
-        w12,
-        w23,
+        pipelines=[w12, w23],
         name="gather",
         dependencies=(),
         inputs=(

@@ -377,7 +377,7 @@ class Estimator(Pipeline):
         name: str,
         train_pl: Pipeline,
         eval_pl: Pipeline,
-        shared_params: Iterable[Sequence[Dependency]] = ((),),
+        dependencies: Iterable[Sequence[Dependency]] = ((),),
     ) -> None:
         # find shared parameters between train and eval
         in_common = set(train_pl.inputs) & set(eval_pl.inputs)
@@ -394,7 +394,7 @@ class Estimator(Pipeline):
         eval_pl = eval_pl.decorate("eval")
 
         # decorate shared dependencies to match newly decorated train and eval pipelines
-        dependencies = (dp.decorate("eval", "train") for dp in chain.from_iterable(shared_params))
+        dependencies = (dp.decorate("eval", "train") for dp in chain.from_iterable(dependencies))
 
         # merge the `outputs` and `out_collections` of train and eval pipelines
         outputs: UserOutput = dict(train_pl.outputs | eval_pl.outputs)

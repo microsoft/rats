@@ -1,4 +1,5 @@
 import pytest
+from hydra.core.config_store import ConfigStore
 
 from oneml.pipelines._client import SimplePipelineFactory
 from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
@@ -6,6 +7,8 @@ from oneml.pipelines.context._client import IManageExecutionContexts
 from oneml.pipelines.session import PipelineSessionClient
 from oneml.processors import PipelineRunnerFactory
 from oneml.processors.dag import PipelineSessionProvider
+from oneml.processors.schemas import register_configs
+from oneml.processors.ux import register_resolvers
 
 
 class _PipelineBuilderFactory(PipelineBuilderFactory):
@@ -39,3 +42,9 @@ def pipeline_runner_factory(
     pipeline_session_provider: PipelineSessionProvider,
 ) -> PipelineRunnerFactory:
     return PipelineRunnerFactory(pipeline_session_provider=pipeline_session_provider)
+
+
+@pytest.fixture(scope="package")
+def register_resolvers_and_configs() -> None:
+    register_configs(ConfigStore())
+    register_resolvers()

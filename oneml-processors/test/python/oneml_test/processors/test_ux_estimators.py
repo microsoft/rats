@@ -132,7 +132,7 @@ def standardization() -> Pipeline:
         name="standardization",
         train_pl=standardize_train,
         eval_pl=standardize_eval,
-        shared_params=(
+        dependencies=(
             standardize_eval.inputs.mean << standardize_train.outputs.mean,
             standardize_eval.inputs.scale << standardize_train.outputs.scale,
         ),
@@ -149,7 +149,7 @@ def logistic_regression() -> Pipeline:
         name="logistic_regression",
         train_pl=model_train,
         eval_pl=model_eval,
-        shared_params=(model_eval.inputs.model << model_train.outputs.model,),
+        dependencies=(model_eval.inputs.model << model_train.outputs.model,),
     )
     return e
 
@@ -162,8 +162,7 @@ def logistic_regression() -> Pipeline:
 @pytest.fixture
 def standardized_lr(standardization: Pipeline, logistic_regression: Pipeline) -> Pipeline:
     e = CombinedPipeline(
-        standardization,
-        logistic_regression,
+        pipelines=[standardization, logistic_regression],
         inputs={"X": standardization.in_collections.X, "Y": logistic_regression.in_collections.Y},
         outputs={
             "mean": standardization.outputs.mean,
@@ -224,14 +223,12 @@ def test_single_output_multiple_input(
     standardized_lr: Pipeline, report1: Pipeline, report2: Pipeline
 ) -> None:
     reports = CombinedPipeline(
-        report1,
-        report2,
+        pipelines=[report1, report2],
         name="reports",
         inputs={"acc": report1.inputs.acc | report2.inputs.acc},
     )
     pl = CombinedPipeline(
-        standardized_lr,
-        reports,
+        pipelines=[standardized_lr, reports],
         name="pl",
         dependencies=(reports.inputs.acc << standardized_lr.outputs.acc,),
     )
@@ -243,8 +240,7 @@ def test_single_output_multiple_input(
 
 def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline) -> None:
     e = CombinedPipeline(
-        standardization,
-        logistic_regression,
+        pipelines=[standardization, logistic_regression],
         name="standardized_lr",
         dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
         outputs={

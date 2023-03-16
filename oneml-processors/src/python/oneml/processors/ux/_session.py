@@ -32,7 +32,7 @@ def build_data_provider_pipeline_from_objects(data: Mapping[str, Any]) -> Pipeli
         for k, v in data.items()
     }
     outputs = {k: t.outputs.data for k, t in tasks.items()}
-    return CombinedPipeline(*tasks.values(), name="DataProvider", outputs=outputs)
+    return CombinedPipeline(list(tasks.values()), name="DataProvider", outputs=outputs)
 
 
 class SessionOutputsGetter(Iterable[str]):
@@ -101,8 +101,7 @@ class PipelineRunner:
                     data_provider_pipeline.name + "_"
                 )
             pipeline = CombinedPipeline(
-                data_provider_pipeline,
-                pipeline,
+                pipelines=[data_provider_pipeline, pipeline],
                 name="run",
                 dependencies=tuple(
                     pipeline.inputs[k] << data_provider_pipeline.outputs[k]

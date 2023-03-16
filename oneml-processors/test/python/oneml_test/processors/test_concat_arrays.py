@@ -1,7 +1,6 @@
+from dataclasses import dataclass
 from typing import Any, Mapping, TypedDict
 
-import numpy as np
-import numpy.typing as npt
 import pytest
 
 from oneml.processors import (
@@ -18,13 +17,19 @@ from oneml.processors import (
     frozendict,
 )
 
-ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": npt.NDArray[np.float64]})
-ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"output": npt.NDArray[np.float64]})
-SumArraysOutput = TypedDict("SumArraysOutput", {"output": npt.NDArray[np.float64]})
+
+@dataclass
+class Array:
+    x: list[float]
+
+
+ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": Array})
+ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"output": float})
+SumFloatsOutput = TypedDict("SumFloatsOutput", {"output": float})
 
 
 class ArrayReader(IProcess):
-    def __init__(self, storage: Mapping[str, npt.NDArray[np.float64]], url: str) -> None:
+    def __init__(self, storage: Mapping[str, Array], url: str) -> None:
         super().__init__()
         self._storage = storage
         self._url = url
@@ -34,20 +39,18 @@ class ArrayReader(IProcess):
 
 
 class ArrayDotProduct(IProcess):
-    def process(
-        self, left: npt.NDArray[np.float64], right: npt.NDArray[np.float64]
-    ) -> ArrayDotProductOutput:
-        return ArrayDotProductOutput(output=np.dot(left, right))
+    def process(self, left: Array, right: Array) -> ArrayDotProductOutput:
+        return ArrayDotProductOutput(output=sum([xi * xj for xi, xj in zip(left.x, right.x)]))
 
 
-class SumArrays(IProcess):
-    def process(self, *arrays: npt.NDArray[np.float64]) -> SumArraysOutput:
-        return SumArraysOutput(output=np.sum([np.sum(a) for a in arrays]))
+class SumFloats(IProcess):
+    def process(self, *nums: float) -> SumFloatsOutput:
+        return SumFloatsOutput(output=sum(nums))
 
 
 @pytest.fixture
-def storage() -> dict[str, npt.NDArray[np.float64]]:
-    return {"a": np.array([10.0, 20.0, 30.0]), "b": np.array([-10.0, 20.0, -30.0])}
+def storage() -> dict[str, Array]:
+    return {"a": Array([10.0, 20.0, 30.0]), "b": Array([-10.0, 20.0, -30.0])}
 
 
 @pytest.fixture
@@ -74,13 +77,13 @@ def simple_pipeline(left_config: frozendict[str, Any], right_config: frozendict[
         multiply: (
             DagDependency(
                 left_arr,
-                in_arg=InProcessorParam("left", npt.NDArray[np.float64], InMethod.process),
-                out_arg=OutProcessorParam("array", npt.NDArray[np.float64]),
+                in_arg=InProcessorParam("left", Array, InMethod.process),
+                out_arg=OutProcessorParam("array", Array),
             ),
             DagDependency(
                 right_arr,
-                in_arg=InProcessorParam("right", npt.NDArray[np.float64], InMethod.process),
-                out_arg=OutProcessorParam("array", npt.NDArray[np.float64]),
+                in_arg=InProcessorParam("right", Array, InMethod.process),
+                out_arg=OutProcessorParam("array", Array),
             ),
         )
     }
@@ -94,38 +97,38 @@ def complex_pipeline(simple_pipeline: DAG) -> DAG:
     p2 = simple_pipeline.decorate(Namespace("p2"))
     p3 = simple_pipeline.decorate(Namespace("p3"))
     concat_node = DagNode("array_concat")
-    concat_nodes = {concat_node: ProcessorProps(SumArrays)}
+    concat_nodes = {concat_node: ProcessorProps(SumFloats)}
     concat_dps: dict[DagNode, tuple[DagDependency, ...]] = {
         concat_node: (
             DagDependency(
                 DagNode("multiply", Namespace("p1")),
                 in_arg=InProcessorParam(
                     "arrays",
-                    npt.NDArray[np.float64],
+                    Array,
                     InMethod.process,
                     InProcessorParam.VAR_POSITIONAL,
                 ),
-                out_arg=OutProcessorParam("output", npt.NDArray[np.float64]),
+                out_arg=OutProcessorParam("output", Array),
             ),
             DagDependency(
                 DagNode("multiply", Namespace("p2")),
                 in_arg=InProcessorParam(
                     "arrays",
-                    npt.NDArray[np.float64],
+                    Array,
                     InMethod.process,
                     InProcessorParam.VAR_POSITIONAL,
                 ),
-                out_arg=OutProcessorParam("output", npt.NDArray[np.float64]),
+                out_arg=OutProcessorParam("output", Array),
             ),
             DagDependency(
                 DagNode("multiply", Namespace("p3")),
                 in_arg=InProcessorParam(
                     "arrays",
-                    npt.NDArray[np.float64],
+                    Array,
                     InMethod.process,
                     InProcessorParam.VAR_POSITIONAL,
                 ),
-                out_arg=OutProcessorParam("output", npt.NDArray[np.float64]),
+                out_arg=OutProcessorParam("output", Array),
             ),
         )
     }
