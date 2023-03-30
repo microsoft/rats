@@ -1,4 +1,4 @@
-from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
+from oneml.pipelines.building import IPipelineBuilderFactory, PipelineBuilderClient
 
 
 def test_imports() -> None:

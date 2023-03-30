@@ -8,7 +8,9 @@ from typing import Any, Mapping, Sequence, TypeAlias, TypeVar, final
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
 
-from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IGetParams, IProcess, ProcessorProps
+from oneml.pipelines.session import ServiceId
+
+from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IProcess, ProcessorProps
 from ..utils import frozendict
 from ._ops import (
     CollectionDependencyOpConf,
@@ -59,7 +61,8 @@ class Task(Pipeline):
         self,
         processor_type: type,
         name: str | None = None,
-        params_getter: IGetParams | None = None,
+        config: Mapping[str, Any] | None = None,
+        services: Mapping[str, ServiceId[Any]] | None = None,
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
@@ -68,8 +71,6 @@ class Task(Pipeline):
             raise ValueError("`processor_type` needs to satisfy the `IProcess` protocol.")
         if name is not None and not isinstance(name, str):
             raise ValueError("`name` needs to be string or None.")
-        if params_getter is not None and not isinstance(params_getter, IGetParams):
-            raise ValueError("`params_getter` needs to satisfy `IGetParams` protocol.")
         if not isinstance(compute_reqs, ComputeReqs):
             raise ValueError("`compute_reqs` needs to be `ComputeReqs` object.")
         if return_annotation is not None and not (
@@ -82,13 +83,17 @@ class Task(Pipeline):
 
         name = name if name else processor_type.__name__
         node = DagNode(name)
-        params_getter = params_getter if params_getter is not None else frozendict()
         props = ProcessorProps(
-            processor_type, params_getter, input_annotation, return_annotation, compute_reqs
+            processor_type=processor_type,
+            config=frozendict(config) if config is not None else frozendict(),
+            services=frozendict(services) if services is not None else frozendict(),
+            input_annotation=input_annotation,
+            return_annotation=return_annotation,
+            compute_reqs=compute_reqs,
         )
         inputs = {k: InEntry((InParameter(node, p),)) for k, p in props.inputs.items()}
         outputs = {k: OutEntry((OutParameter(node, p),)) for k, p in props.outputs.items()}
-        config = TaskConf(
+        task_config = TaskConf(
             name=name,
             processor_type=processor_type.__module__ + "." + processor_type.__name__,
             input_annotation={k: str(v) for k, v in input_annotation.items()}
@@ -98,7 +103,7 @@ class Task(Pipeline):
             if return_annotation is not None
             else None,
         )
-        super().__init__(name, DAG({node: props}), config, Inputs(inputs), Outputs(outputs))
+        super().__init__(name, DAG({node: props}), task_config, Inputs(inputs), Outputs(outputs))
 
 
 class CombinedPipeline(Pipeline):
@@ -265,7 +270,8 @@ class PipelineBuilder:
         cls,
         processor_type: type,
         name: str | None = None,
-        params_getter: IGetParams = frozendict[str, Any](),
+        config: Mapping[str, Any] | None = None,
+        services: Mapping[str, ServiceId[Any]] | None = None,
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
@@ -275,8 +281,10 @@ class PipelineBuilder:
         Args:
             name: Name for the built pipeline.
             processor_type: A class following the IProcess pattern.  See below.
-            params_getter: A hashable mapping providing values to (a subset of) the constructor
-              parameters of `processor_type`.
+            config: A mapping from (a subset of) the constructor parameters of `processor_type` to
+               values.
+            services: A mapping from (a subset of) the constructor parameters of `processor_type`
+               to ids of OneML services that will provide their value at run time.
             compute_reqs: TBD
             return_annotation: overrides the static return annotation of `processor_type.process`.
 
@@ -289,8 +297,11 @@ class PipelineBuilder:
         * Could have a constructor (`__init__` or `__new__`).
         * The parameters of the constructor are type-annotated.
 
+        `config` and `services` should not intersect.
+
         The inputs of the built pipeline will be the union of the constructor and `process`
-        parameters of `processor_type`, except for those specified by `params_getter`.
+        parameters of `processor_type`, except for those specified by either `config` or
+        `services`.
 
         The `process` method may take a variable length parameters (*param). Like any other
         parameter, it will become an inputs to the pipeline. Unlike other inputs, this inputs will
@@ -320,7 +331,7 @@ class PipelineBuilder:
                 predefined_standardize = PipelineBuilder.task(
                     name="standardize",
                     processor_type=Standardize,
-                    params_getter=frozendict(shift=10.0, scale=2.0),
+                    config=frozendict(shift=10.0, scale=2.0),
                 )
 
                 eval_standardize = PipelineBuilder.task(
@@ -330,7 +341,7 @@ class PipelineBuilder:
             `predefined_standardize` and `eval_standardize` are single-node pipelines.
 
             `predefined_standardize` uses predefined standartization parameters, provided by
-                `param_getters`.  Its single inputs will be `X`, and at runtime that inputs will be
+                `config`.  Its single inputs will be `X`, and at runtime that inputs will be
                 provided as an argument to `process`.
             `eval_standardize` uses standartization parameters fitted at run time by an upstream
                 pipeline.  Its inputs will be `scale` and `shift` that will be provided at runtime
@@ -361,7 +372,7 @@ class PipelineBuilder:
                 scatter = PipelineBuilder.task(
                     name="scatter",
                     processor_type=Scatter,
-                    params_getter=frozendict(K=3),
+                    config=frozendict(K=3),
                     return_annotation=Scatter.get_return_annotation(3)
                 )
             `scatter` is a single node pipeline with two inputs: `in1` and `in2`.
@@ -389,7 +400,13 @@ class PipelineBuilder:
 
         """
         return Task(
-            processor_type, name, params_getter, input_annotation, return_annotation, compute_reqs
+            processor_type,
+            name,
+            config,
+            services,
+            input_annotation,
+            return_annotation,
+            compute_reqs,
         )
 
     @staticmethod
@@ -550,7 +567,8 @@ class PipelineBuilder:
 class TaskConf(PipelineConf):
     processor_type: str = MISSING
     name: str = "${parent_or_processor_name:}"
-    params_getter: Any = None
+    config: Any = None
+    services: Any = None
     input_annotation: dict[str, str] | None = None
     return_annotation: dict[str, str] | None = None
 

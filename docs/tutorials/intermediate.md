@@ -1,49 +1,80 @@
 # Intermediate Tutorial
+
 In the [beginners tutorial](beginners.md) we have seen how to construct `hello_world`, `diamond`
 and `standardized_lr` pipelines.
 In this tutorial we will dive deeper into some of the concepts we touched upon and discuss more
 complicated use cases.
 
 #### Table of Contents
+
 - [Defining Tasks](#defining-tasks)
   - [Constructor Parameters](#constructor-parameters)
   - [Dynamic Annotations](#dynamic-annotations)
 - [Combining Pipelines](#combining-pipelines)
-    - [Parameter Entries](#parameter-entries)
-    - [Parameter Collections](#parameter-collections)
-    - [Parameter Types](#parameter-types)
-    - [Defaults for `UserInput` and `UserOutput`](#defaults-for-userinput-and-useroutput)
+  - [Parameter Entries](#parameter-entries)
+  - [Parameter Collections](#parameter-collections)
+  - [Parameter Types](#parameter-types)
+  - [Defaults for `UserInput` and `UserOutput`](#defaults-for-userinput-and-useroutput)
 - [Estimators](#estimators)
 
 ## Defining Tasks
+
 A *task* is a pipeline of a single node.
 Creating a task requires specifying the pararameters needed for the *processor* to be
 initialized, i.e., configuration, dynamic input and output annotations, and compute
 requirements.
 A *task* has the following construct parameters:
-* `processor_type` (`type[oneml.processors.IProcess]`): a reference to the processor's class.
-* `name` (`str`): \[optional\] name of the task. If missing, `processor_type.__name__` is used.
-* `params_getter` (`oneml.processors.IGetParams`): \[optional\] a (serializable) *mapping* object
-    whose keys & values are called to construct `processor_type` before executing it.
-    Data dependencies will be grabbed automatically from the outputs of other processors, but any
-    other missing parameters for the constructor need to be specified here.
-* `input_annotation` (`Mapping[str, type]`): \[optional\] dynamic inputs for variable keyword
+
+- `processor_type` (`type[oneml.processors.IProcess]`): a reference to the processor's class.
+- `name` (`str`): \[optional\] name of the task. If missing, `processor_type.__name__` is used.
+- `config` (`Mapping[str, Any]`): \[optional\] A mapping from (a subset of) the the processor's
+    constructor parameters to values.  The values need to be serializable.
+- `services` (`Mapping[str, oneml.pipelines.session.ServiceId[Any]]`): \[optional\] A mapping from
+    (a subset of) the the processor's constructor parameters to service ids.  See
+    [Services](advanced.md#services).
+- `input_annotation` (`Mapping[str, type]`): \[optional\] dynamic inputs for variable keyword
     parameter, e.g., `**kwargs`; required if *processor* specifies
     [var keyword](https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind)
     parameters.
-* `return_annotation` (`Mapping[str, type]`): \[optional\] dynamic outputs; overrides the
+- `return_annotation` (`Mapping[str, type]`): \[optional\] dynamic outputs; overrides the
     *processors* return annotation. Useful when the number of outputs a processor returns varies
     between pipelines, and only known at build time, e.g., a data splitter for cross-validation.
-* `compute_requirements` (`oneml.processors.PComputeReqs`): \[optional\] stores information about
+- `compute_requirements` (`oneml.processors.PComputeReqs`): \[optional\] stores information about
     the resources the *processor* needs to run, e.g., CPUs, GPUs, memory, etc.
 
+### Task execution
+
+When the task is executed it performs the following:
+
+- collect input values from upstream nodes.
+- collect constructor parameters from `config`, `services` and inputs (see
+    [Constructor Parameters](#constructor-parameters)).
+- construct a processor object by calling the constructor of `processor_type` with the collected
+    constructor parameters it collected.
+- call the process method of the processor object, passing the relevant inputs.
+- publish the outputs of the process method as the task outputs.
+
 ### Constructor Parameters
+
+To construct a processor object, the task needs to provide a value for each parameter of the
+constuctor of `processor_type`.
+
+For each such parameter, the value will be provided in one of the following three ways:
+
+- If the parameter appears in `config` its value is take from there.
+- If the parameter appears in `services`, it is mapped to a service id.  The framework will look
+    for the appropriate service provider in the services registry of the executing environment, and
+    call it to provide a service object.  That service be the value for the parameter.
+- If the parameter does not appear in `config` nor in `services`, it is assumed to be an input to
+    the `task`.  Its value will be taken from those inputs.
+
 The following example implements a data loader.
+
 This example gets its constructor parameters from an in-memory immutable dictionary, i.e.,
 `frozendict`.
+
 Other mechanims for passing arguments are also supported, e.g., instantiating objects from
 configuration.
-
 
 ```python
 from typing import Any, Mapping, TypedDict
@@ -62,19 +93,12 @@ class LoadData:
 
 
 storage = frozendict({"X_train": 5, "X_eval": 1, "Y_train": 0, "Y_eval": 1})
-load_data = PipelineBuilder.task(processor_type=LoadData, name="load_data", params_getter=storage)
+load_data = PipelineBuilder.task(processor_type=LoadData, name="load_data", config=storage)
 ```
 
-> :bulb: **Info**:
-Data structure `frozendict` is an immutable and serializable *mapping* object.
-Immutability, serializability and following the *mapping* interface constitute the requirements for
-providing configuration into *processors*.
-Overall, `params_getter` follows the
-`oneml.processors.IGetParams` [interface](contributor.md#defining-params_getters).
-
 ### Dynamic Annotations
-Consider the following *processor*:
 
+Consider the following *processor*:
 
 ```python
 from typing import Any, Mapping
@@ -97,7 +121,6 @@ For most *processors* these arguments will be unncessary, but if we provide them
 override the class's input or return signatures, respectively.
 For example,
 
-
 ```python
 from oneml.processors import PipelineBuilder
 
@@ -112,36 +135,41 @@ assume that the *processor* return type is actually `None`.
 Same applies to `input_annotation=None`.
 
 ## Combining Pipelines
+
 We will further explain how to combine pipelines, handle name conflicts, and expose inputs and
 outputs.
 
 ### PipelineBuilder.combine
+
 The exact parameter signature of `PipelineBuilder.combine` is the following:
-* `*pipelines` (`Pipeline`): a sequence of `Pipeline`s to combine; must have different names.
-* `name` (`str`): name of the returned, combined pipeline.
-* `dependencies` (`Iterable[Sequence[oneml.ux.Dependency]]`): dependencies between the pipelines to
+
+- `*pipelines` (`Pipeline`): a sequence of `Pipeline`s to combine; must have different names.
+- `name` (`str`): name of the returned, combined pipeline.
+- `dependencies` (`Iterable[Sequence[oneml.ux.Dependency]]`): dependencies between the pipelines to
     combine, e.g., `stz_eval.inputs.mean << stz_train.outputs.mean`.
-* `inputs` (`oneml.ux.UserInput | None`): mapping names of inputs and in_collectins of the
+- `inputs` (`oneml.ux.UserInput | None`): mapping names of inputs and in_collectins of the
   pipelines to combine.
-* `outputs` (`oneml.ux.UserOutput | None`): mapping names of outputs and out_collectins of the
+- `outputs` (`oneml.ux.UserOutput | None`): mapping names of outputs and out_collectins of the
   pipelines to combine.
 Arguments `inputs` and `outputs` are optional and help configure the exposed input and output
 variables of the combined pipeline.
 The exact definitions are the following:
-* `UserInput = Mapping[str, oneml.ux.InEntry | oneml.ux.Inputs]`
-* `UserOutput = Mapping[str, oneml.ux.OutEntry | oneml.ux.Outputs]`
+- `UserInput = Mapping[str, oneml.ux.InEntry | oneml.ux.Inputs]`
+- `UserOutput = Mapping[str, oneml.ux.OutEntry | oneml.ux.Outputs]`
 Default behavior for `inputs` and `outputs` set to None is explained in the
 [section](#defaults-for-userinput-and-useroutput) below.
+
 > :notebook: **Note:**
 Dependencies are not expected to be created manually, but through the `<<` operator syntax.
 
-#### Requirements:
-* All *inputs* to the pipeline must be specified if `inputs` is not `None`.
-* Exposing `outputs` is optional.
-* `UserInput` or `UserOutput` can have at most single dot in the *mapping* keys.
+#### Requirements
+
+- All *inputs* to the pipeline must be specified if `inputs` is not `None`.
+
+- Exposing `outputs` is optional.
+- `UserInput` or `UserOutput` can have at most single dot in the *mapping* keys.
 An error will be raised otherwise.
 Consider the following `standardization` example:
-
 
 ```python
 from typing import TypedDict
@@ -189,14 +217,18 @@ standardization = PipelineBuilder.combine(
 Let's unwrap the example below.
 
 ### Parameter Entries
+
 We have specified dependencies between the `stz_train` and `stz_eval` using the `<<` operator:
+
 ```python
 stz_eval.inputs.mean << stz_train.outputs.mean,
 stz_eval.inputs.scale << stz_train.outputs.scale,
 ```
+
 We access single inputs and outputs of the pipelines via the `inputs` and `outputs` attributes.
 This happens with `stz_eval.inputs.mean` and `stz_train.outputs.mean`, for example
 In [begginer's tutorial](beginners.md) we saw another example:
+
 ```python
 stz_lr_dependencies = (
     logistic_regression.inputs.X_train << standardization.outputs.Z_train,
@@ -210,15 +242,18 @@ If the variable parameters don't have unique names, we can expose them as collec
 parameters, as explained in the next section.
 
 ### Parameter Collections
+
 Pipelines `stz_train` and `stz_eval` both expose `X` and `Z` variable names so we needed to
 specify how `X` and `Z` are combined together.
 In the `PipelineBuilder.combine` call we specified:
+
 ```python
 inputs={"X.train": stz_train.inputs.X, "X.eval": stz_eval.inputs.X},
 outputs={"Z.train": stz_train.outputs.Z, "Z.eval": stz_eval.outputs.Z}
 ```
 
 The combined pipeline will expose variables as collections of parameters:
+
 ```python
 standardization.in_collections.X  # Inputs object
 standardization.out_collections.Z  # Outputs object
@@ -227,6 +262,7 @@ standardization.out_collections.Z  # Outputs object
 Both `standardization.in_collections.X` and `standardization.out_collections.Z` gather two inputs
 and two outputs entries, respectively.
 The individual entries are accessible via:
+
 ```python
 standardization.in_collections.X.train  # InEntry objects
 standardization.in_collections.X.eval
@@ -236,7 +272,6 @@ standardization.out_collections.Z.eval
 
 The usefulness of collections is that we can group parameters together and create dependencies.
 Here another example with `logistic_regression`:
-
 
 ```python
 LogisticRegressionTrainOut = TypedDict(
@@ -284,7 +319,6 @@ logistic_regression = PipelineBuilder.combine(
 The inputs and outputs automatically formed after combining `lr_train` and `lr_eval` into
 `logistic_regression` pipeline are:
 
-
 ```python
 logistic_regression.outputs.probs  # OutEntry object
 
@@ -302,7 +336,6 @@ logistic_regression.out_collections.Z.eval
 
 Finally, we can combine `standardization` and `logistic_regression` together:
 
-
 ```python
 stz_lr = PipelineBuilder.combine(
     standardization,
@@ -318,6 +351,7 @@ This mechanism generalizes to any number of parameters that share the same entry
 useful for operating on pipelines with varying number of entries.
 
 ### Parameter Types
+
 Accessing `inputs` and `outputs` attributes of a pipeline returns a mapping of entry parameters;
 accessing `in_collections` and `out_collections` returns a mapping of collections of parameters,
 whose values are mappings of entry parameters.
@@ -337,7 +371,6 @@ seen above:
 |     `stz_train`   |     `.outputs`     |    `.scale`     |
 |     `stz_eval`    |     `.outputs`     |    `.Z`    |
 
-
 The pipeline exposing collections of entries:
 
 |     `Pipeline`    |  `InCollections`   |  `InCollection` | `InEntry`  |
@@ -351,14 +384,15 @@ The pipeline exposing collections of entries:
 | `standardization` | `.out_collections` |      `.Z`       |  `.eval`   |
 
 ### Defaults for `UserInput` and `UserOutput`
+
 Leaving `inputs` and `outputs` of `PipelineBuilder.combine` unspecified or set to `None` will
 default their specificiation::
-* All `inputs` or `outputs` from pipelines to combine will be merged, after subtracting any input
+
+- All `inputs` or `outputs` from pipelines to combine will be merged, after subtracting any input
 or output specified in the `dependencies` argument.
 For example,
 
 Leaving `inputs=None` is equivalent to
-
 
 ```python
 inputs = {"X": standardization.in_collections.X, "Y": logistic_regression.in_collections.Y}
@@ -367,7 +401,6 @@ inputs = {"X": standardization.in_collections.X, "Y": logistic_regression.in_col
 Entry `logistic_regression.inputs.X` is specified as a dependency, and is therefore not included
 in the inputs of the combined pipeline.
 Leaving `outputs=None` is equivalent to
-
 
 ```python
 outputs = {
@@ -381,7 +414,9 @@ outputs = {
 Only `standardization.outputs.Z` is specified in the dependencies list and excluded.
 
 # Estimators
+
 [Combining pipelines](#combining-pipelines) for creating train and eval tasks so far:
+
 1. Instantiate tasks, e.g., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
 2. Combine tasks, e.g., `standardization`, `logistic_regression`.
 3. Specify dependencies, e.g., `stz_eval.inputs.mean << stz_train.outputs.mean`,
@@ -393,7 +428,6 @@ This pattern can be simplified with estimators:
 1. Instantiate tasks, e.g., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
 2. Instantiate estimators, e.g., `standardization`, `logistic_regression`.
 4. Combine estimators, e.g., `stz_lr` below.
-
 
 ```python
 from oneml.processors.ml import Estimator

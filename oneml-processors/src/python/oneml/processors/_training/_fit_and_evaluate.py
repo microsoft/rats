@@ -50,7 +50,7 @@ class FitAndEvaluateBuilders:
             entries going to `eval_pipeline.
           * Outputs from `fit_pipeline` and `eval_pipeline`, except those indicated in
             `dependencies` become collection outputs, with `train` entries comming from
-            `fit_pipeline` and `eval` entries comming from `eval_pipeline.
+            `fit_pipeline` and `eval` entries comming from `eval_pipeline`.
           * Fitted parameter, i.e. outputs of `fit_pipeline` that are indicated in `dependencies`
             becomes outputs of the built pipeline.
 

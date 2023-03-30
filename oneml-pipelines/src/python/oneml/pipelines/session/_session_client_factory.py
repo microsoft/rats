@@ -3,10 +3,10 @@ import uuid
 
 from oneml.pipelines.dag import PipelineClient
 
-from ._components import IProvideSessionComponents
 from ._executable import CallableExecutable
 from ._node_execution import PipelineNodeContext, PipelineNodeExecutablesClient
 from ._node_state import PipelineNodeState, PipelineNodeStateClient
+from ._services import IProvideServices
 from ._session_client import PipelineSessionClient, PipelineSessionContext
 from ._session_data_client import (
     IManagePipelineData,
@@ -26,7 +26,7 @@ class PipelineSessionClientFactory:
     #       So two calls to get_instance() result in new state instances.
     # _session_state_client: PipelineSessionStateClient
     # _node_state_client: PipelineNodeStateClient
-    _components: IProvideSessionComponents
+    _services: IProvideServices
     _session_context: PipelineSessionContext
     _node_context: PipelineNodeContext
     _pipeline_data_client: IManagePipelineData
@@ -34,13 +34,13 @@ class PipelineSessionClientFactory:
 
     def __init__(
         self,
-        components: IProvideSessionComponents,
+        services: IProvideServices,
         session_context: PipelineSessionContext,
         node_context: PipelineNodeContext,
         pipeline_data_client: IManagePipelineData,
         session_plugin_client: IActivatePipelineSessionPlugins,
     ) -> None:
-        self._components = components
+        self._services = services
         self._session_context = session_context
         self._node_context = node_context
         self._pipeline_data_client = pipeline_data_client
@@ -92,7 +92,7 @@ class PipelineSessionClientFactory:
         session_client = PipelineSessionClient(
             session_context=self._session_context,
             session_id=session_id,
-            components=self._components,
+            services=self._services,
             session_frame=frame,
             session_state_client=session_state_client,
             pipeline_data_client=pipeline_data_client,

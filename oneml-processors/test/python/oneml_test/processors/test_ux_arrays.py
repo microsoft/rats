@@ -1,16 +1,9 @@
 from dataclasses import dataclass
-from typing import Mapping, TypedDict
+from typing import Any, TypedDict
 
 import pytest
 
-from oneml.processors import (
-    IGetParams,
-    IProcess,
-    Pipeline,
-    PipelineBuilder,
-    PipelineRunnerFactory,
-    frozendict,
-)
+from oneml.processors import IProcess, Pipeline, PipelineBuilder, PipelineRunnerFactory, frozendict
 
 ########
 
@@ -64,12 +57,12 @@ def storage() -> dict[str, Array]:
 
 
 @pytest.fixture(scope="module")
-def left_config(storage: dict[str, Array]) -> IGetParams:
+def left_config(storage: dict[str, Array]) -> frozendict[str, Any]:
     return frozendict(storage=storage, url="a")
 
 
 @pytest.fixture(scope="module")
-def right_config(storage: dict[str, Array]) -> IGetParams:
+def right_config(storage: dict[str, Array]) -> frozendict[str, Any]:
     return frozendict(storage=storage, url="b")
 
 
@@ -78,7 +71,7 @@ def right_config(storage: dict[str, Array]) -> IGetParams:
 
 # PIPELINE
 @pytest.fixture(scope="module")
-def pipeline(left_config: IGetParams, right_config: IGetParams) -> Pipeline:
+def pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, Any]) -> Pipeline:
     left_reader = PipelineBuilder.task(ArrayReader, "left_reader", left_config)
     right_reader = PipelineBuilder.task(ArrayReader, "right_reader", right_config)
     product = PipelineBuilder.task(ArrayProduct, "array_product")

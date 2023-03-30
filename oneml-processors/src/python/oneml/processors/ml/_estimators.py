@@ -1,3 +1,23 @@
+"""An estimator is a pipeline that takes training data and eval data, trains some model using only
+the training data, and then applies that model to the holdout data.
+
+We define a standard to the inputs and outputs of an estimator.  This allows other software
+components to assume this standard and operate on any estimator.
+
+Let `e` be an estimator object.
+* `e` is a `Pipeline`.
+* `len(e.inputs)==0`, i.e. an estimator does not take simple inputs, just collection inputs.
+* `e.in_collections` hold either `train` entries, `eval` entries, or both, but no other entries.
+* The nodes of an estimator pipeline are defined as `train`` nodes if they DO NOT depend on `eval`
+   input entries.  The are defined as `eval` nodes if they DO depend on `eval` input entries.
+   Note that `eval` nodes are allowed to depend on `train` input entries.
+* `e.out_collections` hold either `train` entries, `eval` entries, or both, but no other entries.
+* `train` output entries can only be outputs of `train` nodes (and therefore cannot depend on
+   `eval` inputs).
+* `e.outputs` are fitted parameters, i.e. outputs of `train` nodes that are inputs of `eval` nodes.
+"""
+
+
 from __future__ import annotations
 
 from itertools import chain

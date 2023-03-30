@@ -1,5 +1,6 @@
+from abc import abstractmethod
 from functools import lru_cache
-from typing import Any, Iterable
+from typing import Any, Iterable, Protocol
 
 from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineClient, PipelineDataDependency, PipelineNode
@@ -136,7 +137,13 @@ class PipelineBuilderClient(
         return self._session_components.session_context()
 
 
-class PipelineBuilderFactory:
+class IPipelineBuilderFactory(Protocol):
+    @abstractmethod
+    def get_instance(self) -> PipelineBuilderClient:
+        ...
+
+
+class PipelineBuilderFactory(IPipelineBuilderFactory):
 
     _session_components: PipelineSessionComponents
     _pipeline_settings: IProvidePipelineSettings

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from itertools import groupby
 from typing import Any, Iterable, Mapping, Sequence
 
-from oneml.pipelines.building import PipelineBuilderFactory
+from oneml.pipelines.building import IPipelineBuilderFactory
 from oneml.pipelines.context._client import IManageExecutionContexts, IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
 from oneml.pipelines.session import (
@@ -16,8 +16,8 @@ from oneml.pipelines.session import (
     PipelineNodeInputDataClient,
     PipelinePort,
     PipelineSessionClient,
+    ServiceId,
 )
-from oneml.pipelines.session._components import ComponentId
 
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
 from ._processor import InMethod, InProcessorParam, IProcess
@@ -130,12 +130,8 @@ class SessionExecutableProvider(IExecutable):
     def get_processor(
         self, data_client: DataClient, session_client: PipelineSessionClient
     ) -> IProcess:
-        params = {
-            k: session_client.get_component(ComponentId(v.name))
-            if isinstance(v, RegistryId)
-            else v
-            for k, v in self._props.params_getter.items()
-        }
+        params = {k: v for k, v in self._props.config.items()}
+        params.update({k: session_client.get_service(v) for k, v in self._props.services.items()})
         pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.init)
         return self._props.processor_type(*pos_args, **params, **kw_args)
 
@@ -190,13 +186,12 @@ class ParamsRegistry:
 
 
 class PipelineSessionProvider:
-
-    _builder_factory: PipelineBuilderFactory
+    _builder_factory: IPipelineBuilderFactory
     _session_context: IManageExecutionContexts[PipelineSessionClient]
 
     def __init__(
         self,
-        builder_factory: PipelineBuilderFactory,
+        builder_factory: IPipelineBuilderFactory,
         session_context: IManageExecutionContexts[PipelineSessionClient],
     ) -> None:
         self._builder_factory = builder_factory

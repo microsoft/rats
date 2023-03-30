@@ -1,8 +1,8 @@
 import uuid
 
-from oneml.habitats._components import OnemlHabitatsComponents
 from oneml.habitats._publishers import SinglePortPublisher
-from oneml.pipelines.building import PipelineBuilderFactory
+from oneml.habitats._services import OnemlHabitatsServices
+from oneml.pipelines.building import IPipelineBuilderFactory
 from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.session import IExecutable, PipelineSessionClient
 
@@ -22,18 +22,18 @@ class HelloExecutable(IExecutable):
     def execute(self) -> None:
         rnd = str(uuid.uuid4())
         session = self._session_context.get_context()
-        node_publisher = session.get_component(OnemlHabitatsComponents.NODE_PUBLISHER)
+        node_publisher = session.get_service(OnemlHabitatsServices.NODE_PUBLISHER)
         print(node_publisher)
         self._output_presenter.publish(f"hello world! {rnd}")
 
 
 class HelloWorldPipelineSession:
-    _builder_factory: PipelineBuilderFactory
+    _builder_factory: IPipelineBuilderFactory
     _single_port_publisher: SinglePortPublisher[str]
 
     def __init__(
         self,
-        builder_factory: PipelineBuilderFactory,
+        builder_factory: IPipelineBuilderFactory,
         single_port_publisher: SinglePortPublisher[str],
     ) -> None:
         self._builder_factory = builder_factory

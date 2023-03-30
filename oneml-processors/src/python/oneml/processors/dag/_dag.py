@@ -6,16 +6,11 @@ from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Sequence, final
 
+from oneml.pipelines.session import ServiceId
+
 from ..utils._frozendict import frozendict
 from ..utils._orderedset import orderedset
-from ._processor import (
-    Annotations,
-    IGetParams,
-    InMethod,
-    InProcessorParam,
-    IProcess,
-    OutProcessorParam,
-)
+from ._processor import Annotations, InProcessorParam, IProcess, OutProcessorParam
 
 logger = logging.getLogger(__name__)
 
@@ -55,10 +50,8 @@ class ComputeReqs:
 @dataclass(frozen=True)
 class ProcessorProps:
     processor_type: type[IProcess]
-    # TODO: maybe separate to a dictionary of known params (param_name->value) and a dictionary of
-    # params who's value will be provided by session_client.get_component
-    # (param_name->ComponentId)?
-    params_getter: IGetParams = frozendict()
+    config: frozendict[str, Any] = frozendict()
+    services: frozendict[str, ServiceId[Any]] = frozendict()
     input_annotation: InitVar[Mapping[str, type] | None] = None
     return_annotation: InitVar[Mapping[str, type] | None] = None
     compute_reqs: ComputeReqs = ComputeReqs()
@@ -71,18 +64,28 @@ class ProcessorProps:
         input_annotation: Mapping[str, type] | None,
         return_annotation: Mapping[str, type] | None,
     ) -> None:
-        inputs = {
-            k: v
-            for k, v in Annotations.get_processor_signature(self.processor_type).items()
-            if k not in self.params_getter
-        }
-        for k in self.params_getter:
-            try:
-                self.params_getter[k]
-            except Exception:  # add missing dependencies required by param_getter
-                inputs[k] = InProcessorParam(
-                    k, self.params_getter.__annotations__.get(k, Any), InMethod.init
-                )
+        sig = Annotations.get_processor_signature(self.processor_type)
+
+        _spurious_config_keys = self.config.keys() - sig.keys()
+        if len(_spurious_config_keys) > 0:
+            raise ValueError(
+                "These config keys do not match any parameter in the processor's signature: "
+                + ", ".join(_spurious_config_keys)
+            )
+        _spurious_services_keys = self.services.keys() - sig.keys()
+        if len(_spurious_services_keys) > 0:
+            raise ValueError(
+                "These services keys do not match any parameter in the processor's signature: "
+                + ", ".join(_spurious_services_keys)
+            )
+        _duplicate_config_and_services_keys = self.config.keys() & self.services.keys()
+        if len(_duplicate_config_and_services_keys) > 0:
+            raise ValueError(
+                "These keys appear in both config and services: "
+                + ", ".join(_duplicate_config_and_services_keys)
+            )
+
+        inputs = {k: v for k, v in sig.items() if k not in self.config and k not in self.services}
 
         kwargs = set(i for i in inputs.values() if i.kind == InProcessorParam.VAR_KEYWORD)
         if len(kwargs) > 1:
@@ -110,7 +113,7 @@ class ProcessorProps:
         object.__setattr__(self, "outputs", frozendict(ra))
 
     def __hash__(self) -> int:
-        return hash((self.processor_type, self.params_getter))
+        return hash((self.processor_type, self.config, self.services))
 
 
 @final

@@ -4,9 +4,9 @@ from typing import Protocol, TypeAlias
 from oneml.pipelines.context._client import IManageExecutionContexts
 from oneml.pipelines.dag import PipelineNode
 
-from ._components import ComponentId, ComponentType, IProvideSessionComponents
 from ._node_execution import IManagePipelineNodeExecutables
 from ._node_state import IManagePipelineNodeState
+from ._services import IProvideServices, ServiceId, ServiceType
 from ._session_data_client import (
     IManagePipelineData,
     PipelineNodeDataClientFactory,
@@ -32,10 +32,10 @@ class IPipelineSession(IRunnablePipelineSession, IStoppablePipelineSession, Prot
     pass
 
 
-class PipelineSessionClient(IPipelineSession, IProvideSessionComponents):
+class PipelineSessionClient(IPipelineSession, IProvideServices):
 
     _session_id: str
-    _components: IProvideSessionComponents
+    _services: IProvideServices
     _session_context: IManageExecutionContexts["PipelineSessionClient"]
     _session_frame: IPipelineSessionFrame
     _pipeline_data_client: IManagePipelineData
@@ -49,7 +49,7 @@ class PipelineSessionClient(IPipelineSession, IProvideSessionComponents):
     def __init__(
         self,
         session_id: str,
-        components: IProvideSessionComponents,
+        services: IProvideServices,
         session_context: IManageExecutionContexts["PipelineSessionClient"],
         session_frame: IPipelineSessionFrame,
         session_state_client: IManagePipelineSessionState,
@@ -61,7 +61,7 @@ class PipelineSessionClient(IPipelineSession, IProvideSessionComponents):
         node_input_data_client_factory: PipelineNodeInputDataClientFactory,
     ):
         self._session_id = session_id
-        self._components = components
+        self._services = services
         self._session_context = session_context
         self._session_frame = session_frame
         self._session_state_client = session_state_client
@@ -72,8 +72,8 @@ class PipelineSessionClient(IPipelineSession, IProvideSessionComponents):
         self._node_executables_client = node_executables_client
         self._node_input_data_client_factory = node_input_data_client_factory
 
-    def get_component(self, component_id: ComponentId[ComponentType]) -> ComponentType:
-        return self._components.get_component(component_id)
+    def get_service(self, component_id: ServiceId[ServiceType]) -> ServiceType:
+        return self._services.get_service(component_id)
 
     def run(self) -> None:
         with self._session_context.execution_context(self):

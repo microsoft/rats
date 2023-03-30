@@ -24,6 +24,7 @@ from ._node_state import (
     PipelineNodeState,
     PipelineNodeStateClient,
 )
+from ._services import ServiceId, ServicesRegistry
 from ._session_client import (
     IPipelineSession,
     IRunnablePipelineSession,
@@ -109,4 +110,6 @@ __all__ = [
     "PipelineSessionPluginClient",
     "CallableExecutable",
     "PipelineSessionClient",
+    "ServiceId",
+    "ServicesRegistry",
 ]

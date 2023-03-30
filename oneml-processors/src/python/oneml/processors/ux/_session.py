@@ -26,7 +26,7 @@ def build_data_provider_pipeline_from_objects(data: Mapping[str, Any]) -> Pipeli
         k: Task(
             name=k,
             processor_type=InputDataProcessor,
-            params_getter=frozendict(data=v),
+            config=frozendict(data=v),
             return_annotation=dict(data=type(v)),
         )
         for k, v in data.items()

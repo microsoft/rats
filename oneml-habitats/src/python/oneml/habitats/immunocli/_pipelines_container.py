@@ -6,7 +6,7 @@ from azure.identity import ManagedIdentityCredential
 
 from oneml.habitats._publishers import NodeBasedPublisher, SinglePortPublisher
 from oneml.habitats.immunocli._commands import OnemlPipelineNodeCommandFactory
-from oneml.pipelines.building import PipelineBuilderFactory
+from oneml.pipelines.building import IPipelineBuilderFactory, PipelineBuilderFactory
 from oneml.pipelines.building._executable_pickling import ExecutablePicklingClient
 from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
 from oneml.pipelines.context._client import ContextClient, IManageExecutionContexts
@@ -16,14 +16,14 @@ from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
 from oneml.pipelines.data._memory_data_client import InMemoryDataClient
 from oneml.pipelines.data._serialization import SerializationClient
 from oneml.pipelines.k8s._executables import K8sExecutableProxy
-from oneml.pipelines.session import IManagePipelineData, PipelineSessionClient
+from oneml.pipelines.session import IManagePipelineData, PipelineSessionClient, ServicesRegistry
 from oneml.pipelines.session._client import PipelineSessionComponents
 from oneml.pipelines.settings import PipelineSettingsClient
 
 
 class OnemlHabitatsPipelinesDiContainer:
     @lru_cache()
-    def pipeline_builder_factory(self) -> PipelineBuilderFactory:
+    def pipeline_builder_factory(self) -> IPipelineBuilderFactory:
         return PipelineBuilderFactory(
             session_components=self.pipeline_session_components(),
             pipeline_settings=self.pipeline_settings(),
@@ -60,8 +60,13 @@ class OnemlHabitatsPipelinesDiContainer:
         )
 
     @lru_cache()
+    def services_registry(self) -> ServicesRegistry:
+        return ServicesRegistry()
+
+    @lru_cache()
     def pipeline_session_components(self) -> PipelineSessionComponents:
         return PipelineSessionComponents(
+            services=self.services_registry(),
             session_context=self.pipeline_session_context(),
             node_context=self.pipeline_node_context(),
             pipeline_data_client=self._pipeline_data_client(),

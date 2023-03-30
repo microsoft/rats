@@ -7,8 +7,8 @@ from oneml.pipelines.session import (
     PipelineSessionClientFactory,
     PipelineSessionPluginClient,
 )
-from oneml.pipelines.session._components import SessionComponents
 from oneml.pipelines.session._node_execution import PipelineNodeContext
+from oneml.pipelines.session._services import ServicesRegistry
 from oneml.pipelines.session._session_client import PipelineSessionContext
 
 
@@ -16,6 +16,7 @@ class PipelineSessionComponents:
     # TODO: maybe this should be our main session client class
     #       we need to make sure a factory actually creates proper independent sessions
 
+    _services: ServicesRegistry
     _session_context: PipelineSessionContext
     _node_context: PipelineNodeContext
     # might want the data layer to be done with provider classes
@@ -24,10 +25,12 @@ class PipelineSessionComponents:
 
     def __init__(
         self,
+        services: ServicesRegistry,
         session_context: PipelineSessionContext,
         node_context: PipelineNodeContext,
         pipeline_data_client: IManagePipelineData,
     ) -> None:
+        self._services = services
         self._session_context = session_context
         self._node_context = node_context
         self._pipeline_data_client = pipeline_data_client
@@ -40,7 +43,7 @@ class PipelineSessionComponents:
         return PipelineSessionClientFactory(
             session_context=self._session_context,
             node_context=self._node_context,
-            components=self.session_components(),
+            services=self.services_registry(),
             pipeline_data_client=self._pipeline_data_client,
             session_plugin_client=self.session_plugin_client(),
         )
@@ -49,9 +52,8 @@ class PipelineSessionComponents:
     def session_plugin_client(self) -> PipelineSessionPluginClient:
         return PipelineSessionPluginClient()
 
-    @lru_cache()
-    def session_components(self) -> SessionComponents:
-        return SessionComponents()
+    def services_registry(self) -> ServicesRegistry:
+        return self._services
 
     def pipeline_data_client(self) -> IManagePipelineData:
         return self._pipeline_data_client

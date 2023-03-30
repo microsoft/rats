@@ -18,7 +18,7 @@ from oneml.habitats.immunocli._commands import (
 from oneml.habitats.immunocli._pipelines_container import OnemlHabitatsPipelinesDiContainer
 from oneml.habitats.immunocli._processors_container import OnemlHabitatsProcessorsDiContainer
 from oneml.habitats.registry._session_registry import PipelineSessionRegistry
-from oneml.pipelines.session._client import PipelineSessionComponents
+from oneml.pipelines.session import ServicesRegistry
 
 
 class OnemlHabitatsDiContainer:
@@ -62,8 +62,8 @@ class OnemlHabitatsDiContainer:
             session_provider=self.processors_container().pipeline_session_provider(),
         )
 
-    def session_components(self) -> PipelineSessionComponents:
-        return self.pipelines_container().pipeline_session_components()
+    def services_registry(self) -> ServicesRegistry:
+        return self.pipelines_container().services_registry()
 
     @lru_cache()
     def resources_locator(self) -> ImmunodataResourceLocator:

@@ -1,7 +1,7 @@
 from ._di_container import OnemlHabitatsDiContainer
-from ._plugin import OnemlHabitatsComponents
+from ._plugin import OnemlHabitatsServices
 
 __all__ = [
-    "OnemlHabitatsComponents",
+    "OnemlHabitatsServices",
     "OnemlHabitatsDiContainer",
 ]

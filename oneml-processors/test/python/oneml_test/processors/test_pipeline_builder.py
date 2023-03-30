@@ -39,7 +39,7 @@ class Scatter:
 
 @pytest.fixture
 def train_stz() -> Pipeline:
-    return PipelineBuilder.task(Standardize, params_getter=frozendict(shift=10.0, scale=2.0))
+    return PipelineBuilder.task(Standardize, config=frozendict(shift=10.0, scale=2.0))
 
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def scatter() -> Pipeline:
     return PipelineBuilder.task(
         processor_type=Scatter,
         name="scatter",
-        params_getter=frozendict(K=3),
+        config=frozendict(K=3),
         return_annotation=Scatter.get_return_annotation(3),
     )
 

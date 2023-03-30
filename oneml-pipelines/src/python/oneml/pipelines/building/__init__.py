@@ -1,4 +1,4 @@
-from ._builder_client import PipelineBuilderClient, PipelineBuilderFactory
+from ._builder_client import IPipelineBuilderFactory, PipelineBuilderClient, PipelineBuilderFactory
 from ._dag_client import IPipelineDagClient, PipelineDagClient
 from ._executables_client import (
     ExecutablesPlugin,
@@ -22,6 +22,7 @@ from ._node_namespacing import (
 )
 
 __all__ = [
+    "IPipelineBuilderFactory",
     "IPipelineSessionExecutable",
     "PipelineBuilderClient",
     "PipelineBuilderFactory",

@@ -27,11 +27,6 @@ class IProcess(Protocol):
     process: Callable[..., Mapping[str, Any] | None] = NotImplemented
 
 
-@runtime_checkable
-class IGetParams(MappingProtocol[str, Any], Hashable, Protocol):
-    """Hashable mapping (protocol) for retrieving parameters to construct & execute an IProcess."""
-
-
 class _empty:
     """Marker object for InProcessorParam.empty."""
 

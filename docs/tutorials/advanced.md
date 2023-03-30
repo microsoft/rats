@@ -26,7 +26,7 @@ and build your own meta-pipelines.
 - [Pipelines Definition](#pipelines-definition)
 - [Meta-Pipelines](#meta-pipelines)
     - [`Estimator` Example](#estimator-example)
-
+- [Services](#services)
 
 ## Operations with Parameter Entries and Collections
 
@@ -431,3 +431,8 @@ subtracting specified dependencies.
 6. Inputs are merged by subtracting the specified dependencies, default behavior.
 
 7. Pipelines are combined, and a new `Pipeline` returned.
+
+
+## Services
+
+TBD

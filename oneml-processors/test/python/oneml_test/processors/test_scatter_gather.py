@@ -28,7 +28,7 @@ def get_scatter_pipeline(K: int) -> Pipeline:
     return PipelineBuilder.task(
         Scatter,
         "scatter",
-        params_getter=frozendict(K=K),
+        config=frozendict(K=K),
         return_annotation=Scatter.get_return_annotation(K),
     )
 
