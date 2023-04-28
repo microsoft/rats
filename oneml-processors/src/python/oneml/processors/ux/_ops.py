@@ -5,7 +5,17 @@ from abc import abstractmethod, abstractproperty
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
-from typing import TYPE_CHECKING, Any, Iterator, Sequence, SupportsIndex, final, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Iterator,
+    Protocol,
+    Sequence,
+    SupportsIndex,
+    TypeVar,
+    final,
+    overload,
+)
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
@@ -22,6 +32,23 @@ if TYPE_CHECKING:
         OutParameter,
         Pipeline,
     )
+
+
+Self = TypeVar("Self")
+
+
+class _Decoratable(Protocol):
+    @abstractmethod
+    def decorate(self: Self, decoration: str) -> Self:
+        ...
+
+
+D = TypeVar("D", bound=_Decoratable)
+
+
+def _maybe_decorate(target: D, decoration: str | None) -> D:
+    decorated = target.decorate(decoration) if decoration else target
+    return decorated
 
 
 @final
@@ -43,7 +70,7 @@ class DependencyOp(Sequence[Dependency]):
         ...
 
     @abstractmethod
-    def decorate(self, in_name: str, out_name: str) -> DependencyOp:
+    def decorate(self, in_name: str | None, out_name: str | None) -> DependencyOp:
         ...
 
     @abstractmethod
@@ -95,8 +122,10 @@ class EntryDependencyOp(DependencyOp):
             in_param << out_param for in_param in self.in_entry for out_param in self.out_entry
         )
 
-    def decorate(self, in_name: str, out_name: str) -> DependencyOp:
-        return self.__class__(self.in_entry.decorate(in_name), self.out_entry.decorate(out_name))
+    def decorate(self, in_name: str | None, out_name: str | None) -> DependencyOp:
+        in_entry = _maybe_decorate(self.in_entry, in_name)
+        out_entry = _maybe_decorate(self.out_entry, out_name)
+        return self.__class__(in_entry, out_entry)
 
     def get_dependencyopconf(self, pipelines: Sequence[Pipeline]) -> DependencyOpConf:
         inport_conf: PipelinePortConf | None = None
@@ -147,10 +176,10 @@ class CollectionDependencyOp(DependencyOp):
             for dependency in out_entry >> in_entry
         )
 
-    def decorate(self, in_name: str, out_name: str) -> DependencyOp:
-        return self.__class__(
-            self.in_collection.decorate(in_name), self.out_collection.decorate(out_name)
-        )
+    def decorate(self, in_name: str | None, out_name: str | None) -> DependencyOp:
+        in_collection = _maybe_decorate(self.in_collection, in_name)
+        out_collection = _maybe_decorate(self.out_collection, out_name)
+        return self.__class__(in_collection, out_collection)
 
     def get_dependencyopconf(self, pipelines: Sequence[Pipeline]) -> DependencyOpConf:
         inport_conf: PipelinePortConf | None = None
@@ -193,10 +222,10 @@ class IOCollectionDependencyOp(DependencyOp):
         dps = (tuple(self.in_collections[k] << self.out_collections[k]) for k in intersecting_keys)
         return tuple(chain.from_iterable(dps))
 
-    def decorate(self, in_name: str, out_name: str) -> DependencyOp:
-        return self.__class__(
-            self.in_collections.decorate(in_name), self.out_collections.decorate(out_name)
-        )
+    def decorate(self, in_name: str | None, out_name: str | None) -> DependencyOp:
+        in_collections = _maybe_decorate(self.in_collections, in_name)
+        out_collections = _maybe_decorate(self.out_collections, out_name)
+        return self.__class__(in_collections, out_collections)
 
     def get_dependencyopconf(self, pipelines: Sequence[Pipeline]) -> DependencyOpConf:
         inport_conf: PipelinePortConf | None = None
@@ -233,10 +262,10 @@ class PipelineDependencyOp(DependencyOp):
             self.in_pipeline.in_collections << self.out_pipeline.out_collections
         )
 
-    def decorate(self, in_name: str, out_name: str) -> DependencyOp:
-        return self.__class__(
-            self.in_pipeline.decorate(in_name), self.out_pipeline.decorate(out_name)
-        )
+    def decorate(self, in_name: str | None, out_name: str | None) -> DependencyOp:
+        in_pipeline = _maybe_decorate(self.in_pipeline, in_name)
+        out_pipeline = _maybe_decorate(self.out_pipeline, out_name)
+        return self.__class__(in_pipeline, out_pipeline)
 
     def get_dependencyopconf(self, pipelines: Sequence[Pipeline]) -> DependencyOpConf:
         inport_conf: PipelinePortConf | None = None

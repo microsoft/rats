@@ -16,7 +16,6 @@ from oneml.pipelines.session import (
     PipelineNodeInputDataClient,
     PipelinePort,
     PipelineSessionClient,
-    ServiceId,
 )
 
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
@@ -64,26 +63,40 @@ class DataClient:
         self._input_client = input_client
         self._output_client = output_client
 
-    def load(self, param: InProcessorParam) -> Any:
-        p = re.compile(rf"^{param.name}:(\d+)")
-        gathered_inputs = [
-            (s, int(match.group(1)))  # converts to integer
-            for s in self._input_client.get_ports()
-            for match in (p.match(s.key),)
+    def load_single(self, param_name: str, allow_missing: bool) -> Sequence[Any]:
+        port_key = f"{param_name}:0"
+        ports = tuple(filter(lambda port: port.key == port_key, self._input_client.get_ports()))
+        if len(ports) == 0:
+            if allow_missing:
+                return ()
+            else:
+                raise RuntimeError(f"Data not found for required input param {param_name}.")
+        else:
+            return (self._input_client.get_data(ports[0]),)
+
+    def load_sequence(self, param_name: str) -> Sequence[Any]:
+        p = re.compile(rf"^{param_name}:(\d+)")
+        ports = [
+            (port, int(match.group(1)))  # converts to integer
+            for port in self._input_client.get_ports()
+            for match in (p.match(port.key),)
             if match
         ]
-        if param.kind in [param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY]:
-            if len(gathered_inputs) > 1:
-                raise ValueError("Too many dependencies for a positional or keyword parameter.")
-            return self._input_client.get_data(gathered_inputs.pop()[0])
+        ports.sort(key=lambda sm: sm[1])  # sorts by integer number
+        return tuple(self._input_client.get_data(s) for s, _ in ports)
 
-        gathered_inputs.sort(key=lambda sm: sm[1])  # sorts by integer number
-        if param.kind == param.VAR_POSITIONAL:
-            return tuple(self._input_client.get_data(s) for s, _ in gathered_inputs)
-        elif param.kind == param.VAR_KEYWORD:
-            if not all(isinstance(gi, dict) for gi, _ in gathered_inputs):
-                raise ValueError("Gathered inputs should be of dictionary type.")
-            return {k: v for gi, _ in gathered_inputs for k, v in gi.items()}  # type: ignore
+    def load_dictionary(self, param_name: str) -> Mapping[str, Any]:
+        p = re.compile(rf"^{param_name}:(\d+)")
+        ports = [
+            port  # converts to integer
+            for port in self._input_client.get_ports()
+            for match in (p.match(port.key),)
+            if match
+        ]
+        data = tuple(map(self._input_client.get_data, ports))
+        if not all(isinstance(d, dict) for d in data):
+            raise ValueError("Gathered inputs should be of dictionary type.")
+        return {k: v for d in data for k, v in d.items()}  # type: ignore
 
     def load_parameters(
         self,
@@ -91,20 +104,24 @@ class DataClient:
         in_method: InMethod,
         exclude: Sequence[str] = (),
     ) -> tuple[Sequence[Any], Mapping[str, Any]]:
-        pos_only, pos_vars, kw_args, kw_vars = [], [], {}, {}
+        pos_only: list[Any] = []
+        pos_vars: list[Any] = []
+        kw_args: dict[str, Any] = {}
+        kw_vars: dict[str, Any] = {}
         for k, param in parameters.items():
             if k in exclude:
                 continue
             if param.in_method != in_method:
                 continue
             elif param.kind == param.POSITIONAL_ONLY:
-                pos_only.append(self.load(param))  # one value is returned
+                pos_only.extend(self.load_single(param.name, allow_missing=param.optional))
             elif param.kind == param.VAR_POSITIONAL:
-                pos_vars.extend(self.load(param))  # a sequence of values is returned
+                pos_vars.extend(self.load_sequence(param.name))
             elif param.kind in (param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY):
-                kw_args[k] = self.load(param)  # one value is returned
+                for v in self.load_single(param.name, allow_missing=param.optional):
+                    kw_args[k] = v
             elif param.kind == param.VAR_KEYWORD:
-                kw_vars.update(self.load(param))  # a ditionary of values is returned
+                kw_vars.update(self.load_dictionary(param.name))
 
         return (pos_only + pos_vars, {**kw_args, **kw_vars})
 

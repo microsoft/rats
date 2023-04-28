@@ -59,6 +59,14 @@ class InParameter(PipelineParam[InProcessorParam]):
 
         return Dependency(self, other)
 
+    @property
+    def required(self) -> bool:
+        return self.param.required
+
+    @property
+    def optional(self) -> bool:
+        return not self.required
+
 
 @final
 @dataclass(frozen=True)
@@ -92,6 +100,14 @@ class InEntry(ParamEntry[InParameter]):
             raise ValueError("Cannot assign to `InEntry`; `other` must be `OutEntry`.")
 
         return EntryDependencyOp(self, other)
+
+    @property
+    def required(self) -> bool:
+        return any((p.required for p in self))
+
+    @property
+    def optional(self) -> bool:
+        return not self.required
 
 
 @final
@@ -169,6 +185,10 @@ class Inputs(ParamCollection[InEntry]):
             raise ValueError("Node names in collections have to match.")
 
         return CollectionDependencyOp(self, other)
+
+    def get_required(self) -> Inputs:
+        """Returns the subset of the inputs that are required."""
+        return Inputs(filter(lambda t: t[1].required, self.items()))
 
 
 @final
@@ -271,6 +291,15 @@ class InCollections(IOCollections[InCollection]):
             raise ValueError("Dependency assignment only accepts `OutCollections`.")
 
         return IOCollectionDependencyOp(self, other)
+
+    def get_required(self) -> InCollections:
+        """Returns the subset of the inputs that are required."""
+        return InCollections(
+            filter(
+                lambda t: len(t[1]) > 0,
+                ((name, collection.get_required()) for name, collection in self.items()),
+            )
+        )
 
 
 class OutCollections(IOCollections[OutCollection]):
@@ -422,3 +451,11 @@ class Pipeline:
     @property
     def out_collections(self) -> OutCollections:
         return self._out_collections
+
+    @property
+    def required_inputs(self) -> Inputs:
+        return self.inputs.get_required()
+
+    @property
+    def required_in_collections(self) -> InCollections:
+        return self.in_collections.get_required()

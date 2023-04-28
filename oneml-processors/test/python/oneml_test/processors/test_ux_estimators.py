@@ -14,8 +14,8 @@ from oneml.processors import (
     PipelineRunnerFactory,
     RegistryId,
     Task,
+    TrainAndEvalBuilders,
 )
-from oneml.processors.ml import Estimator
 
 
 @dataclass
@@ -65,14 +65,13 @@ class StandardizeEval(IProcess):
         return StandardizeEvalOutput({"Z": Z})
 
 
-ModelTrainOutput = TypedDict("ModelTrainOutput", {"model": ModelMock, "probs": ArrayMock})
+ModelTrainOutput = TypedDict("ModelTrainOutput", {"model": ModelMock})
 
 
 class ModelTrain(IProcess):
     def process(self, X: ArrayMock, Y: ArrayMock) -> ModelTrainOutput:
         model = ModelMock(X, Y)
-        probs = ArrayMock(f"{model}.probs({X})")
-        return ModelTrainOutput({"model": model, "probs": probs})
+        return ModelTrainOutput({"model": model})
 
 
 ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": ArrayMock, "acc": ArrayMock})
@@ -128,7 +127,7 @@ def call_log() -> defaultdict[str, int]:
 def standardization() -> Pipeline:
     standardize_train = Task(StandardizeTrain)
     standardize_eval = Task(StandardizeEval)
-    e = Estimator(
+    e = TrainAndEvalBuilders.build_when_fit_evaluates_on_train(
         name="standardization",
         train_pl=standardize_train,
         eval_pl=standardize_eval,
@@ -136,6 +135,7 @@ def standardization() -> Pipeline:
             standardize_eval.inputs.mean << standardize_train.outputs.mean,
             standardize_eval.inputs.scale << standardize_train.outputs.scale,
         ),
+        eval_names=set(("eval_1", "eval_2")),
     )
     return e
 
@@ -145,11 +145,11 @@ def logistic_regression() -> Pipeline:
     model_train = Task(ModelTrain)
     model_eval = Task(ModelEval)
 
-    e = Estimator(
+    e = TrainAndEvalBuilders.build_using_eval_on_train_and_eval(
         name="logistic_regression",
         train_pl=model_train,
         eval_pl=model_eval,
-        dependencies=(model_eval.inputs.model << model_train.outputs.model,),
+        eval_names=set(("eval_1", "eval_2")),
     )
     return e
 
@@ -168,9 +168,8 @@ def standardized_lr(standardization: Pipeline, logistic_regression: Pipeline) ->
             "mean": standardization.outputs.mean,
             "scale": standardization.outputs.scale,
             "model": logistic_regression.outputs.model,
-            "probs.train": logistic_regression.out_collections.probs.train,
-            "probs.eval": logistic_regression.out_collections.probs.eval,
-            "acc": logistic_regression.outputs.acc,
+            "probs": logistic_regression.out_collections.probs,
+            "acc": logistic_regression.out_collections.acc,
         },
         dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
         name="standardized_lr",
@@ -195,27 +194,41 @@ def test_standardized_lr(
     runner = pipeline_runner_factory(standardized_lr)
     outputs = runner(
         inputs={
-            "X.train": ArrayMock("X1"),
-            "Y.train": ArrayMock("Y1"),
-            "X.eval": ArrayMock("X2"),
-            "Y.eval": ArrayMock("Y2"),
+            "X.train": ArrayMock("Xt"),
+            "Y.train": ArrayMock("Yt"),
+            "X.eval_1": ArrayMock("Xe1"),
+            "Y.eval_1": ArrayMock("Ye1"),
+            "X.eval_2": ArrayMock("Xe2"),
+            "Y.eval_2": ArrayMock("Ye2"),
         }
     )
     assert set(outputs) == set(("mean", "scale", "model", "probs", "acc"))
-    assert str(outputs.mean) == "mean(X1)"
-    assert str(outputs.scale) == "scale(X1)"
-    assert str(outputs.model) == "Model((X1-mean(X1))/scale(X1) ; Y1)"
-    assert (
-        str(outputs.probs.eval)
-        == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1))"
-    )
-    assert (
-        str(outputs.acc)
-        == "acc(Model((X1-mean(X1))/scale(X1) ; Y1).probs((X2-mean(X1))/scale(X1)), Y2)"
-    )
+    assert str(outputs.mean) == "mean(Xt)"
+    assert str(outputs.scale) == "scale(Xt)"
+    assert str(outputs.model) == "Model((Xt-mean(Xt))/scale(Xt) ; Yt)"
     assert (
         str(outputs.probs.train)
-        == "Model((X1-mean(X1))/scale(X1) ; Y1).probs((X1-mean(X1))/scale(X1))"
+        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt))"
+    )
+    assert (
+        str(outputs.probs.eval_1)
+        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt))"
+    )
+    assert (
+        str(outputs.probs.eval_2)
+        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt))"
+    )
+    assert (
+        str(outputs.acc.train)
+        == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt)), Yt)"
+    )
+    assert (
+        str(outputs.acc.eval_1)
+        == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt)), Ye1)"
+    )
+    assert (
+        str(outputs.acc.eval_2)
+        == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt)), Ye2)"
     )
 
 
@@ -230,12 +243,16 @@ def test_single_output_multiple_input(
     pl = CombinedPipeline(
         pipelines=[standardized_lr, reports],
         name="pl",
-        dependencies=(reports.inputs.acc << standardized_lr.outputs.acc,),
+        dependencies=(reports.inputs.acc << standardized_lr.out_collections.acc.eval_1,),
     )
-    assert len(pl.inputs) == 0
-    assert len(pl.in_collections) == 2
-    assert len(pl.outputs) == 3
-    assert len(pl.out_collections) == 1
+    assert set(pl.inputs) == set()
+    assert set(pl.in_collections) == set(("X", "Y"))
+    assert set(pl.in_collections.X) == set(("train", "eval_1", "eval_2"))
+    assert set(pl.in_collections.Y) == set(("train", "eval_1", "eval_2"))
+    assert set(pl.outputs) == set(("mean", "scale", "model"))
+    assert set(pl.out_collections) == set(("probs", "acc"))
+    assert set(pl.out_collections.probs) == set(("train", "eval_1", "eval_2"))
+    assert set(pl.out_collections.acc) == set(("train", "eval_2"))
 
 
 def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline) -> None:
@@ -248,8 +265,8 @@ def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline
             "A.scale": standardization.outputs.scale,
             "A.model": logistic_regression.outputs.model,
             "A.probs_train": logistic_regression.out_collections.probs.train,
-            "A.probs_eval": logistic_regression.out_collections.probs.eval,
-            "A.acc": logistic_regression.outputs.acc,
+            "A.probs_eval": logistic_regression.out_collections.probs.eval_1,
+            "A.acc": logistic_regression.out_collections.acc.eval_1,
         },
     )
 

@@ -13,7 +13,7 @@ from ._builder import CombinedPipeline, Task
 from ._pipeline import OutEntry, Outputs, Pipeline
 
 
-class InputDataProcessor(IProcess):
+class FixedOutputProcessor(IProcess):
     def __init__(self, data: Any) -> None:
         self._data = data
 
@@ -25,7 +25,7 @@ def build_data_provider_pipeline_from_objects(data: Mapping[str, Any]) -> Pipeli
     tasks = {
         k: Task(
             name=k,
-            processor_type=InputDataProcessor,
+            processor_type=FixedOutputProcessor,
             config=frozendict(data=v),
             return_annotation=dict(data=type(v)),
         )
@@ -116,8 +116,9 @@ class PipelineRunner:
                     for k0, k1 in [k.split(".")]
                 ),
             )
-        if len(set(chain(pipeline.inputs, pipeline.in_collections))) > 0:
-            raise ValueError(f"Missing pipeline inputs: {set(pipeline.inputs)}.")
+        required_inputs = set(chain(pipeline.required_inputs, pipeline.required_in_collections))
+        if len(required_inputs) > 0:
+            raise ValueError(f"Missing pipeline inputs: {required_inputs}.")
         session = self._pipeline_session_provider.get_session(pipeline._dag)
         session.run()
         return SessionOutputsGetter(pipeline, session)

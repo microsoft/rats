@@ -5,6 +5,7 @@ import sys
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
+from inspect import _empty as _inspect_module_empty
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
 from typing import Any, Callable, Hashable, Mapping, Protocol, final, runtime_checkable
 
@@ -63,6 +64,18 @@ class InProcessorParam(ProcessorParam):
     kind: _ParameterKind = POSITIONAL_OR_KEYWORD
     default: Any = _empty
     empty: Any = _empty
+
+    def __post_init__(self) -> None:
+        if self.default is _inspect_module_empty:
+            object.__setattr__(self, "default", _empty)
+
+    @property
+    def required(self) -> bool:
+        return self.default is _empty
+
+    @property
+    def optional(self) -> bool:
+        return not self.required
 
 
 @final

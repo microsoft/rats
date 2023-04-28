@@ -48,7 +48,7 @@ mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
-sphinx-autodoc-typehints = "1.19.5"  # remove when sphinx builds
+sphinx-autodoc-typehints = "*"
 
 [tool.poetry.scripts]
 run-processor = "oneml.processors_script.run_processor:main"

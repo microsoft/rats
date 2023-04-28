@@ -95,12 +95,14 @@ class ProcessorProps:
         elif len(kwargs) == 0 and input_annotation is not None:
             raise ValueError("`input_annotation` provided; processor does not have keyword vars.")
         elif len(kwargs) == 1 and input_annotation is not None:
-            in_method = next(iter(kwargs)).in_method
+            k = next(iter(kwargs))
+            in_method = k.in_method
             in_kwargs = {
-                k: InProcessorParam(k, ann, in_method, InProcessorParam.VAR_KEYWORD)
+                k: InProcessorParam(k, ann, in_method, InProcessorParam.KEYWORD_ONLY)
                 for k, ann in input_annotation.items()
             }
-            if set(in_kwargs) & set(inputs) - set(k.name for k in kwargs):
+            inputs.pop(k.name)
+            if set(in_kwargs) & set(inputs):
                 raise ValueError("Duplicate vars in processor signature and input_annotation.")
             inputs |= in_kwargs
 

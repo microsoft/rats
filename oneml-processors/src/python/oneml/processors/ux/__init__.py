@@ -33,7 +33,7 @@ from ._pipeline import (
     Pipeline,
     PipelineConf,
 )
-from ._session import InputDataProcessor, PipelineRunner, PipelineRunnerFactory
+from ._session import FixedOutputProcessor, PipelineRunner, PipelineRunnerFactory
 
 __all__ = [
     "CombinedConf",
@@ -66,7 +66,7 @@ __all__ = [
     "Pipeline",
     "PipelineConf",
     "PipelinePort",
-    "InputDataProcessor",
+    "FixedOutputProcessor",
     "PipelineRunner",
     "PipelineRunnerFactory",
 ]

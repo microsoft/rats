@@ -1,4 +1,4 @@
-from ._training import FitAndEvaluateBuilders, ScatterGatherBuilders
+from ._training import CollectionToDictBuilder, ScatterGatherBuilders, TrainAndEvalBuilders
 from .dag import (
     DAG,
     Annotations,
@@ -21,8 +21,8 @@ from .utils import fdict, frozendict, orderedset, oset
 from .ux import (
     CombinedPipeline,
     Dependency,
+    FixedOutputProcessor,
     InCollections,
-    InputDataProcessor,
     OutCollections,
     Pipeline,
     PipelineBuilder,
@@ -32,7 +32,7 @@ from .ux import (
 )
 
 __all__ = [
-    "FitAndEvaluateBuilders",
+    "TrainAndEvalBuilders",
     "ScatterGatherBuilders",
     "DAG",
     "Annotations",
@@ -58,11 +58,12 @@ __all__ = [
     "CombinedPipeline",
     "Dependency",
     "InCollections",
-    "InputDataProcessor",
+    "FixedOutputProcessor",
     "OutCollections",
     "Pipeline",
     "PipelineBuilder",
     "PipelineRunner",
     "PipelineRunnerFactory",
     "Task",
+    "CollectionToDictBuilder",
 ]
