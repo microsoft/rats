@@ -125,7 +125,7 @@ def call_log() -> defaultdict[str, int]:
 
 @pytest.fixture
 def standardization() -> Pipeline:
-    standardize_train = Task(StandardizeTrain)
+    standardize_train = Task(StandardizeTrain, name="train")
     standardize_eval = Task(StandardizeEval)
     e = TrainAndEvalBuilders.build_when_fit_evaluates_on_train(
         name="standardization",
@@ -135,21 +135,21 @@ def standardization() -> Pipeline:
             standardize_eval.inputs.mean << standardize_train.outputs.mean,
             standardize_eval.inputs.scale << standardize_train.outputs.scale,
         ),
-        eval_names=set(("eval_1", "eval_2")),
+        validation_names=set(("eval_1", "eval_2")),
     )
     return e
 
 
 @pytest.fixture
 def logistic_regression() -> Pipeline:
-    model_train = Task(ModelTrain)
+    model_train = Task(ModelTrain, name="train")
     model_eval = Task(ModelEval)
 
     e = TrainAndEvalBuilders.build_using_eval_on_train_and_eval(
         name="logistic_regression",
         train_pl=model_train,
         eval_pl=model_eval,
-        eval_names=set(("eval_1", "eval_2")),
+        validation_names=set(("eval_1", "eval_2")),
     )
     return e
 

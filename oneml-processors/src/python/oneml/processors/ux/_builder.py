@@ -103,7 +103,13 @@ class Task(Pipeline):
             if return_annotation is not None
             else None,
         )
-        super().__init__(name, DAG({node: props}), task_config, Inputs(inputs), Outputs(outputs))
+        super().__init__(
+            name=name,
+            dag=DAG({node: props}),
+            config=task_config,
+            inputs=Inputs(inputs),
+            outputs=Outputs(outputs),
+        )
 
 
 class CombinedPipeline(Pipeline):
@@ -190,7 +196,13 @@ class CombinedPipeline(Pipeline):
             },
         )
         super().__init__(
-            name, new_pl, config, in_entries, out_entries, in_collections, out_collections
+            name=name,
+            dag=new_pl,
+            config=config,
+            inputs=in_entries,
+            outputs=out_entries,
+            in_collections=in_collections,
+            out_collections=out_collections,
         )
 
     @staticmethod

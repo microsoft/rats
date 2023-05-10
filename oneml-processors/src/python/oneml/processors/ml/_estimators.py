@@ -89,9 +89,7 @@ class Estimator(Pipeline):
         config = EstimatorConf(
             name=name, train_pl=train_pl._config, eval_pl=eval_pl._config, dependencies=dp_confs
         )
-        super().__init__(
-            name, p._dag, config, p.inputs, p.outputs, p.in_collections, p.out_collections
-        )
+        super().__init__(other=p, config=config)
 
 
 @hydrated_dataclass(

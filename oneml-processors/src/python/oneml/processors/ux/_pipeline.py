@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 from itertools import chain
-from typing import Any, Generic, Iterable, Mapping, TypeAlias, TypeVar, final
+from typing import Any, Generic, Iterable, Mapping, TypeAlias, TypeVar, final, overload
 
 from omegaconf import MISSING
 
@@ -329,8 +329,19 @@ class Pipeline:
     _in_collections: InCollections = InCollections()
     _out_collections: OutCollections = OutCollections()
 
+    @overload
     def __init__(
         self,
+        *,
+        other: Pipeline,
+        config: PipelineConf | None = None,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        *,
         name: str,
         dag: DAG,
         config: PipelineConf,
@@ -339,20 +350,71 @@ class Pipeline:
         in_collections: InCollections = InCollections(),
         out_collections: OutCollections = OutCollections(),
     ) -> None:
-        if not isinstance(name, str) or len(name) == 0:
-            raise ValueError("Missing pipeline name.")
-        if not isinstance(dag, DAG):
-            raise ValueError(f"{dag} needs to be an instance of DAG.")
-        if not isinstance(inputs, Inputs):
-            raise ValueError("`inputs` need to be of `Inputs` type.")
-        if not isinstance(outputs, Outputs):
-            raise ValueError("`outputs` needs to be of `Outputs` type.")
-        if not isinstance(in_collections, InCollections):
-            raise ValueError("`in_collections` need to be of `InCollections` type.")
-        if not isinstance(out_collections, OutCollections):
-            raise ValueError("`out_collections` needs to be of `OutCollections` type.")
-        # if not isinstance(config, PipelineConf):
-        #     raise ValueError("`config` needs to be of `PipelineConf` type.")
+        ...
+
+    def __init__(
+        self,
+        name: str | None = None,
+        dag: DAG | None = None,
+        config: PipelineConf | None = None,
+        inputs: Inputs | None = None,
+        outputs: Outputs | None = None,
+        in_collections: InCollections | None = None,
+        out_collections: OutCollections | None = None,
+        other: Pipeline | None = None,
+    ) -> None:
+        if other is None:
+            if not isinstance(name, str) or len(name) == 0:
+                raise ValueError("Missing pipeline name.")
+            if not isinstance(dag, DAG):
+                raise ValueError(f"{dag} needs to be an instance of DAG.")
+            if inputs is None:
+                inputs = Inputs()
+            if not isinstance(inputs, Inputs):
+                raise ValueError("`inputs` need to be of `Inputs` type.")
+            if outputs is None:
+                outputs = Outputs()
+            if not isinstance(outputs, Outputs):
+                raise ValueError("`outputs` needs to be of `Outputs` type.")
+            if in_collections is None:
+                in_collections = InCollections()
+            if not isinstance(in_collections, InCollections):
+                raise ValueError("`in_collections` need to be of `InCollections` type.")
+            if out_collections is None:
+                out_collections = OutCollections()
+            if not isinstance(out_collections, OutCollections):
+                raise ValueError("`out_collections` needs to be of `OutCollections` type.")
+            if not isinstance(config, PipelineConf):
+                raise ValueError("`config` needs to be of `PipelineConf` type.")
+        else:
+            if not isinstance(other, Pipeline):
+                raise ValueError("When `other` is given, it should be a Pipeline.")
+            spurious_params = []
+            if name is not None:
+                spurious_params.append("name")
+            if dag is not None:
+                spurious_params.append("dag")
+            if inputs is not None:
+                spurious_params.append("inputs")
+            if outputs is not None:
+                spurious_params.append("outputs")
+            if in_collections is not None:
+                spurious_params.append("in_collections")
+            if out_collections is not None:
+                spurious_params.append("out_collections")
+            if len(spurious_params) > 1:
+                raise ValueError(
+                    "When `other` is given, the following params should not be given: "
+                    f"{spurious_params}."
+                )
+            name = other._name
+            inputs = other._inputs
+            outputs = other._outputs
+            in_collections = other._in_collections
+            out_collections = other._out_collections
+            dag = other._dag
+            if config is None:
+                config = other._config
 
         self._name = name
         self._inputs = inputs
@@ -394,7 +456,15 @@ class Pipeline:
         outputs = self.outputs.decorate(name)
         in_collections = self.in_collections.decorate(name)
         out_collections = self.out_collections.decorate(name)
-        return Pipeline(name, dag, self._config, inputs, outputs, in_collections, out_collections)
+        return Pipeline(
+            name=name,
+            dag=dag,
+            config=self._config,
+            inputs=inputs,
+            outputs=outputs,
+            in_collections=in_collections,
+            out_collections=out_collections,
+        )
 
     def _rename(self, names: Mapping[str, str], collection: PCi, io: PLi) -> tuple[PCi, PLi]:
         if any(k.count(".") > 1 for k in chain.from_iterable(names.items())):
@@ -423,13 +493,25 @@ class Pipeline:
     def rename_inputs(self, names: Mapping[str, str]) -> Pipeline:
         new_PC, new_PL = self._rename(names, self.inputs, self.in_collections)
         return Pipeline(
-            self.name, self._dag, self._config, new_PC, self.outputs, new_PL, self.out_collections
+            name=self.name,
+            dag=self._dag,
+            config=self._config,
+            inputs=new_PC,
+            outputs=self.outputs,
+            in_collections=new_PL,
+            out_collections=self.out_collections,
         )
 
     def rename_outputs(self, names: Mapping[str, str]) -> Pipeline:
         new_PC, new_PL = self._rename(names, self.outputs, self.out_collections)
         return Pipeline(
-            self.name, self._dag, self._config, self.inputs, new_PC, self.in_collections, new_PL
+            name=self.name,
+            dag=self._dag,
+            config=self._config,
+            inputs=self.inputs,
+            outputs=new_PC,
+            in_collections=self.in_collections,
+            out_collections=new_PL,
         )
 
     @property

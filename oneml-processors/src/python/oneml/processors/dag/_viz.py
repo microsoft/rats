@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Literal, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Literal, Mapping, Tuple
 
 import pydot
 
@@ -56,7 +56,7 @@ class DotBuilder:
 
     def _add_pipeline(self, dag: DAG) -> None:
         for node in dag.nodes:
-            processor_name = dag.nodes[node].processor_type.__name__
+            processor_name = node.name.split("/")[-1]
             name = repr(node)
             self._add_name_to_mapping(name)
             in_arguments = tuple(k.name for k in dag.nodes[node].inputs.values())
@@ -78,7 +78,9 @@ class DotBuilder:
                 out_arg = dp.out_arg.name
                 source = self._get_o_port_tag(dp_name, out_arg)
                 target = self._get_i_port_tag(name, in_arg)
-                self._g.add_edge(pydot.Edge(source, target))
+                self._g.add_edge(
+                    pydot.Edge(source, target, style="solid" if dp.in_arg.required else "dashed")
+                )
 
     def _get_io_entries(
         self, io: ParamCollection[PE], io_collections: IOCollections[ParamCollection[PE]]
@@ -93,23 +95,38 @@ class DotBuilder:
         def add_entry(source: str, entry: InEntry) -> None:
             for p in entry:
                 target = self._get_i_port_tag(repr(p.node), p.param.name)
-                self._g.add_edge(pydot.Edge(source, target))
+                self._g.add_edge(
+                    pydot.Edge(source, target, style="solid" if p.required else "dashed")
+                )
 
-        if len(inputs) > 0 or len(in_collections) > 0:
-            entries = dict(self._get_io_entries(inputs, in_collections))
-            name = "inputs"
+        def add_inputs_node(
+            ro: Literal["required", "optional"], entries: Mapping[str, InEntry]
+        ) -> None:
+            name = f"{ro}_inputs"
             self._add_name_to_mapping(name)
 
             outputs = self._format_o_arguments(entries)
             label = f"{{{{{outputs}}}}}"
             self._g.add_node(
                 pydot.Node(
-                    name=self._node_name_mapping[name], label=label, shape="record", color="red"
+                    name=self._node_name_mapping[name],
+                    label=label,
+                    shape="record",
+                    color="red",
+                    style="solid" if ro == "required" else "dashed",
                 )
             )
             for entry_name, entry in entries.items():
                 source = self._get_o_port_tag(name, entry_name)
                 add_entry(source, entry)
+
+        entries = dict(self._get_io_entries(inputs, in_collections))
+        required = {k: v for k, v in entries.items() if v.required}
+        optional = {k: v for k, v in entries.items() if v.optional}
+        if len(required) > 0:
+            add_inputs_node("required", required)
+        if len(optional) > 0:
+            add_inputs_node("optional", optional)
 
     def _add_outputs(self, outputs: Outputs, out_collections: OutCollections) -> None:
         def add_entry(entry: OutEntry, target: str) -> None:

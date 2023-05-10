@@ -128,6 +128,12 @@ class CProcessor(IProcess):
         ...
 
 
+class SinkProcessor(IProcess):
+    @abstractmethod
+    def process(self, x: str) -> None:
+        ...
+
+
 @pytest.fixture
 def ATrain() -> Pipeline:
     return Task(AProcessor, "train")
@@ -156,6 +162,11 @@ def CTrain() -> Pipeline:
 @pytest.fixture
 def CEval() -> Pipeline:
     return Task(CProcessor, "eval")
+
+
+@pytest.fixture
+def Sink() -> Pipeline:
+    return Task(SinkProcessor, "sync")
 
 
 @pytest.fixture
@@ -240,3 +251,59 @@ def test_combine_inputs(A: Pipeline, B: Pipeline, C: Pipeline, ABC: Pipeline) ->
         outputs={},
     )
     assert D.inputs.x == (B.inputs.x | C.inputs.x).decorate("D")
+
+
+def test_combine_outputs(ATrain: Pipeline, AEval: Pipeline, Sink: Pipeline) -> None:
+    # This test shows a bug in the default mechanism for defining the outputs of CombinedPipeline.
+    # The signatures of ATrain_AEval and of ATrain_duplicated are identical - both have a single
+    # output collection - 'z', with two entries, 'a', and 'b'.
+    # When combining ATrain_AEval with S2, using z.a in a dependency, we get the expected output
+    # signature - z.b, because z.a was used and removed from the output signature.
+    # But when combining ATrain_duplicated with S2, using z.a in a dependency, we get no output.
+    S2 = CombinedPipeline(
+        name="S2",
+        pipelines=(Sink.decorate("S1"), Sink.decorate("S2"), Sink.decorate("S3")),
+    )
+    ATrain_AEval = CombinedPipeline(
+        name="ATrain_AEval",
+        pipelines=(ATrain, AEval),
+        outputs={
+            "z.a": ATrain.outputs.z,
+            "z.b": AEval.outputs.z,
+        },
+    )
+    assert set(ATrain_AEval.outputs) == set()
+    assert set(ATrain_AEval.out_collections) == set(("z",))
+    assert set(ATrain_AEval.out_collections.z) == set(("a", "b"))
+    ATrain_AEval_S2 = CombinedPipeline(
+        name="ATrain_AEval_S2",
+        pipelines=(ATrain_AEval, S2),
+        dependencies=(S2.inputs.x << ATrain_AEval.out_collections.z.a,),
+    )
+    assert set(ATrain_AEval_S2.outputs) == set()
+    assert set(ATrain_AEval_S2.out_collections) == set(("z",))
+    assert set(ATrain_AEval_S2.out_collections.z) == set(("b"))
+
+    ATrain_duplicated = CombinedPipeline(
+        name="ATrain_duplicated",
+        pipelines=(ATrain,),
+        outputs={
+            "z.a": ATrain.outputs.z,
+            "z.b": ATrain.outputs.z,
+        },
+    )
+    assert set(ATrain_duplicated.outputs) == set()
+    assert set(ATrain_duplicated.out_collections) == set(("z",))
+    assert set(ATrain_duplicated.out_collections.z) == set(("a", "b"))
+    dependencies = (ATrain_duplicated.out_collections.z.a >> S2.inputs.x,)
+    ATrain_duplicated_S2 = CombinedPipeline(
+        name="ATrain_duplicated_S2",
+        pipelines=(ATrain_duplicated, S2),
+        dependencies=dependencies,
+    )
+    assert set(ATrain_duplicated_S2.outputs) == set()
+    # should be:
+    # assert set(ATrain_duplicated_S2.out_collections) == set(("z",))
+    # assert set(ATrain_duplicated_S2.out_collections.z) == set(("b",))
+    # but instead we have:
+    assert set(ATrain_duplicated_S2.out_collections) == set()
