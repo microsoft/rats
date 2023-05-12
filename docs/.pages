@@ -1,5 +1,7 @@
 nav:
-  - Home: index.md
-  - Existing tools: existing_tools
-  - Scenarios: scenarios
-  - Tutorials: tutorials
+
+- Home: index.md
+- Existing tools: existing_tools
+- Scenarios: scenarios
+- Tutorials: tutorials
+- Internship Proposals: internship_proposals
