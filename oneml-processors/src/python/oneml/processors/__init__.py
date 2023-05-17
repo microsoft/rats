@@ -11,10 +11,8 @@ from .dag import (
     Namespace,
     OutProcessorParam,
     P2Pipeline,
-    ParamsRegistry,
     PipelineSessionProvider,
     ProcessorProps,
-    RegistryId,
 )
 from .dag._viz import dag_to_svg, display_dag
 from .utils import fdict, frozendict, orderedset, oset
@@ -45,10 +43,8 @@ __all__ = [
     "Namespace",
     "OutProcessorParam",
     "P2Pipeline",
-    "ParamsRegistry",
     "PipelineSessionProvider",
     "ProcessorProps",
-    "RegistryId",
     "dag_to_svg",
     "display_dag",
     "fdict",

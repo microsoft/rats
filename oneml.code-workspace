@@ -71,9 +71,11 @@
         "python.analysis.inlayHints.pytestParameters": true,
         "python.analysis.autoImportCompletions": true,
         "python.envFile": "${workspaceFolder}/.envrc",
-        "python.formatting.provider": "black",
+        "[python]": {
+            "editor.defaultFormatter": "ms-python.black-formatter",
+        },
         "markdown.validate.enabled": true,
-        "diffEditor.diffAlgorithm": "experimental",
+        "diffEditor.diffAlgorithm": "advanced",
         "search.exclude": {
             "**/build": true,
             "**/.tmp": true,

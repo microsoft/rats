@@ -5,16 +5,16 @@ from oneml.pipelines.dag import (
     PipelineDataDependency,
     PipelineNode,
 )
+from oneml.pipelines.data._memory_data_client import InMemoryDataClient
 from oneml.pipelines.session import (
-    PipelineDataClient,
+    IOManagerClient,
+    IOManagerRegistry,
     PipelineNodeDataClient,
     PipelineNodeDataClientFactory,
-    PipelinePort,
-    ReadProxyPipelineDataClient,
-)
-from oneml.pipelines.session._session_data_client import (
     PipelineNodeInputDataClient,
     PipelineNodeInputDataClientFactory,
+    PipelinePort,
+    ReadProxyPipelineDataClient,
 )
 
 
@@ -22,12 +22,11 @@ def test_imports() -> None:
     assert 1 == 1
 
 
-class TestPipelineDataClient:
-
-    _client: PipelineDataClient
+class TestInMemoryDataClient:
+    _client: InMemoryDataClient
 
     def setup_method(self) -> None:
-        self._client = PipelineDataClient()
+        self._client = InMemoryDataClient()
 
     def test_basics(self) -> None:
         self._client.publish_data(
@@ -68,16 +67,15 @@ class TestPipelineDataClient:
 
 
 class TestPipelineNodeDataClient:
-
     _node: PipelineNode
-    _data_client: PipelineDataClient
+    _iomanager_client: IOManagerClient
     _client: PipelineNodeDataClient
 
     def setup_method(self) -> None:
         self._node = PipelineNode("step-1")
-        self._data_client = PipelineDataClient()
+        self._iomanager_client = IOManagerClient(IOManagerRegistry(), InMemoryDataClient())
         self._client = PipelineNodeDataClient(
-            pipeline_data_client=self._data_client,
+            iomanager_client=self._iomanager_client,
             node=self._node,
         )
 
@@ -94,24 +92,21 @@ class TestPipelineNodeDataClient:
             == "some-data"
         )
 
+        node = PipelineNode("step-1")
+        port = PipelinePort[str]("port-1")
         assert (
-            self._data_client.get_data(
-                node=PipelineNode("step-1"),
-                port=PipelinePort[str]("port-1"),
-            )
-            == "some-data"
+            self._iomanager_client.get_dataclient(node, port).get_data(node, port) == "some-data"
         )
 
 
-class TestReadProxyPipelineDataClient:
-
-    _primary_data_client: PipelineDataClient
-    _proxy_data_client: PipelineDataClient
+class TestReadProxyInMemoryDataClient:
+    _primary_data_client: InMemoryDataClient
+    _proxy_data_client: InMemoryDataClient
     _client: ReadProxyPipelineDataClient
 
     def setup_method(self) -> None:
-        self._primary_data_client = PipelineDataClient()
-        self._proxy_data_client = PipelineDataClient()
+        self._primary_data_client = InMemoryDataClient()
+        self._proxy_data_client = InMemoryDataClient()
         self._client = ReadProxyPipelineDataClient(
             primary_client=self._primary_data_client,
             proxy_client=self._proxy_data_client,
@@ -195,24 +190,23 @@ class TestReadProxyPipelineDataClient:
 
 
 class TestPipelineNodeInputDataClient:
-
-    _data_client: PipelineDataClient
+    _iomanager_client: IOManagerClient
     _client: PipelineNodeInputDataClient
 
     def setup_method(self) -> None:
-        self._data_client = PipelineDataClient()
+        self._iomanager_client = IOManagerClient(IOManagerRegistry(), InMemoryDataClient())
         self._client = PipelineNodeInputDataClient(
-            data_client=self._data_client,
+            iomanager_client=self._iomanager_client,
             data_mapping={
                 PipelinePort("input-port-1"): (PipelineNode("step-1"), PipelinePort("port-1")),
             },
         )
 
     def test_basics(self) -> None:
-        self._data_client.publish_data(
-            node=PipelineNode("step-1"),
-            port=PipelinePort[str]("port-1"),
-            data="some-data",
+        node = PipelineNode("step-1")
+        port = PipelinePort[str]("port-1")
+        self._iomanager_client.get_dataclient(node, port).publish_data(
+            node, port, data="some-data"
         )
 
         assert self._client.get_data(PipelinePort("input-port-1")) == "some-data"
@@ -222,7 +216,9 @@ class TestFactories:
     def test_basics(self) -> None:
         node_1 = PipelineNode("step-1")
         node_2 = PipelineNode("step-2")
-        data_client = PipelineDataClient()
+        iomanager_registry = IOManagerRegistry()
+        default_data_client = InMemoryDataClient()
+        iomanager_client = IOManagerClient(iomanager_registry, default_data_client)
         data_dependencies_client = PipelineDataDependenciesClient()
         data_dependencies_client.register_data_dependencies(
             node_2,
@@ -235,13 +231,13 @@ class TestFactories:
             ),
         )
 
-        node_data_client_factory = PipelineNodeDataClientFactory(pipeline_data_client=data_client)
+        node_data_client_factory = PipelineNodeDataClientFactory(iomanager_client=iomanager_client)
         node_data_client_instance = node_data_client_factory.get_instance(node_1)
         assert isinstance(node_data_client_instance, PipelineNodeDataClient)
 
         node_input_data_client_factory = PipelineNodeInputDataClientFactory(
             data_dependencies_client=data_dependencies_client,
-            data_client=data_client,
+            iomanager_client=iomanager_client,
         )
         node_input_data_client_instance = node_input_data_client_factory.get_instance(node_2)
         assert isinstance(node_input_data_client_instance, PipelineNodeInputDataClient)

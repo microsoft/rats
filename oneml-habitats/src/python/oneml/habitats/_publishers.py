@@ -9,6 +9,7 @@ class NodeBasedPublisher:
     """
     A simplified data publisher interface that publishes to the active node.
     """
+
     _session_context: PipelineSessionContext
     _node_context: PipelineNodeContext
 
@@ -27,7 +28,8 @@ class NodeBasedPublisher:
     ) -> None:
         session = self._session_context.get_context()
         node = self._node_context.get_context()
-        data_client = session.pipeline_data_client()
+        iomanager_client = session.iomanager_client()
+        data_client = iomanager_client.get_dataclient(node, port)
         data_client.publish_data(node, port, data)
 
 

@@ -1,94 +1,77 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
 from typing import TypedDict
 
 import pytest
 
+from oneml.pipelines.data._serialization import DataTypeId
+from oneml.pipelines.session import IOManagerId
 from oneml.processors import (
     CombinedPipeline,
     IProcess,
-    ParamsRegistry,
     Pipeline,
     PipelineRunnerFactory,
-    RegistryId,
     Task,
     TrainAndEvalBuilders,
 )
 
-
-@dataclass
-class ArrayMock(object):
-    v: str
-
-    def __repr__(self) -> str:
-        return self.v
-
-
-@dataclass
-class ModelMock(object):
-    x: ArrayMock
-    y: ArrayMock
-
-    def __repr__(self) -> str:
-        return f"Model({self.x} ; {self.y})"
-
+from .mock_data import Array, Model
 
 ########
 
 # PROCESSORS (aka they do stuff; aka almost transformers)
 
 StandardizeTrainOutput = TypedDict(
-    "StandardizeTrainOutput", {"mean": ArrayMock, "scale": ArrayMock, "Z": ArrayMock}
+    "StandardizeTrainOutput", {"mean": Array, "scale": Array, "Z": Array}
 )
 
 
 class StandardizeTrain:
-    def process(self, X: ArrayMock) -> StandardizeTrainOutput:
-        mean = ArrayMock(f"mean({X})")
-        scale = ArrayMock(f"scale({X})")
-        Z = ArrayMock(f"({X}-{mean})/{scale}")
+    def process(self, X: Array) -> StandardizeTrainOutput:
+        mean = Array(f"mean({X})")
+        scale = Array(f"scale({X})")
+        Z = Array(f"({X}-{mean})/{scale}")
         return StandardizeTrainOutput({"mean": mean, "scale": scale, "Z": Z})
 
 
-StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"Z": ArrayMock})
+StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"Z": Array})
 
 
 class StandardizeEval(IProcess):
-    def __init__(self, mean: ArrayMock, scale: ArrayMock) -> None:
+    def __init__(self, mean: Array, scale: Array) -> None:
         self._mu = mean
         self._scale = scale
 
-    def process(self, X: ArrayMock) -> StandardizeEvalOutput:
-        Z = ArrayMock(f"({X}-{self._mu})/{self._scale}")
+    def process(self, X: Array) -> StandardizeEvalOutput:
+        Z = Array(f"({X}-{self._mu})/{self._scale}")
         return StandardizeEvalOutput({"Z": Z})
 
 
-ModelTrainOutput = TypedDict("ModelTrainOutput", {"model": ModelMock})
+ModelTrainOutput = TypedDict("ModelTrainOutput", {"model": Model})
 
 
 class ModelTrain(IProcess):
-    def process(self, X: ArrayMock, Y: ArrayMock) -> ModelTrainOutput:
-        model = ModelMock(X, Y)
+    def process(self, X: Array, Y: Array) -> ModelTrainOutput:
+        model = Model(X, Y)
         return ModelTrainOutput({"model": model})
 
 
-ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": ArrayMock, "acc": ArrayMock})
+ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": Array, "acc": Array})
 
 
 class ModelEval(IProcess):
-    def __init__(self, model: ModelMock) -> None:  # wblogger: WBLogger, sp: SparkClient
+    def __init__(self, model: Model) -> None:  # wblogger: WBLogger, sp: SparkClient
         self.model = model
 
-    def process(self, X: ArrayMock, Y: ArrayMock) -> ModelEvalOutput:
-        probs = ArrayMock(f"{self.model}.probs({X})")
-        acc = ArrayMock(f"acc({probs}, {Y})")
+    def process(self, X: Array, Y: Array) -> ModelEvalOutput:
+        probs = Array(f"{self.model}.probs({X})")
+        acc = Array(f"acc({probs}, {Y})")
         return {"probs": probs, "acc": acc}
 
 
 class ReportGenerator(IProcess):
-    def process(self, acc: ArrayMock) -> None:
+    def process(self, acc: Array) -> None:
         ...
 
 
@@ -105,12 +88,12 @@ class WBLogger:
     pass
 
 
-@pytest.fixture
-def params_registry() -> ParamsRegistry:
-    registry = ParamsRegistry()
-    registry.add(RegistryId("spark_client", SparkClient), SparkClient())
-    registry.add(RegistryId("wb_logger", WBLogger), WBLogger())
-    return registry
+# @pytest.fixture
+# def params_registry() -> ParamsRegistry:
+#     registry = ParamsRegistry()
+#     registry.add(RegistryId("spark_client", SparkClient), SparkClient())
+#     registry.add(RegistryId("wb_logger", WBLogger), WBLogger())
+#     return registry
 
 
 @pytest.fixture
@@ -142,7 +125,12 @@ def standardization() -> Pipeline:
 
 @pytest.fixture
 def logistic_regression() -> Pipeline:
-    model_train = Task(ModelTrain, name="train")
+    model_train = Task(
+        ModelTrain,
+        name="train",
+        io_managers={"model": IOManagerId("local")},
+        # serializers={"model": DataTypeId("model")},
+    )
     model_eval = Task(ModelEval)
 
     e = TrainAndEvalBuilders.build_using_eval_on_train_and_eval(
@@ -194,12 +182,12 @@ def test_standardized_lr(
     runner = pipeline_runner_factory(standardized_lr)
     outputs = runner(
         inputs={
-            "X.train": ArrayMock("Xt"),
-            "Y.train": ArrayMock("Yt"),
-            "X.eval_1": ArrayMock("Xe1"),
-            "Y.eval_1": ArrayMock("Ye1"),
-            "X.eval_2": ArrayMock("Xe2"),
-            "Y.eval_2": ArrayMock("Ye2"),
+            "X.train": Array("Xt"),
+            "Y.train": Array("Yt"),
+            "X.eval_1": Array("Xe1"),
+            "Y.eval_1": Array("Ye1"),
+            "X.eval_2": Array("Xe2"),
+            "Y.eval_2": Array("Ye2"),
         }
     )
     assert set(outputs) == set(("mean", "scale", "model", "probs", "acc"))

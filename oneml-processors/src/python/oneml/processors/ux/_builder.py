@@ -8,19 +8,11 @@ from typing import Any, Mapping, Sequence, TypeAlias, TypeVar, final
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
 
-from oneml.pipelines.session import ServiceId
+from oneml.pipelines.session import DataTypeId, IOManagerId, PipelinePortDataType, ServiceId
 
 from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IProcess, ProcessorProps
 from ..utils import frozendict
-from ._ops import (
-    CollectionDependencyOpConf,
-    DependencyOp,
-    DependencyOpConf,
-    EntryDependencyOpConf,
-    IOCollectionDependencyOpConf,
-    PipelineDependencyOpConf,
-    PipelinePortConf,
-)
+from ._ops import DependencyOp
 from ._pipeline import (
     InCollections,
     InEntry,
@@ -63,6 +55,8 @@ class Task(Pipeline):
         name: str | None = None,
         config: Mapping[str, Any] | None = None,
         services: Mapping[str, ServiceId[Any]] | None = None,
+        io_managers: Mapping[str, IOManagerId] | None = None,
+        serializers: Mapping[str, DataTypeId[PipelinePortDataType]] | None = None,
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
@@ -71,6 +65,10 @@ class Task(Pipeline):
             raise ValueError("`processor_type` needs to satisfy the `IProcess` protocol.")
         if name is not None and not isinstance(name, str):
             raise ValueError("`name` needs to be string or None.")
+        if io_managers is not None and not isinstance(io_managers, Mapping):
+            raise ValueError("`io_managers` needs to be `Mapping[str, IOManagerId] | None`.")
+        if serializers is not None and not isinstance(serializers, Mapping):
+            raise ValueError("`io_managers` needs to be `Mapping[str, DataTypeId] | None`.")
         if not isinstance(compute_reqs, ComputeReqs):
             raise ValueError("`compute_reqs` needs to be `ComputeReqs` object.")
         if return_annotation is not None and not (
@@ -87,6 +85,8 @@ class Task(Pipeline):
             processor_type=processor_type,
             config=frozendict(config) if config is not None else frozendict(),
             services=frozendict(services) if services is not None else frozendict(),
+            io_managers=frozendict(io_managers) if io_managers is not None else frozendict(),
+            serializers=frozendict(serializers) if serializers is not None else frozendict(),
             input_annotation=input_annotation,
             return_annotation=return_annotation,
             compute_reqs=compute_reqs,
@@ -284,6 +284,8 @@ class PipelineBuilder:
         name: str | None = None,
         config: Mapping[str, Any] | None = None,
         services: Mapping[str, ServiceId[Any]] | None = None,
+        io_managers: Mapping[str, IOManagerId] | None = None,
+        serializers: Mapping[str, DataTypeId[PipelinePortDataType]] | None = None,
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
@@ -412,13 +414,15 @@ class PipelineBuilder:
 
         """
         return Task(
-            processor_type,
-            name,
-            config,
-            services,
-            input_annotation,
-            return_annotation,
-            compute_reqs,
+            processor_type=processor_type,
+            name=name,
+            config=config,
+            services=services,
+            io_managers=io_managers,
+            serializers=serializers,
+            input_annotation=input_annotation,
+            return_annotation=return_annotation,
+            compute_reqs=compute_reqs,
         )
 
     @staticmethod

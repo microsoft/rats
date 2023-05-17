@@ -1,20 +1,73 @@
+import logging
+
 import pytest
 from hydra.core.config_store import ConfigStore
 
 from oneml.pipelines._client import SimplePipelineFactory
-from oneml.pipelines.building import IPipelineBuilderFactory
+from oneml.pipelines.building import DefaultDataTypeMapper, IPipelineBuilderFactory
 from oneml.pipelines.context._client import ContextClient
-from oneml.pipelines.session import PipelineSessionClient, ServicesRegistry
+from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
+from oneml.pipelines.data._local_data_client import LocalDataClient
+from oneml.pipelines.data._serialization import SerializationClient
+from oneml.pipelines.session import (
+    IOManagerId,
+    IOManagerRegistry,
+    PipelineSessionClient,
+    ServicesRegistry,
+)
 from oneml.pipelines.session._session_client import PipelineSessionContext
 from oneml.processors import PipelineRunnerFactory
 from oneml.processors.dag import PipelineSessionProvider
 from oneml.processors.schemas import register_configs
 from oneml.processors.ux import register_resolvers
 
+from .mock_data import DataTypeIds, Model, ModelSerializer
+
+logger = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope="package")
 def services_registry() -> ServicesRegistry:
     return ServicesRegistry()
+
+
+@pytest.fixture(scope="package")
+def iomanager_registry(local_pipeline_data_client: LocalDataClient) -> IOManagerRegistry:
+    registry = IOManagerRegistry()
+    registry.register(IOManagerId("local"), local_pipeline_data_client)
+    return registry
+
+
+@pytest.fixture(scope="package")
+def serialization_client() -> SerializationClient:
+    serializer = SerializationClient()
+    serializer.register(type_id=DataTypeIds.MODEL, serializer=ModelSerializer())
+    return serializer
+
+
+@pytest.fixture(scope="package")
+def type_mapping() -> MappedPipelineDataClient:
+    return MappedPipelineDataClient()
+
+
+@pytest.fixture(scope="package")
+def default_datatype_mapper() -> DefaultDataTypeMapper:
+    mapper = DefaultDataTypeMapper()
+    mapper.register(type_=Model, type_id=DataTypeIds.MODEL)
+    return mapper
+
+
+@pytest.fixture(scope="package")
+def local_pipeline_data_client(
+    serialization_client: SerializationClient,
+    type_mapping: MappedPipelineDataClient,
+    pipeline_session_context: PipelineSessionContext,
+) -> LocalDataClient:
+    return LocalDataClient(
+        serializer=serialization_client,
+        type_mapping=type_mapping,
+        session_context=pipeline_session_context,
+    )
 
 
 @pytest.fixture(scope="package")
@@ -25,10 +78,15 @@ def pipeline_session_context() -> PipelineSessionContext:
 @pytest.fixture(scope="package")
 def pipeline_builder_factory(
     services_registry: ServicesRegistry,
+    iomanager_registry: IOManagerRegistry,
+    default_datatype_mapper: DefaultDataTypeMapper,
     pipeline_session_context: PipelineSessionContext,
 ) -> IPipelineBuilderFactory:
     return SimplePipelineFactory(
-        services=services_registry, session_context=pipeline_session_context
+        services=services_registry,
+        iomanagers=iomanager_registry,
+        default_datatype_mapper=default_datatype_mapper,
+        session_context=pipeline_session_context,
     )
 
 

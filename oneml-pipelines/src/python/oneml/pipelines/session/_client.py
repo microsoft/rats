@@ -2,7 +2,8 @@ from functools import lru_cache
 
 from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.session import (
-    IManagePipelineData,
+    IOManagerClient,
+    IOManagerRegistry,
     PipelineSessionClient,
     PipelineSessionClientFactory,
     PipelineSessionPluginClient,
@@ -21,19 +22,19 @@ class PipelineSessionComponents:
     _node_context: PipelineNodeContext
     # might want the data layer to be done with provider classes
     # so we can lazy load things a bit more
-    _pipeline_data_client: IManagePipelineData
+    _iomanager_client: IOManagerClient
 
     def __init__(
         self,
         services: ServicesRegistry,
         session_context: PipelineSessionContext,
         node_context: PipelineNodeContext,
-        pipeline_data_client: IManagePipelineData,
+        iomanager_client: IOManagerClient,
     ) -> None:
         self._services = services
         self._session_context = session_context
         self._node_context = node_context
-        self._pipeline_data_client = pipeline_data_client
+        self._iomanager_client = iomanager_client
 
     def session_context(self) -> IProvideExecutionContexts[PipelineSessionClient]:
         return self._session_context
@@ -44,7 +45,7 @@ class PipelineSessionComponents:
             session_context=self._session_context,
             node_context=self._node_context,
             services=self.services_registry(),
-            pipeline_data_client=self._pipeline_data_client,
+            iomanager_client=self._iomanager_client,
             session_plugin_client=self.session_plugin_client(),
         )
 
@@ -55,5 +56,8 @@ class PipelineSessionComponents:
     def services_registry(self) -> ServicesRegistry:
         return self._services
 
-    def pipeline_data_client(self) -> IManagePipelineData:
-        return self._pipeline_data_client
+    def iomanager_registry(self) -> IOManagerRegistry:
+        return self._iomanager_client.iomanager_registry()
+
+    def iomanager_client(self) -> IOManagerClient:
+        return self._iomanager_client

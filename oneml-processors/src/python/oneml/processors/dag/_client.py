@@ -3,18 +3,17 @@ from __future__ import annotations
 import logging
 import re
 from collections import defaultdict
-from dataclasses import dataclass
 from itertools import groupby
 from typing import Any, Iterable, Mapping, Sequence
 
 from oneml.pipelines.building import IPipelineBuilderFactory
 from oneml.pipelines.context._client import IManageExecutionContexts, IProvideExecutionContexts
-from oneml.pipelines.dag import PipelineDataDependency, PipelineNode
+from oneml.pipelines.dag import PipelineDataDependency, PipelineNode, PipelinePort
+from oneml.pipelines.data._serialization import DataTypeId, ISerializeData, SerializationClient
 from oneml.pipelines.session import (
     IExecutable,
     PipelineNodeDataClient,
     PipelineNodeInputDataClient,
-    PipelinePort,
     PipelineSessionClient,
 )
 
@@ -168,40 +167,6 @@ class SessionExecutableProvider(IExecutable):
         logger.debug(f"Node {self._node} execute end.")
 
 
-@dataclass(frozen=True)
-class RegistryId:
-    name: str
-    param_type: type
-
-
-class ParamsRegistry:
-    _registry: dict[str, RegistryId]
-
-    def __init__(self) -> None:
-        self._registry = {}
-
-    def add(self, id: RegistryId, param: Any) -> None:
-        ...
-
-    def get(self, id: RegistryId) -> Any:
-        ...
-
-
-# class SingletonsGetter(IGetSingletons):
-#     _singletons_ids: tuple[SingletonId, ...]
-#     _registry: SingletonsRegistry
-
-#     def __init__(self, singleton_ids: Sequence[SingletonId], registry: SingletonsRegistry) -> None:
-#         self._singletons_ids = tuple(singleton_ids)
-#         self._registry = registry
-
-#     def __call__(self) -> Mapping[str, Any]:
-#         params: dict[str, Any] = {}
-#         for id in self._singletons_ids:
-#             params.update(self._registry.get_singleton(id))
-#         return params
-
-
 class PipelineSessionProvider:
     _builder_factory: IPipelineBuilderFactory
     _session_context: IManageExecutionContexts[PipelineSessionClient]
@@ -216,6 +181,7 @@ class PipelineSessionProvider:
 
     def get_session(self, dag: DAG) -> PipelineSessionClient:
         builder = self._builder_factory.get_instance()
+        default_type_mapper = self._builder_factory.get_default_datatype_mapper()
 
         for node in dag.nodes:
             builder.add_node(P2Pipeline.node(node))
@@ -227,6 +193,11 @@ class PipelineSessionProvider:
                 props=props,
             )
             builder.add_executable(P2Pipeline.node(node), sess_executable)
+            for output, id in props.io_managers.items():
+                type_id = props.serializers.get(
+                    output, default_type_mapper[props.outputs[output].annotation]
+                )
+                builder.add_iomanager(P2Pipeline.node(node), PipelinePort(output), id, type_id)
 
         for node, dependencies in dag.dependencies.items():
             builder.add_data_dependencies(

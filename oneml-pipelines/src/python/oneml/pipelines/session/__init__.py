@@ -9,6 +9,18 @@ from ._executable import (
     IExecutable,
     NoOpExecutable,
 )
+from ._io_managers import IOManagerClient, IOManagerId, IOManagerRegistry
+from ._io_protocols import (
+    DataTypeId,
+    ILoadPipelineData,
+    ILoadPipelineNodeData,
+    IManagePipelineData,
+    IManagePipelineNodeData,
+    IPublishPipelineData,
+    IPublishPipelineNodeData,
+    PipelinePort,
+    PipelinePortDataType,
+)
 from ._node_execution import (
     IExecutePipelineNodes,
     ILocatePipelineNodeExecutables,
@@ -33,13 +45,10 @@ from ._session_client import (
 )
 from ._session_client_factory import PipelineSessionClientFactory
 from ._session_data_client import (
-    IManagePipelineData,
-    PipelineDataClient,
     PipelineNodeDataClient,
     PipelineNodeDataClientFactory,
     PipelineNodeInputDataClient,
-    PipelinePort,
-    PipelinePortDataType,
+    PipelineNodeInputDataClientFactory,
     ReadProxyPipelineDataClient,
 )
 from ._session_frame import (
@@ -65,6 +74,9 @@ from ._session_state import (
 __all__ = [
     "IExecutable",
     "NoOpExecutable",
+    "IOManagerClient",
+    "IOManagerId",
+    "IOManagerRegistry",
     "ICallableExecutableProvider",
     "ICallableExecutable",
     "DeferredExecutable",
@@ -88,12 +100,18 @@ __all__ = [
     "IPipelineSession",
     "PipelinePortDataType",
     "PipelinePort",
+    "DataTypeId",
+    "ILoadPipelineData",
+    "ILoadPipelineNodeData",
     "IManagePipelineData",
-    "PipelineDataClient",
+    "IManagePipelineNodeData",
+    "IPublishPipelineData",
+    "IPublishPipelineNodeData",
     "ReadProxyPipelineDataClient",
     "PipelineNodeDataClient",
     "PipelineNodeDataClientFactory",
     "PipelineNodeInputDataClient",
+    "PipelineNodeInputDataClientFactory",
     "IPipelineSessionFrame",
     "BasicPipelineSessionFrameCommands",
     "PipelineSessionFrame",

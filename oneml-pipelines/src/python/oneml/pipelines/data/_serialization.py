@@ -17,6 +17,7 @@ class DataTypeId(Generic[DataType]):
 DictDataType = DataTypeId[Dict[Any, Any]]("simple-dict")
 DefaultDataType = DataTypeId[Dict[Any, Any]]("__default__")
 
+
 """
 - how do we define mappings when we want to write data using spark but read it using pandas?
 - should the mapping really be between types and data clients instead of serialization clients?
@@ -78,11 +79,11 @@ class ISerializeDataTypes(Protocol):
     """
 
     @abstractmethod
-    def serialize(self, data_id: DataTypeId[DataType], data: DataType) -> str:
+    def serialize(self, type_id: DataTypeId[DataType], data: DataType) -> str:
         pass
 
     @abstractmethod
-    def deserialize(self, data_id: DataTypeId[DataType], data: str) -> DataType:
+    def deserialize(self, type_id: DataTypeId[DataType], data: str) -> DataType:
         pass
 
 
@@ -90,14 +91,13 @@ class IRegisterSerializers(Protocol):
     @abstractmethod
     def register(
         self,
-        data_id: DataTypeId[DataType],
+        type_id: DataTypeId[DataType],
         serializer: ISerializeData[DataType],
     ) -> None:
         pass
 
 
 class SerializationClient(IRegisterSerializers, ISerializeDataTypes):
-
     _serializers: Dict[DataTypeId[Any], ISerializeData[Any]]
 
     def __init__(self) -> None:
@@ -106,18 +106,18 @@ class SerializationClient(IRegisterSerializers, ISerializeDataTypes):
 
     def register(
         self,
-        data_id: DataTypeId[DataType],
+        type_id: DataTypeId[DataType],
         serializer: ISerializeData[DataType],
     ) -> None:
-        self._serializers[data_id] = serializer
+        self._serializers[type_id] = serializer
 
-    def serialize(self, data_id: DataTypeId[DataType], data: DataType) -> str:
-        return self._get_serializer(data_id).serialize(data)
+    def serialize(self, type_id: DataTypeId[DataType], data: DataType) -> str:
+        return self._get_serializer(type_id).serialize(data)
 
-    def deserialize(self, data_id: DataTypeId[DataType], data: str) -> DataType:
-        return self._get_serializer(data_id).deserialize(data)
+    def deserialize(self, type_id: DataTypeId[DataType], data: str) -> DataType:
+        return self._get_serializer(type_id).deserialize(data)
 
-    def _get_serializer(self, data_id: DataTypeId[DataType]) -> ISerializeData[DataType]:
+    def _get_serializer(self, type_id: DataTypeId[DataType]) -> ISerializeData[DataType]:
         # TODO: think about when we throw exceptions
         #       maybe serializers can be called with the data id and let them decide
-        return self._serializers.get(data_id, self._default_serializer)
+        return self._serializers.get(type_id, self._default_serializer)

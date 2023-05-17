@@ -5,14 +5,13 @@ from typing import Any, Dict, Tuple
 from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineNode, PipelinePort, PipelinePortDataType
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
-from oneml.pipelines.data._serialization import SerializationClient
+from oneml.pipelines.data._serialization import DataTypeId, SerializationClient
 from oneml.pipelines.session import IManagePipelineData, PipelineSessionClient
 
 logger = logging.getLogger(__name__)
 
 
 class LocalDataClient(IManagePipelineData):
-
     _serializer: SerializationClient
     _type_mapping: MappedPipelineDataClient
     _session_context: IProvideExecutionContexts[PipelineSessionClient]
@@ -55,6 +54,14 @@ class LocalDataClient(IManagePipelineData):
 
         # TODO: move the in-memory data to a separate client
         self._data[key] = serialized
+
+    def register(
+        self,
+        node: PipelineNode,
+        port: PipelinePort[PipelinePortDataType],
+        type_id: DataTypeId[PipelinePortDataType],
+    ) -> None:
+        self._type_mapping.register(node, port, type_id)
 
     def get_data(
         self, node: PipelineNode, port: PipelinePort[PipelinePortDataType]

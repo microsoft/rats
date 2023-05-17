@@ -6,7 +6,11 @@ from azure.identity import ManagedIdentityCredential
 
 from oneml.habitats._publishers import NodeBasedPublisher, SinglePortPublisher
 from oneml.habitats.immunocli._commands import OnemlPipelineNodeCommandFactory
-from oneml.pipelines.building import IPipelineBuilderFactory, PipelineBuilderFactory
+from oneml.pipelines.building import (
+    DefaultDataTypeMapper,
+    IPipelineBuilderFactory,
+    PipelineBuilderFactory,
+)
 from oneml.pipelines.building._executable_pickling import ExecutablePicklingClient
 from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
 from oneml.pipelines.context._client import ContextClient, IManageExecutionContexts
@@ -16,7 +20,13 @@ from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
 from oneml.pipelines.data._memory_data_client import InMemoryDataClient
 from oneml.pipelines.data._serialization import SerializationClient
 from oneml.pipelines.k8s._executables import K8sExecutableProxy
-from oneml.pipelines.session import IManagePipelineData, PipelineSessionClient, ServicesRegistry
+from oneml.pipelines.session import (
+    IManagePipelineData,
+    IOManagerClient,
+    IOManagerRegistry,
+    PipelineSessionClient,
+    ServicesRegistry,
+)
 from oneml.pipelines.session._client import PipelineSessionComponents
 from oneml.pipelines.settings import PipelineSettingsClient
 
@@ -26,6 +36,7 @@ class OnemlHabitatsPipelinesDiContainer:
     def pipeline_builder_factory(self) -> IPipelineBuilderFactory:
         return PipelineBuilderFactory(
             session_components=self.pipeline_session_components(),
+            default_datatype_mapper=self._default_datatype_mapper(),
             pipeline_settings=self.pipeline_settings(),
             remote_executable_factory=self._remote_executable_factory(),
         )
@@ -69,11 +80,15 @@ class OnemlHabitatsPipelinesDiContainer:
             services=self.services_registry(),
             session_context=self.pipeline_session_context(),
             node_context=self.pipeline_node_context(),
-            pipeline_data_client=self._pipeline_data_client(),
+            iomanager_client=self._iomanager_client(),
         )
 
-    @lru_cache()
-    def _pipeline_data_client(self) -> IManagePipelineData:
+    @lru_cache
+    def _default_datatype_mapper(self) -> DefaultDataTypeMapper:
+        return DefaultDataTypeMapper()
+
+    @lru_cache
+    def _inmemory_pipeline_data_client(self) -> IManagePipelineData:
         # TODO: make this return a concrete type that knows of both memory and blob
         #       then change the return type of the method.
         return InMemoryDataClient()
@@ -83,6 +98,17 @@ class OnemlHabitatsPipelinesDiContainer:
         #     type_mapping=self._pipeline_type_mapping(),
         #     session_context=self.pipeline_session_context(),
         # )
+
+    @lru_cache
+    def _iomanager_registry(self) -> IOManagerRegistry:
+        return IOManagerRegistry()
+
+    @lru_cache
+    def _iomanager_client(self) -> IOManagerClient:
+        return IOManagerClient(
+            iomanager_registry=self._iomanager_registry(),
+            default=self._inmemory_pipeline_data_client(),
+        )
 
     @lru_cache()
     def _pickled_executables_fs_client(self) -> Union[LocalFilesystem, BlobFilesystem]:

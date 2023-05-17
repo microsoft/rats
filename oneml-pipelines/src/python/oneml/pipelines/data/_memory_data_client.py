@@ -2,13 +2,13 @@ import logging
 from typing import Any, Dict, Tuple
 
 from oneml.pipelines.dag import PipelineNode, PipelinePort, PipelinePortDataType
+from oneml.pipelines.data._serialization import DataTypeId
 from oneml.pipelines.session import IManagePipelineData
 
 logger = logging.getLogger(__name__)
 
 
 class InMemoryDataClient(IManagePipelineData):
-
     _data: Dict[Tuple[PipelineNode, PipelinePort[Any]], Any]
 
     def __init__(self) -> None:
@@ -28,7 +28,19 @@ class InMemoryDataClient(IManagePipelineData):
 
         self._data[key] = data
 
+    def register(
+        self,
+        node: PipelineNode,
+        port: PipelinePort[PipelinePortDataType],
+        type_id: DataTypeId[PipelinePortDataType],
+    ) -> None:
+        pass
+
     def get_data(
         self, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
     ) -> PipelinePortDataType:
-        return self._data[(node, port)]
+        key = (node, port)
+        if key not in self._data:
+            raise RuntimeError(f"Data key not found: {key}")
+
+        return self._data[key]

@@ -3,9 +3,12 @@ from functools import lru_cache
 from typing import Any, Iterable, Protocol
 
 from oneml.pipelines.context._client import IProvideExecutionContexts
-from oneml.pipelines.dag import PipelineClient, PipelineDataDependency, PipelineNode
+from oneml.pipelines.dag import PipelineClient, PipelineDataDependency, PipelineNode, PipelinePort
+from oneml.pipelines.data._serialization import DataType, DataTypeId
 from oneml.pipelines.session import (
     IExecutable,
+    IOManagerClient,
+    IOManagerId,
     PipelineSessionClient,
     PipelineSessionClientFactory,
     PipelineSessionPluginClient,
@@ -37,7 +40,6 @@ class PipelineBuilderClient(
     INamespacePipelineNodes,
     IMultiplexPipelineNodes,
 ):
-
     _session_components: PipelineSessionComponents
     _pipeline_settings: IProvidePipelineSettings
     _remote_executable_factory: IProvideRemoteExecutables
@@ -73,6 +75,15 @@ class PipelineBuilderClient(
 
     def add_dependency(self, node: PipelineNode, dependency: PipelineNode) -> None:
         self.get_dag_client().add_dependency(node, dependency)
+
+    def add_iomanager(
+        self,
+        node: PipelineNode,
+        port: PipelinePort[DataType],
+        iomanager_id: IOManagerId,
+        type_id: DataTypeId[DataType],
+    ) -> None:
+        self._iomanager_client().register(node, port, iomanager_id, type_id)
 
     def build_session(self) -> PipelineSessionClient:
         return self.get_session_client_factory().get_instance(self.build())
@@ -136,26 +147,50 @@ class PipelineBuilderClient(
     def _session_context(self) -> IProvideExecutionContexts[PipelineSessionClient]:
         return self._session_components.session_context()
 
+    def _iomanager_client(self) -> IOManagerClient:
+        return self._session_components.iomanager_client()
+
+
+class DefaultDataTypeMapper:
+    _mapper: dict[type[Any], DataTypeId[Any]]
+
+    def __init__(self) -> None:
+        self._mapper = {}
+
+    def register(self, type_: type[Any], type_id: DataTypeId[Any], override: bool = False) -> None:
+        if type_ in self._mapper and not override:
+            raise ValueError(f"Type {type_} already registered.")
+        self._mapper[type_] = type_id
+
+    def __getitem__(self, type_: type[Any]) -> DataTypeId[Any]:
+        return self._mapper[type_]
+
 
 class IPipelineBuilderFactory(Protocol):
     @abstractmethod
     def get_instance(self) -> PipelineBuilderClient:
         ...
 
+    @abstractmethod
+    def get_default_datatype_mapper(self) -> DefaultDataTypeMapper:
+        ...
+
 
 class PipelineBuilderFactory(IPipelineBuilderFactory):
-
     _session_components: PipelineSessionComponents
+    _default_datatype_mapper: DefaultDataTypeMapper
     _pipeline_settings: IProvidePipelineSettings
     _remote_executable_factory: IProvideRemoteExecutables
 
     def __init__(
         self,
         session_components: PipelineSessionComponents,
+        default_datatype_mapper: DefaultDataTypeMapper,
         pipeline_settings: IProvidePipelineSettings,
         remote_executable_factory: IProvideRemoteExecutables,
     ) -> None:
         self._session_components = session_components
+        self._default_datatype_mapper = default_datatype_mapper
         self._pipeline_settings = pipeline_settings
         self._remote_executable_factory = remote_executable_factory
 
@@ -165,3 +200,6 @@ class PipelineBuilderFactory(IPipelineBuilderFactory):
             pipeline_settings=self._pipeline_settings,
             remote_executable_factory=self._remote_executable_factory,
         )
+
+    def get_default_datatype_mapper(self) -> DefaultDataTypeMapper:
+        return self._default_datatype_mapper

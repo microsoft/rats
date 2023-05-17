@@ -4,14 +4,11 @@ from typing import Protocol, TypeAlias
 from oneml.pipelines.context._client import IManageExecutionContexts
 from oneml.pipelines.dag import PipelineNode
 
+from ._io_managers import IOManagerClient
 from ._node_execution import IManagePipelineNodeExecutables
 from ._node_state import IManagePipelineNodeState
 from ._services import IProvideServices, ServiceId, ServiceType
-from ._session_data_client import (
-    IManagePipelineData,
-    PipelineNodeDataClientFactory,
-    PipelineNodeInputDataClientFactory,
-)
+from ._session_data_client import PipelineNodeDataClientFactory, PipelineNodeInputDataClientFactory
 from ._session_frame import IPipelineSessionFrame
 from ._session_state import IManagePipelineSessionState, PipelineSessionState
 
@@ -33,12 +30,11 @@ class IPipelineSession(IRunnablePipelineSession, IStoppablePipelineSession, Prot
 
 
 class PipelineSessionClient(IPipelineSession, IProvideServices):
-
     _session_id: str
     _services: IProvideServices
     _session_context: IManageExecutionContexts["PipelineSessionClient"]
     _session_frame: IPipelineSessionFrame
-    _pipeline_data_client: IManagePipelineData
+    _iomanager_client: IOManagerClient
     _session_executables_client: IManagePipelineNodeExecutables
     _session_state_client: IManagePipelineSessionState
     _node_state_client: IManagePipelineNodeState
@@ -53,7 +49,7 @@ class PipelineSessionClient(IPipelineSession, IProvideServices):
         session_context: IManageExecutionContexts["PipelineSessionClient"],
         session_frame: IPipelineSessionFrame,
         session_state_client: IManagePipelineSessionState,
-        pipeline_data_client: IManagePipelineData,
+        iomanager_client: IOManagerClient,
         session_executables_client: IManagePipelineNodeExecutables,
         node_state_client: IManagePipelineNodeState,
         node_data_client_factory: PipelineNodeDataClientFactory,
@@ -65,7 +61,7 @@ class PipelineSessionClient(IPipelineSession, IProvideServices):
         self._session_context = session_context
         self._session_frame = session_frame
         self._session_state_client = session_state_client
-        self._pipeline_data_client = pipeline_data_client
+        self._iomanager_client = iomanager_client
         self._session_executables_client = session_executables_client
         self._node_state_client = node_state_client
         self._node_data_client_factory = node_data_client_factory
@@ -98,8 +94,8 @@ class PipelineSessionClient(IPipelineSession, IProvideServices):
     def pipeline_state_client(self) -> IManagePipelineSessionState:
         return self._session_state_client
 
-    def pipeline_data_client(self) -> IManagePipelineData:
-        return self._pipeline_data_client
+    def iomanager_client(self) -> IOManagerClient:
+        return self._iomanager_client
 
     def session_executables_client(self) -> IManagePipelineNodeExecutables:
         return self._session_executables_client
