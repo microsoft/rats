@@ -18,7 +18,7 @@ parameters:
     default: "immunodata.azurecr.io/immunodata-app-builder"
   - name: appBuilderImageTag
     type: string
-    default: "2023-03-11.00-11-10"
+    default: "2023-03-16.01-28-22"
 
 stages:
 - stage: CI

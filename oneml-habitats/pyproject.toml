@@ -24,14 +24,16 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
-python = ">=3.8.10,<3.11"
-immunodata-core = { version = "*" }
-immunodata-cli = { version = "*" }
-immunodata-devops = { version = "*" }
-immunodata-datasets = { version = "*" }
-immunodata-workflows = { version = "*" }
+immunodata-core = "*" 
+immunodata-cli = "*"
+immunodata-devops = "*"
+immunodata-datasets = "*"
+immunodata-workflows = "*"
+numpy = "*"
 oneml-pipelines = "*"
 oneml-processors = "*"
+pandas = "*"
+python = ">=3.8.10,<3.11"
 
 [tool.poetry.extras]
 dev = []
@@ -47,6 +49,7 @@ flake8-formatter-junit-xml = "*"
 flake8-isort = "*"
 isort = "*"
 mypy = "*"
+pandas-stubs = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
