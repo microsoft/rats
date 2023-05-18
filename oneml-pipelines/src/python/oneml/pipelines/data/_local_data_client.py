@@ -68,3 +68,12 @@ class LocalDataClient(IManagePipelineData):
     ) -> PipelinePortDataType:
         type_id = self._type_mapping.get_data_id((node, port))
         return self._serializer.deserialize(type_id, self._data[(node, port)])
+
+    def get_data_from_given_session_id(
+        self, session_id: str, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
+    ) -> PipelinePortDataType:
+        data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
+        file = data_dir / f"{port.key}.json"
+        serialized = file.read_text()
+        type_id = self._type_mapping.get_data_id((node, port))
+        return self._serializer.deserialize(type_id, serialized)

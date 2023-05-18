@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 class BlobDataClient(IManagePipelineData):
-
     _fs_client: IManageFiles
     _serializer: SerializationClient
     _type_mapping: MappedPipelineDataClient
@@ -52,6 +51,11 @@ class BlobDataClient(IManagePipelineData):
         return self._serializer.deserialize(
             type_id, self._fs_client.read(self._get_data_path(node, port)).decode("utf-8")
         )
+
+    def get_data_from_given_session_id(  # type: ignore
+        self, session_id: str, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
+    ) -> PipelinePortDataType:
+        pass
 
     def _get_data_path(self, node: PipelineNode, port: PipelinePort[PipelinePortDataType]) -> str:
         # TODO: make this resilient to failures

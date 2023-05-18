@@ -44,3 +44,8 @@ class InMemoryDataClient(IManagePipelineData):
             raise RuntimeError(f"Data key not found: {key}")
 
         return self._data[key]
+
+    def get_data_from_given_session_id(  # type: ignore
+        self, session_id: str, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
+    ) -> PipelinePortDataType:
+        pass

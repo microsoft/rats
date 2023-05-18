@@ -42,7 +42,10 @@ class IPublishPipelineData(IRegisterDataTypeId, Protocol):
 
 @runtime_checkable
 class IManagePipelineData(IPublishPipelineData, ILoadPipelineData, Protocol):
-    """ """
+    def get_data_from_given_session_id(
+        self, session_id: str, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
+    ) -> PipelinePortDataType:
+        ...
 
 
 @runtime_checkable

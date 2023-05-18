@@ -131,3 +131,8 @@ class ReadProxyPipelineDataClient(IManagePipelineData):
             return self._proxy_client.get_data(node, port)
 
         return self._primary_client.get_data(node, port)
+
+    def get_data_from_given_session_id(  # type: ignore
+        self, session_id: str, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
+    ) -> PipelinePortDataType:
+        pass
