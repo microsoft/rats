@@ -1,5 +1,3 @@
-from typing import TypedDict
-
 from oneml.processors import (
     CollectionToDictBuilder,
     CombinedPipeline,

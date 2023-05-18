@@ -16,6 +16,7 @@ from ._ops import (
     IOCollectionDependencyOp,
     PipelineDependencyOp,
 )
+from ._verification import verify_pipeline_integrity
 
 PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
 PM = TypeVar("PM", bound="PipelineParam[Any]", covariant=True)
@@ -317,7 +318,7 @@ class OutCollections(IOCollections[OutCollection]):
 
 @dataclass
 class PipelineConf:
-    name: str = MISSING
+    ...
 
 
 class Pipeline:
@@ -423,6 +424,7 @@ class Pipeline:
         self._out_collections = out_collections
         self._dag = dag
         self._config = config
+        verify_pipeline_integrity(self)
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Pipeline):
@@ -466,9 +468,42 @@ class Pipeline:
             out_collections=out_collections,
         )
 
+    def _fill_wildcard_collections(self, names: Mapping[str, str], io: PLi) -> Mapping[str, str]:
+        resolved = dict[str, str]()
+
+        def resolve_new_key(ok1: str, ok2: str, nk1: str, nk2: str) -> None:
+            if nk1 == "*":
+                nk1 = ok1
+            if ok2:
+                ok = f"{ok1}.{ok2}"
+            else:
+                ok = ok1
+            if nk2:
+                nk = f"{nk1}.{nk2}"
+            else:
+                nk = nk1
+            resolved[ok] = nk
+
+        for ok, nk in names.items():
+            ok_split, nk_split = ok.split(".", 1), nk.split(".", 1)
+            ok1, ok2 = ok_split if len(ok_split) == 2 else (ok, "")
+            nk1, nk2 = nk_split if len(nk_split) == 2 else (nk, "")
+            if not ok2:
+                resolved[ok] = nk
+            else:
+                if ok1 != "*":
+                    resolve_new_key(ok1, ok2, nk1, nk2)
+                else:
+                    for k1 in io:
+                        if ok2 in io[k1]:
+                            resolve_new_key(k1, ok2, nk1, nk2)
+        return resolved
+
     def _rename(self, names: Mapping[str, str], collection: PCi, io: PLi) -> tuple[PCi, PLi]:
         if any(k.count(".") > 1 for k in chain.from_iterable(names.items())):
             raise ValueError("Names cannot contain more than single dot in keys or values.")
+
+        names = self._fill_wildcard_collections(names, io)
 
         for ok, nk in names.items():  # old key, new key
             ok_split, nk_split = ok.split(".", 1), nk.split(".", 1)

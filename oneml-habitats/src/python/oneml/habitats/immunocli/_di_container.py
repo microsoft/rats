@@ -19,6 +19,8 @@ from oneml.habitats.immunocli._pipelines_container import OnemlHabitatsPipelines
 from oneml.habitats.immunocli._processors_container import OnemlHabitatsProcessorsDiContainer
 from oneml.habitats.registry._session_registry import PipelineSessionRegistry
 from oneml.pipelines.session import ServicesRegistry
+from oneml.processors import PipelineRunnerFactory
+from oneml.processors.services import GetActiveNodeKey
 
 
 class OnemlHabitatsDiContainer:
@@ -64,6 +66,12 @@ class OnemlHabitatsDiContainer:
 
     def services_registry(self) -> ServicesRegistry:
         return self.pipelines_container().services_registry()
+
+    def pipeline_runner_factory(self) -> PipelineRunnerFactory:
+        return self.processors_container().pipeline_runner_factory()
+
+    def get_active_node_key_service(self) -> GetActiveNodeKey:
+        return self.processors_container().get_active_node_key_service()
 
     @lru_cache()
     def resources_locator(self) -> ImmunodataResourceLocator:

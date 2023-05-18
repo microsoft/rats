@@ -11,6 +11,7 @@ from oneml.processors import (
     CombinedPipeline,
     IProcess,
     Pipeline,
+    PipelineBuilder,
     PipelineRunnerFactory,
     Task,
     TrainAndEvalBuilders,
@@ -110,7 +111,7 @@ def call_log() -> defaultdict[str, int]:
 def standardization() -> Pipeline:
     standardize_train = Task(StandardizeTrain, name="train")
     standardize_eval = Task(StandardizeEval)
-    e = TrainAndEvalBuilders.build_when_fit_evaluates_on_train(
+    e = TrainAndEvalBuilders.build_when_train_also_evaluates(
         name="standardization",
         train_pl=standardize_train,
         eval_pl=standardize_eval,
@@ -118,7 +119,6 @@ def standardization() -> Pipeline:
             standardize_eval.inputs.mean << standardize_train.outputs.mean,
             standardize_eval.inputs.scale << standardize_train.outputs.scale,
         ),
-        validation_names=set(("eval_1", "eval_2")),
     )
     return e
 
@@ -133,11 +133,10 @@ def logistic_regression() -> Pipeline:
     )
     model_eval = Task(ModelEval)
 
-    e = TrainAndEvalBuilders.build_using_eval_on_train_and_eval(
+    e = TrainAndEvalBuilders.build_using_train_and_eval(
         name="logistic_regression",
         train_pl=model_train,
         eval_pl=model_eval,
-        validation_names=set(("eval_1", "eval_2")),
     )
     return e
 
@@ -179,6 +178,9 @@ def test_standardized_lr(
     pipeline_runner_factory: PipelineRunnerFactory,
     standardized_lr: Pipeline,
 ) -> None:
+    standardized_lr = TrainAndEvalBuilders.with_multiple_eval_inputs(
+        standardized_lr, eval_names=("eval_1", "eval_2")
+    )
     runner = pipeline_runner_factory(standardized_lr)
     outputs = runner(
         inputs={
@@ -223,6 +225,10 @@ def test_standardized_lr(
 def test_single_output_multiple_input(
     standardized_lr: Pipeline, report1: Pipeline, report2: Pipeline
 ) -> None:
+    standardized_lr = TrainAndEvalBuilders.with_multiple_eval_inputs(
+        standardized_lr, eval_names=("eval_1", "eval_2")
+    )
+
     reports = CombinedPipeline(
         pipelines=[report1, report2],
         name="reports",
@@ -244,6 +250,12 @@ def test_single_output_multiple_input(
 
 
 def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline) -> None:
+    standardization = TrainAndEvalBuilders.with_multiple_eval_inputs(
+        standardization, eval_names=("eval_1", "eval_2")
+    )
+    logistic_regression = TrainAndEvalBuilders.with_multiple_eval_inputs(
+        logistic_regression, eval_names=("eval_1", "eval_2")
+    )
     e = CombinedPipeline(
         pipelines=[standardization, logistic_regression],
         name="standardized_lr",

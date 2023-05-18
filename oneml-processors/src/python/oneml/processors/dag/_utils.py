@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import AbstractSet, Any, Mapping
+from typing import AbstractSet, Any, Iterable, Mapping
 
 from ..utils import orderedset
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
@@ -77,3 +77,28 @@ class TailPipelineClient:
 
         props = ProcessorProps(NoOp, return_annotation=ra)
         return DAG({node: props}, dependencies)
+
+
+def find_downstream_nodes(dag: DAG, source_nodes: Iterable[DagNode]) -> orderedset[DagNode]:
+    """Find all downstream nodes of the given source nodes.
+
+    A downstream node is any node that depends on the given source nodes, either directly or
+    indirectly.
+    """
+    reverse_edges = defaultdict[DagNode, list[DagNode]](list)
+    for node, dependencies in dag.dependencies.items():
+        for dp in dependencies:
+            if dp.out_arg:
+                reverse_edges[dp.node].append(node)
+    downstream_nodes = set[DagNode]()
+
+    def dfs_nodes(source: DagNode) -> None:
+        if source not in downstream_nodes:
+            downstream_nodes.add(source)
+            for target in reverse_edges[source]:
+                dfs_nodes(target)
+
+    for source_node in source_nodes:
+        dfs_nodes(source_node)
+
+    return orderedset(downstream_nodes)

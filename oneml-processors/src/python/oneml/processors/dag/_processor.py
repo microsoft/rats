@@ -7,9 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from inspect import _empty as _inspect_module_empty
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
-from typing import Any, Callable, Hashable, Mapping, Protocol, final, runtime_checkable
-
-from ..utils._frozendict import MappingProtocol
+from typing import Any, Callable, Mapping, Protocol, final, runtime_checkable
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +27,7 @@ class IProcess(Protocol):
 
 
 class _empty:
-    """Marker object for InProcessorParam.empty."""
+    """Marker object for InProcessorParam.default."""
 
 
 class InMethod(Enum):
@@ -65,13 +63,9 @@ class InProcessorParam(ProcessorParam):
     default: Any = _empty
     empty: Any = _empty
 
-    def __post_init__(self) -> None:
-        if self.default is _inspect_module_empty:
-            object.__setattr__(self, "default", _empty)
-
     @property
     def required(self) -> bool:
-        return self.default is _empty
+        return self.default is self.empty
 
     @property
     def optional(self) -> bool:
@@ -83,15 +77,13 @@ class InProcessorParam(ProcessorParam):
 class OutProcessorParam(ProcessorParam):
     name: str
     annotation: type
-    empty: Any = _empty
 
     def to_inparameter(self, in_method: InMethod = InMethod.process) -> InProcessorParam:
         return InProcessorParam(
             self.name,
             self.annotation,
             in_method=in_method,
-            default=self.empty,
-            empty=self.empty,
+            default=_empty,
         )
 
 
