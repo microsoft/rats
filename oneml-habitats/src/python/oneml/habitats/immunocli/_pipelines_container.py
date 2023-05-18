@@ -6,6 +6,7 @@ from azure.identity import ManagedIdentityCredential
 
 from oneml.habitats._publishers import NodeBasedPublisher, SinglePortPublisher
 from oneml.habitats.immunocli._commands import OnemlPipelineNodeCommandFactory
+from oneml.pipelines._client import SimplePipelineFactory
 from oneml.pipelines.building import (
     DefaultDataTypeMapper,
     IPipelineBuilderFactory,
@@ -34,12 +35,18 @@ from oneml.pipelines.settings import PipelineSettingsClient
 class OnemlHabitatsPipelinesDiContainer:
     @lru_cache()
     def pipeline_builder_factory(self) -> IPipelineBuilderFactory:
-        return PipelineBuilderFactory(
-            session_components=self.pipeline_session_components(),
+        return SimplePipelineFactory(
+            services=self.services_registry(),
+            iomanagers=self._iomanager_registry(),
             default_datatype_mapper=self._default_datatype_mapper(),
-            pipeline_settings=self.pipeline_settings(),
-            remote_executable_factory=self._remote_executable_factory(),
+            session_context=self.pipeline_session_context()
         )
+        # return PipelineBuilderFactory(
+        #     session_components=self.pipeline_session_components(),
+        #     default_datatype_mapper=self._default_datatype_mapper(),
+        #     pipeline_settings=self.pipeline_settings(),
+        #     remote_executable_factory=self._remote_executable_factory(),
+        # )
 
     @lru_cache()
     def single_port_publisher(self) -> SinglePortPublisher[Any]:

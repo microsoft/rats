@@ -92,12 +92,10 @@ class OnemlHabitatsDiContainer:
     def _cli_container(self) -> ImmunocliContainer:
         return self._app.find_container(ImmunocliContainer)
 
-    @lru_cache()
     def processors_container(self) -> OnemlHabitatsProcessorsDiContainer:
         return OnemlHabitatsProcessorsDiContainer(
             pipelines_container=self.pipelines_container(),
         )
 
-    @lru_cache()
     def pipelines_container(self) -> OnemlHabitatsPipelinesDiContainer:
         return OnemlHabitatsPipelinesDiContainer()
