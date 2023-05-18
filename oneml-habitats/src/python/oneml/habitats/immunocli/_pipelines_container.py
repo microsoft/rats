@@ -8,9 +8,9 @@ from oneml.habitats._publishers import NodeBasedPublisher, SinglePortPublisher
 from oneml.habitats.immunocli._commands import OnemlPipelineNodeCommandFactory
 from oneml.pipelines._client import SimplePipelineFactory
 from oneml.pipelines.building import (
+    DefaultDataTypeIOManagerMapper,
     DefaultDataTypeMapper,
     IPipelineBuilderFactory,
-    PipelineBuilderFactory,
 )
 from oneml.pipelines.building._executable_pickling import ExecutablePicklingClient
 from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
@@ -39,7 +39,7 @@ class OnemlHabitatsPipelinesDiContainer:
             services=self.services_registry(),
             iomanagers=self._iomanager_registry(),
             default_datatype_mapper=self._default_datatype_mapper(),
-            session_context=self.pipeline_session_context()
+            session_context=self.pipeline_session_context(),
         )
         # return PipelineBuilderFactory(
         #     session_components=self.pipeline_session_components(),
@@ -93,6 +93,10 @@ class OnemlHabitatsPipelinesDiContainer:
     @lru_cache
     def _default_datatype_mapper(self) -> DefaultDataTypeMapper:
         return DefaultDataTypeMapper()
+
+    @lru_cache
+    def _default_datatype_iomanager_mapper(self) -> DefaultDataTypeIOManagerMapper:
+        return DefaultDataTypeIOManagerMapper()
 
     @lru_cache
     def _inmemory_pipeline_data_client(self) -> IManagePipelineData:

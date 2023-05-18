@@ -1,4 +1,5 @@
 from ._builder_client import (
+    DefaultDataTypeIOManagerMapper,
     DefaultDataTypeMapper,
     IPipelineBuilderFactory,
     PipelineBuilderClient,
@@ -27,6 +28,7 @@ from ._node_namespacing import (
 )
 
 __all__ = [
+    "DefaultDataTypeIOManagerMapper",
     "DefaultDataTypeMapper",
     "IPipelineBuilderFactory",
     "IPipelineSessionExecutable",

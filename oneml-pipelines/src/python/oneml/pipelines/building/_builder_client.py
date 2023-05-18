@@ -166,6 +166,23 @@ class DefaultDataTypeMapper:
         return self._mapper[type_]
 
 
+class DefaultDataTypeIOManagerMapper:
+    _mapper: dict[type[Any], IOManagerId]
+
+    def __init__(self) -> None:
+        self._mapper = {}
+
+    def register(
+        self, type_: type[Any], iomanager_id: IOManagerId, override: bool = False
+    ) -> None:
+        if type_ in self._mapper and not override:
+            raise ValueError(f"Type {type_} already registered.")
+        self._mapper[type_] = iomanager_id
+
+    def __getitem__(self, type_: type[Any]) -> IOManagerId:
+        return self._mapper[type_]
+
+
 class IPipelineBuilderFactory(Protocol):
     @abstractmethod
     def get_instance(self) -> PipelineBuilderClient:
