@@ -10,6 +10,8 @@ complicated use cases.
 - [Defining Tasks](#defining-tasks)
   - [Constructor Parameters](#constructor-parameters)
   - [Dynamic Annotations](#dynamic-annotations)
+  - [Services](#services)
+  - [IOManagers and Serializers](#iomanagers-and-serializers)
 - [Combining Pipelines](#combining-pipelines)
   - [Parameter Entries](#parameter-entries)
   - [Parameter Collections](#parameter-collections)
@@ -32,6 +34,12 @@ A *task* has the following construct parameters:
 - `services` (`Mapping[str, oneml.pipelines.session.ServiceId[Any]]`): \[optional\] A mapping from
     (a subset of) the the processor's constructor parameters to service ids.  See
     [Services](advanced.md#services).
+- `io_managers` (`Mapping[str, oneml.pipelines.session.IOManagerId]`): \[optional\] A mapping from
+    output entries to `IOManagerId`, e.g., `{"model": IOManagerId("local")}`. If ommitted, default
+    in-mermory `IOManager` is used.
+- `serializers` (`Mapping[str, oneml.pipelines.DataTypeId]`): \[optional\] A mapping from output
+    entries to `DataTypeId`, e.g., `{"model": DataTypeId("dill")}`. If ommitted, default
+    mapping type is used (specified in the session). Not all `io_managers` require a `serializer`.
 - `input_annotation` (`Mapping[str, type]`): \[optional\] dynamic inputs for variable keyword
     parameter, e.g., `**kwargs`; required if *processor* specifies
     [var keyword](https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind)
@@ -107,8 +115,6 @@ from typing import Any, Mapping
 class Identity:
     def process(self, **kwargs) -> Mapping[str, Any]:
         return kwargs
-
-
 ```
 
 It is a simple processor that returns all parameters it receives.
@@ -133,6 +139,151 @@ Passing `return_annotation=None` (default) will not override the *processor's* r
 Only if the return signature of a processor AND if `return_annotation=None`, will the framework
 assume that the *processor* return type is actually `None`.
 Same applies to `input_annotation=None`.
+
+### Services
+
+Services are objects that are provided to a processor as constructor parameters.
+They are used to provide functionality that is provided by the executing environment, e.g.,
+`SparkContext`, `WandbLogger`, etc.
+
+Services are registered in the executing environment, and are mapped to service ids.
+
+The following is an example of how to use a service within a task:
+
+```python
+from typing import Any, Mapping, TypedDict
+from immunopipeline.jupyter_kernel.services import ImmunopipelineOnemlServices
+
+class SparkExample:
+    _spark_context: SparkContext
+
+    def __init__(self, spark_context: SparkContext):
+        self._spark_context = spark_context
+
+    def process(self) -> None:
+        ...
+
+spark_example = PipelineBuilder.task(
+    processor_type=SparkExample,
+    name="spark_example",
+    services={"spark": ImmunopipelineOnemlServices.SparkContext},
+)
+```
+
+
+### IOManagers and Serializers
+
+IOManagers are specific objects in charge of persisting data.
+They are used to store the outputs of a task, and to retrieve the inputs of a task.
+
+The framework provides a default in-memory IOManager, which is used if no other IOManager is
+specified.
+The default IOManager is not persistent, i.e., it will not store data between executions of the
+framework.
+
+Other IOManagers includo a `LocalFilesystemIOManager` and a `BlobIOManager`, which store
+serializable data in the local filesystem or blob storage, respectively. 
+
+We use custom IOManagers for `numpy`, `pandas` and `spark`, as these data structures use their
+own persitenace mechanisms.
+
+An example of how to persist an output using a local filesystem IOManager is the following:
+
+```python
+from typing import TypedDict
+class Model:
+    weights: tuple[float]
+    bias: float
+
+    def fit(self) -> None:
+        ...
+
+TrainModelOutput = TypedDict("TrainModelOutput", {"model": Model})
+
+# Processor class
+class TrainModel:
+    _model: Model
+
+    def __init__(self, model: Model):
+        self._model = model
+
+    def process(self) -> TrainModelOutput
+        self._model.fit()
+        return TrainModelOutput(model=self._model)
+
+# Pipeline task
+train_model = PipelineBuilder.task(
+    TrainModel,
+    io_managers={"model": IOManagerIds.LOCAL},
+    serializers={"model": SerializerIds.DILL},
+)
+```
+
+And example with a Spark DataFrame would be the following:
+
+```python
+from typing import TypedDict
+from oneml.pipelines.session import IOManagerId
+
+FetOutputs = TypedDict("CalcTcrFetOutputs", { "tcr_score_df": DataFrame })
+
+class CalculateTcrFet:
+    def __init__(self, label_column="label"):
+        self._label_column = label_column
+        self._allowed_labels = (0, 1)
+
+    def process(self, num_positives: int, num_negatives: int , sequences_df: DataFrame) -> CalcTcrFetOutputs:
+        ...
+        return FetOutputs(tcr_score_df = tcr_pval.localCheckpoint(eager=True))
+
+count_samples_per_label = PipelineBuilder.task(
+    CalcTcrFet,
+    config={"label_column": label_column},
+    iomanagers = {"tcr_score_df": IOManagerId("spark-local")}
+)
+```
+
+Finally, the following constitutes an advanced example of how to register custom IOManagers and
+Serializers into the framework.
+These operations happen in the DI container before any session is created.
+
+The `IOManagerRegistry` and the `SerializerClient` are used to register custom IOManagers and
+serialiers, respectively.
+The `MappedPipelineDataClient` is used to map data types to serializers automatically.
+
+```python
+from typing import Any
+from oneml_test.processors.mock_data import Array, Model, ModelSerializer
+from oneml.pipelines.data._serialization import DillSerializer, SerializationClient, SerializerIds
+from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
+from oneml.pipelines.data._local_data_client import IOManagerIds, LocalDataClient
+from oneml.pipelines.session import DataTypeId, IOManagerId, IOManagerRegistry
+
+class IOManagerIds:
+    LOCAL = IOManagerId("local")
+
+class DataTypeIds:
+    ARRAY = DataTypeId[Array]("array")
+    MODEL = DataTypeId[Model]("model")
+
+class SerializerIds:
+    DILL = DataTypeId[Any]("dill")
+
+serialization_client = SerializationClient()
+serialization_client.register(type_id=DataTypeIds.MODEL, serializer=ModelSerializer())
+serialization_client.register(type_id=SerializerIds.DILL, serializer=DillSerializer())
+
+type_mapping = MappedPipelineDataClient()
+
+local_pipeline_data_client = LocalDataClient(
+    serializer=serialization_client,
+    type_mapping=type_mapping,
+    session_context=pipeline_session_context,
+)
+
+registry = IOManagerRegistry()
+registry.register(IOManagerIds.LOCAL, local_pipeline_data_client)
+```
 
 ## Combining Pipelines
 

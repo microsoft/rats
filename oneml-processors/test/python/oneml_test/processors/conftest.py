@@ -8,14 +8,9 @@ from oneml.pipelines.building import DefaultDataTypeMapper, IPipelineBuilderFact
 from oneml.pipelines.context._client import ContextClient, IManageExecutionContexts
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
-from oneml.pipelines.data._local_data_client import LocalDataClient
+from oneml.pipelines.data._local_data_client import IOManagerIds, LocalDataClient
 from oneml.pipelines.data._serialization import DillSerializer, SerializationClient, SerializerIds
-from oneml.pipelines.session import (
-    IOManagerId,
-    IOManagerRegistry,
-    PipelineSessionClient,
-    ServicesRegistry,
-)
+from oneml.pipelines.session import IOManagerRegistry, PipelineSessionClient, ServicesRegistry
 from oneml.pipelines.session._session_client import PipelineSessionContext
 from oneml.processors import PipelineRunnerFactory
 from oneml.processors.dag import PipelineSessionProvider
@@ -35,7 +30,7 @@ def services_registry() -> ServicesRegistry:
 @pytest.fixture(scope="package")
 def iomanager_registry(local_pipeline_data_client: LocalDataClient) -> IOManagerRegistry:
     registry = IOManagerRegistry()
-    registry.register(IOManagerId("local"), local_pipeline_data_client)
+    registry.register(IOManagerIds.LOCAL, local_pipeline_data_client)
     return registry
 
 
@@ -76,6 +71,7 @@ def local_pipeline_data_client(
 @pytest.fixture(scope="package")
 def pipeline_session_context() -> PipelineSessionContext:
     return ContextClient[PipelineSessionClient]()
+
 
 @pytest.fixture(scope="package")
 def node_context() -> IManageExecutionContexts[PipelineNode]:
