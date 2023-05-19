@@ -6,7 +6,10 @@ from immunodata.core.immunocli import OnPackageResourceRegistrationEvent
 from immunodata.immunocli.next import BasicCliPlugin, OnPluginConfigurationEvent
 
 from oneml.habitats._services import OnemlHabitatsServices
+from oneml.pipelines.data._local_data_client import IOManagerIds
+from oneml.pipelines.data._serialization import DillSerializer, SerializerIds
 from oneml.processors.services import OnemlProcessorServices
+from oneml.processors.ux import Pipeline
 
 from ._di_container import OnemlHabitatsDiContainer
 
@@ -46,22 +49,31 @@ class OnemlHabitatsCliPlugin(BasicCliPlugin[None]):
             pipelines_container.single_port_publisher,
         )
         services.register_service(
-            OnemlProcessorServices.GetActiveNodeKey, 
-            self._container.get_active_node_key_service()
+            OnemlProcessorServices.GetActiveNodeKey, self._container.get_active_node_key_service()
         )
         services.register_service(
-            OnemlProcessorServices.IOManagerRegistry,
-            pipelines_container.iomanager_registry
+            OnemlProcessorServices.IOManagerRegistry, pipelines_container.iomanager_registry
         )
         services.register_service(
             OnemlProcessorServices.SessionId,
-            lambda: pipelines_container.pipeline_session_context().get_context().session_id()
+            lambda: pipelines_container.pipeline_session_context().get_context().session_id(),
         )
 
         hello_example = self._container.example_hello_world()
         diamond_example = self._container.example_diamond()
         registry.register_session_provider("hello-world", hello_example.get_local_session)
         registry.register_session_provider("diamond", diamond_example.get)
+
+        serialization_client = pipelines_container._pipeline_serialization_client()
+        serialization_client.register(SerializerIds.DILL, DillSerializer())
+
+        default_datatype_mapper = pipelines_container.default_datatype_mapper()
+        default_datatype_mapper.register(Pipeline, SerializerIds.DILL)
+
+        iomanager_registry = pipelines_container.iomanager_registry()
+        iomanager_registry.register(
+            IOManagerIds.LOCAL, pipelines_container._local_pipeline_data_client()
+        )
 
     def _register_commands(self, event: OnCommandRegistrationEvent) -> None:
         for provider in self._container.container_search().get_providers(CliCommand):

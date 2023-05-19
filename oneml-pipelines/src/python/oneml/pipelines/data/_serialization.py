@@ -4,6 +4,8 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, Generic, Protocol, TypeVar
 
+import dill
+
 logger = logging.getLogger(__name__)
 
 DataType = TypeVar("DataType")
@@ -121,3 +123,16 @@ class SerializationClient(IRegisterSerializers, ISerializeDataTypes):
         # TODO: think about when we throw exceptions
         #       maybe serializers can be called with the data id and let them decide
         return self._serializers.get(type_id, self._default_serializer)
+
+
+class DillSerializer(ISerializeData[Any]):
+    def serialize(self, data: Any) -> str:
+        return dill.dumps(data)
+
+    def deserialize(self, data: str) -> Any:
+        logger.debug(f"deserializing data: {data}")
+        return dill.loads(data)
+
+
+class SerializerIds:
+    DILL = DataTypeId[Any]("dill")

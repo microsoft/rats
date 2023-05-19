@@ -14,6 +14,7 @@ from oneml.pipelines.context._client import ContextClient, IManageExecutionConte
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
+from oneml.pipelines.data._local_data_client import LocalDataClient
 from oneml.pipelines.data._memory_data_client import InMemoryDataClient
 from oneml.pipelines.data._serialization import SerializationClient
 from oneml.pipelines.k8s._executables import K8sExecutableProxy
@@ -116,6 +117,14 @@ class OnemlHabitatsPipelinesDiContainer:
         return IOManagerClient(
             iomanager_registry=self.iomanager_registry(),
             default=self._inmemory_pipeline_data_client(),
+        )
+
+    @lru_cache
+    def _local_pipeline_data_client(self) -> LocalDataClient:
+        return LocalDataClient(
+            serializer=self._pipeline_serialization_client(),
+            type_mapping=self._pipeline_type_mapping(),
+            session_context=self.pipeline_session_context(),
         )
 
     @lru_cache()

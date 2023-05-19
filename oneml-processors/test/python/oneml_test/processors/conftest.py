@@ -9,7 +9,7 @@ from oneml.pipelines.context._client import ContextClient, IManageExecutionConte
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._local_data_client import LocalDataClient
-from oneml.pipelines.data._serialization import SerializationClient
+from oneml.pipelines.data._serialization import DillSerializer, SerializationClient, SerializerIds
 from oneml.pipelines.session import (
     IOManagerId,
     IOManagerRegistry,
@@ -20,7 +20,7 @@ from oneml.pipelines.session._session_client import PipelineSessionContext
 from oneml.processors import PipelineRunnerFactory
 from oneml.processors.dag import PipelineSessionProvider
 from oneml.processors.schemas import register_configs
-from oneml.processors.ux import register_resolvers
+from oneml.processors.ux import Pipeline, register_resolvers
 
 from .mock_data import DataTypeIds, Model, ModelSerializer
 
@@ -43,6 +43,7 @@ def iomanager_registry(local_pipeline_data_client: LocalDataClient) -> IOManager
 def serialization_client() -> SerializationClient:
     serializer = SerializationClient()
     serializer.register(type_id=DataTypeIds.MODEL, serializer=ModelSerializer())
+    serializer.register(type_id=SerializerIds.DILL, serializer=DillSerializer())
     return serializer
 
 
@@ -55,6 +56,7 @@ def type_mapping() -> MappedPipelineDataClient:
 def default_datatype_mapper() -> DefaultDataTypeMapper:
     mapper = DefaultDataTypeMapper()
     mapper.register(type_=Model, type_id=DataTypeIds.MODEL)
+    mapper.register(type_=Pipeline, type_id=SerializerIds.DILL)
     return mapper
 
 

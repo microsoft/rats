@@ -6,7 +6,7 @@ from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineNode, PipelinePort, PipelinePortDataType
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._serialization import DataTypeId, SerializationClient
-from oneml.pipelines.session import IManagePipelineData, PipelineSessionClient
+from oneml.pipelines.session import IManagePipelineData, IOManagerId, PipelineSessionClient
 
 logger = logging.getLogger(__name__)
 
@@ -77,3 +77,7 @@ class LocalDataClient(IManagePipelineData):
         serialized = file.read_text()
         type_id = self._type_mapping.get_data_id((node, port))
         return self._serializer.deserialize(type_id, serialized)
+
+
+class IOManagerIds:
+    LOCAL = IOManagerId("local")
