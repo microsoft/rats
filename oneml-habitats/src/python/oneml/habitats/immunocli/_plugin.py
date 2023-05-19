@@ -6,6 +6,7 @@ from immunodata.core.immunocli import OnPackageResourceRegistrationEvent
 from immunodata.immunocli.next import BasicCliPlugin, OnPluginConfigurationEvent
 
 from oneml.habitats._services import OnemlHabitatsServices
+from oneml.processors.services import OnemlProcessorServices
 
 from ._di_container import OnemlHabitatsDiContainer
 
@@ -43,6 +44,18 @@ class OnemlHabitatsCliPlugin(BasicCliPlugin[None]):
         services.register_service(
             OnemlHabitatsServices.SINGLE_PORT_PUBLISHER,
             pipelines_container.single_port_publisher,
+        )
+        services.register_service(
+            OnemlProcessorServices.GetActiveNodeKey, 
+            self._container.get_active_node_key_service()
+        )
+        services.register_service(
+            OnemlProcessorServices.IOManagerRegistry,
+            pipelines_container.iomanager_registry
+        )
+        services.register_service(
+            OnemlProcessorServices.SessionId,
+            lambda: pipelines_container.pipeline_session_context().get_context().session_id()
         )
 
         hello_example = self._container.example_hello_world()

@@ -3,8 +3,7 @@ from typing import Protocol
 
 from .building import DefaultDataTypeMapper, IPipelineBuilderFactory, PipelineBuilderClient
 from .building._remote_execution import FakeRemoteExecutableFactory, IProvideRemoteExecutables
-from .context._client import ContextClient, IManageExecutionContexts
-from .dag import PipelineNode
+from .context._client import IManageExecutionContexts
 from .data._memory_data_client import InMemoryDataClient
 from .session import IOManagerClient, IOManagerRegistry, PipelineSessionClient
 from .session._client import PipelineSessionComponents
@@ -45,6 +44,7 @@ class SimplePipelineFactory(IPipelineBuilderFactory):
     _iomanagers: IOManagerRegistry
     _default_datatype_mapper: DefaultDataTypeMapper
     _session_context: PipelineSessionContext
+    _node_context: PipelineNodeContext
 
     def __init__(
         self,
@@ -52,11 +52,13 @@ class SimplePipelineFactory(IPipelineBuilderFactory):
         iomanagers: IOManagerRegistry,
         default_datatype_mapper: DefaultDataTypeMapper,
         session_context: PipelineSessionContext,
+        node_context: PipelineNodeContext,
     ):
         self._services = services
         self._iomanagers = iomanagers
         self._default_datatype_mapper = default_datatype_mapper
         self._session_context = session_context
+        self._node_context = node_context
 
     def get_instance(self) -> PipelineBuilderClient:
         return PipelineBuilderClient(
@@ -75,7 +77,7 @@ class SimplePipelineFactory(IPipelineBuilderFactory):
         return PipelineSessionComponents(
             services=self._services,
             session_context=self._session_context,
-            node_context=self._create_pipeline_node_context(),
+            node_context=self._node_context,
             iomanager_client=self._create_iomanager_client(),
         )
 
@@ -90,6 +92,3 @@ class SimplePipelineFactory(IPipelineBuilderFactory):
 
     def _create_pipeline_settings(self) -> PipelineSettingsClient:
         return PipelineSettingsClient()
-
-    def _create_pipeline_node_context(self) -> PipelineNodeContext:
-        return ContextClient[PipelineNode]()

@@ -7,11 +7,7 @@ from azure.identity import ManagedIdentityCredential
 from oneml.habitats._publishers import NodeBasedPublisher, SinglePortPublisher
 from oneml.habitats.immunocli._commands import OnemlPipelineNodeCommandFactory
 from oneml.pipelines._client import SimplePipelineFactory
-from oneml.pipelines.building import (
-    DefaultDataTypeIOManagerMapper,
-    DefaultDataTypeMapper,
-    IPipelineBuilderFactory,
-)
+from oneml.pipelines.building import DefaultDataTypeIOManagerMapper, DefaultDataTypeMapper
 from oneml.pipelines.building._executable_pickling import ExecutablePicklingClient
 from oneml.pipelines.building._remote_execution import RemoteContext, RemoteExecutableFactory
 from oneml.pipelines.context._client import ContextClient, IManageExecutionContexts
@@ -34,12 +30,13 @@ from oneml.pipelines.settings import PipelineSettingsClient
 
 class OnemlHabitatsPipelinesDiContainer:
     @lru_cache()
-    def pipeline_builder_factory(self) -> IPipelineBuilderFactory:
+    def pipeline_builder_factory(self) -> SimplePipelineFactory:
         return SimplePipelineFactory(
             services=self.services_registry(),
-            iomanagers=self._iomanager_registry(),
-            default_datatype_mapper=self._default_datatype_mapper(),
+            iomanagers=self.iomanager_registry(),
+            default_datatype_mapper=self.default_datatype_mapper(),
             session_context=self.pipeline_session_context(),
+            node_context=self.pipeline_node_context(),
         )
         # return PipelineBuilderFactory(
         #     session_components=self.pipeline_session_components(),
@@ -91,7 +88,7 @@ class OnemlHabitatsPipelinesDiContainer:
         )
 
     @lru_cache
-    def _default_datatype_mapper(self) -> DefaultDataTypeMapper:
+    def default_datatype_mapper(self) -> DefaultDataTypeMapper:
         return DefaultDataTypeMapper()
 
     @lru_cache
@@ -111,13 +108,13 @@ class OnemlHabitatsPipelinesDiContainer:
         # )
 
     @lru_cache
-    def _iomanager_registry(self) -> IOManagerRegistry:
+    def iomanager_registry(self) -> IOManagerRegistry:
         return IOManagerRegistry()
 
     @lru_cache
     def _iomanager_client(self) -> IOManagerClient:
         return IOManagerClient(
-            iomanager_registry=self._iomanager_registry(),
+            iomanager_registry=self.iomanager_registry(),
             default=self._inmemory_pipeline_data_client(),
         )
 

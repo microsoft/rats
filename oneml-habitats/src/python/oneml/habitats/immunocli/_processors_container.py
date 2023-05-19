@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from oneml.processors import PipelineSessionProvider
+from oneml.processors import PersistFittedEvalPipeline, PipelineSessionProvider
 from oneml.processors.services import GetActiveNodeKey
 from oneml.processors.ux._session import PipelineRunnerFactory
 
@@ -26,3 +26,8 @@ class OnemlHabitatsProcessorsDiContainer:
 
     def get_active_node_key_service(self) -> GetActiveNodeKey:
         return GetActiveNodeKey(self._pipelines_container.pipeline_session_context())
+
+    def persist_fitted_eval_pipeline(self) -> PersistFittedEvalPipeline:
+        return PersistFittedEvalPipeline(
+            type_to_io_manager_mapping=self._pipelines_container._default_datatype_iomanager_mapper()
+        )

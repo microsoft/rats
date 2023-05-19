@@ -1,4 +1,9 @@
-from ._training import CollectionToDictBuilder, ScatterGatherBuilders, TrainAndEvalBuilders
+from ._training import (
+    CollectionToDictBuilder,
+    PersistFittedEvalPipeline,
+    ScatterGatherBuilders,
+    TrainAndEvalBuilders,
+)
 from .dag import (
     DAG,
     Annotations,
@@ -62,4 +67,5 @@ __all__ = [
     "PipelineRunnerFactory",
     "Task",
     "CollectionToDictBuilder",
+    "PersistFittedEvalPipeline",
 ]

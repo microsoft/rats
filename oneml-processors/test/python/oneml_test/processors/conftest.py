@@ -5,7 +5,8 @@ from hydra.core.config_store import ConfigStore
 
 from oneml.pipelines._client import SimplePipelineFactory
 from oneml.pipelines.building import DefaultDataTypeMapper, IPipelineBuilderFactory
-from oneml.pipelines.context._client import ContextClient
+from oneml.pipelines.context._client import ContextClient, IManageExecutionContexts
+from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._local_data_client import LocalDataClient
 from oneml.pipelines.data._serialization import SerializationClient
@@ -74,6 +75,10 @@ def local_pipeline_data_client(
 def pipeline_session_context() -> PipelineSessionContext:
     return ContextClient[PipelineSessionClient]()
 
+@pytest.fixture(scope="package")
+def node_context() -> IManageExecutionContexts[PipelineNode]:
+    return ContextClient()
+
 
 @pytest.fixture(scope="package")
 def pipeline_builder_factory(
@@ -81,12 +86,14 @@ def pipeline_builder_factory(
     iomanager_registry: IOManagerRegistry,
     default_datatype_mapper: DefaultDataTypeMapper,
     pipeline_session_context: PipelineSessionContext,
+    node_context: IManageExecutionContexts[PipelineNode],
 ) -> IPipelineBuilderFactory:
     return SimplePipelineFactory(
         services=services_registry,
         iomanagers=iomanager_registry,
         default_datatype_mapper=default_datatype_mapper,
         session_context=pipeline_session_context,
+        node_context=node_context,
     )
 
 

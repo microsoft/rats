@@ -1,10 +1,12 @@
-from typing import Any, Mapping
+from typing import Any, Mapping, TypedDict
 
 from oneml.pipelines.dag import PipelineNode, PipelinePort, PipelinePortDataType
 from oneml.pipelines.session import IOManagerId, IOManagerRegistry
 
+LoadFittedParameterOutput = TypedDict("LoadFittedParameterOutput", {"data": Any})
 
-class LoadNodes:
+
+class LoadFittedParameter:
     _session_id: str
     _node: PipelineNode
     _port: PipelinePort[Any]
@@ -27,8 +29,8 @@ class LoadNodes:
 
     def process(self) -> Mapping[str, Any]:
         iomanager = self._iomanager_registry.get_dataclient(self._iomanager_id)
-        return {
-            self._port.key: iomanager.get_data_from_given_session_id(
+        return dict(
+            data=iomanager.get_data_from_given_session_id(
                 self._session_id, self._node, self._port
             )
-        }
+        )
