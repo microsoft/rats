@@ -166,7 +166,7 @@ class SparkExample:
 spark_example = PipelineBuilder.task(
     processor_type=SparkExample,
     name="spark_example",
-    services={"spark": ImmunopipelineOnemlServices.SparkContext},
+    services={"spark_context": ImmunopipelineOnemlServices.SparkContext},
 )
 ```
 
