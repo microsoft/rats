@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
@@ -8,8 +9,9 @@ from oneml.pipelines.context._client import IProvideExecutionContexts
 from oneml.pipelines.dag import PipelineNode, PipelinePort, PipelinePortDataType
 from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
 from oneml.pipelines.data._serialization import DataTypeId
-from oneml.pipelines.session import IManagePipelineData, PipelineSessionClient
+from oneml.pipelines.session import IManagePipelineData, IOManagerId, PipelineSessionClient
 
+logger = logging.getLogger(__name__)
 
 class LocalNumpyIOManager(IManagePipelineData):
     _type_mapping: MappedPipelineDataClient
@@ -35,6 +37,7 @@ class LocalNumpyIOManager(IManagePipelineData):
         session_id = self._session_context.get_context().session_id()
         data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
         file = data_dir / f"{port.key}.npz"
+        logger.debug(f"loading numpy data from: {file}")
         return np.load(file)
 
     def publish_data(
@@ -48,6 +51,7 @@ class LocalNumpyIOManager(IManagePipelineData):
         data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
         file = data_dir / f"{port.key}.npz"
         data_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"writing numpy data to: {file}")
         np.save(file, data)
 
     def get_data_from_given_session_id(
@@ -55,6 +59,7 @@ class LocalNumpyIOManager(IManagePipelineData):
     ) -> PipelinePortDataType:
         data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
         file = data_dir / f"{port.key}.npz"
+        logger.debug(f"loading numpy data from: {file}")
         return np.load(file)
 
     def register(
@@ -89,7 +94,8 @@ class LocalPandasIOManager(IManagePipelineData):
 
         session_id = self._session_context.get_context().session_id()
         data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
-        file = data_dir / f"{port.key}.npz"
+        file = data_dir / f"{port.key}.csv"
+        logger.debug(f"loading pandas csv data from: {file}")
         return pd.read_csv(file)  # type: ignore[return-value]
 
     def publish_data(
@@ -101,15 +107,17 @@ class LocalPandasIOManager(IManagePipelineData):
         self._data[(node, port)] = data
         session_id = self._session_context.get_context().session_id()
         data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
-        file = data_dir / f"{port.key}.npz"
+        file = data_dir / f"{port.key}.csv"
         data_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"writing pandas csv data to: {file}")
         data.to_csv(file)  # type: ignore[attr-defined]
 
     def get_data_from_given_session_id(
         self, session_id: str, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
     ) -> PipelinePortDataType:
         data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
-        file = data_dir / f"{port.key}.npz"
+        file = data_dir / f"{port.key}.csv"
+        logger.debug(f"loading pandas csv data from: {file}")
         return pd.read_csv(file)  # type: ignore[return-value]
 
     def register(
@@ -119,3 +127,8 @@ class LocalPandasIOManager(IManagePipelineData):
         type_id: DataTypeId[PipelinePortDataType],
     ) -> None:
         self._type_mapping.register(node, port, type_id)
+
+
+class IOManagerIds:
+    PANDAS = IOManagerId("pandas")
+    NUMPY = IOManagerId("numpy")

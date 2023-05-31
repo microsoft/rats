@@ -27,7 +27,7 @@ class LoadFittedParameter:
         self._iomanager_id = iomanager_id
         self._iomanager_registry = iomanager_registry
 
-    def process(self) -> Mapping[str, Any]:
+    def process(self) -> LoadFittedParameterOutput:
         iomanager = self._iomanager_registry.get_dataclient(self._iomanager_id)
         return dict(
             data=iomanager.get_data_from_given_session_id(

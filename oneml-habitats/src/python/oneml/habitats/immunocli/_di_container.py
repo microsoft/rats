@@ -18,9 +18,11 @@ from oneml.habitats.immunocli._commands import (
 from oneml.habitats.immunocli._pipelines_container import OnemlHabitatsPipelinesDiContainer
 from oneml.habitats.immunocli._processors_container import OnemlHabitatsProcessorsDiContainer
 from oneml.habitats.registry._session_registry import PipelineSessionRegistry
-from oneml.pipelines.session import ServicesRegistry
+from oneml.pipelines.session import IManagePipelineData, ServicesRegistry
 from oneml.processors import PipelineRunnerFactory
 from oneml.processors.services import GetActiveNodeKey
+
+from ._iomangers import LocalNumpyIOManager, LocalPandasIOManager
 
 
 class OnemlHabitatsDiContainer:
@@ -73,6 +75,20 @@ class OnemlHabitatsDiContainer:
     def get_active_node_key_service(self) -> GetActiveNodeKey:
         return self.processors_container().get_active_node_key_service()
 
+    @lru_cache
+    def _local_pandas_data_client(self) -> IManagePipelineData:
+        return LocalPandasIOManager(
+            type_mapping=self.pipelines_container()._pipeline_type_mapping(),
+            session_context=self.pipelines_container().pipeline_session_context(),
+        )
+
+    @lru_cache
+    def _local_numpy_data_client(self) -> IManagePipelineData:
+        return LocalNumpyIOManager(
+            type_mapping=self.pipelines_container()._pipeline_type_mapping(),
+            session_context=self.pipelines_container().pipeline_session_context(),
+        )
+
     @lru_cache()
     def resources_locator(self) -> ImmunodataResourceLocator:
         return ImmunodataResourceLocator(
@@ -101,9 +117,7 @@ class OnemlHabitatsDiContainer:
         return self._app.find_container(ImmunocliContainer)
 
     def processors_container(self) -> OnemlHabitatsProcessorsDiContainer:
-        return OnemlHabitatsProcessorsDiContainer(
-            pipelines_container=self.pipelines_container(),
-        )
+        return self._app.find_container(OnemlHabitatsProcessorsDiContainer)
 
     def pipelines_container(self) -> OnemlHabitatsPipelinesDiContainer:
-        return OnemlHabitatsPipelinesDiContainer()
+        return self._app.find_container(OnemlHabitatsPipelinesDiContainer)

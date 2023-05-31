@@ -97,7 +97,8 @@ class PersistFittedEvalPipeline:
             ),
             services=dict(
                 session_id=OnemlProcessorServices.SessionId,
-            )
+                my_current_node_key=OnemlProcessorServices.GetActiveNodeKey,
+            ),
         )
         # Note: we need to specify outputs because there's a bug in the way PipelineBuilder.combine
         # builds the default outputs.
@@ -122,6 +123,9 @@ class PersistFittedEvalPipeline:
                     for col_name in eval_pl.out_collections
                     for entry_name in eval_pl.out_collections[col_name]
                 },
+                {
+                    "fitted_eval_pipeline": create_fitted_eval_pipeline.outputs.fitted_eval_pipeline
+                }
             ),
         )
         return p
@@ -163,9 +167,9 @@ class CreateFittedEvalPipelineProcessor:
                 session_id=self._session_id,
                 node=node,
                 port=PipelinePort[Any](source_info.port_name),
+                iomanager_id=source_info.io_manager_id,
             ),
             services=dict(
-                iomanager_id=source_info.io_manager_id,
                 iomanager_registry=OnemlProcessorServices.IOManagerRegistry,
             )
         )

@@ -3,6 +3,9 @@ from pathlib import Path
 from typing import Any, Union
 
 from azure.identity import ManagedIdentityCredential
+from immunodata.cli import ILocateDiContainers
+from immunodata.core.config.immunoproject import ImmunoProjectConfig
+from immunodata.immunocli.next import ImmunocliContainer
 
 from oneml.habitats._publishers import NodeBasedPublisher, SinglePortPublisher
 from oneml.habitats.immunocli._commands import OnemlPipelineNodeCommandFactory
@@ -30,6 +33,11 @@ from oneml.pipelines.settings import PipelineSettingsClient
 
 
 class OnemlHabitatsPipelinesDiContainer:
+    _app: ILocateDiContainers
+
+    def __init__(self, app: ILocateDiContainers):
+        self._app = app
+
     @lru_cache()
     def pipeline_builder_factory(self) -> SimplePipelineFactory:
         return SimplePipelineFactory(
@@ -122,6 +130,7 @@ class OnemlHabitatsPipelinesDiContainer:
     @lru_cache
     def _local_pipeline_data_client(self) -> LocalDataClient:
         return LocalDataClient(
+            tmp_path=self.tmp_path(),
             serializer=self._pipeline_serialization_client(),
             type_mapping=self._pipeline_type_mapping(),
             session_context=self.pipeline_session_context(),
@@ -177,3 +186,13 @@ class OnemlHabitatsPipelinesDiContainer:
     @lru_cache()
     def _cmd_client(self) -> OnemlPipelineNodeCommandFactory:
         return OnemlPipelineNodeCommandFactory()
+
+    @lru_cache()
+    def tmp_path(self) -> Path:
+        return self._project_config().get_active_application_tmp_path()
+
+    def _project_config(self) -> ImmunoProjectConfig:
+        return self._cli_container().project_config()
+
+    def _cli_container(self) -> ImmunocliContainer:
+        return self._app.find_container(ImmunocliContainer)

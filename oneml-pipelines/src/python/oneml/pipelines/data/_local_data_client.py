@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class LocalDataClient(IManagePipelineData):
+    _tmp_path: Path
     _serializer: SerializationClient
     _type_mapping: MappedPipelineDataClient
     _session_context: IProvideExecutionContexts[PipelineSessionClient]
@@ -20,10 +21,12 @@ class LocalDataClient(IManagePipelineData):
 
     def __init__(
         self,
+        tmp_path: Path,
         serializer: SerializationClient,
         type_mapping: MappedPipelineDataClient,
         session_context: IProvideExecutionContexts[PipelineSessionClient],
     ) -> None:
+        self._tmp_path = tmp_path
         self._data = {}
         self._serializer = serializer
         self._type_mapping = type_mapping
@@ -47,8 +50,9 @@ class LocalDataClient(IManagePipelineData):
 
         session_id = self._session_context.get_context().session_id()
 
-        data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
+        data_dir = self._tmp_path / f"session-data/{session_id}/{node.key}"
         file = data_dir / f"{port.key}.json"
+        logger.debug(f"saving serialized data to {file}")
         data_dir.mkdir(parents=True, exist_ok=True)
         file.write_text(serialized)
 
@@ -72,8 +76,9 @@ class LocalDataClient(IManagePipelineData):
     def get_data_from_given_session_id(
         self, session_id: str, node: PipelineNode, port: PipelinePort[PipelinePortDataType]
     ) -> PipelinePortDataType:
-        data_dir = Path(f"../.tmp/session-data/{session_id}/{node.key}")
+        data_dir = self._tmp_path / f"session-data/{session_id}/{node.key}"
         file = data_dir / f"{port.key}.json"
+        logger.debug(f"loading serialized data from {file}")
         serialized = file.read_text()
         type_id = self._type_mapping.get_data_id((node, port))
         return self._serializer.deserialize(type_id, serialized)

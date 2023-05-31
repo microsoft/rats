@@ -39,3 +39,11 @@ class ModelSerializer(ISerializeData[Model]):
         logger.debug(f"deserializing data: {data}")
         x, y = tuple(Array(s) for s in data.split(","))
         return Model(x=x, y=y)
+
+
+class ArraySerializer(ISerializeData[Array]):
+    def serialize(self, data: Array) -> str:
+        return data.v
+
+    def deserialize(self, data: str) -> Array:
+        return Array(data)

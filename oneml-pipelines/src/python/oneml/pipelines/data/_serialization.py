@@ -1,3 +1,4 @@
+import codecs
 import json
 import logging
 from abc import abstractmethod
@@ -127,12 +128,14 @@ class SerializationClient(IRegisterSerializers, ISerializeDataTypes):
 
 class DillSerializer(ISerializeData[Any]):
     def serialize(self, data: Any) -> str:
-        return dill.dumps(data)
+        return codecs.encode(dill.dumps(data), "base64").decode()
 
     def deserialize(self, data: str) -> Any:
         logger.debug(f"deserializing data: {data}")
-        return dill.loads(data)
+        data = dill.loads(codecs.decode(data.encode(), "base64"))
+        return data
 
 
 class SerializerIds:
     DILL = DataTypeId[Any]("dill")
+    JSON = DataTypeId[Any]("json")

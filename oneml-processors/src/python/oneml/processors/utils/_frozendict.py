@@ -72,6 +72,20 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
         self._d = dict(*args, **kwargs)
         self._hash = None
 
+    def __getstate__(self) -> dict[str, Any]:
+        # our implementation of __getattr__ messes with pickle, so we need to implement
+        # __getstate__ and __setstate__
+        return dict(
+            _d=self._d,
+            _hash=self._hash,
+        )
+
+    def __setstate__(self, d: Mapping[str, Any]) -> None:
+        # our implementation of __getattr__ messes with pickle, so we need to implement
+        # __getstate__ and __setstate__
+        self._d = d["_d"]
+        self._hash = d["_hash"]
+
     def __init_subclass__(cls) -> None:
         cls._type_T = get_args(cls.__orig_bases__[0])  # type: ignore
 

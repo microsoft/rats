@@ -1,17 +1,27 @@
 import logging
 from typing import cast
 
+import numpy as np
+import pandas as pd
 from immunodata.cli import CliCommand, OnCommandRegistrationEvent
 from immunodata.core.immunocli import OnPackageResourceRegistrationEvent
 from immunodata.immunocli.next import BasicCliPlugin, OnPluginConfigurationEvent
 
 from oneml.habitats._services import OnemlHabitatsServices
-from oneml.pipelines.data._local_data_client import IOManagerIds
-from oneml.pipelines.data._serialization import DillSerializer, SerializerIds
+from oneml.pipelines.data._local_data_client import IOManagerIds as PipelinesIOManagerIds
+from oneml.pipelines.data._serialization import (
+    DataTypeId,
+    DillSerializer,
+    JsonSerializer,
+    SerializerIds,
+)
 from oneml.processors.services import OnemlProcessorServices
 from oneml.processors.ux import Pipeline
 
 from ._di_container import OnemlHabitatsDiContainer
+from ._iomangers import IOManagerIds as HabitatsIOManagerIds
+from ._pipelines_container import OnemlHabitatsPipelinesDiContainer
+from ._processors_container import OnemlHabitatsProcessorsDiContainer
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +36,10 @@ class OnemlHabitatsCliPlugin(BasicCliPlugin[None]):
 
         self._container = OnemlHabitatsDiContainer(self.app)
         self.app.register_container(OnemlHabitatsDiContainer, self._container)
+        self.app.register_container(
+            OnemlHabitatsPipelinesDiContainer, OnemlHabitatsPipelinesDiContainer(self.app))
+        self.app.register_container(
+            OnemlHabitatsProcessorsDiContainer, OnemlHabitatsProcessorsDiContainer(self.app))
 
         self.app.event_dispatcher.add_listener(OnPluginConfigurationEvent, self._configure_plugin)
         self.app.event_dispatcher.add_listener(OnCommandRegistrationEvent, self._register_commands)
@@ -66,13 +80,28 @@ class OnemlHabitatsCliPlugin(BasicCliPlugin[None]):
 
         serialization_client = pipelines_container._pipeline_serialization_client()
         serialization_client.register(SerializerIds.DILL, DillSerializer())
+        serialization_client.register(SerializerIds.JSON, JsonSerializer())
 
         default_datatype_mapper = pipelines_container.default_datatype_mapper()
         default_datatype_mapper.register(Pipeline, SerializerIds.DILL)
+        default_datatype_mapper.register(pd.DataFrame, SerializerIds.DILL)
+        default_datatype_mapper.register(pd.Series, SerializerIds.DILL)
+
+        default_datatype_mapper.register(np.ndarray, DataTypeId("who-cares"))
+
+        default_datatype_iomanager_mapper = pipelines_container._default_datatype_iomanager_mapper()
+        default_datatype_iomanager_mapper.register(Pipeline, PipelinesIOManagerIds.LOCAL)
+        default_datatype_iomanager_mapper.register(pd.DataFrame, PipelinesIOManagerIds.LOCAL)
+        default_datatype_iomanager_mapper.register(pd.Series, PipelinesIOManagerIds.LOCAL)
+        default_datatype_iomanager_mapper.register(np.ndarray, HabitatsIOManagerIds.NUMPY)
+
 
         iomanager_registry = pipelines_container.iomanager_registry()
         iomanager_registry.register(
-            IOManagerIds.LOCAL, pipelines_container._local_pipeline_data_client()
+            PipelinesIOManagerIds.LOCAL, pipelines_container._local_pipeline_data_client(),
+        )
+        iomanager_registry.register(
+            HabitatsIOManagerIds.NUMPY, self._container._local_numpy_data_client(),
         )
 
     def _register_commands(self, event: OnCommandRegistrationEvent) -> None:
