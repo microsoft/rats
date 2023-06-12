@@ -56,7 +56,7 @@ pytest-nunit = "*"
 types-urllib3 = "*"
 
 [tool.poetry.plugins."immunocli.plugins"]
-"oneml-habitats" = "oneml.habitats.immunocli._plugin:OnemlHabitatsCliPlugin"
+"oneml-habitats" = "oneml.habitats.immunocli._plugin:OnemlHabitatsCliPlugin.factory"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

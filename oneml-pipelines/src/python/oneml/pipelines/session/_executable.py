@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Generic, Protocol, TypeVar
+from typing import Callable, Generic, Protocol, TypeVar
 
 
 class IExecutable(Protocol):
@@ -53,8 +53,16 @@ class CallableExecutable(IExecutable):
     def __init__(self, callback: ICallableExecutable):
         self._callback = callback
 
+    def __call__(self) -> None:
+        """This allows us to treat this object as the original callable."""
+        self.execute()
+
     def execute(self) -> None:
         self._callback()
+
+
+def executable(fn: Callable[[], None]) -> IExecutable:
+    return CallableExecutable(fn)
 
 
 ContextType = TypeVar("ContextType", contravariant=True)

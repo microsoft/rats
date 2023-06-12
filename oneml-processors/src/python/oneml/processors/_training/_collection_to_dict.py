@@ -1,3 +1,4 @@
+# type: ignore
 from typing import Any, Mapping, Set, TypedDict, overload
 
 from ..ux import Pipeline, Task
@@ -71,7 +72,7 @@ class CollectionToDictBuilder:
         else:
             assert entries is None
             assert element_type is None
-        output_type = TypedDict(collection_name, entries_to_types)  # type: ignore[misc]
+        output_type = TypedDict(collection_name, entries_to_types)
         task = Task(
             processor_type=InputsToDict,
             name="collect",

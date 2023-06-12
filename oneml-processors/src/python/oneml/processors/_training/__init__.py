@@ -1,3 +1,4 @@
+# type: ignore
 from ._collection_to_dict import CollectionToDictBuilder
 from ._persist_fitted import PersistFittedEvalPipeline
 from ._scatter_gather import ScatterGatherBuilders

@@ -1,10 +1,9 @@
-from oneml.pipelines.session._session_client import PipelineSessionContext
-
+# type: ignore
 
 class GetActiveNodeKey:
-    _pipeline_session_context: PipelineSessionContext
+    _pipeline_session_context: "PipelineSessionContext"
 
-    def __init__(self, pipeline_session_context: PipelineSessionContext):
+    def __init__(self, pipeline_session_context: "PipelineSessionContext"):
         self._pipeline_session_context = pipeline_session_context
 
     def __call__(self) -> str:

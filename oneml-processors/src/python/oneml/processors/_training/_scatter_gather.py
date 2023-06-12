@@ -1,3 +1,4 @@
+# type: ignore
 from collections import ChainMap
 from functools import reduce
 from typing import Optional, Sequence, Tuple

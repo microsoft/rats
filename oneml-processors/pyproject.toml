@@ -48,10 +48,9 @@ mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
-sphinx-autodoc-typehints = "*"
 
-[tool.poetry.scripts]
-run-processor = "oneml.processors_script.run_processor:main"
+[tool.poetry.plugins."oneml.app_plugins"]
+"oneml.processors-plugin" = "oneml.processors.plugin:OnemlProcessorsPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

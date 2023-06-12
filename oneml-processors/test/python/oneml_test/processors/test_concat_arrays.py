@@ -103,8 +103,8 @@ def complex_pipeline(simple_pipeline: DAG) -> DAG:
             DagDependency(
                 DagNode("multiply", Namespace("p1")),
                 in_arg=InProcessorParam(
-                    "arrays",
-                    Array,
+                    "nums",
+                    float,
                     InMethod.process,
                     InProcessorParam.VAR_POSITIONAL,
                 ),
@@ -113,8 +113,8 @@ def complex_pipeline(simple_pipeline: DAG) -> DAG:
             DagDependency(
                 DagNode("multiply", Namespace("p2")),
                 in_arg=InProcessorParam(
-                    "arrays",
-                    Array,
+                    "nums",
+                    float,
                     InMethod.process,
                     InProcessorParam.VAR_POSITIONAL,
                 ),
@@ -123,8 +123,8 @@ def complex_pipeline(simple_pipeline: DAG) -> DAG:
             DagDependency(
                 DagNode("multiply", Namespace("p3")),
                 in_arg=InProcessorParam(
-                    "arrays",
-                    Array,
+                    "nums",
+                    float,
                     InMethod.process,
                     InProcessorParam.VAR_POSITIONAL,
                 ),

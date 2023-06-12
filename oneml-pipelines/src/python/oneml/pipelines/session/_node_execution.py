@@ -1,16 +1,8 @@
 from abc import abstractmethod
-from typing import Dict, Protocol, TypeAlias
+from typing import Dict, Protocol
 
-from oneml.pipelines.context._client import IManageExecutionContexts
 from oneml.pipelines.dag import PipelineNode
-
 from ._executable import IExecutable
-
-
-class ILocateActiveNodes(Protocol):
-    @abstractmethod
-    def get_active_node(self) -> PipelineNode:
-        """ """
 
 
 class ILocatePipelineNodeExecutables(Protocol):
@@ -33,7 +25,6 @@ class IExecutePipelineNodes(Protocol):
 
 class IManagePipelineNodeExecutables(
     ILocatePipelineNodeExecutables,
-    ILocateActiveNodes,
     IRegisterPipelineNodeExecutables,
     IExecutePipelineNodes,
     Protocol,
@@ -41,24 +32,16 @@ class IManagePipelineNodeExecutables(
     pass
 
 
-PipelineNodeContext: TypeAlias = IManageExecutionContexts[PipelineNode]
-
-
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables, IExecutePipelineNodes):
 
     _executables: Dict[PipelineNode, IExecutable]
-    _node_context: PipelineNodeContext
 
-    def __init__(self, node_context: PipelineNodeContext) -> None:
-        self._node_context = node_context
+    def __init__(self) -> None:
         self._executables = {}
 
-    def get_active_node(self) -> PipelineNode:
-        return self._node_context.get_context()
-
     def execute_node(self, node: PipelineNode) -> None:
-        with self._node_context.execution_context(node):
-            self.get_node_executable(node).execute()
+        # with self._node_context.execution_context(node):
+        self.get_node_executable(node).execute()
 
     def get_node_executable(self, node: PipelineNode) -> IExecutable:
         if node not in self._executables:
@@ -71,24 +54,6 @@ class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables, IExecutePipe
             raise RuntimeError(f"Duplicate node executable: {node}")
 
         self._executables[node] = executable
-
-
-#
-# class CompositePipelineNodeExecutablesClient(ILocatePipelineNodeExecutables):
-#
-#     _clients: Tuple[ILocatePipelineNodeExecutables, ...]
-#
-#     def __init__(self, clients: Tuple[ILocatePipelineNodeExecutables, ...]) -> None:
-#         self._clients = clients
-#
-#     def get_node_executable(self, node: PipelineNode) -> IExecutable:
-#         for client in self._clients:
-#             try:
-#                 return client.get_node_executable(node)
-#             except NodeExecutableNotFoundError:
-#                 pass
-#
-#         raise NodeExecutableNotFoundError(node)
 
 
 class NodeExecutableNotFoundError(RuntimeError):

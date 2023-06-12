@@ -1,29 +1,26 @@
+# type: ignore
 from collections import ChainMap, defaultdict
 from copy import copy
 from dataclasses import dataclass
 from typing import Any, TypedDict
 
-from oneml.pipelines.building import DefaultDataTypeIOManagerMapper
 from oneml.pipelines.dag import PipelineNode, PipelinePort
-from oneml.pipelines.session import IOManagerId
-
+from ._load_fitted_parameter import LoadFittedParameter
+from ._train_and_eval import TrainAndEvalBuilders
 from ..dag import DAG, DagNode
 from ..services import OnemlProcessorServices
 from ..utils import frozendict
 from ..ux import OutEntry, Pipeline, PipelineBuilder
-from ._load_fitted_parameter import LoadFittedParameter
-from ._train_and_eval import TrainAndEvalBuilders
 
 
 @dataclass
 class FittedParameterSourceInformation:
     node: DagNode
     port_name: str
-    io_manager_id: IOManagerId
 
 
 class PersistFittedEvalPipeline:
-    def __init__(self, type_to_io_manager_mapping: DefaultDataTypeIOManagerMapper):
+    def __init__(self, type_to_io_manager_mapping: "DefaultDataTypeIOManagerMapper"):
         self._type_to_io_manager_mapping = type_to_io_manager_mapping
 
     def _with_persisted_fitted_outputs(

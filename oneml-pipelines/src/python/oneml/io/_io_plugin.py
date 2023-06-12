@@ -1,0 +1,2 @@
+class OnemlIoPlugin:
+    pass

@@ -7,9 +7,6 @@
             "path": "docs"
         },
         {
-            "path": "oneml-app"
-        },
-        {
             "path": "oneml-habitats"
         },
         {
@@ -23,7 +20,6 @@
         "files.exclude": {
             // de-duplicate paths added as workspace roots above
             "docs": true,
-            "oneml-app": true,
             "oneml-habitats": true,
             "oneml-pipelines": true,
             "oneml-processors": true,

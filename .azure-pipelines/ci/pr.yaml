@@ -15,33 +15,6 @@ stages:
   jobs:
 
 # APPLICATIONS
-# oneml-app
-  - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
-    parameters:
-      appBuilderImageName: ${{ parameters.appBuilderImageName }}
-      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: "oneml-app"
-      toxEnvs: "{.python-version},cilint,citype"
-      isDevBuild: true
-      python_dependency_tool: "poetry"
-  # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
-  - template: /.azure-pipelines/templates/jobs.application-ci.wheel.yaml
-    parameters:
-      appBuilderImageName: ${{ parameters.appBuilderImageName }}
-      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: "oneml-app"
-      # PR builds never publish wheels
-      publishWheel: false
-      isDevBuild: true
-      python_dependency_tool: "poetry"
-  - template: /.azure-pipelines/templates/jobs.application-ci.docker.yaml
-    parameters:
-      appBuilderImageName: ${{ parameters.appBuilderImageName }}
-      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: "oneml-app"
-      isDevBuild: true
-      namespace: "ci-pr-builds"
-      python_dependency_tool: "poetry"
 # oneml-devtools
   - template: /.azure-pipelines/templates/jobs.application-ci.check-all.yaml
     parameters:

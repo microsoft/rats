@@ -46,7 +46,6 @@ class IPipelineDagClient(Protocol):
 
 
 class PipelineDagClient(IPipelineDagClient):
-
     _nodes: Set[PipelineNode]
     _dependencies: Dict[PipelineNode, Set[PipelineNode]]
     _data_dependencies: Dict[PipelineNode, Set[PipelineDataDependency[Any]]]

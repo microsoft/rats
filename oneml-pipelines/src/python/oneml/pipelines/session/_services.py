@@ -1,15 +1,11 @@
 import logging
 from abc import abstractmethod
-from dataclasses import dataclass
-from typing import Any, Callable, Dict, Generic, Protocol, TypeVar
+from typing import Any, Callable, Dict, Protocol, TypeVar
+
+from oneml.services import ServiceId
 
 logger = logging.getLogger(__name__)
 ServiceType = TypeVar("ServiceType")
-
-
-@dataclass(frozen=True)
-class ServiceId(Generic[ServiceType]):
-    key: str
 
 
 class IProvideServices(Protocol):

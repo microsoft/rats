@@ -3,7 +3,7 @@ from typing import Any, Dict, Generic, Tuple, TypeVar
 
 from ._structs import PipelineNode
 
-# TODO: Remove the copies of DataType and PipelineDataNode from session package
+# TODO: Remove the copies of DataType and PipelineDataNode from app package
 PipelinePortDataType = TypeVar("PipelinePortDataType")
 
 

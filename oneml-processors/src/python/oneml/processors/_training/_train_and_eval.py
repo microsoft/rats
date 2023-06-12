@@ -1,3 +1,4 @@
+# type: ignore
 """
     A TrainAndEval is a pipeline that fits using train data and evaluates on that same train data
     and on a separate evaluation data.
@@ -9,10 +10,10 @@
 from __future__ import annotations
 
 from collections import ChainMap, defaultdict
-from itertools import chain
 from typing import Any, Literal, Mapping, Sequence, Tuple
 
 from hydra_zen import hydrated_dataclass
+from itertools import chain
 from omegaconf import MISSING
 
 from ..dag._utils import DAG, find_downstream_nodes

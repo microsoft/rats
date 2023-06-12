@@ -1,15 +1,13 @@
 import os
 import uuid
 
+from oneml.io._pipeline_data import IPipelineDataManager
 from oneml.pipelines.dag import PipelineClient
-
 from ._executable import CallableExecutable
-from ._io_managers import IOManagerClient
-from ._node_execution import PipelineNodeContext, PipelineNodeExecutablesClient
+from ._node_execution import PipelineNodeExecutablesClient
 from ._node_state import PipelineNodeState, PipelineNodeStateClient
 from ._services import IProvideServices
-from ._session_client import PipelineSessionClient, PipelineSessionContext
-from ._session_data_client import PipelineNodeDataClientFactory, PipelineNodeInputDataClientFactory
+from ._session_client import PipelineSessionClient
 from ._session_frame import BasicPipelineSessionFrameCommands, PipelineSessionFrame
 from ._session_plugins import IActivatePipelineSessionPlugins
 from ._session_state import PipelineSessionStateClient
@@ -23,27 +21,21 @@ class PipelineSessionClientFactory:
     # _session_state_client: PipelineSessionStateClient
     # _node_state_client: PipelineNodeStateClient
     _services: IProvideServices
-    _session_context: PipelineSessionContext
-    _node_context: PipelineNodeContext
-    _iomanager_client: IOManagerClient
+    _pipeline_data_client: IPipelineDataManager
     _session_plugin_client: IActivatePipelineSessionPlugins
 
     def __init__(
         self,
         services: IProvideServices,
-        session_context: PipelineSessionContext,
-        node_context: PipelineNodeContext,
-        iomanager_client: IOManagerClient,
+        pipeline_data_client: IPipelineDataManager,
         session_plugin_client: IActivatePipelineSessionPlugins,
     ) -> None:
         self._services = services
-        self._session_context = session_context
-        self._node_context = node_context
-        self._iomanager_client = iomanager_client
+        self._pipeline_data_client = pipeline_data_client
         self._session_plugin_client = session_plugin_client
 
     def get_instance(self, pipeline_client: PipelineClient) -> PipelineSessionClient:
-        # TODO: we should move logic for creating a session id to a separate class.
+        # TODO: we should move logic for creating a app id to a separate class.
         #       otherwise this method behaves differently on drivers and executors.
         session_id = os.environ.get("PIPELINE_SESSION_ID", str(uuid.uuid4()))
 
@@ -54,13 +46,8 @@ class PipelineSessionClientFactory:
         # TODO: move these clients to private properties + constructor args
         session_state_client = PipelineSessionStateClient()
         node_state_client = PipelineNodeStateClient()
-        node_executables_client = PipelineNodeExecutablesClient(self._node_context)
-        node_input_data_client_factory = PipelineNodeInputDataClientFactory(
-            data_dependencies_client=data_dependencies_client,
-            iomanager_client=self._iomanager_client,
-        )
-
-        node_data_client_factory = PipelineNodeDataClientFactory(self._iomanager_client)
+        pipeline_data_client = self._pipeline_data_client
+        node_executables_client = PipelineNodeExecutablesClient()
 
         for node in node_client.get_nodes():
             node_state_client.set_node_state(node, PipelineNodeState.REGISTERED)
@@ -85,17 +72,14 @@ class PipelineSessionClientFactory:
         )
 
         session_client = PipelineSessionClient(
-            session_context=self._session_context,
             session_id=session_id,
             services=self._services,
             session_frame=frame,
             session_state_client=session_state_client,
-            iomanager_client=self._iomanager_client,
+            pipeline_data_client=self._pipeline_data_client,
             session_executables_client=node_executables_client,
             node_state_client=node_state_client,
-            node_data_client_factory=node_data_client_factory,
             node_executables_client=node_executables_client,
-            node_input_data_client_factory=node_input_data_client_factory,
         )
         # Not sure if this activation belongs somewhere else.
         self._session_plugin_client.activate_all(session_client)

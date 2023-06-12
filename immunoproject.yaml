@@ -1,7 +1,6 @@
 name: oneml
 git_default_branch: main
 applications:
-  - name: oneml-app
   - name: oneml-devtools
 libraries:
   - name: oneml-habitats

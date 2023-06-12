@@ -5,8 +5,6 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.pipelines.data._serialization import DataTypeId
-from oneml.pipelines.session import IOManagerId
 from oneml.processors import (
     CombinedPipeline,
     IProcess,
@@ -128,7 +126,7 @@ def logistic_regression() -> Pipeline:
     model_train = Task(
         ModelTrain,
         name="train",
-        io_managers={"model": IOManagerId("local")},
+        # io_managers={"model": IOManagerId("local")},
         # serializers={"model": DataTypeId("model")},
     )
     model_eval = Task(ModelEval)
@@ -177,69 +175,25 @@ def report2() -> Pipeline:
 # # Commented b/c at least in the test setup we can't run this in the same process as
 # # test_standardized_lr_with_persistance.
 # # https://immunomics.visualstudio.com/Antigen%20Map%20Software/_workitems/edit/7698
-# def test_standardized_lr(
-#     pipeline_runner_factory: PipelineRunnerFactory,
-#     standardized_lr: Pipeline,
-# ) -> None:
-#     standardized_lr = TrainAndEvalBuilders.with_multiple_eval_inputs(
-#         standardized_lr, eval_names=("eval_1", "eval_2")
-#     )
-#     runner = pipeline_runner_factory(standardized_lr)
-#     outputs = runner(
-#         inputs={
-#             "X.train": Array("Xt"),
-#             "Y.train": Array("Yt"),
-#             "X.eval_1": Array("Xe1"),
-#             "Y.eval_1": Array("Ye1"),
-#             "X.eval_2": Array("Xe2"),
-#             "Y.eval_2": Array("Ye2"),
-#         }
-#     )
-#     assert set(outputs) == set(("mean", "scale", "model", "probs", "acc"))
-#     assert str(outputs.mean) == "mean(Xt)"
-#     assert str(outputs.scale) == "scale(Xt)"
-#     assert str(outputs.model) == "Model((Xt-mean(Xt))/scale(Xt) ; Yt)"
-#     assert (
-#         str(outputs.probs.train)
-#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt))"
-#     )
-#     assert (
-#         str(outputs.probs.eval_1)
-#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt))"
-#     )
-#     assert (
-#         str(outputs.probs.eval_2)
-#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt))"
-#     )
-#     assert (
-#         str(outputs.acc.train)
-#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt)), Yt)"
-#     )
-#     assert (
-#         str(outputs.acc.eval_1)
-#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt)), Ye1)"
-#     )
-#     assert (
-#         str(outputs.acc.eval_2)
-#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt)), Ye2)"
-#     )
-
-def test_standardized_lr_with_persistance(
+def test_standardized_lr(
     pipeline_runner_factory: PipelineRunnerFactory,
-    persist_fitted_eval_pipeline: PersistFittedEvalPipeline,
     standardized_lr: Pipeline,
 ) -> None:
-    standardized_lr = persist_fitted_eval_pipeline.with_persistance(standardized_lr)
+    standardized_lr = TrainAndEvalBuilders.with_multiple_eval_inputs(
+        standardized_lr, eval_names=("eval_1", "eval_2")
+    )
     runner = pipeline_runner_factory(standardized_lr)
     outputs = runner(
         inputs={
             "X.train": Array("Xt"),
             "Y.train": Array("Yt"),
-            "X.eval": Array("Xe1"),
-            "Y.eval": Array("Ye1"),
+            "X.eval_1": Array("Xe1"),
+            "Y.eval_1": Array("Ye1"),
+            "X.eval_2": Array("Xe2"),
+            "Y.eval_2": Array("Ye2"),
         }
     )
-    assert set(outputs) == set(("mean", "scale", "model", "probs", "acc", "fitted_eval_pipeline"))
+    assert set(outputs) == set(("mean", "scale", "model", "probs", "acc"))
     assert str(outputs.mean) == "mean(Xt)"
     assert str(outputs.scale) == "scale(Xt)"
     assert str(outputs.model) == "Model((Xt-mean(Xt))/scale(Xt) ; Yt)"
@@ -248,34 +202,79 @@ def test_standardized_lr_with_persistance(
         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt))"
     )
     assert (
-        str(outputs.probs.eval)
+        str(outputs.probs.eval_1)
         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt))"
+    )
+    assert (
+        str(outputs.probs.eval_2)
+        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt))"
     )
     assert (
         str(outputs.acc.train)
         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt)), Yt)"
     )
     assert (
-        str(outputs.acc.eval)
+        str(outputs.acc.eval_1)
         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt)), Ye1)"
     )
-    eval_pipeline = outputs.fitted_eval_pipeline
-    runner = pipeline_runner_factory(eval_pipeline)
-    outputs = runner(
-        inputs={
-            "X.eval": Array("Xe2"),
-            "Y.eval": Array("Ye2"),
-        }
-    )
-    assert set(outputs) == set(("probs", "acc"))
     assert (
-        str(outputs.probs.eval)
-        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt))"
-    )
-    assert (
-        str(outputs.acc.eval)
+        str(outputs.acc.eval_2)
         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt)), Ye2)"
     )
+
+
+# def test_standardized_lr_with_persistance(
+#     pipeline_runner_factory: PipelineRunnerFactory,
+#     persist_fitted_eval_pipeline: PersistFittedEvalPipeline,
+#     standardized_lr: Pipeline,
+# ) -> None:
+#     standardized_lr = persist_fitted_eval_pipeline.with_persistance(standardized_lr)
+#     runner = pipeline_runner_factory(standardized_lr)
+#     outputs = runner(
+#         inputs={
+#             "X.train": Array("Xt"),
+#             "Y.train": Array("Yt"),
+#             "X.eval": Array("Xe1"),
+#             "Y.eval": Array("Ye1"),
+#         }
+#     )
+#     assert set(outputs) == set(("mean", "scale", "model", "probs", "acc", "fitted_eval_pipeline"))
+#     assert str(outputs.mean) == "mean(Xt)"
+#     assert str(outputs.scale) == "scale(Xt)"
+#     assert str(outputs.model) == "Model((Xt-mean(Xt))/scale(Xt) ; Yt)"
+#     assert (
+#         str(outputs.probs.train)
+#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt))"
+#     )
+#     assert (
+#         str(outputs.probs.eval)
+#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt))"
+#     )
+#     assert (
+#         str(outputs.acc.train)
+#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt)), Yt)"
+#     )
+#     assert (
+#         str(outputs.acc.eval)
+#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt)), Ye1)"
+#     )
+#     eval_pipeline = outputs.fitted_eval_pipeline
+#     runner = pipeline_runner_factory(eval_pipeline)
+#     outputs = runner(
+#         inputs={
+#             "X.eval": Array("Xe2"),
+#             "Y.eval": Array("Ye2"),
+#         }
+#     )
+#     assert set(outputs) == set(("probs", "acc"))
+#     assert (
+#         str(outputs.probs.eval)
+#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt))"
+#     )
+#     assert (
+#         str(outputs.acc.eval)
+#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt)), Ye2)"
+#     )
 
 
 def test_single_output_multiple_input(

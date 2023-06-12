@@ -56,7 +56,6 @@ class BasicPipelineSessionFrameCommands:
 
     def execute_pending_nodes(self) -> None:
         pending = self._node_state_client.get_nodes_by_state(PipelineNodeState.PENDING)
-        logger.debug(f"Pending nodes: {pending}")
         if len(pending) == 0:
             # TODO: is having 0 pending nodes an exceptional case?
             return

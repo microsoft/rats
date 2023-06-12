@@ -1,113 +1,18 @@
 import logging
-from typing import cast
 
-import numpy as np
-import pandas as pd
-from immunodata.cli import CliCommand, OnCommandRegistrationEvent
-from immunodata.core.immunocli import OnPackageResourceRegistrationEvent
-from immunodata.immunocli.next import BasicCliPlugin, OnPluginConfigurationEvent
+from immunodata.immunocli.next import BasicCliPlugin
 
-from oneml.habitats._services import OnemlHabitatsServices
-from oneml.pipelines.data._local_data_client import IOManagerIds as PipelinesIOManagerIds
-from oneml.pipelines.data._serialization import (
-    DataTypeId,
-    DillSerializer,
-    JsonSerializer,
-    SerializerIds,
-)
-from oneml.processors.services import OnemlProcessorServices
-from oneml.processors.ux import Pipeline
-
+from ..services import OnemlHabitatsServices
+from ..services._locate_habitats_cli_di_container import LocateHabitatsCliDiContainers
 from ._di_container import OnemlHabitatsDiContainer
-from ._iomangers import IOManagerIds as HabitatsIOManagerIds
-from ._pipelines_container import OnemlHabitatsPipelinesDiContainer
-from ._processors_container import OnemlHabitatsProcessorsDiContainer
 
 logger = logging.getLogger(__name__)
 
 
 class OnemlHabitatsCliPlugin(BasicCliPlugin[None]):
-    component_name = "oneml-habitats"
-    component_config_cls = None
     _container: OnemlHabitatsDiContainer
 
     def __post_init__(self) -> None:
-        logger.debug("registered immunocli plugin for oneml-habitats")
+        self._container = OnemlHabitatsDiContainer(app=self.app)
 
-        self._container = OnemlHabitatsDiContainer(self.app)
         self.app.register_container(OnemlHabitatsDiContainer, self._container)
-        self.app.register_container(
-            OnemlHabitatsPipelinesDiContainer, OnemlHabitatsPipelinesDiContainer(self.app))
-        self.app.register_container(
-            OnemlHabitatsProcessorsDiContainer, OnemlHabitatsProcessorsDiContainer(self.app))
-
-        self.app.event_dispatcher.add_listener(OnPluginConfigurationEvent, self._configure_plugin)
-        self.app.event_dispatcher.add_listener(OnCommandRegistrationEvent, self._register_commands)
-        self.app.event_dispatcher.add_listener(
-            OnPackageResourceRegistrationEvent, self._register_package_resources
-        )
-
-    def _configure_plugin(self, event: OnPluginConfigurationEvent) -> None:
-        pipelines_container = self._container.pipelines_container()
-
-        registry = self._container.session_registry()
-        services = self._container.services_registry()
-
-        services.register_service(OnemlHabitatsServices.DI_LOCATOR, lambda: self.app)
-        services.register_service(
-            OnemlHabitatsServices.NODE_PUBLISHER,
-            pipelines_container.node_publisher,
-        )
-        services.register_service(
-            OnemlHabitatsServices.SINGLE_PORT_PUBLISHER,
-            pipelines_container.single_port_publisher,
-        )
-        services.register_service(
-            OnemlProcessorServices.GetActiveNodeKey, self._container.get_active_node_key_service()
-        )
-        services.register_service(
-            OnemlProcessorServices.IOManagerRegistry, pipelines_container.iomanager_registry
-        )
-        services.register_service(
-            OnemlProcessorServices.SessionId,
-            lambda: pipelines_container.pipeline_session_context().get_context().session_id(),
-        )
-
-        hello_example = self._container.example_hello_world()
-        diamond_example = self._container.example_diamond()
-        registry.register_session_provider("hello-world", hello_example.get_local_session)
-        registry.register_session_provider("diamond", diamond_example.get)
-
-        serialization_client = pipelines_container._pipeline_serialization_client()
-        serialization_client.register(SerializerIds.DILL, DillSerializer())
-        serialization_client.register(SerializerIds.JSON, JsonSerializer())
-
-        default_datatype_mapper = pipelines_container.default_datatype_mapper()
-        default_datatype_mapper.register(Pipeline, SerializerIds.DILL)
-        default_datatype_mapper.register(pd.DataFrame, SerializerIds.DILL)
-        default_datatype_mapper.register(pd.Series, SerializerIds.DILL)
-
-        default_datatype_mapper.register(np.ndarray, DataTypeId("who-cares"))
-
-        default_datatype_iomanager_mapper = pipelines_container._default_datatype_iomanager_mapper()
-        default_datatype_iomanager_mapper.register(Pipeline, PipelinesIOManagerIds.LOCAL)
-        default_datatype_iomanager_mapper.register(pd.DataFrame, PipelinesIOManagerIds.LOCAL)
-        default_datatype_iomanager_mapper.register(pd.Series, PipelinesIOManagerIds.LOCAL)
-        default_datatype_iomanager_mapper.register(np.ndarray, HabitatsIOManagerIds.NUMPY)
-
-
-        iomanager_registry = pipelines_container.iomanager_registry()
-        iomanager_registry.register(
-            PipelinesIOManagerIds.LOCAL, pipelines_container._local_pipeline_data_client(),
-        )
-        iomanager_registry.register(
-            HabitatsIOManagerIds.NUMPY, self._container._local_numpy_data_client(),
-        )
-
-    def _register_commands(self, event: OnCommandRegistrationEvent) -> None:
-        for provider in self._container.container_search().get_providers(CliCommand):
-            logger.debug(f"auto registering CliCommand: {provider}")
-            event.add_command(cast(CliCommand, provider()))
-
-    def _register_package_resources(self, event: OnPackageResourceRegistrationEvent) -> None:
-        event.add_locator("oneml-habitats", self._container.resources_locator())

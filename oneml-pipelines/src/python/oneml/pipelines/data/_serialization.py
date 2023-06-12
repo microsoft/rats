@@ -65,11 +65,11 @@ class DemoSerializer(ISerializeData[DataType]):
     """
 
     def serialize(self, data: DataType) -> str:
-        logger.warning("demo serializer being used")
+        logger.debug("demo serializer being used")
         return json.dumps(data, indent=2)
 
     def deserialize(self, data: str) -> DataType:
-        logger.warning("demo serializer being used")
+        logger.debug("demo serializer being used")
         return json.loads(data)
 
 

@@ -6,11 +6,10 @@ from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Sequence, final
 
-from oneml.pipelines.session import DataTypeId, IOManagerId, ServiceId
-
+from oneml.pipelines.session import ServiceId
+from ._processor import Annotations, IProcess, InProcessorParam, OutProcessorParam
 from ..utils._frozendict import frozendict
 from ..utils._orderedset import orderedset
-from ._processor import Annotations, InProcessorParam, IProcess, OutProcessorParam
 
 logger = logging.getLogger(__name__)
 
@@ -52,8 +51,6 @@ class ProcessorProps:
     processor_type: type[IProcess]
     config: frozendict[str, Any] = frozendict()
     services: frozendict[str, ServiceId[Any]] = frozendict()
-    io_managers: frozendict[str, IOManagerId] = frozendict()
-    serializers: frozendict[str, DataTypeId[Any]] = frozendict()
     input_annotation: InitVar[Mapping[str, type] | None] = None
     return_annotation: InitVar[Mapping[str, type] | None] = None
     compute_reqs: ComputeReqs = ComputeReqs()
@@ -66,16 +63,6 @@ class ProcessorProps:
         input_annotation: Mapping[str, type] | None,
         return_annotation: Mapping[str, type] | None,
     ) -> None:
-        if not isinstance(self.io_managers, frozendict):
-            raise TypeError("io_managers must be a frozendict")
-        if not all(isinstance(k, str) for k in self.io_managers.keys()):
-            raise TypeError("io_managers keys must be strings")
-        if not all(isinstance(v, IOManagerId) for v in self.io_managers.values()):
-            raise TypeError("io_managers values must be IOManagerId")
-        if not isinstance(self.serializers, frozendict):
-            raise TypeError("serializers must be a frozendict")
-        if not all(isinstance(k, str) for k in self.serializers.keys()):
-            raise TypeError("serializers keys must be strings")
         sig = Annotations.get_processor_signature(self.processor_type)
 
         _spurious_config_keys = self.config.keys() - sig.keys()
@@ -122,17 +109,6 @@ class ProcessorProps:
             ra = {k: OutProcessorParam(k, t) for k, t in return_annotation.items()}
         else:
             ra = dict(Annotations.get_return_annotation(self.processor_type.process))
-
-        if not set(self.io_managers) <= set(ra):
-            raise ValueError(
-                "io_managers keys must be a subset of the processor's return annotation keys."
-            )
-        if not set(self.serializers) <= set(ra):
-            raise ValueError(
-                "serializers keys must be a subset of the processor's return annotation keys."
-            )
-        if not set(self.serializers) <= set(self.io_managers):
-            raise ValueError("serializers keys must be a subset of the io_managers keys.")
 
         object.__setattr__(self, "inputs", frozendict(inputs))
         object.__setattr__(self, "outputs", frozendict(ra))

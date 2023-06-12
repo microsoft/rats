@@ -19,7 +19,6 @@ parameters:
   - name: component
     type: string
     values:
-    - oneml-app
     - oneml-devtools
     - oneml-habitats
     - oneml-pipelines

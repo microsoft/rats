@@ -16,7 +16,7 @@ class PipelineNodeState(Enum):
 
     REGISTERED = auto()
     """
-    REGISTERED nodes have been registered on the current session's tick.
+    REGISTERED nodes have been registered on the current app's tick.
 
     A REGISTERED node can have other parts of the sistem adjust certain settings, like the node's
     dependencies, or runtime configuration.
@@ -26,7 +26,7 @@ class PipelineNodeState(Enum):
     """
     QUEUED nodes have been validated and can no longer be configured.
 
-    All nodes in the REGISTERED state will update to QUEUED on the next session's tick.
+    All nodes in the REGISTERED state will update to QUEUED on the next app's tick.
     """
 
     PENDING = auto()
