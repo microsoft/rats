@@ -3,6 +3,7 @@ import uuid
 
 from oneml.io._pipeline_data import IPipelineDataManager
 from oneml.pipelines.dag import PipelineClient
+
 from ._executable import CallableExecutable
 from ._node_execution import PipelineNodeExecutablesClient
 from ._node_state import PipelineNodeState, PipelineNodeStateClient
@@ -22,19 +23,20 @@ class PipelineSessionClientFactory:
     # _node_state_client: PipelineNodeStateClient
     _services: IProvideServices
     _pipeline_data_client: IPipelineDataManager
-    _session_plugin_client: IActivatePipelineSessionPlugins
 
     def __init__(
         self,
         services: IProvideServices,
         pipeline_data_client: IPipelineDataManager,
-        session_plugin_client: IActivatePipelineSessionPlugins,
     ) -> None:
         self._services = services
         self._pipeline_data_client = pipeline_data_client
-        self._session_plugin_client = session_plugin_client
 
-    def get_instance(self, pipeline_client: PipelineClient) -> PipelineSessionClient:
+    def get_instance(
+            self,
+            pipeline_client: PipelineClient,
+            session_plugin_client: IActivatePipelineSessionPlugins
+        ) -> PipelineSessionClient:
         # TODO: we should move logic for creating a app id to a separate class.
         #       otherwise this method behaves differently on drivers and executors.
         session_id = os.environ.get("PIPELINE_SESSION_ID", str(uuid.uuid4()))
@@ -46,7 +48,6 @@ class PipelineSessionClientFactory:
         # TODO: move these clients to private properties + constructor args
         session_state_client = PipelineSessionStateClient()
         node_state_client = PipelineNodeStateClient()
-        pipeline_data_client = self._pipeline_data_client
         node_executables_client = PipelineNodeExecutablesClient()
 
         for node in node_client.get_nodes():
@@ -82,5 +83,5 @@ class PipelineSessionClientFactory:
             node_executables_client=node_executables_client,
         )
         # Not sure if this activation belongs somewhere else.
-        self._session_plugin_client.activate_all(session_client)
+        session_plugin_client.activate_all(session_client)
         return session_client

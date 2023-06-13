@@ -10,6 +10,7 @@ from oneml.pipelines.session import (
     PipelineSessionPluginClient,
 )
 from oneml.pipelines.session._session_components import PipelineSessionComponents
+
 from ._dag_client import IPipelineDagClient, PipelineDagClient
 from ._executable_pickling import PickleableExecutable
 from ._executables_client import IManageBuilderExecutables, PipelineBuilderExecutablesClient
@@ -64,7 +65,9 @@ class PipelineBuilderClient(
         self.get_dag_client().add_dependency(node, dependency)
 
     def build_session(self) -> PipelineSessionClient:
-        return self.get_session_client_factory().get_instance(self.build())
+        return self.get_session_client_factory().get_instance(
+            self.build(),
+            self.get_session_plugin_client())
 
     def build(self) -> PipelineClient:
         return self.get_dag_client().build()
@@ -120,8 +123,9 @@ class PipelineBuilderClient(
     def get_session_client_factory(self) -> PipelineSessionClientFactory:
         return self._session_components.session_client_factory()
 
+    @lru_cache()
     def get_session_plugin_client(self) -> PipelineSessionPluginClient:
-        return self._session_components.session_plugin_client()
+        return self._session_components.session_plugin_client_provider()()
 
 
 class IPipelineBuilderFactory(Protocol):

@@ -34,7 +34,7 @@ class Processor3:
         return dict(d=self._b)
 
 
-def test_task_with_default_values_1(pipeline_runner_factory: PipelineRunnerFactory) -> None:
+def test_task_with_default_values(pipeline_runner_factory: PipelineRunnerFactory) -> None:
     p = Task(Processor1, config=dict(a=10))
     r = pipeline_runner_factory(p)
 
@@ -42,45 +42,26 @@ def test_task_with_default_values_1(pipeline_runner_factory: PipelineRunnerFacto
     o = r(dict(c="ccc"))
     assert o.d == "10,aaa,ccc"
 
-
-def test_task_with_default_values_2(pipeline_runner_factory: PipelineRunnerFactory) -> None:
-    p = Task(Processor1, config=dict(a=10))
-    r = pipeline_runner_factory(p)
-
     # Setting b in the runner inputs.  The given value should be used.
     o = r(dict(c="ccc", b="ddd"))
     assert o.d == "10,ddd,ccc"
 
-
-def test_task_with_default_values_3(pipeline_runner_factory: PipelineRunnerFactory) -> None:
     # Setting b in the config.  The given value should be used.
     p = Task(Processor1, config=dict(a=10, b="bbb"))
     r = pipeline_runner_factory(p)
     o = r(dict(c="ccc"))
     assert o.d == "10,bbb,ccc"
 
-
-def test_task_with_default_values_4(pipeline_runner_factory: PipelineRunnerFactory) -> None:
-    # Setting b in the config.  The given value should be used.
-    p = Task(Processor1, config=dict(a=10, b="bbb"))
-    r = pipeline_runner_factory(p)
     # Setting b in the runner inputs after it was set in config should result in an error because
     # it is not an input of the pipeline.
     with pytest.raises(KeyError):
         o = r(dict(b="qqq", c="ccc"))
 
-
-def test_task_with_default_values_5(pipeline_runner_factory: PipelineRunnerFactory) -> None:
-    # Setting b in the config.  The given value should be used.
-    p = Task(Processor1, config=dict(a=10, b="bbb"))
-    r = pipeline_runner_factory(p)
     # Not setting c in the runner inputs should fail b/c it does not have a default.
     with pytest.raises(ValueError) as ex:
         o = r()
     assert str(ex.value) == "Missing pipeline inputs: {'c'}."
 
-
-def test_task_with_default_values_6(pipeline_runner_factory: PipelineRunnerFactory) -> None:
     # Not setting a in the config and in the runner inputs should fail b/c is it a process input.
     p = Task(Processor1)
     r = pipeline_runner_factory(p)
@@ -90,7 +71,7 @@ def test_task_with_default_values_6(pipeline_runner_factory: PipelineRunnerFacto
     assert str(ex.value) == "Missing pipeline inputs: {'a'}."
 
 
-def test_combined_pipeline_with_default_values_1(
+def test_combined_pipeline_with_default_values(
     pipeline_runner_factory: PipelineRunnerFactory,
 ) -> None:
     p1 = Task(Processor1, config=dict(a=10))
@@ -113,36 +94,10 @@ def test_combined_pipeline_with_default_values_1(
     assert o.d.p1 == "10,aaa,ccc"
     assert o.d.p2 == "kkk"
 
-
-def test_combined_pipeline_with_default_values_2(
-    pipeline_runner_factory: PipelineRunnerFactory,
-) -> None:
-    p1 = Task(Processor1, config=dict(a=10))
-    p2 = Task(Processor2)
-
-    p = CombinedPipeline(
-        [p1, p2],
-        name="p",
-        outputs={"d.p1": p1.outputs.d, "d.p2": p2.outputs.d},
-    )
-
-    assert set(p.inputs) == set(("b", "c"))
-    assert set(p.out_collections) == set(("d",))
-    assert set(p.out_collections.d) == set(("p1", "p2"))
-
-    r = pipeline_runner_factory(p)
-
     # Setting b in the runner inputs.  All processors should use the given value.
     o = r(dict(c="ccc", b="bbb"))
     assert o.d.p1 == "10,bbb,ccc"
     assert o.d.p2 == "bbb"
-
-
-def test_combined_pipeline_with_default_values_3(
-    pipeline_runner_factory: PipelineRunnerFactory,
-) -> None:
-    p1 = Task(Processor1, config=dict(a=10))
-    p2 = Task(Processor2)
 
     # Adding a processor with no default value for b.
     p3 = Task(Processor3)
@@ -160,34 +115,10 @@ def test_combined_pipeline_with_default_values_3(
     assert o.d.p2 == "bbb"
     assert o.d.p3 == "bbb"
 
-
-def test_combined_pipeline_with_default_values_4(
-    pipeline_runner_factory: PipelineRunnerFactory,
-) -> None:
-    p1 = Task(Processor1, config=dict(a=10))
-    p2 = Task(Processor2)
-
-    # Adding a processor with no default value for b.
-    p3 = Task(Processor3)
-    p = CombinedPipeline(
-        [p1, p2, p3],
-        name="p",
-        outputs={"d.p1": p1.outputs.d, "d.p2": p2.outputs.d, "d.p3": p3.outputs.d},
-    )
-
-    r = pipeline_runner_factory(p)
-
     # Not setting b.  There should be an error b/c if even one processor needs it, it is required.
     with pytest.raises(ValueError) as ex:
         o = r(dict(c="ccc"))
     assert str(ex.value) == "Missing pipeline inputs: {'b'}."
-
-
-def test_combined_pipeline_with_default_values_5(
-    pipeline_runner_factory: PipelineRunnerFactory,
-) -> None:
-    p1 = Task(Processor1, config=dict(a=10))
-    p2 = Task(Processor2)
 
     # Providing the value for p3's b in the config.
     p3 = Task(Processor3, config=dict(b="mmm"))
@@ -204,23 +135,6 @@ def test_combined_pipeline_with_default_values_5(
     assert o.d.p2 == "kkk"
     assert o.d.p3 == "mmm"
 
-
-def test_combined_pipeline_with_default_values_6(
-    pipeline_runner_factory: PipelineRunnerFactory,
-) -> None:
-    p1 = Task(Processor1, config=dict(a=10))
-    p2 = Task(Processor2)
-
-    # Providing the value for p3's b in the config.
-    p3 = Task(Processor3, config=dict(b="mmm"))
-    p = CombinedPipeline(
-        [p1, p2, p3],
-        name="p",
-        outputs={"d.p1": p1.outputs.d, "d.p2": p2.outputs.d, "d.p3": p3.outputs.d},
-    )
-
-    # Not setting b, p1 an p2 should use their defaults, p3 should use the config value.
-    r = pipeline_runner_factory(p)
     # Setting b in the runner inputs.  p1 and p2 should use the given value, p3 should use its
     # config value.
     o = r(dict(c="ccc", b="bbb"))

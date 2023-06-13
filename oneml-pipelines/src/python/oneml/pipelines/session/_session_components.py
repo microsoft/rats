@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Callable
 
 from oneml.io._pipeline_data import IPipelineDataManager
 from oneml.pipelines.session import PipelineSessionClientFactory, PipelineSessionPluginClient
@@ -25,12 +26,11 @@ class PipelineSessionComponents:
         return PipelineSessionClientFactory(
             services=self.services_registry(),
             pipeline_data_client=self._pipeline_data_client,
-            session_plugin_client=self.session_plugin_client(),
         )
 
     @lru_cache()
-    def session_plugin_client(self) -> PipelineSessionPluginClient:
-        return PipelineSessionPluginClient()
+    def session_plugin_client_provider(self) -> Callable[[], PipelineSessionPluginClient]:
+        return PipelineSessionPluginClient
 
     def services_registry(self) -> ServicesRegistry:
         return self._services

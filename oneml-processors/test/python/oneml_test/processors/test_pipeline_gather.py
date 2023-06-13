@@ -33,7 +33,7 @@ def report() -> Pipeline:
     return Task(ReportGenerator, "report")
 
 
-def test_gather_inputs_to_single_output1(
+def test_gather_inputs_to_single_output(
     pipeline_runner_factory: PipelineRunnerFactory, acc1: Pipeline, acc2: Pipeline
 ) -> None:
     # OutEntry | OutEntry -> OutEntry
@@ -51,10 +51,6 @@ def test_gather_inputs_to_single_output1(
     assert set(outputs) == set(("acc",))
     assert outputs.acc == (0.0, 0.0)
 
-
-def test_gather_inputs_to_single_output2(
-    pipeline_runner_factory: PipelineRunnerFactory, acc1: Pipeline, acc2: Pipeline
-) -> None:
     p = CombinedPipeline(
         pipelines=[acc1, acc2],
         name="p",
