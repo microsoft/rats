@@ -2,17 +2,15 @@ import logging
 
 from immunodata.immunocli.next import BasicCliPlugin
 
-from ..services import OnemlHabitatsServices
-from ..services._locate_habitats_cli_di_container import LocateHabitatsCliDiContainers
-from ._di_container import OnemlHabitatsDiContainer
+from ._di_container import OnemlHabitatsCliDiContainer
 
 logger = logging.getLogger(__name__)
 
 
 class OnemlHabitatsCliPlugin(BasicCliPlugin[None]):
-    _container: OnemlHabitatsDiContainer
+    _container: OnemlHabitatsCliDiContainer
 
     def __post_init__(self) -> None:
-        self._container = OnemlHabitatsDiContainer(app=self.app)
+        self._container = OnemlHabitatsCliDiContainer(app=self.app)
 
-        self.app.register_container(OnemlHabitatsDiContainer, self._container)
+        self.app.register_container(OnemlHabitatsCliDiContainer, self._container)

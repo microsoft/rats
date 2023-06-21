@@ -76,6 +76,19 @@ jobs:
             HELM_FLAGS="--release"
         fi
 
+        # kubelogin
+        KUBELOGIN_VERSION="v0.0.30"
+        KUBERNETES_CLUSTER="immunodata-v2"
+        RESOURCE_GROUP="immunodata.aks"
+
+        set -eux && sudo apt-get update && sudo apt-get install wget && sudo apt-get install unzip && \
+        sudo wget https://github.com/Azure/kubelogin/releases/download/${KUBELOGIN_VERSION}/kubelogin-linux-amd64.zip && \
+        sudo unzip -j kubelogin-linux-amd64.zip "bin/linux_amd64/kubelogin" -d "/usr/local/bin" && \
+        sudo rm kubelogin-linux-amd64.zip
+
+        az aks get-credentials --resource-group $RESOURCE_GROUP --name $KUBERNETES_CLUSTER
+        kubelogin convert-kubeconfig -l azurecli
+   
         # run tekton
         tkn pipeline start \
             --namespace ci-builds \
@@ -91,7 +104,7 @@ jobs:
             -p "driver-component=${{ parameters.driverComponent }}" \
             -p "version=$BUILD_VERSION" \
             -p "helm-flags=$HELM_FLAGS"
-
+        
         # ensure the job is actually done (Succeeded or Failed or Cancelled), then
         # ensure devops task return code matches whether the tekton task succeeded or failed
         # the `tkn task start` command above will exit with a `0` even when the task fails

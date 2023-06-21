@@ -11,10 +11,11 @@ from oneml.pipelines.session import (
     PipelineSessionState,
     PipelineSessionStateClient,
 )
+from oneml.services._context import ContextClient
 
 
 class TestBasicPipelineSessionFrameCommands:
-
+    _context_client: ContextClient
     _node_client: PipelineNodeClient
     _session_state_client: PipelineSessionStateClient
     _node_state_client: PipelineNodeStateClient
@@ -26,6 +27,7 @@ class TestBasicPipelineSessionFrameCommands:
     _executed_nodes: List[PipelineNode]
 
     def setup_method(self) -> None:
+        self._context_client = ContextClient()
         self._node_client = PipelineNodeClient()
         self._session_state_client = PipelineSessionStateClient()
         self._node_state_client = PipelineNodeStateClient()
@@ -33,6 +35,7 @@ class TestBasicPipelineSessionFrameCommands:
         self._node_executable_client = PipelineNodeExecutablesClient()
 
         self._frame_commands = BasicPipelineSessionFrameCommands(
+            context_client=self._context_client,
             session_state_client=self._session_state_client,
             node_state_client=self._node_state_client,
             node_dependencies_client=self._node_dependencies_client,

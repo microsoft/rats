@@ -34,6 +34,7 @@ oneml-pipelines = "*"
 oneml-processors = "*"
 pandas = "*"
 python = ">=3.8.10,<3.11"
+pandas-stubs = "^2.0.2.230605"
 
 [tool.poetry.extras]
 dev = []
@@ -57,6 +58,9 @@ types-urllib3 = "*"
 
 [tool.poetry.plugins."immunocli.plugins"]
 "oneml-habitats" = "oneml.habitats.immunocli._plugin:OnemlHabitatsCliPlugin.factory"
+
+[tool.poetry.plugins."oneml.app_plugins"]
+"oneml.habitats-plugin" = "oneml.habitats.plugin:OnemlHabitatsPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

@@ -25,12 +25,12 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
-immunodata-cli = "^0.47.11"
-immunodata-core = "^0.47.11"
-immunodata-datasets = "^0.47.11"
-immunodata-devops = "^0.47.11"
-immunodata-docslib = "^0.47.11"
-immunodata-workflows = "^0.47.11"
+immunodata-cli = "^0.48.2"
+immunodata-core = "^0.48.2"
+immunodata-datasets = "^0.48.2"
+immunodata-devops = "^0.48.2"
+immunodata-docslib = "^0.48.2"
+immunodata-workflows = "^0.48.2"
 
 [tool.poetry.extras]
 dev = []

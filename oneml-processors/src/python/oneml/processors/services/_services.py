@@ -1,15 +1,17 @@
-# type: ignore
-from typing import NamedTuple
+from oneml.services import ServiceId, scoped_service_ids
 
-from oneml.pipelines.session import ServiceId
-
-
-class _Services(NamedTuple):
-    GetActiveNodeKey: ServiceId[str]
-    SessionId: ServiceId[str]
+from ..dag import PipelineSessionProvider
+from ..ux import PipelineRunnerFactory
+from ._default_port_mapper import DefaultTypeLocalRWMapper
 
 
-OnemlProcessorServices = _Services(
-    GetActiveNodeKey=ServiceId("oneml-processor:get-active-node-key"),
-    SessionId=ServiceId("oneml-processors:session-id"),
-)
+@scoped_service_ids
+class OnemlProcessorsServices:
+    DEFAULT_TYPE_RW_MAPPER = ServiceId[DefaultTypeLocalRWMapper]("default-type-rw-mapper")
+    PIPELINE_SESSION_PROVIDER = ServiceId[PipelineSessionProvider]("pipeline-session-provider")
+    PIPELINE_RUNNER_FACTORY = ServiceId[PipelineRunnerFactory]("pipeline-runner-factory")
+
+
+@scoped_service_ids
+class OnemlProcessorServiceGroups:
+    pass

@@ -36,10 +36,7 @@ class PipelineBuilderClient(
 ):
     _session_components: PipelineSessionComponents
 
-    def __init__(
-        self,
-        session_components: PipelineSessionComponents,
-    ) -> None:
+    def __init__(self, session_components: PipelineSessionComponents) -> None:
         self._session_components = session_components
 
     def add_nodes(self, nodes: Iterable[PipelineNode]) -> None:
@@ -66,8 +63,8 @@ class PipelineBuilderClient(
 
     def build_session(self) -> PipelineSessionClient:
         return self.get_session_client_factory().get_instance(
-            self.build(),
-            self.get_session_plugin_client())
+            self.build(), self.get_session_plugin_client()
+        )
 
     def build(self) -> PipelineClient:
         return self.get_dag_client().build()

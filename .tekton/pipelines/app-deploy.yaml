@@ -66,7 +66,7 @@ spec:
         params:
           - name: docker-image-app-builder
             type: string
-            default: immunodata.azurecr.io/immunodata-app-builder:2023-03-16.01-28-22
+            default: immunodata.azurecr.io/immunodata-app-builder:2023-06-16.14-08-17
             description: The docker image for the app builder.
           - name: component
             type: string
@@ -89,7 +89,6 @@ spec:
 
               export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=$DEVOPS_PYPI_PW
 
-              export PIPENV_VENV_IN_PROJECT=t
               export PYENV_SHELL=bash
               export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
               export POETRY_DYNAMIC_VERSIONING_BYPASS=0.0.0
@@ -174,7 +173,6 @@ spec:
               export APP_PATH="${PROJECT_PATH}/${APP_NAME}"
               export PATH="$PWD/.venv/bin:$PATH"
 
-              export PIPENV_VENV_IN_PROJECT=t
               export PYENV_SHELL=bash
               export SETUPTOOLS_SCM_PRETEND_VERSION=0.0.0
               export POETRY_DYNAMIC_VERSIONING_BYPASS=0.0.0

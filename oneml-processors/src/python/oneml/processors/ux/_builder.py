@@ -2,17 +2,32 @@ from __future__ import annotations
 
 from collections import ChainMap
 from functools import reduce
+from itertools import chain
 from typing import Any, Mapping, Sequence, TypeAlias, TypeVar, final
 
 from hydra_zen import hydrated_dataclass
-from itertools import chain
 from omegaconf import MISSING
 
-from oneml.pipelines.session import ServiceId
+from oneml.services import ServiceId
+
+from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IProcess, ProcessorProps
+from ..utils import frozendict
 from ._ops import DependencyOp
-from ._pipeline import (IOCollections, InCollections, InEntry, InParameter, Inputs, OutCollections,
-                        OutEntry,
-                        OutParameter, Outputs, ParamCollection, ParamEntry, Pipeline, PipelineConf)
+from ._pipeline import (
+    InCollections,
+    InEntry,
+    InParameter,
+    Inputs,
+    IOCollections,
+    OutCollections,
+    OutEntry,
+    OutParameter,
+    Outputs,
+    ParamCollection,
+    ParamEntry,
+    Pipeline,
+    PipelineConf,
+)
 from ._utils import (
     _input_annotation,
     _parse_dependencies_to_list,
@@ -20,8 +35,6 @@ from ._utils import (
     _processor_type,
     _return_annotation,
 )
-from ..dag import ComputeReqs, DAG, DagDependency, DagNode, IProcess, ProcessorProps
-from ..utils import frozendict
 
 PE = TypeVar("PE", bound=ParamEntry[Any])
 PC = TypeVar("PC", bound=ParamCollection[Any])

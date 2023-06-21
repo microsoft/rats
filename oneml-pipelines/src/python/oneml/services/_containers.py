@@ -11,21 +11,18 @@ Tco_ServiceType = TypeVar("Tco_ServiceType", covariant=True)
 
 
 class ServiceProvider(Protocol[Tco_ServiceType]):
-
     @abstractmethod
     def __call__(self) -> Tco_ServiceType:
         pass
 
 
 class ServiceGroupProvider(Protocol[Tco_ServiceType]):
-
     @abstractmethod
     def __call__(self) -> Iterable[Tco_ServiceType]:
         pass
 
 
 class IProvideServices(Protocol):
-
     def get_service(self, service_id: ServiceId[ServiceType]) -> ServiceType:
         return self.get_service_provider(service_id)()
 
@@ -51,9 +48,8 @@ class IProvideServices(Protocol):
 
 
 class IDefineServices(Protocol):
-
     def parse_service_container(self, container: Any) -> None:
-        methods = [method for method in dir(container) if method.startswith('_') is False]
+        methods = [method for method in dir(container) if method.startswith("_") is False]
 
         for method_name in methods:
             method = getattr(container, method_name)
@@ -101,7 +97,6 @@ class IManageServices(IProvideServices, IDefineServices, Protocol):
 
 
 class ServiceFactory(IManageServices):
-
     _providers: Dict[ServiceId[Any], ServiceProvider[Any]]
     # TODO: would this be better as a mapping of service_id to a list of service_ids?
     #       that would require all groups to be made of existing services
@@ -111,7 +106,9 @@ class ServiceFactory(IManageServices):
         self._providers = {}
         self._groups = {}
 
-    def get_service_provider(self, service_id: ServiceId[ServiceType]) -> ServiceProvider[ServiceType]:
+    def get_service_provider(
+        self, service_id: ServiceId[ServiceType]
+    ) -> ServiceProvider[ServiceType]:
         # this lambda defers the checking of this key until the service is actually requested
         return lambda: self._providers[service_id]()
 
@@ -144,13 +141,14 @@ class ServiceFactory(IManageServices):
 
 
 class ServiceContainer(IProvideServices):
-
     _factory: IProvideServices
 
     def __init__(self, factory: IProvideServices) -> None:
         self._factory = factory
 
-    def get_service_provider(self, service_id: ServiceId[ServiceType]) -> ServiceProvider[ServiceType]:
+    def get_service_provider(
+        self, service_id: ServiceId[ServiceType]
+    ) -> ServiceProvider[ServiceType]:
         return lambda: self.get_service(service_id)
 
     @lru_cache()
@@ -159,14 +157,13 @@ class ServiceContainer(IProvideServices):
 
     @lru_cache()
     def get_service_group_providers(
-            self,
-            group_id: ServiceId[ServiceType],
+        self,
+        group_id: ServiceId[ServiceType],
     ) -> Iterable[ServiceProvider[ServiceType]]:
         return self._factory.get_service_group_providers(group_id)
 
 
 class ContextualServiceContainer(IProvideServices, Generic[SettingType]):
-
     _container: IProvideServices
     _context: SettingProvider[SettingType]
 
@@ -174,15 +171,17 @@ class ContextualServiceContainer(IProvideServices, Generic[SettingType]):
         self._container = container
         self._context = context
 
-    def get_service_provider(self, service_id: ServiceId[ServiceType]) -> ServiceProvider[ServiceType]:
+    def get_service_provider(
+        self, service_id: ServiceId[ServiceType]
+    ) -> ServiceProvider[ServiceType]:
         return lambda: self.get_service(service_id)
 
     def get_service(self, service_id: ServiceId[ServiceType]) -> ServiceType:
         return self._get_cached(service_id, self._context())
 
     def get_service_group_providers(
-            self,
-            group_id: ServiceId[ServiceType],
+        self,
+        group_id: ServiceId[ServiceType],
     ) -> Iterable[ServiceProvider[ServiceType]]:
         return self._get_group_providers_cached(group_id, self._context())
 
@@ -196,9 +195,9 @@ class ContextualServiceContainer(IProvideServices, Generic[SettingType]):
 
     @lru_cache()
     def _get_group_providers_cached(
-            self,
-            group_id: ServiceId[ServiceType],
-            context_value: SettingType,
+        self,
+        group_id: ServiceId[ServiceType],
+        context_value: SettingType,
     ) -> Iterable[ServiceProvider[ServiceType]]:
         return self._container.get_service_group_providers(group_id)
 
@@ -211,13 +210,14 @@ capabilities.
 
 
 class TypedServiceContainer(Generic[ServiceType]):
-
     _container: IProvideServices
 
     def __init__(self, container: IProvideServices) -> None:
         self._container = container
 
-    def get_service_group_providers(self, group_name: str) -> Iterable[ServiceProvider[ServiceType]]:
+    def get_service_group_providers(
+        self, group_name: str
+    ) -> Iterable[ServiceProvider[ServiceType]]:
         return self._container.get_service_group_providers(ServiceId[ServiceType](group_name))
 
     def get_service_provider(self, service_name: str) -> ServiceProvider[ServiceType]:
@@ -228,7 +228,6 @@ class TypedServiceContainer(Generic[ServiceType]):
 
 
 class FilteredServiceContainer(IProvideServices):
-
     _container: IProvideServices
     _services: Iterable[ServiceId[Any]]
 
@@ -245,7 +244,9 @@ class FilteredServiceContainer(IProvideServices):
 
         return self._container.get_service_group_providers(group_id)
 
-    def get_service_provider(self, service_id: ServiceId[ServiceType]) -> ServiceProvider[ServiceType]:
+    def get_service_provider(
+        self, service_id: ServiceId[ServiceType]
+    ) -> ServiceProvider[ServiceType]:
         if service_id not in self._services:
             raise ValueError(f"Service {service_id} not found")
 

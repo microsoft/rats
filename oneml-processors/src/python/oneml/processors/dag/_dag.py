@@ -6,10 +6,11 @@ from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Sequence, final
 
-from oneml.pipelines.session import ServiceId
-from ._processor import Annotations, IProcess, InProcessorParam, OutProcessorParam
+from oneml.services import ServiceId
+
 from ..utils._frozendict import frozendict
 from ..utils._orderedset import orderedset
+from ._processor import Annotations, InProcessorParam, IProcess, OutProcessorParam
 
 logger = logging.getLogger(__name__)
 

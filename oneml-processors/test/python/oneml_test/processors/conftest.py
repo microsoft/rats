@@ -4,9 +4,8 @@ import pytest
 from hydra.core.config_store import ConfigStore
 
 from oneml.app import OnemlApp
-from oneml.processors import PipelineRunnerFactory
+from oneml.processors import OnemlProcessorsServices, PipelineRunnerFactory
 from oneml.processors.dag import PipelineSessionProvider
-from oneml.processors.plugin import OnemlProcessorsServices
 from oneml.processors.schemas import register_configs
 from oneml.processors.ux import register_resolvers
 

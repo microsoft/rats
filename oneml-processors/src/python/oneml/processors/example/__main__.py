@@ -1,8 +1,8 @@
 from oneml.app import OnemlApp, OnemlAppServices
-from oneml.pipelines.session._session_client import PipelineSessionClient
+from oneml.pipelines.session import PipelineSessionClient
 from oneml.processors import PipelineBuilder, PipelineSessionProvider
 from oneml.processors.example._processors import A, B, C, D
-from oneml.processors.plugin import OnemlProcessorsServices
+from oneml.processors.services import OnemlProcessorsServices
 
 
 class ExamplePipeline:

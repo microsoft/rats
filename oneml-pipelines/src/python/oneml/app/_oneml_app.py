@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import uuid
 from functools import lru_cache
-from typing import Iterable, NamedTuple
+from typing import Iterable
 
 from oneml.services import (
     IManageServices,
@@ -13,21 +13,15 @@ from oneml.services import (
     ServiceProvider,
     ServiceType,
 )
-from oneml.services._context import ContextId
 
-from ._oneml_app_di_contianer import OnemlAppDiContainer, OnemlAppServices
-from ._oneml_app_services import OnemlAppServiceGroups
+from ._oneml_app_di_contianer import OnemlAppDiContainer
+from ._oneml_app_services import OnemlAppServiceGroups, OnemlAppServices
+from ._structs import PipelineContext
 
 logger = logging.getLogger(__name__)
 
 
-class PipelineContext(NamedTuple):
-    id: str
-    name: str
-
-
 class OnemlApp(IManageServices):
-
     _app_factory: ServiceFactory
     _app_container: ServiceContainer
 
@@ -59,14 +53,15 @@ class OnemlApp(IManageServices):
 
     def execute_pipeline(self, name: str) -> None:
         context_client = self.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
-        context_id = ContextId[PipelineContext]("pipeline")
         context_value = PipelineContext(id=str(uuid.uuid4()), name=name)
 
-        with context_client.open_context(context_id, context_value):
+        with context_client.open_context(OnemlAppServices.PIPELINE_CONTEXT_ID, context_value):
             logger.debug(f"executing oneml pipeline: {context_value}")
             self._initialize_pipeline_plugins()
             pipeline_registry = self.get_service(OnemlAppServices.PIPELINE_REGISTRY)
-            pipeline_registry.create_session(name).run()
+            # TODO: exposing the PipelineSessionClient directly is probably not a good idea
+            session = pipeline_registry.create_session(name)
+            session.run()
 
     @lru_cache()  # caching so we only initialize plugins once even if we run many pipelines
     def initialize_app_plugins(self) -> None:

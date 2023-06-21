@@ -30,7 +30,6 @@ steps:
       export PYENV_SHELL=bash
 
       # Make sure the venv directories exists!
-      mkdir -p .tmp/docker.virtualenvs.pipenv
       mkdir -p .tmp/docker.virtualenvs.poetry
 
       tmpfile=$(mktemp)
@@ -38,6 +37,7 @@ steps:
       echo "set -eux" >> $tmpfile
       # We need to add the mounted directory to git's safelist to use git operations
       echo "git config --global --add safe.directory /home/vsts/work/1/s" >> $tmpfile
+      echo "kubelogin convert-kubeconfig -l azurecli" >> $tmpfile
       command_var='${{ parameters.command }}'
       printf "%s" "$command_var" >> "$tmpfile"
 
@@ -51,13 +51,14 @@ steps:
         -e BUILD_BRANCH \
         -e IMMUNODATA_USER_EMAIL=azure-devops@managed-identity \
         -e KUBECONFIG \
+        -e RPY2_CFFI_MODE=ABI \
         -v $PWD:$PWD \
-        -v $PWD/.tmp/docker.virtualenvs.pipenv:/root/.local/share/virtualenvs \
         -v $PWD/.tmp/docker.virtualenvs.poetry:/root/.cache/pypoetry/virtualenvs \
         -v $DOCKER_CONFIG:/root/.docker:ro \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v $HOME/.azure:/root/.azure \
-        -v $KUBECONFIG:$KUBECONFIG:ro \
+        -v $HOME/.kube/cache:/root/.kube/cache \
+        -v $KUBECONFIG:$KUBECONFIG \
         -v $(PYPIRC_PATH):/root/.pypirc:ro \
         -v $tmpfile:/run_script.sh \
         -w $PWD \
@@ -65,6 +66,7 @@ steps:
         /run_script.sh"
 
       echo "Running: $CMD"
-
+      
       exec $CMD
+
   displayName: 'Builder: ${{ parameters.name }}'

@@ -9,7 +9,6 @@ from ._executable import (
     IExecutable,
     NoOpExecutable,
 )
-
 from ._node_execution import (
     IExecutePipelineNodes,
     ILocatePipelineNodeExecutables,
@@ -25,7 +24,7 @@ from ._node_state import (
     PipelineNodeState,
     PipelineNodeStateClient,
 )
-from ._services import ServiceId, ServicesRegistry
+from ._services import OnemlSessionServices
 from ._session_client import (
     IPipelineSession,
     IRunnablePipelineSession,
@@ -33,6 +32,8 @@ from ._session_client import (
     PipelineSessionClient,
 )
 from ._session_client_factory import PipelineSessionClientFactory
+from ._session_components import PipelineSessionComponents
+from ._session_data import SessionDataClient
 from ._session_frame import (
     BasicPipelineSessionFrameCommands,
     IPipelineSessionFrame,
@@ -93,6 +94,7 @@ __all__ = [
     "PipelineSessionPluginClient",
     "CallableExecutable",
     "PipelineSessionClient",
-    "ServiceId",
-    "ServicesRegistry",
+    "SessionDataClient",
+    "PipelineSessionComponents",
+    "OnemlSessionServices",
 ]

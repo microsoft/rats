@@ -23,7 +23,6 @@ parameters:
   - name: python_dependency_tool
     type: string
     values:
-    - "pipenv"
     - "poetry"
 
 jobs:

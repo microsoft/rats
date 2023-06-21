@@ -2,7 +2,7 @@ import logging
 from abc import abstractmethod
 from typing import Protocol, Tuple
 
-from oneml.pipelines.dag import IManagePipelineNodeDependencies
+from oneml.pipelines.dag import IManagePipelineNodeDependencies, PipelineNodeId
 from oneml.pipelines.session._executable import IExecutable
 from oneml.pipelines.session._node_execution import IExecutePipelineNodes
 from oneml.pipelines.session._node_state import IManagePipelineNodeState, PipelineNodeState
@@ -10,6 +10,9 @@ from oneml.pipelines.session._session_state import (
     IManagePipelineSessionState,
     PipelineSessionState,
 )
+from oneml.services._context import ContextClient
+
+from ._context import OnemlSessionContextIds
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +24,7 @@ class IPipelineSessionFrame(Protocol):
 
 
 class BasicPipelineSessionFrameCommands:
-
+    _context_client: ContextClient
     _session_state_client: IManagePipelineSessionState
     _node_state_client: IManagePipelineNodeState
     _node_dependencies_client: IManagePipelineNodeDependencies
@@ -29,11 +32,13 @@ class BasicPipelineSessionFrameCommands:
 
     def __init__(
         self,
+        context_client: ContextClient,
         session_state_client: IManagePipelineSessionState,
         node_state_client: IManagePipelineNodeState,
         node_dependencies_client: IManagePipelineNodeDependencies,
         node_executables_client: IExecutePipelineNodes,
     ):
+        self._context_client = context_client
         self._session_state_client = session_state_client
         self._node_state_client = node_state_client
         self._node_dependencies_client = node_dependencies_client
@@ -62,10 +67,13 @@ class BasicPipelineSessionFrameCommands:
 
         node = pending[0]
 
-        logger.debug(f"Executing node: {node}")
-        self._node_state_client.set_node_state(node, PipelineNodeState.RUNNING)
-        self._node_executables_client.execute_node(node)
-        self._node_state_client.set_node_state(node, PipelineNodeState.COMPLETED)
+        with self._context_client.open_context(
+            OnemlSessionContextIds.NODE_ID, PipelineNodeId(node.key)
+        ):
+            logger.debug(f"Executing node: {node}")
+            self._node_state_client.set_node_state(node, PipelineNodeState.RUNNING)
+            self._node_executables_client.execute_node(node)
+            self._node_state_client.set_node_state(node, PipelineNodeState.COMPLETED)
 
         # TODO: put this threading logic somewhere
         # thread = Thread(target=self._execute_node, args=(node,))

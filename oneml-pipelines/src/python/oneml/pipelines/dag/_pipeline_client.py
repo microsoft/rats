@@ -17,6 +17,7 @@ class PipelineClient:
         self._node_client = node_client
         self._node_dependencies_client = node_dependencies_client
         self._data_dependencies_client = data_dependencies_client
+        # self._node_ports_client = node_ports_client
 
     def node_client(self) -> IManagePipelineNodes:
         return self._node_client

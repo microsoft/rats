@@ -1,39 +1,51 @@
 from functools import lru_cache
 from typing import Callable
 
-from oneml.io._pipeline_data import IPipelineDataManager
-from oneml.pipelines.session import PipelineSessionClientFactory, PipelineSessionPluginClient
-from oneml.pipelines.session._services import ServicesRegistry
+from oneml.services import IProvideServices
+from oneml.services._context import ContextClient
+
+from ._running_session_registry import RunningSessionRegistry
+from ._session_client_factory import PipelineSessionClientFactory
+from ._session_data import SessionDataClient
+from ._session_plugin_client import PipelineSessionPluginClient
 
 
 class PipelineSessionComponents:
     # TODO: maybe this should be our main app client class
     #       we need to make sure a factory actually creates proper independent sessions
 
-    _services: ServicesRegistry
-    _pipeline_data_client: IPipelineDataManager
+    _running_session_registry: RunningSessionRegistry
+    _services: IProvideServices
+    _context_client: ContextClient
+    _session_data_client: SessionDataClient
 
     def __init__(
         self,
-        services: ServicesRegistry,
-        pipeline_data_client: IPipelineDataManager,
+        running_session_registry: RunningSessionRegistry,
+        services: IProvideServices,
+        context_client: ContextClient,
+        session_data_client: SessionDataClient,
     ) -> None:
+        self._running_session_registry = running_session_registry
         self._services = services
-        self._pipeline_data_client = pipeline_data_client
+        self._context_client = context_client
+        self._session_data_client = session_data_client
 
     @lru_cache()
     def session_client_factory(self) -> PipelineSessionClientFactory:
         return PipelineSessionClientFactory(
+            running_session_registry=self._running_session_registry,
             services=self.services_registry(),
-            pipeline_data_client=self._pipeline_data_client,
+            context_client=self._context_client,
+            session_data_client=self.session_data_client(),
         )
 
     @lru_cache()
     def session_plugin_client_provider(self) -> Callable[[], PipelineSessionPluginClient]:
         return PipelineSessionPluginClient
 
-    def services_registry(self) -> ServicesRegistry:
+    def services_registry(self) -> IProvideServices:
         return self._services
 
-    def pipeline_data_client(self) -> IPipelineDataManager:
-        return self._pipeline_data_client
+    def session_data_client(self) -> SessionDataClient:
+        return self._session_data_client

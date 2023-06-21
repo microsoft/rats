@@ -8,7 +8,7 @@ from ..services import OnemlHabitatsServices
 from ..services._locate_habitats_cli_di_container import LocateHabitatsCliDiContainers
 
 
-class OnemlHabitatsDiContainer:
+class OnemlHabitatsCliDiContainer:
     _app: ILocateDiContainers
 
     def __init__(self, app: ILocateDiContainers) -> None:

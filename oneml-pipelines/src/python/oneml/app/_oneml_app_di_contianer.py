@@ -1,12 +1,21 @@
 import logging
 from pathlib import Path
-from typing import Union
+from typing import Any, Union
 
-from oneml.io._pipeline_data import PipelineDataMapper
+from oneml.io import (
+    FilesystemUriFormatter,
+    IFormatUri,
+    InMemoryRW,
+    InMemoryUriFormatter,
+    IReadAndWriteData,
+    OnemlIoServices,
+    PickleLocalRW,
+)
 from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
 from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
 from oneml.pipelines.registry._pipeline_registry import PipelineRegistry
-from oneml.pipelines.session import ServicesRegistry
+from oneml.pipelines.session import OnemlSessionServices, SessionDataClient
+from oneml.pipelines.session._running_session_registry import RunningSessionRegistry
 from oneml.pipelines.session._session_components import PipelineSessionComponents
 from oneml.services import IProvideServices, group, provider
 from oneml.services._context import ContextClient
@@ -18,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 class OnemlAppDiContainer:
-
     _app: IProvideServices
 
     def __init__(self, app: IProvideServices) -> None:
@@ -36,19 +44,41 @@ class OnemlAppDiContainer:
             session_components=self.pipeline_session_components(),
         )
 
-    @provider(OnemlAppServices.PIPELINE_SESSION_COMPONENTS)
+    @provider(OnemlSessionServices.PIPELINE_SESSION_COMPONENTS)
     def pipeline_session_components(self) -> PipelineSessionComponents:
         # TODO: I think we can delete this library and use the service containers
         return PipelineSessionComponents(
+            running_session_registry=self._app.get_service(
+                OnemlSessionServices.RUNNING_SESSION_REGISTRY
+            ),
             services=self._app.get_service(OnemlAppServices.SERVICES_REGISTRY),
-            pipeline_data_client=self._app.get_service(OnemlAppServices.PIPELINE_DATA_MANAGER),
+            context_client=self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT),
+            session_data_client=self._app.get_service(OnemlSessionServices.SESSION_DATA_CLIENT),
         )
 
-    @provider(OnemlAppServices.PIPELINE_DATA_MANAGER)
-    def pipeline_data_client(self) -> PipelineDataMapper:
-        # TODO: make this return a concrete type that knows of both memory and blob
-        #       then change the return type of the method.
-        return PipelineDataMapper()
+    @provider(OnemlSessionServices.RUNNING_SESSION_REGISTRY)
+    def running_session_registry(self) -> RunningSessionRegistry:
+        return RunningSessionRegistry()
+
+    @provider(OnemlSessionServices.SESSION_DATA_CLIENT)
+    def session_data_client(self) -> SessionDataClient:
+        return SessionDataClient(self._app)
+
+    @provider(OnemlIoServices.INMEMORY_URI_FORMATTER)
+    def inmemory_uri_formatter(self) -> IFormatUri[Any]:
+        return InMemoryUriFormatter()
+
+    @provider(OnemlIoServices.FILESYSTEM_URI_FORMATTER)
+    def filesystem_uri_formatter(self) -> IFormatUri[Any]:
+        return FilesystemUriFormatter(path=Path("../.tmp/"))
+
+    @provider(OnemlIoServices.INMEMORY_RW)
+    def inmemory_rw(self) -> IReadAndWriteData[Any]:
+        return InMemoryRW()
+
+    @provider(OnemlIoServices.PICKLE_LOCAL_RW)
+    def pickle_local_rw(self) -> IReadAndWriteData[object]:
+        return PickleLocalRW()
 
     # @provider(OnemlAppServices.REMOTE_EXECUTABLE_FACTORY)
     # def remote_executable_factory(self) -> RemoteExecutableFactory:
@@ -71,8 +101,8 @@ class OnemlAppDiContainer:
     #     return PipelineSettingsClient()
 
     @provider(OnemlAppServices.SERVICES_REGISTRY)
-    def services_registry(self) -> ServicesRegistry:
-        return ServicesRegistry()
+    def services_registry(self) -> IProvideServices:
+        return self._app
 
     @provider(OnemlAppServices.PIPELINE_REGISTRY)
     def session_registry(self) -> PipelineRegistry:

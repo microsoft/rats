@@ -1,3 +1,3 @@
-from ._di_container import OnemlHabitatsDiContainer
+from ._di_container import OnemlHabitatsCliDiContainer
 
-__all__ = ["OnemlHabitatsDiContainer"]
+__all__ = ["OnemlHabitatsCliDiContainer"]

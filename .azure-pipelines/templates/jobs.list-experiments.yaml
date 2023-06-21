@@ -14,7 +14,6 @@ parameters:
   - name: python_dependency_tool
     type: string
     values:
-    - "pipenv"
     - "poetry"
   - name: component
     type: string
@@ -45,13 +44,6 @@ jobs:
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
       component: ${{ parameters.component }}
       isDevBuild: ${{ parameters.isDevBuild }}
-
-  - ${{ if eq(parameters.python_dependency_tool, 'pipenv') }}:
-    - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
-      parameters:
-        builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
-        command: "immunocli-next -vvv ci pipenv-install --component ${{ parameters.component }} --path $PWD"
-        name: Pipenv Install
 
   - ${{ if eq(parameters.python_dependency_tool, 'poetry') }}:
     - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
