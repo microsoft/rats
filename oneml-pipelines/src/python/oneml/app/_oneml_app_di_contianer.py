@@ -14,7 +14,12 @@ from oneml.io import (
 from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
 from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
 from oneml.pipelines.registry._pipeline_registry import PipelineRegistry
-from oneml.pipelines.session import OnemlSessionServices, SessionDataClient
+from oneml.pipelines.session import (
+    ActiveNotKeyProvider,
+    IActiveNotKeyProvider,
+    OnemlSessionServices,
+    SessionDataClient,
+)
 from oneml.pipelines.session._running_session_registry import RunningSessionRegistry
 from oneml.pipelines.session._session_components import PipelineSessionComponents
 from oneml.services import IProvideServices, group, provider
@@ -31,6 +36,12 @@ class OnemlAppDiContainer:
 
     def __init__(self, app: IProvideServices) -> None:
         self._app = app
+
+    @provider(OnemlAppServices.ACTIVE_NODE_KEY_PROVIDER)
+    def active_node_key_provider(self) -> IActiveNotKeyProvider:
+        return ActiveNotKeyProvider(
+            context_client=self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
+        )
 
     @provider(OnemlAppServices.PIPELINE_BUILDER_FACTORY)
     def pipeline_builder_factory(self) -> PipelineBuilderFactory:

@@ -1,3 +1,4 @@
+from ._active_node_key_provider import ActiveNotKeyProvider, IActiveNotKeyProvider
 from ._executable import (
     CallableExecutable,
     ContextType,
@@ -97,4 +98,6 @@ __all__ = [
     "SessionDataClient",
     "PipelineSessionComponents",
     "OnemlSessionServices",
+    "IActiveNotKeyProvider",
+    "ActiveNotKeyProvider",
 ]

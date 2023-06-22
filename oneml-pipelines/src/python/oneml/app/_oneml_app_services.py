@@ -1,5 +1,6 @@
 from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
 from oneml.pipelines.registry._pipeline_registry import PipelineRegistry, PipelineRegistryPlugin
+from oneml.pipelines.session import IActiveNotKeyProvider
 from oneml.services import (
     IManageServices,
     IProvideServices,
@@ -30,6 +31,7 @@ class OnemlAppServices:
     APP_CONTEXT_CLIENT = ServiceId[ContextClient]("app-context-client")
 
     PIPELINE_CONTEXT_ID = ContextId[PipelineContext]("pipeline")
+    ACTIVE_NODE_KEY_PROVIDER = ServiceId[IActiveNotKeyProvider]("active-node-key-provider")
 
 
 @scoped_service_ids

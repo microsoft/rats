@@ -1031,13 +1031,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-cli"
-version = "0.47.11"
+version = "0.48.2"
 description = "The immunocli command line tool and SDK."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_cli-0.47.11-py3-none-any.whl", hash = "sha256:cfa60df6924961e67c5c084fb23e57d8d5a4a4226cb9a06e5bafeb13e3bee0a0"},
+    {file = "immunodata_cli-0.48.2-py3-none-any.whl", hash = "sha256:6d63c7c896418360b75ecaab5581927143140c73331c6bd9e4b4482491bbd280"},
 ]
 
 [package.dependencies]
@@ -1054,13 +1054,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-core"
-version = "0.47.11"
+version = "0.48.2"
 description = "The immunodata dataset libraries and SDK."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_core-0.47.11-py3-none-any.whl", hash = "sha256:adbe2f8848a8df94ef8258ec794f051496150892f04aa3816fb7820cf9781c44"},
+    {file = "immunodata_core-0.48.2-py3-none-any.whl", hash = "sha256:3ecb6445c204a5df34fe221347ba845773cbff3476bb37b4d68bca2ffabc1128"},
 ]
 
 [package.dependencies]
@@ -1086,13 +1086,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-datasets"
-version = "0.47.11"
+version = "0.48.2"
 description = "The immunodata dataset libraries and SDK."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_datasets-0.47.11-py3-none-any.whl", hash = "sha256:429662a5054560227b9b38f67c9cfddd130201aff13e7468a5891401ffe00f18"},
+    {file = "immunodata_datasets-0.48.2-py3-none-any.whl", hash = "sha256:b88e1e007d6a590618d0c48d0974831cb162af9d3460037c783d23196adacaf7"},
 ]
 
 [package.dependencies]
@@ -1110,13 +1110,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-devops"
-version = "0.47.11"
+version = "0.48.2"
 description = "The immunodata devops libraries."
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_devops-0.47.11-py3-none-any.whl", hash = "sha256:4ce47ae1d384c3ca2cb948e4efeea32252ce41b4268753e561026897db4dcd1e"},
+    {file = "immunodata_devops-0.48.2-py3-none-any.whl", hash = "sha256:40e9ec9b60f1ebd8e352f9897bbdeeb2a065ada809c3f3f75af6245a0b339237"},
 ]
 
 [package.dependencies]
@@ -1137,13 +1137,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-docslib"
-version = "0.47.11"
+version = "0.48.2"
 description = ""
 category = "dev"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_docslib-0.47.11-py3-none-any.whl", hash = "sha256:c339c2a64f6435b6e86f6fedfa06693ca11fc6aec5e8d52389c370fefaabcc09"},
+    {file = "immunodata_docslib-0.48.2-py3-none-any.whl", hash = "sha256:c9fb6fd7e82a3b1f2f937de01561d0d3d4c74dcd2c950b0c47a2b4d399434619"},
 ]
 
 [package.dependencies]
@@ -1155,6 +1155,7 @@ immunodata-devops = "*"
 mkdocs = "*"
 mkdocs-awesome-pages-plugin = "*"
 mkdocs-material = "*"
+mkdocs-video = "*"
 pymdown-extensions = "*"
 ratelimit = "*"
 requests = "*"
@@ -1170,13 +1171,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-workflows"
-version = "0.47.11"
+version = "0.48.2"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_workflows-0.47.11-py3-none-any.whl", hash = "sha256:cb244082fd2f06380290f71fdffce1470d43259b633bfbe9770778e012d79b73"},
+    {file = "immunodata_workflows-0.48.2-py3-none-any.whl", hash = "sha256:a1698c3358326be15fb9ba73a6641aa49f6e995b69f9a35a50771237994660a9"},
 ]
 
 [package.dependencies]
@@ -1702,6 +1703,27 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
+name = "mkdocs-video"
+version = "1.5.0"
+description = ""
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "mkdocs-video-1.5.0.tar.gz", hash = "sha256:0defc018f4b7927f8afffc4d8e039c84dfba636dffc5e25e2bfa8d6350bc8eca"},
+    {file = "mkdocs_video-1.5.0-py3-none-any.whl", hash = "sha256:b35613d4dacbac2dfa94d8c2600383cda14ad99a1fa1542b5fc4e9c6d19e9fe1"},
+]
+
+[package.dependencies]
+lxml = ">=4.7.0"
+mkdocs = ">=1.1.0,<2"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
 name = "msal"
 version = "1.22.0"
 description = "The Microsoft Authentication Library (MSAL) for Python library enables your app to access the Microsoft Cloud by supporting authentication of users with Microsoft Azure Active Directory accounts (AAD) and Microsoft Accounts (MSA) using industry standard OAuth2 and OpenID Connect."
@@ -2014,12 +2036,12 @@ files = []
 develop = true
 
 [package.dependencies]
-immunodata-cli = "^0.47.11"
-immunodata-core = "^0.47.11"
-immunodata-datasets = "^0.47.11"
-immunodata-devops = "^0.47.11"
-immunodata-docslib = "^0.47.11"
-immunodata-workflows = "^0.47.11"
+immunodata-cli = "^0.48.2"
+immunodata-core = "^0.48.2"
+immunodata-datasets = "^0.48.2"
+immunodata-devops = "^0.48.2"
+immunodata-docslib = "^0.48.2"
+immunodata-workflows = "^0.48.2"
 
 [package.extras]
 dev = []
@@ -3562,4 +3584,4 @@ dev = []
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "21299c0e1befdc12f6089a36e555885c576187f653bc4927327423e5fc5fa1c3"
+content-hash = "1d0c4dbea86c9bf91b2c12c28e32e6a30207d6f71496f1d2d7e54a85cb139cca"

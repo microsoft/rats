@@ -34,7 +34,7 @@ oneml-pipelines = "*"
 oneml-processors = "*"
 pandas = "*"
 python = ">=3.8.10,<3.11"
-pandas-stubs = "^2.0.2.230605"
+pandas-stubs = "*"
 
 [tool.poetry.extras]
 dev = []
