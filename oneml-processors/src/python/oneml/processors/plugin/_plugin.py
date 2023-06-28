@@ -16,3 +16,5 @@ class OnemlProcessorsPlugin(OnemlAppPlugin):
             app.parse_service_container(di_container)
         else:
             logger.debug("skipping oneml-processors plugin b/c app is not an OnemlApp")
+        register_readers_and_writers = di_container._register_readers_and_writers()
+        register_readers_and_writers.register()

@@ -1,128 +1,181 @@
-# type: ignore
-from collections import ChainMap, defaultdict
-from copy import copy
-from dataclasses import dataclass
-from typing import Any, TypedDict
+from abc import abstractmethod
+from collections import ChainMap
+from typing import Protocol, TypedDict
 
-from oneml.pipelines.dag import PipelineNode, PipelinePort
-
-from ..dag import DAG, DagNode
-from ..services import OnemlProcessorsServices
-from ..utils import frozendict
-from ..ux import OutEntry, Pipeline, PipelineBuilder
-from ._load_fitted_parameter import LoadFittedParameter
+from ..io import IReadFromUrlPipelineBuilder, IWriteToNodeBasedUriPipelineBuilder
+from ..ux import Pipeline, PipelineBuilder
 from ._train_and_eval import TrainAndEvalBuilders
 
 
-@dataclass
-class FittedParameterSourceInformation:
-    node: DagNode
-    port_name: str
-
-
-class PersistFittedEvalPipeline:
-    def __init__(self, type_to_io_manager_mapping: "DefaultDataTypeIOManagerMapper"):
-        self._type_to_io_manager_mapping = type_to_io_manager_mapping
-
-    def _with_persisted_fitted_outputs(self, train_pl: Pipeline) -> Pipeline:
-        ports_producing_fitted = {
-            tuple(entry)[0] for entry in train_pl.out_collections.fitted.values()
-        }
-        nodes_producing_fitted = defaultdict[DagNode, list[str]](list)
-        for port in ports_producing_fitted:
-            node = port.node
-            port_name = port.param.name
-            nodes_producing_fitted[node].append(port_name)
-
-        new_nodes = dict(train_pl._dag.nodes)
-        for node, port_names in nodes_producing_fitted.items():
-            node_props = train_pl._dag.nodes[node]
-            new_io_managers = dict(node_props.io_managers)
-            for port_name in port_names:
-                new_io_managers[port_name] = self._type_to_io_manager_mapping[
-                    node_props.outputs[port_name].annotation
-                ]
-            new_node_props = copy(node_props)
-            object.__setattr__(new_node_props, "io_managers", frozendict(new_io_managers))
-            new_nodes[node] = new_node_props
-
-        new_dag = DAG(
-            nodes=frozendict(new_nodes),
-            dependencies=train_pl._dag.dependencies,
-        )
-
-        return Pipeline(
-            name=train_pl.name,
-            dag=new_dag,
-            inputs=train_pl.inputs,
-            outputs=train_pl.outputs,
-            in_collections=train_pl.in_collections,
-            out_collections=train_pl.out_collections,
-            config=train_pl._config,  # TODO: the config should reflect the new io managers
-        )
-
-    def _get_source_info_for_fitted_parameter(
-        self, dag: DAG, entry: OutEntry
-    ) -> FittedParameterSourceInformation:
-        source = tuple(entry)[0]
-        node = source.node
-        port_name = source.param.name
-        props = dag.nodes[node]
-        io_manager_id = props.io_managers[port_name]
-        return FittedParameterSourceInformation(
-            node=tuple(entry)[0].node,
-            port_name=tuple(entry)[0].param.name,
-            io_manager_id=io_manager_id,
-        )
-
+class IPersistFittedEvalPipeline(Protocol):
+    @abstractmethod
     def with_persistance(
         self,
-        pipeline: Pipeline,
+        train_and_eval_pl: Pipeline,
     ) -> Pipeline:
-        train_pl, eval_pl = TrainAndEvalBuilders.split_pipeline(pipeline)
-        train_pl = self._with_persisted_fitted_outputs(train_pl)
-        fitted_parameter_infos = {
-            entry_name: self._get_source_info_for_fitted_parameter(train_pl._dag, entry)
-            for entry_name, entry in train_pl.out_collections.fitted.items()
+        ...
+
+
+class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
+    _read_pb: IReadFromUrlPipelineBuilder
+    _write_pb: IWriteToNodeBasedUriPipelineBuilder
+
+    def __init__(
+        self,
+        read_pb: IReadFromUrlPipelineBuilder,
+        write_pb: IWriteToNodeBasedUriPipelineBuilder,
+    ) -> None:
+        self._read_pb = read_pb
+        self._write_pb = write_pb
+
+    def _get_types_of_fitted_params(self, train_pl: Pipeline) -> dict[str, type]:
+        return {
+            fitted_name: tuple(entry)[0].param.annotation
+            for fitted_name, entry in train_pl.out_collections.fitted.items()
         }
+
+    def _get_write_fitted_pl(
+        self,
+        fitted_to_types: dict[str, type],
+    ) -> Pipeline:
+        write_fitted_pl = PipelineBuilder.combine(
+            name="write_fitted",
+            pipelines=[
+                (
+                    self._write_pb.build(data_type=param_type, node_name=fitted_name)
+                    .rename_inputs({"data": f"fitted.{fitted_name}"})
+                    .rename_outputs({"uri": f"uris.{fitted_name}"})
+                )
+                for fitted_name, param_type in fitted_to_types.items()
+            ],
+        )
+        return write_fitted_pl
+
+    def _get_read_fitted_pl(
+        self,
+        fitted_to_types: dict[str, type],
+    ) -> Pipeline:
+        read_fitted_pl = PipelineBuilder.combine(
+            name="read_fitted",
+            pipelines=[
+                (
+                    self._read_pb.build(data_type=param_type)
+                    .decorate(fitted_name)
+                    .rename_inputs({"uri": f"uris.{fitted_name}"})
+                    .rename_outputs({"data": f"fitted.{fitted_name}"})
+                )
+                for fitted_name, param_type in fitted_to_types.items()
+            ],
+        )
+        return read_fitted_pl
+
+    def _get_eval_using_persistance_pl(
+        self, read_fitted_pl: Pipeline, eval_pl: Pipeline
+    ) -> Pipeline:
+        p = PipelineBuilder.combine(
+            name="eval_using_persistance",
+            pipelines=[read_fitted_pl, eval_pl],
+            dependencies=(read_fitted_pl.out_collections.fitted >> eval_pl.in_collections.fitted,),
+        )
+        return p
+
+    def _get_create_fitted_eval_pipeline_pl(
+        self, fitted_to_types: dict[str, type], eval_pl: Pipeline
+    ) -> Pipeline:
+        read_fitted_pl = self._get_read_fitted_pl(fitted_to_types)
+        eval_using_persistance_pl = self._get_eval_using_persistance_pl(read_fitted_pl, eval_pl)
         create_fitted_eval_pipeline = PipelineBuilder.task(
             name="create_fitted_eval_pipeline",
             processor_type=CreateFittedEvalPipelineProcessor,
             config=dict(
-                my_original_node_name="create_fitted_eval_pipeline",
-                eval_pl=eval_pl,
-                fitted_parameters=fitted_parameter_infos,
+                eval_using_persistance_pl=eval_using_persistance_pl,
             ),
-            services=dict(
-                session_id=OnemlProcessorsServices.PIPELINE_SESSION_ID,
-                # my_current_node_key=OnemlProcessorsServices.GetActiveNodeKey,
-            ),
+            input_annotation={
+                fitted_name: str for fitted_name in read_fitted_pl.in_collections.uris
+            },
+        ).rename_inputs(
+            {
+                fitted_name: f"uris.{fitted_name}"
+                for fitted_name in read_fitted_pl.in_collections.uris
+            }
         )
-        # Note: we need to specify outputs because there's a bug in the way PipelineBuilder.combine
-        # builds the default outputs.
-        # See oneml_test.processors.test_pipeline_userio.test_combine_outputs.
+        return create_fitted_eval_pipeline
+
+    def _get_write_fitted_eval_pipeline_pl(self) -> Pipeline:
+        return (
+            self._write_pb.build(data_type=Pipeline, node_name="fitted_eval_pipeline")
+            .rename_inputs({"data": "fitted_eval_pipeline"})
+            .rename_outputs({"uri": "uris.fitted_eval_pipeline"})
+        )
+
+    def with_persistance(
+        self,
+        train_and_eval_pl: Pipeline,
+    ) -> Pipeline:
+        train_pl, eval_pl = TrainAndEvalBuilders.split_pipeline(train_and_eval_pl)
+        fitted_to_types = self._get_types_of_fitted_params(train_pl)
+        write_fitted_pl = self._get_write_fitted_pl(fitted_to_types)
+        create_fitted_eval_pipeline_pl = self._get_create_fitted_eval_pipeline_pl(
+            fitted_to_types, eval_pl
+        )
+        write_fitted_eval_pipeline_pl = self._get_write_fitted_eval_pipeline_pl()
         p = PipelineBuilder.combine(
-            name=pipeline.name,
-            pipelines=[train_pl, eval_pl, create_fitted_eval_pipeline],
-            dependencies=(train_pl.out_collections.fitted >> eval_pl.in_collections.fitted,),
+            name=train_and_eval_pl.name,
+            pipelines=[
+                train_pl,
+                eval_pl,
+                write_fitted_pl,
+                create_fitted_eval_pipeline_pl,
+                write_fitted_eval_pipeline_pl,
+            ],
+            dependencies=(
+                train_pl.out_collections.fitted >> eval_pl.in_collections.fitted,
+                train_pl.out_collections.fitted >> write_fitted_pl.in_collections.fitted,
+                write_fitted_pl.out_collections.uris
+                >> create_fitted_eval_pipeline_pl.in_collections.uris,
+                create_fitted_eval_pipeline_pl.outputs.fitted_eval_pipeline
+                >> write_fitted_eval_pipeline_pl.inputs.fitted_eval_pipeline,
+            ),
             outputs=ChainMap(
-                {name: train_pl.outputs[name] for name in train_pl.outputs},
+                dict(train_pl.outputs),
+                dict(eval_pl.outputs),
+                dict(create_fitted_eval_pipeline_pl.outputs),
                 {
-                    f"{col_name}.{entry_name}": train_pl.out_collections[col_name][entry_name]
-                    for col_name in train_pl.out_collections
-                    if col_name != "fitted"
-                    for entry_name in train_pl.out_collections[col_name]
+                    f"{col}.{entry}": train_pl.out_collections[col][entry]
+                    for col in train_pl.out_collections
+                    if col != "fitted"
+                    for entry in train_pl.out_collections[col]
                 },
-                {name: eval_pl.outputs[name] for name in eval_pl.outputs},
                 {
-                    f"{col_name}.{entry_name}": eval_pl.out_collections[col_name][entry_name]
-                    for col_name in eval_pl.out_collections
-                    for entry_name in eval_pl.out_collections[col_name]
+                    f"{col}.{entry}": eval_pl.out_collections[col][entry]
+                    for col in eval_pl.out_collections
+                    for entry in eval_pl.out_collections[col]
                 },
-                {"fitted_eval_pipeline": create_fitted_eval_pipeline.outputs.fitted_eval_pipeline},
+                {
+                    f"uris.{entry_name}": write_fitted_pl.out_collections.uris[entry_name]
+                    for entry_name in write_fitted_pl.out_collections.uris
+                },
+                {
+                    "uris.fitted_eval_pipeline": (
+                        write_fitted_eval_pipeline_pl.out_collections.uris.fitted_eval_pipeline
+                    )
+                },
             ),
         )
         return p
+
+
+ProvideFixedUriProcessorOutputs = TypedDict("ProvideFixedUriProcessorOutputs", {"uri": str})
+
+
+class ProvideFixedUriProcessor:
+    _uri: str
+
+    def __init__(self, uri: str) -> None:
+        self._uri = uri
+
+    def process(self) -> ProvideFixedUriProcessorOutputs:
+        return ProvideFixedUriProcessorOutputs(uri=self._uri)
 
 
 CreateFittedEvalPipelineProcessorOutputs = TypedDict(
@@ -133,54 +186,42 @@ CreateFittedEvalPipelineProcessorOutputs = TypedDict(
 class CreateFittedEvalPipelineProcessor:
     """A processor that attached LoadPersisted nodes to an eval pipeline."""
 
+    _eval_using_persistance_pl: Pipeline
+
     def __init__(
         self,
-        my_original_node_name: str,
-        eval_pl: Pipeline,
-        fitted_parameters: dict[str, FittedParameterSourceInformation],
-        session_id: str,
-        my_current_node_key: str,
+        eval_using_persistance_pl: Pipeline,
     ):
-        my_original_node_key = PipelineNode(str(DagNode(my_original_node_name))).key
-        if not my_current_node_key.endswith(my_original_node_key):
-            raise ValueError(
-                f"Expected my_current_node_key to end with {my_original_node_key}, but got {my_current_node_key}"
+        self._eval_using_persistance_pl = eval_using_persistance_pl
+
+    def process(self, **uris: str) -> CreateFittedEvalPipelineProcessorOutputs:
+        if frozenset(uris) != frozenset(self._eval_using_persistance_pl.in_collections.uris):
+            missing = frozenset(self._eval_using_persistance_pl.in_collections.uris) - frozenset(
+                uris
             )
-        self._node_key_prefix = my_current_node_key[: -len(my_original_node_key)]
-        self._eval_pl = eval_pl
-        self._fitted_parameters = fitted_parameters
-        self._session_id = session_id
-
-    def _get_loader_node(self, fitted_parameter_name: str) -> Pipeline:
-        source_info = self._fitted_parameters[fitted_parameter_name]
-        original_node_key = PipelineNode(str(source_info.node)).key
-        node_key = self._node_key_prefix + original_node_key
-        node = PipelineNode(node_key)
-        return PipelineBuilder.task(
-            name=fitted_parameter_name,
-            processor_type=LoadFittedParameter,
-            config=dict(
-                session_id=self._session_id,
-                node=node,
-                port=PipelinePort[Any](source_info.port_name),
-                iomanager_id=source_info.io_manager_id,
-            ),
-            services=dict(
-                iomanager_registry=OnemlProcessorsServices.IOManagerRegistry,
+            spurious = frozenset(uris) - frozenset(
+                self._eval_using_persistance_pl.in_collections.uris
+            )
+            raise ValueError(f"Expected uris to contain {missing} and not contain {spurious}")
+        provide_uris_pl = PipelineBuilder.combine(
+            name="uris",
+            pipelines=[
+                PipelineBuilder.task(
+                    name=fitted_name,
+                    processor_type=ProvideFixedUriProcessor,
+                    config=dict(
+                        uri=uris[fitted_name],
+                    ),
+                ).rename_outputs({"uri": f"uris.{fitted_name}"})
+                for fitted_name in uris
+            ],
+        )
+        fitted_eval_pl = PipelineBuilder.combine(
+            name="fitted_eval",
+            pipelines=[provide_uris_pl, self._eval_using_persistance_pl],
+            dependencies=(
+                provide_uris_pl.out_collections.uris
+                >> self._eval_using_persistance_pl.in_collections.uris,
             ),
         )
-
-    def process(self) -> CreateFittedEvalPipelineProcessorOutputs:
-        loader_nodes = [
-            self._get_loader_node(fitted_param_name)
-            for fitted_param_name in self._fitted_parameters
-        ]
-        p = PipelineBuilder.combine(
-            name="fitted",
-            pipelines=loader_nodes + [self._eval_pl],
-            dependencies=tuple(
-                loader_node.outputs.data >> self._eval_pl.in_collections.fitted[loader_node.name]
-                for loader_node in loader_nodes
-            ),
-        )
-        return dict(fitted_eval_pipeline=p)
+        return CreateFittedEvalPipelineProcessorOutputs(fitted_eval_pipeline=fitted_eval_pl)

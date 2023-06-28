@@ -7,8 +7,8 @@ import pytest
 
 from oneml.processors import (
     CombinedPipeline,
+    IPersistFittedEvalPipeline,
     IProcess,
-    PersistFittedEvalPipeline,
     Pipeline,
     PipelineRunnerFactory,
     Task,
@@ -223,58 +223,62 @@ def test_standardized_lr(
     )
 
 
-# def test_standardized_lr_with_persistance(
-#     pipeline_runner_factory: PipelineRunnerFactory,
-#     persist_fitted_eval_pipeline: PersistFittedEvalPipeline,
-#     standardized_lr: Pipeline,
-# ) -> None:
-#     standardized_lr = persist_fitted_eval_pipeline.with_persistance(standardized_lr)
-#     runner = pipeline_runner_factory(standardized_lr)
-#     outputs = runner(
-#         inputs={
-#             "X.train": Array("Xt"),
-#             "Y.train": Array("Yt"),
-#             "X.eval": Array("Xe1"),
-#             "Y.eval": Array("Ye1"),
-#         }
-#     )
-#     assert set(outputs) == set(("mean", "scale", "model", "probs", "acc", "fitted_eval_pipeline"))
-#     assert str(outputs.mean) == "mean(Xt)"
-#     assert str(outputs.scale) == "scale(Xt)"
-#     assert str(outputs.model) == "Model((Xt-mean(Xt))/scale(Xt) ; Yt)"
-#     assert (
-#         str(outputs.probs.train)
-#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt))"
-#     )
-#     assert (
-#         str(outputs.probs.eval)
-#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt))"
-#     )
-#     assert (
-#         str(outputs.acc.train)
-#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt)), Yt)"
-#     )
-#     assert (
-#         str(outputs.acc.eval)
-#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt)), Ye1)"
-#     )
-#     eval_pipeline = outputs.fitted_eval_pipeline
-#     runner = pipeline_runner_factory(eval_pipeline)
-#     outputs = runner(
-#         inputs={
-#             "X.eval": Array("Xe2"),
-#             "Y.eval": Array("Ye2"),
-#         }
-#     )
-#     assert set(outputs) == set(("probs", "acc"))
-#     assert (
-#         str(outputs.probs.eval)
-#         == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt))"
-#     )
-#     assert (
-#         str(outputs.acc.eval)
-#         == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt)), Ye2)"
-#     )
+def test_standardized_lr_with_persistance(
+    pipeline_runner_factory: PipelineRunnerFactory,
+    persist_fitted_eval_pipeline: IPersistFittedEvalPipeline,
+    standardized_lr: Pipeline,
+) -> None:
+    standardized_lr = persist_fitted_eval_pipeline.with_persistance(standardized_lr)
+    runner = pipeline_runner_factory(standardized_lr)
+    outputs = runner(
+        inputs={
+            "X.train": Array("Xt"),
+            "Y.train": Array("Yt"),
+            "X.eval": Array("Xe1"),
+            "Y.eval": Array("Ye1"),
+        }
+    )
+    assert set(outputs) == set(
+        ("mean", "scale", "model", "probs", "acc", "fitted_eval_pipeline", "uris")
+    )
+    assert str(outputs.mean) == "mean(Xt)"
+    assert str(outputs.scale) == "scale(Xt)"
+    assert str(outputs.model) == "Model((Xt-mean(Xt))/scale(Xt) ; Yt)"
+    assert (
+        str(outputs.probs.train)
+        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt))"
+    )
+    assert (
+        str(outputs.probs.eval)
+        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt))"
+    )
+    assert (
+        str(outputs.acc.train)
+        == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xt-mean(Xt))/scale(Xt)), Yt)"
+    )
+    assert (
+        str(outputs.acc.eval)
+        == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe1-mean(Xt))/scale(Xt)), Ye1)"
+    )
+    assert set(outputs.uris) == set(("fitted_eval_pipeline", "mean_0", "scale_0", "model_0"))
+    eval_pipeline = outputs.fitted_eval_pipeline
+    assert isinstance(eval_pipeline, Pipeline)
+    runner = pipeline_runner_factory(eval_pipeline)
+    outputs = runner(
+        inputs={
+            "X.eval": Array("Xe2"),
+            "Y.eval": Array("Ye2"),
+        }
+    )
+    assert set(outputs) == set(("probs", "acc"))
+    assert (
+        str(outputs.probs.eval)
+        == "Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt))"
+    )
+    assert (
+        str(outputs.acc.eval)
+        == "acc(Model((Xt-mean(Xt))/scale(Xt) ; Yt).probs((Xe2-mean(Xt))/scale(Xt)), Ye2)"
+    )
 
 
 def test_single_output_multiple_input(

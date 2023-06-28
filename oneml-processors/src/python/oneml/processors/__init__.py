@@ -1,6 +1,6 @@
-from ._training import (  # type: ignore
+from ._training import (
     CollectionToDictBuilder,
-    PersistFittedEvalPipeline,
+    IPersistFittedEvalPipeline,
     ScatterGatherBuilders,
     TrainAndEvalBuilders,
 )
@@ -68,6 +68,6 @@ __all__ = [
     "PipelineRunnerFactory",
     "Task",
     "CollectionToDictBuilder",
-    "PersistFittedEvalPipeline",
     "OnemlProcessorsServices",
+    "IPersistFittedEvalPipeline",
 ]

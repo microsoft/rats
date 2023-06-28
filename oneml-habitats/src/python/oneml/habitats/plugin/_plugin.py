@@ -13,3 +13,5 @@ class OnemlHabitatsPlugin(OnemlAppPlugin):
         logger.debug("initializing oneml-habitats plugin")
         di_container = OnemlHabitatsDiContainer(app)
         app.parse_service_container(di_container)
+        register_readers_and_writers = di_container._register_readers_and_writers()
+        register_readers_and_writers.register()

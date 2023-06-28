@@ -151,6 +151,7 @@ from ._containers import (
     ServiceProvider,
     TypedServiceContainer,
 )
+from ._context import IContextProvider
 from ._decorators import group, groups, provider, providers, scoped_service_ids
 from ._service_id import ServiceId, ServiceType
 from ._settings import SettingProvider
@@ -177,4 +178,5 @@ __all__ = [
     "ServiceType",
     # _settings
     "SettingProvider",
+    "IContextProvider",
 ]

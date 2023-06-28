@@ -2,6 +2,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
+from furl import furl
+
 from ..services import IProvideServices, ServiceId
 from ._io_data import (
     IFormatUri,
@@ -16,7 +18,8 @@ from ._rw_data import DataType, DataType_co, DataType_contra, IReadData, IWriteD
 
 class InMemoryUriFormatter(IFormatUri[DataType]):
     def __call__(self, data_id: PipelineDataId[DataType]) -> RWDataUri:
-        return RWDataUri(str(data_id))
+        uri: str = furl().set(scheme="memory").set(path=f"{data_id}").url
+        return RWDataUri(uri)
 
 
 class FilesystemUriFormatter(IFormatUri[DataType]):
@@ -26,7 +29,7 @@ class FilesystemUriFormatter(IFormatUri[DataType]):
         self._path = path
 
     def __call__(self, data_id: PipelineDataId[DataType]) -> RWDataUri:
-        return RWDataUri(str(self._path / str(data_id)))
+        return RWDataUri((self._path / str(data_id)).as_uri())
 
 
 class PipelineDataLoader(ILoadPipelineData[DataType_co]):

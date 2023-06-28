@@ -1,5 +1,6 @@
+from abc import abstractmethod
 from contextlib import contextmanager
-from typing import Any, Dict, Generator, Generic, TypeVar
+from typing import Any, Dict, Generator, Generic, Protocol, TypeVar
 
 from typing_extensions import NamedTuple
 
@@ -10,8 +11,13 @@ class ContextId(NamedTuple, Generic[ContextType]):
     name: str
 
 
-class ContextClient:
+class IContextProvider(Protocol):
+    @abstractmethod
+    def get_context(self, context_id: ContextId[ContextType]) -> ContextType:
+        ...
 
+
+class ContextClient:
     _contexts: Dict[ContextId[Any], Any]
 
     def __init__(self) -> None:

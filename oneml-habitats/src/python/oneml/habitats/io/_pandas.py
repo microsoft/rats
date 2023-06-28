@@ -1,11 +1,14 @@
 import pandas as pd
 
-from oneml.io import IReadAndWriteData, RWDataUri
+from oneml.io import IReadAndWriteData, LocalRWBase, RWDataUri
 
 
-class PandasLocalRW(IReadAndWriteData[pd.DataFrame]):
+class PandasLocalRW(LocalRWBase, IReadAndWriteData[pd.DataFrame]):
     def write(self, data_uri: RWDataUri, payload: pd.DataFrame) -> None:
-        payload.to_csv(data_uri.uri)
+        path = self._get_path(data_uri)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload.to_parquet(path)
 
     def read(self, data_uri: RWDataUri) -> pd.DataFrame:
-        return pd.read_csv(data_uri.uri)
+        path = self._get_path(data_uri)
+        return pd.read_parquet(path)
