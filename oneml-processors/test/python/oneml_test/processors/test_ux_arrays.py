@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, TypedDict
+from typing import Any, NamedTuple, TypedDict
 
 import pytest
 
@@ -15,7 +15,8 @@ class Array:
     x: list[float]
 
 
-ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": Array})
+class ArrayReaderOutput(NamedTuple):
+    array: Array
 
 
 class ArrayReader(IProcess):

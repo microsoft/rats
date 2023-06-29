@@ -188,6 +188,9 @@ class SessionExecutableProvider(IExecutable):
         pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.process)
         outputs = processor.process(*pos_args, **kw_args)
         if outputs:
+            # outputs could be either a dict or a namedtuple
+            if isinstance(outputs, tuple):
+                outputs = outputs._asdict()
             for key, val in outputs.items():
                 data_id = PipelineDataId(
                     session_id,

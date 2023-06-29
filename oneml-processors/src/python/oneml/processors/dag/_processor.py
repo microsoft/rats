@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import Enum
 from inspect import _empty as _inspect_module_empty
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
-from typing import Any, Callable, Mapping, Protocol, final, runtime_checkable
+from typing import Any, Callable, Mapping, NamedTuple, Protocol, final, runtime_checkable
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ _VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
 # However, any IProcess can be made generic and return a generic TypedDict.
 @runtime_checkable
 class IProcess(Protocol):
-    process: Callable[..., Mapping[str, Any] | None] = NotImplemented
+    process: Callable[..., Mapping[str, Any] | NamedTuple | None] = NotImplemented
 
 
 class _empty:
