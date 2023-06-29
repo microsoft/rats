@@ -97,19 +97,16 @@ class IWriteToNodeBasedUriPipelineBuilder(Protocol):
 class WriteToNodeBasedUriPipelineBuilder(IWriteToNodeBasedUriPipelineBuilder):
     _service_provider_service_id: ServiceId[IProvideServices]
     _context_provider_service_id: ServiceId[IContextProvider]
-    _output_base_uri: str
     _get_write_services_for_type: IGetWriteServicesForType
 
     def __init__(
         self,
         service_provider_service_id: ServiceId[IProvideServices],
         context_provider_service_id: ServiceId[IContextProvider],
-        output_base_uri: str,
         get_write_services_for_type: IGetWriteServicesForType,
     ) -> None:
         self._service_provider_service_id = service_provider_service_id
         self._context_provider_service_id = context_provider_service_id
-        self._output_base_uri = output_base_uri
         self._get_write_services_for_type = get_write_services_for_type
 
     def build(self, data_type: type[DataType], node_name: str) -> Pipeline:
@@ -118,7 +115,6 @@ class WriteToNodeBasedUriPipelineBuilder(IWriteToNodeBasedUriPipelineBuilder):
             name=node_name,
             processor_type=WriteToNodeBasedUriProcessor,
             config=dict(
-                output_base_uri=self._output_base_uri,
                 write_service_ids=write_service_ids,
             ),
             services=dict(

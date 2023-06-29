@@ -10,6 +10,7 @@ from ..io import (
     IRegisterWriteServiceForType,
     IWriteToNodeBasedUriPipelineBuilder,
     IWriteToUriPipelineBuilder,
+    PluginRegisterReadersAndWriters,
 )
 from ..ux import PipelineRunnerFactory
 
@@ -34,7 +35,9 @@ class OnemlProcessorsServices:
     PERSIST_FITTED_EVAL_PIPELINE = ServiceId[IPersistFittedEvalPipeline](
         "persist-fitted-eval-pipeline"
     )
-    OUTPUT_BASE_URI = ServiceId[str]("output-base-uri")
+    PLUGIN_REGISTER_READERS_AND_WRITERS = ServiceId[PluginRegisterReadersAndWriters](
+        "plugin-register-readers-and-writers"
+    )
 
 
 @scoped_service_ids

@@ -1,14 +1,13 @@
 import logging
 from functools import lru_cache
 
-from oneml.app import OnemlApp, OnemlAppServices
+from oneml.app import OnemlApp, OnemlAppServiceGroups, OnemlAppServices
 from oneml.pipelines.session import OnemlSessionServices
-from oneml.services import IProvideServices, provider
+from oneml.services import IProvideServices, group, provider
 
 from .._training import PersistFittedEvalPipeline
 from ..dag import PipelineSessionProvider
 from ..io import (
-    OnemlProcessorsRegisterReadersAndWriters,
     ReadFromUrlPipelineBuilder,
     TypeToReadServiceMapper,
     TypeToWriteServiceMapper,
@@ -17,6 +16,7 @@ from ..io import (
 )
 from ..services import OnemlProcessorsServices
 from ..ux import PipelineRunnerFactory
+from ._register_rw import OnemlProcessorsRegisterReadersAndWriters
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,6 @@ class OnemlProcessorsDiContainer:
         return WriteToNodeBasedUriPipelineBuilder(
             service_provider_service_id=OnemlAppServices.SERVICES_REGISTRY,
             context_provider_service_id=OnemlAppServices.CONTEXT_PROVIDER,
-            output_base_uri=self._app.get_service(OnemlProcessorsServices.OUTPUT_BASE_URI),
             get_write_services_for_type=self._app.get_service(
                 OnemlProcessorsServices.GET_TYPE_WRITER
             ),
@@ -93,13 +92,11 @@ class OnemlProcessorsDiContainer:
             ),
         )
 
-    def _register_readers_and_writers(self) -> OnemlProcessorsRegisterReadersAndWriters:
+    @group(OnemlAppServiceGroups.IO_REGISTRY_PLUGINS)
+    @provider(OnemlProcessorsServices.PLUGIN_REGISTER_READERS_AND_WRITERS)
+    @lru_cache
+    def register_readers_and_writers(self) -> OnemlProcessorsRegisterReadersAndWriters:
         return OnemlProcessorsRegisterReadersAndWriters(
             readers_registry=self._app.get_service(OnemlProcessorsServices.REGISTER_TYPE_READER),
             writers_registry=self._app.get_service(OnemlProcessorsServices.REGISTER_TYPE_WRITER),
         )
-
-    # How do we indicate that this has to be provided by some later layer?
-    # @provider(OnemlProcessorsServices.OUTPUT_BASE_URI)
-    # def output_base_uri(self) -> str:
-    #     ...

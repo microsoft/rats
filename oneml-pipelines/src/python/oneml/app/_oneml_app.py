@@ -45,6 +45,9 @@ class OnemlApp(IManageServices):
         # We initialize plugins here so all services are available when trying to execute pipelines
         app.initialize_app_plugins()
 
+        # register the IO plugins
+        app.register_io()
+
         return app
 
     def __init__(self, app_factory: ServiceFactory, app_container: ServiceContainer) -> None:
@@ -67,6 +70,10 @@ class OnemlApp(IManageServices):
     def initialize_app_plugins(self) -> None:
         for plugin in self.get_service_group(OnemlAppServiceGroups.APP_PLUGINS):
             plugin.load_plugin(self)
+
+    def register_io(self) -> None:
+        for plugin in self.get_service_group(OnemlAppServiceGroups.IO_REGISTRY_PLUGINS):
+            plugin()
 
     def _initialize_pipeline_plugins(self) -> None:
         for plugin in self.get_service_group(OnemlAppServiceGroups.PIPELINE_REGISTRY_PLUGINS):

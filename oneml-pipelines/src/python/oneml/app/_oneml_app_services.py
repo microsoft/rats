@@ -1,3 +1,5 @@
+from typing import Callable
+
 from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
 from oneml.pipelines.registry._pipeline_registry import PipelineRegistry, PipelineRegistryPlugin
 from oneml.services import (
@@ -37,3 +39,4 @@ class OnemlAppServices:
 class OnemlAppServiceGroups:
     PIPELINE_REGISTRY_PLUGINS = ServiceId[PipelineRegistryPlugin]("pipeline-registry-plugins")
     APP_PLUGINS = ServiceId[OnemlAppPlugin]("app-plugins")
+    IO_REGISTRY_PLUGINS = ServiceId[Callable[[], None]]("io-registry-plugins")

@@ -227,11 +227,13 @@ def test_standardized_lr_with_persistance(
     pipeline_runner_factory: PipelineRunnerFactory,
     persist_fitted_eval_pipeline: IPersistFittedEvalPipeline,
     standardized_lr: Pipeline,
+    output_base_uri: str,
 ) -> None:
     standardized_lr = persist_fitted_eval_pipeline.with_persistance(standardized_lr)
     runner = pipeline_runner_factory(standardized_lr)
     outputs = runner(
         inputs={
+            "output_base_uri": output_base_uri,
             "X.train": Array("Xt"),
             "Y.train": Array("Yt"),
             "X.eval": Array("Xe1"),

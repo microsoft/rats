@@ -11,6 +11,9 @@ DataType_contra = TypeVar("DataType_contra", contravariant=True)
 class RWDataUri(NamedTuple):
     uri: str
 
+    def __repr__(self) -> str:
+        return self.uri
+
 
 class IReadData(Protocol[DataType_co]):
     @abstractmethod

@@ -3,13 +3,13 @@ from pathlib import Path
 from typing import Any, Union
 
 from oneml.io import (
+    DillLocalRW,
     FilesystemUriFormatter,
     IFormatUri,
     InMemoryRW,
     InMemoryUriFormatter,
     IReadAndWriteData,
     OnemlIoServices,
-    PickleLocalRW,
 )
 from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
 from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
@@ -76,9 +76,9 @@ class OnemlAppDiContainer:
     def inmemory_rw(self) -> IReadAndWriteData[Any]:
         return InMemoryRW()
 
-    @provider(OnemlIoServices.PICKLE_LOCAL_RW)
-    def pickle_local_rw(self) -> IReadAndWriteData[object]:
-        return PickleLocalRW()
+    @provider(OnemlIoServices.DILL_LOCAL_RW)
+    def dill_local_rw(self) -> IReadAndWriteData[object]:
+        return DillLocalRW()
 
     # @provider(OnemlAppServices.REMOTE_EXECUTABLE_FACTORY)
     # def remote_executable_factory(self) -> RemoteExecutableFactory:

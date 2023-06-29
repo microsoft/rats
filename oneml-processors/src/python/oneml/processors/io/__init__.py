@@ -1,5 +1,5 @@
+from ._plugin_register_rw import PluginRegisterReadersAndWriters
 from .read_from_uri import IReadFromUrlPipelineBuilder, ReadFromUrlPipelineBuilder
-from .register_rw import OnemlProcessorsRegisterReadersAndWriters
 from .type_rw_mappers import (
     IGetReadServicesForType,
     IGetWriteServicesForType,
@@ -28,5 +28,5 @@ __all__ = [
     "ReadFromUrlPipelineBuilder",
     "WriteToUriPipelineBuilder",
     "WriteToNodeBasedUriPipelineBuilder",
-    "OnemlProcessorsRegisterReadersAndWriters",
+    "PluginRegisterReadersAndWriters",
 ]

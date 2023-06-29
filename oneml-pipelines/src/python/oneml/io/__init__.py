@@ -18,6 +18,8 @@ from ._io_manager import (
     PipelineLoaderGetter,
     PipelinePublisherGetter,
 )
+from ._local import DillLocalRW, LocalRWBase
+from ._memory import InMemoryRW
 from ._rw_data import (
     DataType,
     DataType_co,
@@ -27,7 +29,6 @@ from ._rw_data import (
     IWriteData,
     RWDataUri,
 )
-from ._rw_manager import InMemoryRW, LocalRWBase, PickleLocalRW
 from ._services import OnemlIoServices
 
 __all__ = [
@@ -57,7 +58,7 @@ __all__ = [
     "PipelineDataPublisher",
     "PipelineLoaderGetter",
     "PipelinePublisherGetter",
-    "PickleLocalRW",
+    "DillLocalRW",
     "RWDataUri",
     "LocalRWBase",
 ]

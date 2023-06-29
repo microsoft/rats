@@ -25,7 +25,7 @@ def _rw_location(request: pytest.FixtureRequest) -> str:
 
 
 @pytest.fixture(scope="package")
-def _output_base_uri(
+def output_base_uri(
     _rw_location: str,
     tmpdir_factory: Any,
 ) -> Iterator[str]:
@@ -40,9 +40,8 @@ def _output_base_uri(
 
 
 @pytest.fixture(scope="package")
-def app(_output_base_uri: str) -> OnemlApp:
+def app() -> OnemlApp:
     app = OnemlApp.default()
-    app.add_service(OnemlProcessorsServices.OUTPUT_BASE_URI, lambda: _output_base_uri)
     return app
 
 
