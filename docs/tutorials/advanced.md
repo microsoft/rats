@@ -1,31 +1,30 @@
 # Advanced Tutorial
 
-In this tutorial we will dive deeper into concepts, and will allow you to reconfigure pipelines 
+In this tutorial we will dive deeper into concepts, and will allow you to reconfigure pipelines
 and build your own meta-pipelines.
-
 
 #### Table of Contents
 
 - [Operations with Parameter Entries and Collections](#operations-with-parameter-entries-and-collections)
-    - [`InEntry` & `OutEntry`](#inentry--outentry)
-        - [Left and right shift operations](#left-and-right-shift-operations)
-        - [Merge `InEntry`](#merge-inentry)
-        - [Merge `OutEntry`](#merge-outentry)
-    - [`Inputs` & `Outputs`](#inputs--outputs)
-        - [Left and right shift operations](#left-and-right-shift-operations-1)
-        - [Merge operations](#merge-operations)
-        - [Subtract operations](#subtract-operations)
-    - [`InCollections` & `OutCollections`](#incollections--outcollections)
-        - [Left and right shift operations](#left-and-right-shift-operations-2)
-        - [Merge operations](#merge-operations-1)
-        - [Subtract operations](#subtract-operations-1)
-    - [`Pipeline`](#pipeline)
-        - [Left and right shift operations](#left-and-right-shift-operations-3)
-        - [Rename inputs and outputs](#rename-inputs-and-outputs)
-        - [Decorate pipelines](#decorate-pipelines)
+  - [`InEntry` & `OutEntry`](#inentry--outentry)
+    - [Left and right shift operations](#left-and-right-shift-operations)
+    - [Merge `InEntry`](#merge-inentry)
+    - [Merge `OutEntry`](#merge-outentry)
+  - [`Inputs` & `Outputs`](#inputs--outputs)
+    - [Left and right shift operations](#left-and-right-shift-operations-1)
+    - [Merge operations](#merge-operations)
+    - [Subtract operations](#subtract-operations)
+  - [`InCollections` & `OutCollections`](#incollections--outcollections)
+    - [Left and right shift operations](#left-and-right-shift-operations-2)
+    - [Merge operations](#merge-operations-1)
+    - [Subtract operations](#subtract-operations-1)
+  - [`Pipeline`](#pipeline)
+    - [Left and right shift operations](#left-and-right-shift-operations-3)
+    - [Rename inputs and outputs](#rename-inputs-and-outputs)
+    - [Decorate pipelines](#decorate-pipelines)
 - [Pipelines Definition](#pipelines-definition)
 - [Meta-Pipelines](#meta-pipelines)
-    - [`Estimator` Example](#estimator-example)
+  - [`Estimator` Example](#estimator-example)
 - [Services](#services)
 
 ## Operations with Parameter Entries and Collections
@@ -35,10 +34,9 @@ Consider the `standardization`, `logistic_regression` and `stz_lr` examples from
 
 ![stz_lr](figures/stz_lr.png){ width="300" }
 
+### `InEntry` & `OutEntry`
 
-### `InEntry` & `OutEntry`:
-
-#### Left and right shift operations:
+#### Left and right shift operations
 
 You can create dependencies using left and right shift operators:
 
@@ -57,24 +55,27 @@ logistic_regression.in_collections.X.eval << standardization.out_collections.Z.e
 These operators return a dependency wrapped in a tuple (for compatibility with collections).
 They can be passed as part of dependencies for combining pipelines.
 
-
-#### Merge `InEntry`:
+#### Merge `InEntry`
 
 You can merge two `InEntry` into a single one using `|` between entries, which will bind the inputs
 together, exposing a single entry.
-For example, 
+For example,
 
 ```python
-ReportOut = TypedDict("ReportOut", {"acc": float})
+from typing import NamedTuple
+from oneml.processors import PipelineBuilder
+
+class ReportOut(NamedTuple):
+    acc: float
 
 class Report:
     def process(probs: float) -> ReportOut:
         ...
 
 r1 = PipelineBuilder.task(Report, name="r1")
-r1 = PipelineBuilder.task(Report, name="r2")
+r2 = PipelineBuilder.task(Report, name="r2")
 reports = PipelineBuilder.combine(
-    r1, r2,
+    pipelines=[r1, r2],
     name="reports",
     inputs={"probs": r1.inputs.probs | r2.inputs.probs},  # merge operation
 )
@@ -88,15 +89,18 @@ mapping the `probs` from `logistic_regression` to both `r1` and `r2`.
 
 ![broadcast](figures/broadcast.png){ width="300" }
 
-
-#### Merge `OutEntry`:
+#### Merge `OutEntry`
 
 If you merge `OutEntry`s with `|` operator you will indicate that the outputs are to be
 concatenated.
 For example,
 
 ```python
-ReportOut = TypedDict("ReportOut", {"acc": float})
+from typing import NamedTuple, Sequence
+from oneml.processors import PipelineBuilder
+
+class ReportOut(NamedTuple):
+    acc: float
 
 class Report:
     def process(probs: float) -> ReportOut:
@@ -110,7 +114,7 @@ r1 = PipelineBuilder.task(Report, name="r1")
 r1 = PipelineBuilder.task(Report, name="r2")
 summary = PipelineBuilder.task(Summary, name="summary")
 reports = PipelineBuilder.combine(
-    r1, r2,
+    pipelines=[r1, r2],
     name="reports",
     outputs={"acc": r1.outputs.acc | r2.outputs.acc},  # merge operation
 )
@@ -127,13 +131,12 @@ Order is preserved in all merge operations.
 
 ![concatenate](figures/concatenate.png){ width="300" }
 
-
-### `Inputs` & `Outputs` and `InCollection` & `OutCollection`:
+### `Inputs` & `Outputs` and `InCollection` & `OutCollection`
 
 `InCollection` and `OutCollection` are aliases of `Inputs` and `Outputs`, respectively, and
 operations between them are identical.
 
-#### Left and right shift operations:
+#### Left and right shift operations
 
 Similar to entry assignments, you can create dependencies using the left and right shift operators.
 
@@ -149,7 +152,7 @@ stz_eval.inputs.scale << stz_train.outputs.scale
 ```
 
 or alternatively, operating with collections:
-    
+
 ```python
 logistic_regression.in_collections.X << standardization.out_collections.Z
 ```
@@ -162,17 +165,17 @@ logistic_regression.in_collections.X.eval << standardization.out_collections.Z.e
 ```
 
 > :bulb: **Info:**
-The set of names of the two collections need to be identical. 
+The set of names of the two collections need to be identical.
 Entries will be matched by name to create depedencies, e.g.,
 `Z.train` with `X.train` and `Z.eval` with `X.eval`, respectively, in the above example.
 
 The operation returns a tuple of dependencies created.
 
-
-#### Merge operations:
+#### Merge operations
 
 You can merge two collections into a single one using `|` between collections.
-For example, 
+For example,
+
 ```python
 stz_train = stz_train.rename_inputs({"X": "X.train"})
 stz_eval = stz_eval.rename_inputs({"X": "X.eval"})
@@ -190,10 +193,10 @@ This behavior is the same for `Outputs` objects.
 The behavior for creating collections via `rename_inputs` or `rename_outputs` is explained in this
 [section](##rename-inputs-and-outputs) below.
 
-
-#### Subtract operations:
+#### Subtract operations
 
 You can subtract variable names or entry parameters:
+
 ```python
 new_inputs = standardization.in_collections - ("X",)
 new_inputs = standardization.in_collections - (standardization.in_collections.X.train,)
@@ -202,10 +205,9 @@ new_inputs = standardization.in_collections - (standardization.in_collections.X.
 The syntax requires subtracting an `Iterable` (like `tuple`, `list`, `set`, etc.).
 If what you are trying to subtract does not exist, no error will be issued.
 
+### `InCollections` & `OutCollections`
 
-### `InCollections` & `OutCollections`:
-
-#### Left and right shift operations:
+#### Left and right shift operations
 
 In the same spirit as with other types, one can do left and right shift operations on
 `InCollections` and `OutCollections` types.
@@ -215,7 +217,9 @@ Shared variables between pipelines will be associated together:
 ```python
 logistic_regression.out_collections >> logistic_regression.in_collections
 ```
+
 which is equivalent to
+
 ```pythyon
 logistic_regression.out_collections.X >> logistic_regression.in_collections.X
 logistic_regression.out_collections.Y >> logistic_regression.in_collections.Y
@@ -223,16 +227,15 @@ logistic_regression.out_collections.Y >> logistic_regression.in_collections.Y
 
 Using the left / right operator in the wrong direction will raise an error.
 
-
-#### Merge operations:
+#### Merge operations
 
 Similar to `Inputs` and `Outputs`, one can merge `InCollections` and `OutCollections`.
 Collections and entries will be merged together.
 
-
-#### Subtract operations:
+#### Subtract operations
 
 You can subtract variables, single parameters, or collection of parameters:
+
 ```python
 new_inputs = standardization.in_collections - ("X",)
 new_inputs = standardization.in_collections - (standardization.in_collections.X,)
@@ -246,10 +249,9 @@ Otherwise, the whole collection will be subtracted if you pass `X` or
 Note that the syntax requires subtracting an `Iterable` (like `tuple`, `list`, `set`, etc.).
 If what you are trying to subtract does not exist, no error will be issued.
 
-
 ### `Pipeline`
 
-#### Left and right shift operations:
+#### Left and right shift operations
 
 The IO attributes above are slightly redundant in the above example, so one can simplify
 directly operating with pipelines.
@@ -259,22 +261,26 @@ Left / right shifting with pipeline objects will create the dependencies between
 for equally named collections.
 
 Here is an example:
+
 ```python
 stz_train >> stz_eval
 ```
+
 which would be equivalent to
+
 ```python
 stz_train.outputs.mean >> stz_eval.inputs.mean
 stz_train.outputs.scale >> stz_eval.inputs.scale
 ```
 
 Beware that the following would produce no dependencies, because there are no shared variable names
+
 ```python
 dependencies = stz_train << stz_eval
 assert len(dependencies) == 0
 ```
 
-#### Rename inputs and outputs:
+#### Rename inputs and outputs
 
 You can rename inputs and outputs of a pipeline with `rename_inputs` and `rename_outputs`.
 
@@ -314,9 +320,10 @@ reports.rename_inputs({"acc.r1": "acc", "acc.r2": "acc"})  # rename / merge oper
 reports.inputs.acc # InEntry object with two entries merged together
 ```
 
-#### Decorate pipelines:
+#### Decorate pipelines
 
 You can `decorate` a pipeline, i.e., wrap a pipeline under another name:
+
 ```python
 new_pipeline = my_pipeline.decorate("p")
 ```
@@ -333,7 +340,7 @@ report = PipelineBuilder.task(Report)
 r1 = report.decorate("r1")
 r2 = report.decorate("r2")
 reports = PipelineBuilder.combine(
-    r1, r2,
+    pipelines=[r1, r2],
     name="reports",
     dependencies=(
         one_pipeline.outputs.probs >> r1.inputs.probs,
@@ -344,30 +351,27 @@ reports = PipelineBuilder.combine(
 
 To combine pipelines with the same name, you can decorate them first and then combine.
 
-
 ## Pipelines Definition
 
 A `Pipeline` is a (frozen) dataclass with the following attributes:
 
-* `name` (`str`): of the pipeline; used as the default value for collection entries; useful to
+- `name` (`str`): of the pipeline; used as the default value for collection entries; useful to
     distinguiss pipelines when combining.
-* `inputs` (`oneml.processors.Inputs`): exposure of `Inputs` of a pipeline.
-* `outputs` (`oneml.processors.Outputs`): exposure of `Outputs` of a pipeline.
-* `in_collections` (`oneml.processors.InCollections`): exposure of `InCollections` of a pipeline.
-* `out_collections` (`oneml.processors.OutCollections`): exposure of `OutCollections` of a
+- `inputs` (`oneml.processors.Inputs`): exposure of `Inputs` of a pipeline.
+- `outputs` (`oneml.processors.Outputs`): exposure of `Outputs` of a pipeline.
+- `in_collections` (`oneml.processors.InCollections`): exposure of `InCollections` of a pipeline.
+- `out_collections` (`oneml.processors.OutCollections`): exposure of `OutCollections` of a
     pipeline.
 
 `Pipeline`s should not be instantiated directly.
 Instead, `Pipeline`s should be created via `Task`s, combining other `Pipeline`s, or other
 constructors, e.g., `Estimator`.
 
-
 ## Meta-Pipelines
 
 We will see a few examples on how to use operations to create and compose pipelines.
 
-### `Estimator` Example:
-
+### `Estimator` Example
 
 ```python
 @dataclass(frozen=True, init=False)
@@ -431,7 +435,6 @@ subtracting specified dependencies.
 6. Inputs are merged by subtracting the specified dependencies, default behavior.
 
 7. Pipelines are combined, and a new `Pipeline` returned.
-
 
 ## Services
 

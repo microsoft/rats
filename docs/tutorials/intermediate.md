@@ -34,12 +34,6 @@ A *task* has the following construct parameters:
 - `services` (`Mapping[str, oneml.pipelines.session.ServiceId[Any]]`): \[optional\] A mapping from
     (a subset of) the the processor's constructor parameters to service ids.  See
     [Services](advanced.md#services).
-- `io_managers` (`Mapping[str, oneml.pipelines.session.IOManagerId]`): \[optional\] A mapping from
-    output entries to `IOManagerId`, e.g., `{"model": IOManagerId("local")}`. If ommitted, default
-    in-mermory `IOManager` is used.
-- `serializers` (`Mapping[str, oneml.pipelines.DataTypeId]`): \[optional\] A mapping from output
-    entries to `DataTypeId`, e.g., `{"model": DataTypeId("dill")}`. If ommitted, default
-    mapping type is used (specified in the session). Not all `io_managers` require a `serializer`.
 - `input_annotation` (`Mapping[str, type]`): \[optional\] dynamic inputs for variable keyword
     parameter, e.g., `**kwargs`; required if *processor* specifies
     [var keyword](https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind)
@@ -47,8 +41,8 @@ A *task* has the following construct parameters:
 - `return_annotation` (`Mapping[str, type]`): \[optional\] dynamic outputs; overrides the
     *processors* return annotation. Useful when the number of outputs a processor returns varies
     between pipelines, and only known at build time, e.g., a data splitter for cross-validation.
-- `compute_requirements` (`oneml.processors.PComputeReqs`): \[optional\] stores information about
-    the resources the *processor* needs to run, e.g., CPUs, GPUs, memory, etc.
+- `compute_requirements` (`oneml.processors.PComputeReqs`): \[optional\] \[for future use\] stores
+    information about the resources the *processor* needs to run, e.g., CPUs, GPUs, memory, etc.
 
 ### Task execution
 
@@ -59,7 +53,7 @@ When the task is executed it performs the following:
     [Constructor Parameters](#constructor-parameters)).
 - construct a processor object by calling the constructor of `processor_type` with the collected
     constructor parameters it collected.
-- call the process method of the processor object, passing the relevant inputs.
+- call the process method of the processor object, passing the rest of the inputs.
 - publish the outputs of the process method as the task outputs.
 
 ### Constructor Parameters
@@ -72,36 +66,132 @@ For each such parameter, the value will be provided in one of the following thre
 - If the parameter appears in `config` its value is take from there.
 - If the parameter appears in `services`, it is mapped to a service id.  The framework will look
     for the appropriate service provider in the services registry of the executing environment, and
-    call it to provide a service object.  That service be the value for the parameter.
+    call it to provide a service object.  That service object will be the value for the parameter.
 - If the parameter does not appear in `config` nor in `services`, it is assumed to be an input to
     the `task`.  Its value will be taken from those inputs.
 
-The following example implements a data loader.
-
-This example gets its constructor parameters from an in-memory immutable dictionary, i.e.,
-`frozendict`.
-
-Other mechanims for passing arguments are also supported, e.g., instantiating objects from
-configuration.
+The following example implements saving a pandas dataframe to a local csv file:
 
 ```python
-from typing import Any, Mapping, TypedDict
+from pathlib import Path
+import pandas as pd
+from typing import NamedTuple
+from oneml.processors import PipelineBuilder, display_dag
 
-from oneml.processors import PipelineBuilder, frozendict
+class SavePandasOut(NamedTuple):
+    file_path: str
 
-LoadDataOut = TypedDict("LoadDataOut", {"data": Any})
+class SavePandas:
+    def __init__(self, output_folder: Path, file_name: str):
+        self._file_path = output_folder / file_name
 
+    def process(self, df: pd.DataFrame) -> SavePandasOut:
+        self._file_path.parent.mkdir(parents=True, exist_ok=True)
+        df.to_csv(self._file_path)
+        return SavePandasOut(file_path=self._file_path)
+```
 
-class LoadData:
-    def __init__(self, storage: Mapping[str, float]):
-        self._storage = storage
+We can provide the constuctor arguments when we build the task, like this:
 
-    def process(self, key: str) -> LoadDataOut:
-        return LoadDataOut(data=self._storage["key"])
+```python
+save_pandas_1 = PipelineBuilder.task(
+    processor_type=SavePandas,
+    config=dict(
+        output_folder=Path(".tmp"),
+        file_name="a.csv",
+    ),
+)
 
+display_dag(save_pandas_1)
+```
 
-storage = frozendict({"X_train": 5, "X_eval": 1, "Y_train": 0, "Y_eval": 1})
-load_data = PipelineBuilder.task(processor_type=LoadData, name="load_data", config=storage)
+Or, we can ommit some of them it and they will become an inputs the the task:
+
+```python
+save_pandas_2 = PipelineBuilder.task(
+    processor_type=SavePandas,
+    config=dict(
+        file_name="a.csv",
+    ),
+)
+
+display_dag(save_pandas_2)
+```
+
+Finally, we can ask the framework to provide a service object as the value of a contructor
+argument, like this:
+
+```python
+from oneml.habitats import OnemlHabitatsServices
+
+save_pandas_3 = PipelineBuilder.task(
+    processor_type=SavePandas,
+    config=dict(
+        file_name="a.csv",
+    ),
+    services=dict(
+        output_folder=OnemlHabitatsServices.TMP_PATH,
+    ),
+)
+
+display_dag(save_pandas_3)
+```
+
+Let's take a minute to execute these three pipelines.
+
+We'll need a pipeline runner factory:
+
+```python
+from oneml.processors import OnemlProcessorsServices
+
+pipeline_runner_factory = oneml_service_provider.get_service(
+    OnemlProcessorsServices.PIPELINE_RUNNER_FACTORY)
+```
+
+And we'll need to provide a dataframe as input:
+
+```python
+df = pd.DataFrame(dict(A=[10,20,30], B=["a","b","c"]))
+```
+
+Executing the first version, providing `df`, and then inspecting the `file_path` output:
+
+```python
+runner = pipeline_runner_factory(save_pandas_1)
+outputs = runner(
+    dict(
+        df=df
+    )
+)
+print(outputs.file_path)
+```
+
+Verifying the output file:
+
+```python
+with outputs.file_path.open() as r:
+    print(r.read())
+```
+
+Executing the second version.  Recall that it requires `output_folder` as input.
+
+```python
+runner = pipeline_runner_factory(save_pandas_2)
+outputs = runner(dict(df=df, output_folder=Path(".my_output_folder/")))
+print(outputs.file_path)
+with outputs.file_path.open() as r:
+    print(r.read())
+```
+
+Executing the third version.  Here we trust `OnemlHabitatsServices.TMP_PATH` to define the output
+folder for us.
+
+```python
+runner = pipeline_runner_factory(save_pandas_3)
+outputs = runner(dict(df=df))
+print(outputs.file_path)
+with outputs.file_path.open() as r:
+    print(r.read())
 ```
 
 ### Dynamic Annotations
@@ -118,14 +208,18 @@ class Identity:
 ```
 
 It is a simple processor that returns all parameters it receives.
+
 It implements the *process* method and returns a `Mapping` with annotated variables.
 However, `Identity` does not specify the name of the variables that it expects or returns, and we
 do not know them a priori.
-That is the reason why `oneml.processors.Task` accepts `input_annotation` and `return_annotation`
-parameters.
+
+They do need to be specified at pipeline construction time, and that is the reason why
+`oneml.processors.Task` accepts `input_annotation` and `return_annotation` parameters.
+
 For most *processors* these arguments will be unncessary, but if we provide them, they will
-override the class's input or return signatures, respectively.
-For example,
+override the class's input or output signatures, respectively.
+
+For example:
 
 ```python
 from oneml.processors import PipelineBuilder
@@ -140,151 +234,6 @@ Only if the return signature of a processor AND if `return_annotation=None`, wil
 assume that the *processor* return type is actually `None`.
 Same applies to `input_annotation=None`.
 
-### Services
-
-Services are objects that are provided to a processor as constructor parameters.
-They are used to provide functionality that is provided by the executing environment, e.g.,
-`SparkContext`, `WandbLogger`, etc.
-
-Services are registered in the executing environment, and are mapped to service ids.
-
-The following is an example of how to use a service within a task:
-
-```python
-from typing import Any, Mapping, TypedDict
-from immunopipeline.jupyter_kernel.services import ImmunopipelineOnemlServices
-
-class SparkExample:
-    _spark_context: SparkContext
-
-    def __init__(self, spark_context: SparkContext):
-        self._spark_context = spark_context
-
-    def process(self) -> None:
-        ...
-
-spark_example = PipelineBuilder.task(
-    processor_type=SparkExample,
-    name="spark_example",
-    services={"spark_context": ImmunopipelineOnemlServices.SparkContext},
-)
-```
-
-
-### IOManagers and Serializers
-
-IOManagers are specific objects in charge of persisting data.
-They are used to store the outputs of a task, and to retrieve the inputs of a task.
-
-The framework provides a default in-memory IOManager, which is used if no other IOManager is
-specified.
-The default IOManager is not persistent, i.e., it will not store data between executions of the
-framework.
-
-Other IOManagers includo a `LocalFilesystemIOManager` and a `BlobIOManager`, which store
-serializable data in the local filesystem or blob storage, respectively. 
-
-We use custom IOManagers for `numpy`, `pandas` and `spark`, as these data structures use their
-own persitenace mechanisms.
-
-An example of how to persist an output using a local filesystem IOManager is the following:
-
-```python
-from typing import TypedDict
-class Model:
-    weights: tuple[float]
-    bias: float
-
-    def fit(self) -> None:
-        ...
-
-TrainModelOutput = TypedDict("TrainModelOutput", {"model": Model})
-
-# Processor class
-class TrainModel:
-    _model: Model
-
-    def __init__(self, model: Model):
-        self._model = model
-
-    def process(self) -> TrainModelOutput
-        self._model.fit()
-        return TrainModelOutput(model=self._model)
-
-# Pipeline task
-train_model = PipelineBuilder.task(
-    TrainModel,
-    io_managers={"model": IOManagerIds.LOCAL},
-    serializers={"model": SerializerIds.DILL},
-)
-```
-
-And example with a Spark DataFrame would be the following:
-
-```python
-from typing import TypedDict
-from oneml.pipelines.session import IOManagerId
-
-FetOutputs = TypedDict("CalcTcrFetOutputs", { "tcr_score_df": DataFrame })
-
-class CalculateTcrFet:
-    def __init__(self, label_column="label"):
-        self._label_column = label_column
-        self._allowed_labels = (0, 1)
-
-    def process(self, num_positives: int, num_negatives: int , sequences_df: DataFrame) -> CalcTcrFetOutputs:
-        ...
-        return FetOutputs(tcr_score_df = tcr_pval.localCheckpoint(eager=True))
-
-count_samples_per_label = PipelineBuilder.task(
-    CalcTcrFet,
-    config={"label_column": label_column},
-    iomanagers = {"tcr_score_df": IOManagerId("spark-local")}
-)
-```
-
-Finally, the following constitutes an advanced example of how to register custom IOManagers and
-Serializers into the framework.
-These operations happen in the DI container before any session is created.
-
-The `IOManagerRegistry` and the `SerializerClient` are used to register custom IOManagers and
-serialiers, respectively.
-The `MappedPipelineDataClient` is used to map data types to serializers automatically.
-
-```python
-from typing import Any
-from oneml_test.processors.mock_data import Array, Model, ModelSerializer
-from oneml.pipelines.data._serialization import DillSerializer, SerializationClient, SerializerIds
-from oneml.pipelines.data._data_type_mapping import MappedPipelineDataClient
-from oneml.pipelines.data._local_data_client import IOManagerIds, LocalDataClient
-from oneml.pipelines.session import DataTypeId, IOManagerId, IOManagerRegistry
-
-class IOManagerIds:
-    LOCAL = IOManagerId("local")
-
-class DataTypeIds:
-    ARRAY = DataTypeId[Array]("array")
-    MODEL = DataTypeId[Model]("model")
-
-class SerializerIds:
-    DILL = DataTypeId[Any]("dill")
-
-serialization_client = SerializationClient()
-serialization_client.register(type_id=DataTypeIds.MODEL, serializer=ModelSerializer())
-serialization_client.register(type_id=SerializerIds.DILL, serializer=DillSerializer())
-
-type_mapping = MappedPipelineDataClient()
-
-local_pipeline_data_client = LocalDataClient(
-    serializer=serialization_client,
-    type_mapping=type_mapping,
-    session_context=pipeline_session_context,
-)
-
-registry = IOManagerRegistry()
-registry.register(IOManagerIds.LOCAL, local_pipeline_data_client)
-```
-
 ## Combining Pipelines
 
 We will further explain how to combine pipelines, handle name conflicts, and expose inputs and
@@ -294,7 +243,7 @@ outputs.
 
 The exact parameter signature of `PipelineBuilder.combine` is the following:
 
-- `*pipelines` (`Pipeline`): a sequence of `Pipeline`s to combine; must have different names.
+- `pipelines` (`Pipeline`): a sequence of `Pipeline`s to combine; must have different names.
 - `name` (`str`): name of the returned, combined pipeline.
 - `dependencies` (`Iterable[Sequence[oneml.ux.Dependency]]`): dependencies between the pipelines to
     combine, e.g., `stz_eval.inputs.mean << stz_train.outputs.mean`.
@@ -302,39 +251,38 @@ The exact parameter signature of `PipelineBuilder.combine` is the following:
   pipelines to combine.
 - `outputs` (`oneml.ux.UserOutput | None`): mapping names of outputs and out_collectins of the
   pipelines to combine.
+
 Arguments `inputs` and `outputs` are optional and help configure the exposed input and output
 variables of the combined pipeline.
+
 The exact definitions are the following:
+
 - `UserInput = Mapping[str, oneml.ux.InEntry | oneml.ux.Inputs]`
 - `UserOutput = Mapping[str, oneml.ux.OutEntry | oneml.ux.Outputs]`
+
 Default behavior for `inputs` and `outputs` set to None is explained in the
 [section](#defaults-for-userinput-and-useroutput) below.
 
 > :notebook: **Note:**
 Dependencies are not expected to be created manually, but through the `<<` operator syntax.
 
-#### Requirements
-
-- All *inputs* to the pipeline must be specified if `inputs` is not `None`.
-
-- Exposing `outputs` is optional.
-- `UserInput` or `UserOutput` can have at most single dot in the *mapping* keys.
-An error will be raised otherwise.
 Consider the following `standardization` example:
 
 ```python
-from typing import TypedDict
-
+from typing import NamedTuple
 from oneml.processors import PipelineBuilder
 
-StandardizeTrainOut = TypedDict("StandardizeTrainOut", {"mean": float, "scale": float, "Z": float})
-StandardizeEvalOut = TypedDict("StandardizeEvalOut", {"Z": float})
-
+class StandardizeTrainOut(NamedTuple):
+    mean: float
+    scale: float
+    Z: float
 
 class StandardizeTrain:
     def process(X: float) -> StandardizeTrainOut:
         ...
 
+class StandardizeEvalOut(NamedTuple):
+    Z: float
 
 class StandardizeEval:
     def __init__(self, mean: float, scale: float) -> None:
@@ -348,8 +296,7 @@ stz_train = PipelineBuilder.task(StandardizeTrain)
 stz_eval = PipelineBuilder.task(StandardizeEval)
 
 standardization = PipelineBuilder.combine(
-    stz_train,
-    stz_eval,
+    pipelines=[stz_train, stz_eval],
     name="standardization",
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
@@ -363,6 +310,8 @@ standardization = PipelineBuilder.combine(
         "Z.eval": stz_eval.outputs.Z,
     },
 )
+
+display_dag(standardization)
 ```
 
 Let's unwrap the example below.
@@ -425,16 +374,20 @@ The usefulness of collections is that we can group parameters together and creat
 Here another example with `logistic_regression`:
 
 ```python
-LogisticRegressionTrainOut = TypedDict(
-    "LogisticRegressionTrainOut", {"model": tuple[float], "Z": float}
-)
-LogisticRegressionEvalOut = TypedDict("LogisticRegressionEvalOut", {"Z": float, "probs": float})
+from typing import NamedTuple
+from oneml.processors import PipelineBuilder
 
+class LogisticRegressionTrainOut(NamedTuple):
+    model: tuple[float]
+    Z: float
 
 class LogisticRegressionTrain:
     def process(X: float, Y: float) -> LogisticRegressionTrainOut:
         ...
 
+class LogisticRegressionEvalOut(NamedTuple):
+    Z: float
+    probs: float
 
 class LogisticRegressionEval:
     def __init__(self, model: tuple[float, ...]) -> None:
@@ -448,8 +401,7 @@ lr_train = PipelineBuilder.task(LogisticRegressionTrain, name="lr_train")
 lr_eval = PipelineBuilder.task(LogisticRegressionEval, name="lr_eval")
 
 logistic_regression = PipelineBuilder.combine(
-    lr_train,
-    lr_eval,
+    pipelines=[lr_train, lr_eval],
     name="logistic_regression",
     dependencies=(lr_eval.inputs.model << lr_train.outputs.model,),
     inputs={
@@ -465,6 +417,8 @@ logistic_regression = PipelineBuilder.combine(
         "probs": lr_eval.outputs.probs,
     },
 )
+
+display_dag(logistic_regression)
 ```
 
 The inputs and outputs automatically formed after combining `lr_train` and `lr_eval` into
@@ -489,12 +443,13 @@ Finally, we can combine `standardization` and `logistic_regression` together:
 
 ```python
 stz_lr = PipelineBuilder.combine(
-    standardization,
-    logistic_regression,
+    pipelines=[standardization, logistic_regression],
     name="stz_lr",
     # two dependencies returned from input-output collection assignment
     dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
 )
+
+display_dag(stz_lr)
 ```
 
 Notice the simple assignment of the `stz_lr` pipeline's input and output collections.
@@ -564,64 +519,11 @@ outputs = {
 
 Only `standardization.outputs.Z` is specified in the dependencies list and excluded.
 
-# Estimators
+# TrainAndEval
 
-[Combining pipelines](#combining-pipelines) for creating train and eval tasks so far:
+In this tutorial we used `PipelineBuilders.combine` to build an ML pipeline - one that fits a model
+on training data and evaluates that model on that training data and on a holdout data.
 
-1. Instantiate tasks, e.g., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
-2. Combine tasks, e.g., `standardization`, `logistic_regression`.
-3. Specify dependencies, e.g., `stz_eval.inputs.mean << stz_train.outputs.mean`,
-`lr_eval.inputs.model << lr_train.outputs.model`.
-4. Specify inputs and outputs, e.g.,
-`inputs={"X.train": stz_train.inputs.X, "X.eval": stz_eval.inputs.X}`.
-5. Combine pipelines passing dependencies, inputs and outputs.
-This pattern can be simplified with estimators:
-1. Instantiate tasks, e.g., `stz_train`, `stz_eval`, `lr_train`, `lr_eval`.
-2. Instantiate estimators, e.g., `standardization`, `logistic_regression`.
-4. Combine estimators, e.g., `stz_lr` below.
-
-```python
-from oneml.processors.ml import Estimator
-
-# Instantiate tasks
-stz_train = PipelineBuilder.task(StandardizeTrain)
-stz_eval = PipelineBuilder.task(StandardizeEval)
-lr_train = PipelineBuilder.task(LogisticRegressionTrain)
-lr_eval = PipelineBuilder.task(LogisticRegressionEval)
-
-# Instantiate estimators
-standardization = Estimator(
-    name="standardization",
-    train_pl=stz_train,
-    eval_pl=stz_eval,
-    dependencies=(
-        stz_eval.inputs.mean << stz_train.outputs.mean,
-        stz_eval.inputs.scale << stz_train.outputs.scale,
-    ),
-)
-logistic_regression = Estimator(
-    name="logistic_regression",
-    train_pl=lr_train,
-    eval_pl=lr_eval,
-    dependencies=(lr_eval.inputs.model << lr_train.outputs.model,),
-)
-
-# Combine estimators
-stz_lr = PipelineBuilder.combine(
-    standardization,
-    logistic_regression,
-    name="stz_lr",
-    dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
-)
-```
-
-The main advantage for using estimators is that collections are built so that they are compatible
-to operate together.
-If the previous *processors* had more than one evaluation task, the underlying dependency
-assignments do not change if they rely on collection assignments.
-> :notebook: **Note:**
-Combinging pipelines using `Estimator` exposes all outputs from both pipelines.
-That is why `standardization` exposes `mean` and `scale`, and why `logistic_regression` exposes
-`model`, even though they are specified as dependencies.
-This is not the default behavior of `PipelineBuilder.combine`, which does not expose outputs that
-have been specified as dependencies.
+See [Tutorial: TrainAndEval](train_and_eval.md) for OneML tools useful in this scenario
+including simplifying and standardizing such pipelines, and using this standardization to
+automatically persist fitted eval pipelines.

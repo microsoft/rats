@@ -1,4 +1,4 @@
- # Beginners Tutorial
+# Beginners Tutorial
 
 ## "Hello World" Example
 
@@ -8,8 +8,6 @@ Let's start writing the most simple pipeline that takes no inputs or outputs and
 The first step is to write a *processor* with the printing functionality.
 We need to define a `process` method with no input and no output.
 
-
-
 ```python
 class HelloWorld:
     def process(self) -> None:
@@ -18,14 +16,17 @@ class HelloWorld:
 
 To create a pipeline and run it, we can use the following lines:
 
-
 ```python
-from oneml.processors import PipelineBuilder, PipelineRunner
+from oneml.processors import PipelineBuilder, OnemlProcessorsServices
+
+pipeline_runner_factory = oneml_service_provider.get_service(OnemlProcessorsServices.PIPELINE_RUNNER_FACTORY)
 
 hello_world = PipelineBuilder.task(HelloWorld, "hello_world")  # creates a pipeline of single node
-runner = PipelineRunner(hello_world)  # creates a runner for the given pipeline
+runner = pipeline_runner_factory(hello_world)  # creates a runner for the given pipeline
 runner()  # runs the pipeline
 ```
+
+We will go into more details in the rest of this tutorial and in the next tutorials.
 
 ## "Diamond" Pipeline Example
 
@@ -42,35 +43,34 @@ B   C         D <- B
 
 We have the following classes and declared outputs:
 
-
 ```python
-from typing import Any, TypedDict
+from typing import Any, NamedTuple
 
-AOutput = TypedDict("AOutput", {"Z1": float, "Z2": float})
-BOutput = TypedDict("BOutput", {"Z": float})
-COutput = TypedDict("COutput", {"Z": float})
-
+class AOutput(NamedTuple):
+    Z1: float
+    Z2: float
 
 class A:
     def process(self) -> AOutput:
         ...
 
-
+class BOutput(NamedTuple):
+    Z: float
+    
 class B:
     def process(self, X: Any) -> BOutput:
         ...
 
+class COutput(NamedTuple):
+    Z: float
 
 class C:
     def process(self, X: Any) -> COutput:
         ...
 
-
 class D:
     def process(self, X1: Any, X2: Any) -> None:
         ...
-
-
 ```
 
 *Processors* can have arbitrary inputs, in this case we have processors with empty, single, single
@@ -79,7 +79,7 @@ and two inputs, respectively.
 *Processors* declare their outputs too.
 To declare outputs, the `process` method needs to return a mapping with variable names and values,
 i.e., `Mapping[str, Any]`, or `None`.
-`TypedDict` is a useful built-in type to declare the variable names and types, which we used to
+`NamedTuple` is a useful built-in type to declare the variable names and types, which we used to
 specify that *processor* `A` returns two outputs, `B` and `C` return a single output, and `D`
 returns nothing.
 
@@ -88,10 +88,8 @@ We start by creating a single node pipeline per *processor*, which we refer as a
 Then we combine all 4 *tasks* into a single pipeline by declaring the input/output *dependencies*
 that exist between *tasks*:
 
-
-
 ```python
-from oneml.processors import PipelineBuilder, PipelineRunner, display_dag
+from oneml.processors import PipelineBuilder, display_dag
 
 a = PipelineBuilder.task(A, "A")
 b = PipelineBuilder.task(B, "B")
@@ -99,21 +97,17 @@ c = PipelineBuilder.task(C, "C")
 d = PipelineBuilder.task(D, "D")
 
 diamond = PipelineBuilder.combine(
-    a,
-    b,
-    c,
-    d,
+    name="diamond",
+    pipelines = [a, b, c, d],
     dependencies=(
         b.inputs.X << a.outputs.Z1,
         c.inputs.X << a.outputs.Z2,
         d.inputs.X1 << b.outputs.Z,
         d.inputs.X2 << c.outputs.Z,
     ),
-    name="diamond",
 )
 
-display_dag(diamond)  # displays the pipeline
-
+display_dag(diamond) # displays the pipeline
 ```
 
 ![png](figures/beginners_8_0.png)
@@ -127,7 +121,6 @@ to create such *dependencies*, which will return a tuple holding the *dependency
 If the user accesses an input or output that do not exist, or confuses the direction of the
 dependency, a run-time error will be raised.
 This is why we have to declare the inputs and outputs of *processors*.
-
 
 ## Standardized Logistic Regression Example
 
@@ -143,24 +136,20 @@ We start by writing the necessary *processors*, which declare inputs and outputs
 Note that *processors* can depend on parameters both on the `__init__` and `process` methods, as
 shown below.
 
-
 ```python
-from typing import TypedDict
+from typing import NamedTuple
 
-StandardizeTrainOut = TypedDict(
-    "StandardizeTrainOut", {"mean": float, "scale": float, "Z_train": float}
-)
-StandardizeEvalOut = TypedDict("StandardizeEvalOut", {"Z_eval": float})
-LogisticRegressionTrainOut = TypedDict(
-    "LogisticRegressionTrainOut", {"model": tuple[float], "Z_train": float}
-)
-LogisticRegressionEvalOut = TypedDict("LogisticRegressionEvalOut", {"Z_eval": float})
-
+class StandardizeTrainOut(NamedTuple):
+    mean: float
+    scale: float
+    Z_train: float
 
 class StandardizeTrain:
     def process(self, X_train: float) -> StandardizeTrainOut:
         ...
 
+class StandardizeEvalOut(NamedTuple):
+    Z_eval: float
 
 class StandardizeEval:
     def __init__(self, mean: float, scale: float) -> None:
@@ -169,11 +158,17 @@ class StandardizeEval:
     def process(self, X_eval: float) -> StandardizeEvalOut:
         ...
 
+class LogisticRegressionTrainOut(NamedTuple):
+    model: tuple[float]
+    Z_train: float
 
 class LogisticRegressionTrain:
     def process(self, X_train: float, Y_train: float) -> LogisticRegressionTrainOut:
         ...
 
+
+class LogisticRegressionEvalOut(NamedTuple):
+    Z_eval: float
 
 class LogisticRegressionEval:
     def __init__(self, model: tuple[float, ...]) -> None:
@@ -188,9 +183,8 @@ class LogisticRegressionEval:
 We create single node pipelines, aka. *tasks*, and combine them, similar to how we did with in the
 diamond pipeline example, to create `standardization` and `logistic_regression`.
 
-
 ```python
-from oneml.processors import PipelineBuilder, PipelineRunner
+from oneml.processors import PipelineBuilder
 
 stz_train = PipelineBuilder.task(StandardizeTrain, "stz_train")
 stz_eval = PipelineBuilder.task(StandardizeEval, "stz_eval")
@@ -198,20 +192,18 @@ lr_train = PipelineBuilder.task(LogisticRegressionTrain, "lr_train")
 lr_eval = PipelineBuilder.task(LogisticRegressionEval, "lr_eval")
 
 standardization = PipelineBuilder.combine(
-    stz_train,
-    stz_eval,
+    name="standardization",
+    pipelines=[stz_train, stz_eval],
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
     ),
-    name="standardization",
 )
 
 logistic_regression = PipelineBuilder.combine(
-    lr_train,
-    lr_eval,
-    dependencies=(lr_eval.inputs.model << lr_train.outputs.model,),
     name="logistic_regression",
+    pipelines=[lr_train, lr_eval],
+    dependencies=(lr_eval.inputs.model << lr_train.outputs.model,),
 )
 
 ```
@@ -219,15 +211,12 @@ logistic_regression = PipelineBuilder.combine(
 The next step is to combine both pipelines into a single one and connect all dependencies
 between them.
 
-
-
 ```python
 from oneml.processors import display_dag
 
 standardized_lr = PipelineBuilder.combine(
-    standardization,
-    logistic_regression,
     name="standardized_lr",
+    pipelines=[standardization, logistic_regression],
     dependencies=(
         logistic_regression.inputs.X_train << standardization.outputs.Z_train,
         logistic_regression.inputs.X_eval << standardization.outputs.Z_eval,
@@ -262,26 +251,22 @@ As explained before, we built `standardized_lr` by first building `standardizati
 An alternative is to first build the `train` and `eval` pipelines separately, and then combine.
 The following code yields the same result as before:
 
-
 ```python
 train_pipeline = PipelineBuilder.combine(
-    stz_train,
-    lr_train,
     name="train_pipeline",
+    pipelines=[stz_train, lr_train],
     dependencies=(lr_train.inputs.X_train << stz_train.outputs.Z_train,),
 )
 
 eval_pipeline = PipelineBuilder.combine(
-    stz_eval,
-    lr_eval,
     name="eval_pipeline",
+    pipelines=[stz_eval, lr_eval],
     dependencies=(lr_eval.inputs.X_eval << stz_eval.outputs.Z_eval,),
 )
 
 standardized_lr = PipelineBuilder.combine(
-    train_pipeline,
-    eval_pipeline,
     name="standardized_lr",
+    pipelines=[train_pipeline, eval_pipeline],
     dependencies=(
         eval_pipeline.inputs.mean << train_pipeline.outputs.mean,
         eval_pipeline.inputs.scale << train_pipeline.outputs.scale,
@@ -302,14 +287,10 @@ to share between users, whereas the first and second approach encapsulate the co
 those explicit to share, via standardization / logistic_regression, or via train / eval pipelines,
 respectively.
 
-
 ```python
 standardized_lr = PipelineBuilder.combine(
-    stz_train,
-    lr_train,
-    stz_eval,
-    lr_eval,
     name="standardized_lr",
+    pipelines=[stz_train, lr_train, stz_eval, lr_eval],
     dependencies=(
         stz_eval.inputs.mean << stz_train.outputs.mean,
         stz_eval.inputs.scale << stz_train.outputs.scale,
@@ -320,45 +301,59 @@ standardized_lr = PipelineBuilder.combine(
 )
 ```
 
-## Standardized LR with Data
+## OneML services
 
-The previous `standardized_lr` had unspecified inputs, in particular, `X` and `Y` have been left
-unspecified.
-This means that the pipeline is not runnable yet, but if we connect the missing dependencies, the
-resulting pipeline will be runnable.
+The OneML services framework is a dependency injection plugin system.  It allows code in different
+python libraries to expose service interfaces, and to define how service objects implementing these
+interfaces are initialized.
 
-In terms of results it does not matter the order in which build the pipelines, but encapsulating
-them as intermediate formulations makes it easier to reuse them.
-That's why we separated connecting `standardized_lr` to any data.
+For now, it is sufficient to understand that:
 
+1. Different components expose services by providing classes with service ids as class members.
+   For example `OnemlProcessorsServices` is exposed by `oneml.processors`.  Its member
+   `OnemlProcessorsServices.PIPELINE_RUNNER_FACTORY` is the ID of the service used to run
+   pipelines.
+1. The `IProvideServices` interface exposed by `oneml.pipelines.services` provides access to
+   service objects given service ids.
+1. In habitats jupyter kernels, the global `oneml_service_provider` implements the
+   `IProvideServices` interface.  Therefore the following code gets the pipeline runner factory
+   service:
 
 ```python
-LoadDataOut = TypedDict(
-    "LoadDataOut", {"X_train": float, "X_eval": float, "Y_train": float, "Y_eval": float}
-)
+from oneml.processors import OnemlProcessorsServices
 
-
-class LoadData:
-    def process(self) -> LoadDataOut:
-        ...
-
-
-load_data = PipelineBuilder.task(LoadData, "load_data")
-
-final_pipeline = PipelineBuilder.combine(
-    load_data,
-    standardized_lr,
-    name="final_pipeline",
-    dependencies=(
-        standardized_lr.inputs.X_train << load_data.outputs.X_train,
-        standardized_lr.inputs.X_eval << load_data.outputs.X_eval,
-        standardized_lr.inputs.Y_train << load_data.outputs.Y_train,
-        standardized_lr.inputs.Y_eval << load_data.outputs.Y_eval,
-    ),
-)
-
-display_dag(final_pipeline)  # displays the pipeline
-
+pipeline_runner_factory = oneml_service_provider.get_service(
+    OnemlProcessorsServices.PIPELINE_RUNNER_FACTORY)
 ```
 
-![png](figures/beginners_23_0.png)
+## Running pipelines
+
+`pipeline_runner_factory` takes a pipeline, and returns a runner capable of running it:
+
+```python
+hello_world_runner = pipeline_runner_factory(hello_world)
+standardized_lr_runner = pipeline_runner_factory(standardized_lr)
+```
+
+If the pipeline takes no inputs, e.g. our `hello_world` example pipeline, one can run it by calling
+the runner:
+
+```python
+hello_world_runner()
+```
+
+If the pipeline requires inputs, e.g. our `standardized_lr` example pipeline, they need to provided
+as a dictionary to the runner.  The runner returns an outputs object that allows access to the
+pipeline's outputs.
+
+The following pseudocode illustrates running `standardized_lr`, but recall that we have not
+implemented the methods of the different processors we defined above, so this isn't runnable code.
+
+```python
+standardized_lr_outputs = standardized_lr_runner(dict(
+    X_eval=..., X_train=..., Y_eval=..., Y_train=...
+))
+```
+
+See [demo_01_SLR_estimator - 202306 immunopipeline](https://msft-amp.azurewebsites.net/atlas/notebooks/51a18cf1-a089-442c-abaa-8066ede48e12?path=elonp@microsoft.com/OneML/demo_01_SLR_estimator%20-%20202306%20immunopipeline.ipynb) for an
+end-to-end working example of `standardized_lr`.

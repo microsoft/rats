@@ -23,10 +23,12 @@ if TYPE_CHECKING:
 class DotBuilder:
     _g: pydot.Dot  # type: ignore[no-any-unimported]
     _node_name_mapping: dict[str, str]
+    _include_optional: bool
 
-    def __init__(self) -> None:
+    def __init__(self, include_optional: bool = True) -> None:
         self._g = pydot.Dot("DAG", graph_type="digraph")
         self._node_name_mapping = {}
+        self._include_optional = include_optional
 
     def _get_io_tag(self, io: Literal["i", "o"], port_name: str) -> str:
         sanitized = port_name.replace("_", "__").replace(".", "_")
@@ -73,14 +75,17 @@ class DotBuilder:
         for node, dps in dag.dependencies.items():
             name = repr(node)
             for dp in dps:
-                dp_name = repr(dp.node)
-                in_arg = dp.in_arg.name
-                out_arg = dp.out_arg.name
-                source = self._get_o_port_tag(dp_name, out_arg)
-                target = self._get_i_port_tag(name, in_arg)
-                self._g.add_edge(
-                    pydot.Edge(source, target, style="solid" if dp.in_arg.required else "dashed")
-                )
+                if dp.in_arg.required or self._include_optional:
+                    dp_name = repr(dp.node)
+                    in_arg = dp.in_arg.name
+                    out_arg = dp.out_arg.name
+                    source = self._get_o_port_tag(dp_name, out_arg)
+                    target = self._get_i_port_tag(name, in_arg)
+                    self._g.add_edge(
+                        pydot.Edge(
+                            source, target, style="solid" if dp.in_arg.required else "dashed"
+                        )
+                    )
 
     def _get_io_entries(
         self, io: ParamCollection[PE], io_collections: IOCollections[ParamCollection[PE]]
@@ -125,7 +130,7 @@ class DotBuilder:
         optional = {k: v for k, v in entries.items() if v.optional}
         if len(required) > 0:
             add_inputs_node("required", required)
-        if len(optional) > 0:
+        if len(optional) > 0 and self._include_optional:
             add_inputs_node("optional", optional)
 
     def _add_outputs(self, outputs: Outputs, out_collections: OutCollections) -> None:
@@ -159,20 +164,20 @@ class DotBuilder:
         return self._g
 
 
-def dag_to_dot(dag: DAG) -> pydot.Dot:  # type: ignore[no-any-unimported]
-    builder = DotBuilder()
+def dag_to_dot(dag: DAG, include_optional: bool = True) -> pydot.Dot:  # type: ignore[no-any-unimported]
+    builder = DotBuilder(include_optional=include_optional)
     builder._add_pipeline(dag)
     return builder.get_dot()
 
 
-def pipeline_to_dot(pipeline: Pipeline) -> pydot.Dot:  # type: ignore[no-any-unimported]
-    builder = DotBuilder()
+def pipeline_to_dot(pipeline: Pipeline, include_optional: bool = True) -> pydot.Dot:  # type: ignore[no-any-unimported]
+    builder = DotBuilder(include_optional=include_optional)
     builder.add_pipeline(pipeline)
     return builder.get_dot()
 
 
-def dag_to_svg(dag: DAG) -> bytes:
-    dot = dag_to_dot(dag)
+def dag_to_svg(dag: DAG, **kwds: Any) -> bytes:
+    dot = dag_to_dot(dag, **kwds)
     return dot.create(format="svg")
 
 
