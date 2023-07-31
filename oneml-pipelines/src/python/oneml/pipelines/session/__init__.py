@@ -1,20 +1,9 @@
-from ._context import OnemlSessionContextIds
-from ._executable import (
-    CallableExecutable,
-    ContextType,
-    ContextualCallableExecutable,
-    DeferredExecutable,
-    ICallableExecutable,
-    ICallableExecutableProvider,
-    IContextualCallableExecutable,
-    IExecutable,
-    NoOpExecutable,
-)
+from ._contexts import OnemlSessionContexts, PipelineContext, PipelineNodeContext
 from ._node_execution import (
     IExecutePipelineNodes,
     ILocatePipelineNodeExecutables,
     IManagePipelineNodeExecutables,
-    IRegisterPipelineNodeExecutables,
+    ISetPipelineNodeExecutables,
     NodeExecutableNotFoundError,
     PipelineNodeExecutablesClient,
 )
@@ -25,30 +14,15 @@ from ._node_state import (
     PipelineNodeState,
     PipelineNodeStateClient,
 )
-from ._services import OnemlSessionServices
 from ._session_client import (
     IPipelineSession,
     IRunnablePipelineSession,
     IStoppablePipelineSession,
     PipelineSessionClient,
 )
-from ._session_client_factory import PipelineSessionClientFactory
-from ._session_components import PipelineSessionComponents
-from ._session_data import SessionDataClient
-from ._session_frame import (
-    BasicPipelineSessionFrameCommands,
-    IPipelineSessionFrame,
-    PipelineSessionFrame,
-)
-from ._session_plugin_client import PipelineSessionPluginClient
-from ._session_plugins import (
-    IActivatePipelineSessionPlugins,
-    IManagePipelineSessionPlugins,
-    IPipelineSessionPlugin,
-    IRegisterPipelineSessionPlugins,
-)
+from ._session_frame import PipelineSessionFrameClient
 from ._session_state import (
-    ILocatePipelineSessionState,
+    IGetPipelineSessionState,
     IManagePipelineSessionState,
     ISetPipelineSessionState,
     PipelineSessionState,
@@ -56,47 +30,34 @@ from ._session_state import (
 )
 
 __all__ = [
-    "IExecutable",
-    "NoOpExecutable",
-    "ICallableExecutableProvider",
-    "ICallableExecutable",
-    "DeferredExecutable",
-    "CallableExecutable",
-    "ContextType",
-    "IContextualCallableExecutable",
-    "ContextualCallableExecutable",
-    "ILocatePipelineNodeExecutables",
-    "IRegisterPipelineNodeExecutables",
-    "IManagePipelineNodeExecutables",
+    # _contexts
+    "OnemlSessionContexts",
+    "PipelineContext",
+    "PipelineNodeContext",
+    # _node_execution
     "IExecutePipelineNodes",
-    "PipelineNodeExecutablesClient",
+    "ILocatePipelineNodeExecutables",
+    "IManagePipelineNodeExecutables",
+    "ISetPipelineNodeExecutables",
     "NodeExecutableNotFoundError",
-    "PipelineNodeState",
+    "PipelineNodeExecutablesClient",
+    # _node_state
     "ILocatePipelineNodeState",
-    "ISetPipelineNodeState",
     "IManagePipelineNodeState",
+    "ISetPipelineNodeState",
+    "PipelineNodeState",
     "PipelineNodeStateClient",
+    # _session_client
+    "IPipelineSession",
     "IRunnablePipelineSession",
     "IStoppablePipelineSession",
-    "IPipelineSession",
-    "IPipelineSessionFrame",
-    "BasicPipelineSessionFrameCommands",
-    "PipelineSessionFrame",
-    "IPipelineSessionPlugin",
-    "IRegisterPipelineSessionPlugins",
-    "IActivatePipelineSessionPlugins",
-    "IManagePipelineSessionPlugins",
-    "PipelineSessionState",
-    "ILocatePipelineSessionState",
-    "ISetPipelineSessionState",
-    "IManagePipelineSessionState",
-    "PipelineSessionStateClient",
-    "PipelineSessionClientFactory",
-    "PipelineSessionPluginClient",
-    "CallableExecutable",
     "PipelineSessionClient",
-    "SessionDataClient",
-    "PipelineSessionComponents",
-    "OnemlSessionServices",
-    "OnemlSessionContextIds",
+    # _session_frame
+    "PipelineSessionFrameClient",
+    # _session_state
+    "IGetPipelineSessionState",
+    "IManagePipelineSessionState",
+    "ISetPipelineSessionState",
+    "PipelineSessionState",
+    "PipelineSessionStateClient",
 ]

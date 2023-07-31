@@ -5,15 +5,9 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.processors import (
-    CombinedPipeline,
-    IPersistFittedEvalPipeline,
-    IProcess,
-    Pipeline,
-    PipelineRunnerFactory,
-    Task,
-    TrainAndEvalBuilders,
-)
+from oneml.processors.dag import IProcess
+from oneml.processors.training import IPersistFittedEvalPipeline, TrainAndEvalBuilders
+from oneml.processors.ux import CombinedPipeline, Pipeline, PipelineRunnerFactory, Task
 
 from .mock_data import Array, Model
 

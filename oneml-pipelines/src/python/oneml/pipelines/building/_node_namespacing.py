@@ -31,7 +31,6 @@ class INamespacePipelineNodes(Protocol):
 
 
 class PipelineNamespaceClient(ICreatePipelineNamespaces, INamespacePipelineNodes):
-
     _name: str
 
     def __init__(self, name: str):

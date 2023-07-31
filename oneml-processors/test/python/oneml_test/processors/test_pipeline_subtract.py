@@ -3,8 +3,8 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.processors import IProcess, Pipeline
-from oneml.processors.ux import Task
+from oneml.processors.dag import IProcess
+from oneml.processors.ux import Pipeline, Task
 
 StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
 

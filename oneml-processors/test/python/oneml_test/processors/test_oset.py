@@ -1,4 +1,4 @@
-from oneml.processors import orderedset
+from oneml.processors.utils import orderedset
 
 
 def test_orderedset_eq() -> None:

@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from itertools import chain
 from typing import Any, Iterable, Iterator, Mapping
-from uuid import uuid4
 
-from oneml.app import OnemlApp, OnemlAppServices
+from oneml.app import OnemlApp
+from oneml.processors.dag import DagSubmitter, IProcess
+from oneml.processors.utils import frozendict
 
-from ..dag._client import PipelineSessionProvider
-from ..dag._processor import IProcess
-from ..utils._frozendict import frozendict
 from ._builder import CombinedPipeline, DependencyOp, Task
 from ._pipeline import Pipeline
 
@@ -113,30 +111,28 @@ class SessionOutputsGetter(Iterable[str]):
 
 class PipelineRunnerFactory:
     _app: OnemlApp
-    _pipeline_session_provider: PipelineSessionProvider
+    _dag_submitter: DagSubmitter
 
-    def __init__(self, app: OnemlApp, pipeline_session_provider: PipelineSessionProvider):
+    def __init__(self, app: OnemlApp, dag_submitter: DagSubmitter):
         self._app = app
-        self._pipeline_session_provider = pipeline_session_provider
+        self._dag_submitter = dag_submitter
 
     def __call__(self, pipeline: Pipeline) -> PipelineRunner:
         return PipelineRunner(
             app=self._app,
-            pipeline_session_provider=self._pipeline_session_provider,
+            dag_submitter=self._dag_submitter,
             pipeline=pipeline,
         )
 
 
 class PipelineRunner:
     _app: OnemlApp
-    _pipeline_session_provider: PipelineSessionProvider
+    _dag_submitter: DagSubmitter
     _pipeline: Pipeline
 
-    def __init__(
-        self, app: OnemlApp, pipeline_session_provider: PipelineSessionProvider, pipeline: Pipeline
-    ) -> None:
+    def __init__(self, app: OnemlApp, dag_submitter: DagSubmitter, pipeline: Pipeline) -> None:
         self._app = app
-        self._pipeline_session_provider = pipeline_session_provider
+        self._dag_submitter = dag_submitter
         self._pipeline = pipeline
 
     def _add_inputs_and_collect_outputs(
@@ -179,12 +175,7 @@ class PipelineRunner:
 
     def __call__(self, inputs: Mapping[str, Any] = {}) -> SessionOutputsGetter:
         output_storage = dict[str, Ref | Mapping[str, Ref]]()
-        name = f"{self._pipeline.name}_{uuid4()}"
         pipeline = self._add_inputs_and_collect_outputs(inputs, output_storage)
-        pipeline_registry = self._app.get_service(OnemlAppServices.PIPELINE_REGISTRY)
-        pipeline_session_provider = self._pipeline_session_provider
-        pipeline_registry.register_pipeline_provider(
-            name, lambda: pipeline_session_provider.get_session(pipeline._dag)
-        )
-        self._app.execute_pipeline(name)
+        dag_submitter = self._dag_submitter
+        self._app.run(lambda: dag_submitter.submit_dag(pipeline._dag))
         return SessionOutputsGetter(output_storage)

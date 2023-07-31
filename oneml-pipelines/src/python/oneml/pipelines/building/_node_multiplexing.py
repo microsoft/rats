@@ -6,8 +6,8 @@ from abc import abstractmethod
 from typing import Callable, Iterable, Protocol, Union
 
 from oneml.pipelines.dag import PipelineNode
+from oneml.pipelines.dag._dag_client import PipelineDagClient
 
-from ._dag_client import PipelineDagClient
 from ._node_namespacing import PipelineNamespaceClient
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,6 @@ class ICallableMultiExecutable(Protocol):
 
 
 class CallableMultiExecutable(MultiPipelineNodeExecutable):
-
     _callback: ICallableMultiExecutable
 
     def __init__(self, callback: ICallableMultiExecutable) -> None:

@@ -4,7 +4,8 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.processors import CombinedPipeline, IProcess, Pipeline, Task
+from oneml.processors.dag import IProcess
+from oneml.processors.ux import CombinedPipeline, Pipeline, Task
 
 
 @dataclass

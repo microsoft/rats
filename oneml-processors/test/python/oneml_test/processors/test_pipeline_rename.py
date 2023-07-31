@@ -3,7 +3,7 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.processors import Pipeline, PipelineBuilder, Task
+from oneml.processors.ux import Pipeline, PipelineBuilder, Task
 
 StzTrainOut = TypedDict("StzTrainOut", {"mean": float, "scale": float, "Z": float})
 StzEvalOut = TypedDict("StzEvalOut", {"Z": float})

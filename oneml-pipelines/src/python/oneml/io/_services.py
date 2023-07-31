@@ -1,15 +1,19 @@
 from typing import Any
 
-from oneml.services import ServiceId, scoped_service_ids
+from oneml.services import IExecutable, ServiceId, scoped_service_ids
 
-from ._io_data import IFormatUri, IGetLoaders, IGetPublishers
+from ._io_data import IFormatUri, IManageLoaders, IManagePublishers
+from ._node_output import NodeOutputClient
 from ._rw_data import IReadAndWriteData, IReadData, IWriteData
 
 
 @scoped_service_ids
 class OnemlIoServices:
-    PIPELINE_LOADERS_GETTER = ServiceId[IGetLoaders[Any]]("pipeline-loaders-getter")
-    PIPELINE_PUBLISHERS_GETTER = ServiceId[IGetPublishers[Any]]("pipeline-publishers-getter")
+    REGISTRY_PLUGINS = ServiceId[IExecutable]("io-registry-plugins")
+
+    NODE_OUTPUT_CLIENT = ServiceId[NodeOutputClient]("node-output-client")
+    PIPELINE_LOADERS_GETTER = ServiceId[IManageLoaders[Any]]("pipeline-loaders-getter")
+    PIPELINE_PUBLISHERS_GETTER = ServiceId[IManagePublishers[Any]]("pipeline-publishers-getter")
 
     INMEMORY_URI_FORMATTER = ServiceId[IFormatUri[Any]]("inmemory-uri-formatter")
     FILESYSTEM_URI_FORMATTER = ServiceId[IFormatUri[Any]]("filesystem-uri-formatter")

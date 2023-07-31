@@ -1,7 +1,8 @@
 import pytest
 
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.session import IExecutable, PipelineNodeExecutablesClient
+from oneml.pipelines.session import PipelineNodeExecutablesClient
+from oneml.services import IExecutable
 
 
 class FakeExecutable(IExecutable):
@@ -15,19 +16,18 @@ class FakeExecutable(IExecutable):
 
 
 class TestPipelineNodeExecutablesClient:
-
     _client: PipelineNodeExecutablesClient
 
     def setup_method(self) -> None:
-        self._client = PipelineNodeExecutablesClient()
+        self._client = PipelineNodeExecutablesClient(lambda: 1)
 
     def test_basics(self) -> None:
         executable = FakeExecutable()
         node = PipelineNode("fake")
 
-        self._client.register_node_executable(node, executable)
+        self._client.set_executable(node, executable)
 
-        assert executable == self._client.get_node_executable(node)
+        assert executable == self._client.get_executable(node)
 
     def test_validation(self) -> None:
         executable1 = FakeExecutable()
@@ -36,22 +36,22 @@ class TestPipelineNodeExecutablesClient:
         node1 = PipelineNode("fake-1")
         node2 = PipelineNode("fake-2")
 
-        self._client.register_node_executable(node1, executable1)
+        self._client.set_executable(node1, executable1)
 
         with pytest.raises(RuntimeError):
-            self._client.register_node_executable(node1, executable1)
+            self._client.set_executable(node1, executable1)
 
         with pytest.raises(RuntimeError):
-            self._client.register_node_executable(node1, executable2)
+            self._client.set_executable(node1, executable2)
 
         with pytest.raises(RuntimeError):
-            self._client.get_node_executable(node2)
+            self._client.get_executable(node2)
 
     def test_execution(self) -> None:
         executable = FakeExecutable()
         node = PipelineNode("fake")
 
-        self._client.register_node_executable(node, executable)
+        self._client.set_executable(node, executable)
 
         assert not executable.called
         self._client.execute_node(node)

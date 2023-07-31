@@ -1,57 +1,20 @@
-from ._data_dependencies_client import PipelineDataDependenciesClient
-from ._node_client import (
-    DuplicatePipelineNodeError,
-    ILocatePipelineNodes,
-    IManagePipelineNodes,
-    IRegisterPipelineNodes,
-    NodeNotFoundError,
-    PipelineNodeClient,
+from ._dag_client import (
+    IAddPipelineDependencies,
+    IAddPipelineNodes,
+    IManagePipelineDags,
+    PipelineDagClient,
 )
-from ._node_dependencies_client import (
-    ILocatePipelineNodeDependencies,
-    IManagePipelineNodeDependencies,
-    IRegisterPipelineNodeDependencies,
-    NodeDependenciesRegisteredError,
-    PipelineNodeDependenciesClient,
-)
-from ._node_ports_client import (
-    IGetPipelineNodePorts,
-    IManagePipelineNodePorts,
-    IRegisterPipelineNodePorts,
-    PipelineNodePortsClient,
-)
-from ._pipeline_client import PipelineClient
-from ._structs import (
-    PipelineDataDependency,
-    PipelineNode,
-    PipelineNodeId,
-    PipelinePort,
-    PipelinePortDataType,
-    PipelineSessionId,
-)
+from ._structs import PipelineDataDependency, PipelineNode, PipelinePort, T_PipelinePortDataType
 
 __all__ = [
-    "PipelinePortDataType",
-    "PipelinePort",
+    # _dag_client
+    "IAddPipelineDependencies",
+    "IAddPipelineNodes",
+    "IManagePipelineDags",
+    "PipelineDagClient",
+    # _structs
     "PipelineDataDependency",
-    "PipelineDataDependenciesClient",
     "PipelineNode",
-    "IRegisterPipelineNodes",
-    "ILocatePipelineNodes",
-    "IManagePipelineNodes",
-    "PipelineNodeClient",
-    "DuplicatePipelineNodeError",
-    "NodeNotFoundError",
-    "IGetPipelineNodePorts",
-    "IRegisterPipelineNodePorts",
-    "PipelineNodePortsClient",
-    "IManagePipelineNodePorts",
-    "ILocatePipelineNodeDependencies",
-    "IRegisterPipelineNodeDependencies",
-    "IManagePipelineNodeDependencies",
-    "PipelineNodeDependenciesClient",
-    "NodeDependenciesRegisteredError",
-    "PipelineClient",
-    "PipelineSessionId",
-    "PipelineNodeId",
+    "PipelinePort",
+    "T_PipelinePortDataType",
 ]

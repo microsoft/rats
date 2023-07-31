@@ -4,7 +4,8 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.processors import Dependency, IProcess, Pipeline, PipelineBuilder
+from oneml.processors.dag import IProcess
+from oneml.processors.ux import Dependency, Pipeline, PipelineBuilder
 
 StzTrainOut = TypedDict("StzTrainOut", {"shift": float, "scale": float, "Z": float})
 StzEvalOut = TypedDict("StzEvalOut", {"Z": float})

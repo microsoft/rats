@@ -3,11 +3,10 @@ from oneml.pipelines.session import PipelineNodeState, PipelineNodeStateClient
 
 
 class TestPipelineNodeStateClient:
-
     _client: PipelineNodeStateClient
 
     def setup_method(self) -> None:
-        self._client = PipelineNodeStateClient()
+        self._client = PipelineNodeStateClient(lambda: 1)
 
     def test_basics(self) -> None:
         node1 = PipelineNode("fake-1")

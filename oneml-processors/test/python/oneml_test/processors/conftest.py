@@ -7,14 +7,10 @@ import pytest
 from hydra.core.config_store import ConfigStore
 
 from oneml.app import OnemlApp
-from oneml.processors import (
-    IPersistFittedEvalPipeline,
-    OnemlProcessorsServices,
-    PipelineRunnerFactory,
-)
-from oneml.processors.dag import PipelineSessionProvider
 from oneml.processors.schemas import register_configs
-from oneml.processors.ux import register_resolvers
+from oneml.processors.services import OnemlProcessorsServices
+from oneml.processors.training import IPersistFittedEvalPipeline
+from oneml.processors.ux import PipelineRunnerFactory, register_resolvers
 
 logger = logging.getLogger(__name__)
 
@@ -43,13 +39,6 @@ def output_base_uri(
 def app() -> OnemlApp:
     app = OnemlApp.default()
     return app
-
-
-@pytest.fixture(scope="package")
-def pipeline_session_provider(
-    app: OnemlApp,
-) -> PipelineSessionProvider:
-    return app.get_service(OnemlProcessorsServices.PIPELINE_SESSION_PROVIDER)
 
 
 @pytest.fixture(scope="package")

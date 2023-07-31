@@ -1,4 +1,4 @@
-from oneml.processors import frozendict
+from oneml.processors.utils import frozendict
 
 
 def test_frozendict() -> None:

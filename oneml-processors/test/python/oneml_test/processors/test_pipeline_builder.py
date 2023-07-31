@@ -5,7 +5,9 @@ from typing import Dict, TypedDict, TypeVar
 
 import pytest
 
-from oneml.processors import IProcess, Pipeline, PipelineBuilder, frozendict
+from oneml.processors.dag import IProcess
+from oneml.processors.utils import frozendict
+from oneml.processors.ux import Pipeline, PipelineBuilder
 
 Array = TypeVar("Array")
 

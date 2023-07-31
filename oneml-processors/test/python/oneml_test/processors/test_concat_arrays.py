@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 from typing import Any, Mapping, TypedDict
-from uuid import uuid4
 
 import pytest
 
-from oneml.app import OnemlApp, OnemlAppServices
-from oneml.pipelines.session import PipelineSessionClient
-from oneml.processors import (
+from oneml.app import OnemlApp
+from oneml.processors.dag import (
     DAG,
     DagDependency,
     DagNode,
@@ -15,10 +13,10 @@ from oneml.processors import (
     IProcess,
     Namespace,
     OutProcessorParam,
-    PipelineSessionProvider,
     ProcessorProps,
-    frozendict,
 )
+from oneml.processors.services import OnemlProcessorsServices
+from oneml.processors.utils import frozendict
 
 
 @dataclass
@@ -139,17 +137,20 @@ def complex_pipeline(simple_pipeline: DAG) -> DAG:
     return p1 + p2 + p3 + concat_pipeline
 
 
+def _run_session(app: OnemlApp, dag: DAG) -> None:
+    submitter = app.get_service(OnemlProcessorsServices.DAG_SUBMITTER)
+    app.run(lambda: submitter.submit_dag(dag))
+
+
 def test_simple_pipeline(
-    pipeline_session_provider: PipelineSessionProvider,
     simple_pipeline: DAG,
+    app: OnemlApp,
 ) -> None:
-    session = pipeline_session_provider.get_session(simple_pipeline)
-    session.run()
+    _run_session(app, simple_pipeline)
 
 
 def test_complex_pipeline(
-    pipeline_session_provider: PipelineSessionProvider,
     complex_pipeline: DAG,
+    app: OnemlApp,
 ) -> None:
-    session = pipeline_session_provider.get_session(complex_pipeline)
-    session.run()
+    _run_session(app, complex_pipeline)

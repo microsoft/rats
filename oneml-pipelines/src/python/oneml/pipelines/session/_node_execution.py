@@ -1,19 +1,19 @@
 from abc import abstractmethod
-from typing import Dict, Protocol
+from typing import Any, Dict, Protocol
 
 from oneml.pipelines.dag import PipelineNode
-from ._executable import IExecutable
+from oneml.services import ContextProvider, IExecutable
 
 
 class ILocatePipelineNodeExecutables(Protocol):
     @abstractmethod
-    def get_node_executable(self, node: PipelineNode) -> IExecutable:
+    def get_executable(self, node: PipelineNode) -> IExecutable:
         """ """
 
 
-class IRegisterPipelineNodeExecutables(Protocol):
+class ISetPipelineNodeExecutables(Protocol):
     @abstractmethod
-    def register_node_executable(self, node: PipelineNode, executable: IExecutable) -> None:
+    def set_executable(self, node: PipelineNode, executable: IExecutable) -> None:
         """ """
 
 
@@ -25,39 +25,43 @@ class IExecutePipelineNodes(Protocol):
 
 class IManagePipelineNodeExecutables(
     ILocatePipelineNodeExecutables,
-    IRegisterPipelineNodeExecutables,
+    ISetPipelineNodeExecutables,
     IExecutePipelineNodes,
     Protocol,
 ):
     pass
 
 
-class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables, IExecutePipelineNodes):
+class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables):
+    _executables: Dict[Any, Dict[PipelineNode, IExecutable]]
+    _context: ContextProvider[Any]
 
-    _executables: Dict[PipelineNode, IExecutable]
-
-    def __init__(self) -> None:
+    def __init__(self, context: ContextProvider[Any]) -> None:
         self._executables = {}
+        self._context = context
 
     def execute_node(self, node: PipelineNode) -> None:
-        # with self._node_context.execution_context(node):
-        self.get_node_executable(node).execute()
+        self.get_executable(node).execute()
 
-    def get_node_executable(self, node: PipelineNode) -> IExecutable:
-        if node not in self._executables:
+    def get_executable(self, node: PipelineNode) -> IExecutable:
+        ctx = self._context()
+        if node not in self._executables[ctx]:
             raise NodeExecutableNotFoundError(node)
 
-        return self._executables[node]
+        return self._executables[ctx][node]
 
-    def register_node_executable(self, node: PipelineNode, executable: IExecutable) -> None:
-        if node in self._executables:
+    def set_executable(self, node: PipelineNode, executable: IExecutable) -> None:
+        ctx = self._context()
+        if ctx not in self._executables:
+            self._executables[ctx] = {}
+
+        if node in self._executables[ctx]:
             raise RuntimeError(f"Duplicate node executable: {node}")
 
-        self._executables[node] = executable
+        self._executables[ctx][node] = executable
 
 
 class NodeExecutableNotFoundError(RuntimeError):
-
     node: PipelineNode
 
     def __init__(self, node: PipelineNode) -> None:

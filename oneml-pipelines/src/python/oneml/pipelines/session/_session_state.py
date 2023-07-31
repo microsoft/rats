@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from enum import Enum, auto
-from typing import Protocol
+from typing import Any, Dict, Protocol
+
+from oneml.services import ContextProvider
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ class PipelineSessionState(Enum):
     """
 
 
-class ILocatePipelineSessionState(Protocol):
+class IGetPipelineSessionState(Protocol):
     @abstractmethod
     def get_state(self) -> PipelineSessionState:
         """ """
@@ -34,18 +36,22 @@ class ISetPipelineSessionState(Protocol):
         """ """
 
 
-class IManagePipelineSessionState(ILocatePipelineSessionState, ISetPipelineSessionState, Protocol):
+class IManagePipelineSessionState(IGetPipelineSessionState, ISetPipelineSessionState, Protocol):
     """ """
 
 
 class PipelineSessionStateClient(IManagePipelineSessionState):
-    _current_state: PipelineSessionState
+    _state: Dict[Any, PipelineSessionState]
+    _context: ContextProvider[Any]
 
-    def __init__(self) -> None:
-        self._current_state = PipelineSessionState.PENDING
+    def __init__(self, context: ContextProvider[Any]) -> None:
+        self._state = {}
+        self._context = context
 
     def set_state(self, state: PipelineSessionState) -> None:
-        self._current_state = state
+        self._state[self._context()] = state
 
     def get_state(self) -> PipelineSessionState:
-        return self._current_state
+        ctx = self._context()
+        logger.debug(f"getting state for session {ctx}: {self._state[ctx]}")
+        return self._state[ctx]

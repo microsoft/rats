@@ -7,7 +7,7 @@ from azure.storage.blob import BlobClient
 from furl import furl
 from immunodata.blob import IBlobClientFactory
 
-from oneml.io import DataType_co, DataType_contra, IReadData, IWriteData, RWDataUri
+from oneml.io import IReadData, IWriteData, RWDataUri, Tco_DataType, Tcontra_DataType
 
 logger = logging.getLogger(__name__)
 
@@ -68,15 +68,15 @@ class BlobRWUsingLocalCacheBase(BlobRWBase):
         return self._local_cache_path / storage_account / container / path
 
 
-class BlobReadUsingLocalCache(BlobRWUsingLocalCacheBase, IReadData[DataType_co]):
+class BlobReadUsingLocalCache(BlobRWUsingLocalCacheBase, IReadData[Tco_DataType]):
     _local_cache_path: Path
-    _local_reader: IReadData[DataType_co]
+    _local_reader: IReadData[Tco_DataType]
 
     def __init__(
         self,
         blob_client_factory: IBlobClientFactory,
         local_cache_path: Path,
-        local_reader: IReadData[DataType_co],
+        local_reader: IReadData[Tco_DataType],
     ):
         super().__init__(
             blob_client_factory=blob_client_factory, local_cache_path=local_cache_path
@@ -94,7 +94,7 @@ class BlobReadUsingLocalCache(BlobRWUsingLocalCacheBase, IReadData[DataType_co])
         logger.debug(f"completed download to {tmp_destination}. renaming to {cache_path}.")
         tmp_destination.rename(cache_path)
 
-    def read(self, data_uri: RWDataUri) -> DataType_co:
+    def read(self, data_uri: RWDataUri) -> Tco_DataType:
         logger.debug(f"{self.__class__.__name__}: reading from {data_uri}")
         cache_path = self._get_cache_path(data_uri)
         if not cache_path.exists():
@@ -103,15 +103,15 @@ class BlobReadUsingLocalCache(BlobRWUsingLocalCacheBase, IReadData[DataType_co])
         return self._local_reader.read(cache_uri)
 
 
-class BlobWriteUsingLocalCache(BlobRWUsingLocalCacheBase, IWriteData[DataType_contra]):
+class BlobWriteUsingLocalCache(BlobRWUsingLocalCacheBase, IWriteData[Tcontra_DataType]):
     _local_cache_path: Path
-    _local_writer: IWriteData[DataType_contra]
+    _local_writer: IWriteData[Tcontra_DataType]
 
     def __init__(
         self,
         blob_client_factory: IBlobClientFactory,
         local_cache_path: Path,
-        local_writer: IWriteData[DataType_contra],
+        local_writer: IWriteData[Tcontra_DataType],
     ):
         super().__init__(
             blob_client_factory=blob_client_factory, local_cache_path=local_cache_path
@@ -125,7 +125,7 @@ class BlobWriteUsingLocalCache(BlobRWUsingLocalCacheBase, IWriteData[DataType_co
             blob_client.upload_blob(fle, overwrite=True)
         logger.debug(f"completed upload from {cache_path}.")
 
-    def write(self, data_uri: RWDataUri, payload: DataType_contra) -> None:
+    def write(self, data_uri: RWDataUri, payload: Tcontra_DataType) -> None:
         logger.debug(f"{self.__class__.__name__}: writing to {data_uri}")
         cache_path = self._get_cache_path(data_uri)
         self._local_writer.write(RWDataUri(cache_path.as_uri()), payload)

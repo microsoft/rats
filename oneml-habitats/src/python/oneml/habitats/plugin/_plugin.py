@@ -1,6 +1,6 @@
 import logging
 
-from oneml.app import OnemlAppPlugin
+from oneml.app import AppPlugin
 from oneml.services import IManageServices
 
 from ._di_container import OnemlHabitatsDiContainer
@@ -8,7 +8,7 @@ from ._di_container import OnemlHabitatsDiContainer
 logger = logging.getLogger(__name__)
 
 
-class OnemlHabitatsPlugin(OnemlAppPlugin):
+class OnemlHabitatsPlugin(AppPlugin):
     def load_plugin(self, app: IManageServices) -> None:
         logger.debug("initializing oneml-habitats plugin")
         di_container = OnemlHabitatsDiContainer(app)

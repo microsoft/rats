@@ -2,8 +2,8 @@ from typing import Sequence, TypedDict
 
 import pytest
 
-from oneml.processors import CombinedPipeline, IProcess, Pipeline, PipelineRunnerFactory, Task
-from oneml.processors.utils import frozendict
+from oneml.processors.dag import IProcess
+from oneml.processors.ux import CombinedPipeline, Pipeline, PipelineRunnerFactory, Task
 
 AccOutput = TypedDict("AccOutput", {"acc": float})
 

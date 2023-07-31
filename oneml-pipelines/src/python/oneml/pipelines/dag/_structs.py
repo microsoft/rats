@@ -1,12 +1,11 @@
-from dataclasses import dataclass
-from typing import Generic, NamedTuple, TypeVar
+from typing import Generic, TypeVar
 
-# TODO: Remove the copies of DataType and PipelineDataNode from app package
-PipelinePortDataType = TypeVar("PipelinePortDataType")
+from typing_extensions import NamedTuple
+
+T_PipelinePortDataType = TypeVar("T_PipelinePortDataType")
 
 
-@dataclass(frozen=True)
-class PipelineNode:
+class PipelineNode(NamedTuple):
     key: str
 
     def __post_init__(self) -> None:
@@ -19,22 +18,11 @@ class PipelineNode:
         return self.key.split("/")[-1]
 
 
-@dataclass(frozen=True)
-class PipelinePort(Generic[PipelinePortDataType]):
+class PipelinePort(NamedTuple, Generic[T_PipelinePortDataType]):
     key: str
 
 
-@dataclass(frozen=True)
-class PipelineDataDependency(Generic[PipelinePortDataType]):
+class PipelineDataDependency(NamedTuple, Generic[T_PipelinePortDataType]):
     node: PipelineNode
-    output_port: PipelinePort[PipelinePortDataType]
-    input_port: PipelinePort[PipelinePortDataType]
-
-
-class PipelineSessionId(NamedTuple):
-    key: str
-
-
-# TODO: tried converting PipelineNode to a NamedTuple, but it broke the type checking
-class PipelineNodeId(NamedTuple):
-    key: str
+    output_port: PipelinePort[T_PipelinePortDataType]
+    input_port: PipelinePort[T_PipelinePortDataType]

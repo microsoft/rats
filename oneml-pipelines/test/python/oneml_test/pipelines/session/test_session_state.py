@@ -2,13 +2,11 @@ from oneml.pipelines.session import PipelineSessionState, PipelineSessionStateCl
 
 
 class TestPipelineSessionStateClient:
-
     _client: PipelineSessionStateClient
 
     def setup_method(self) -> None:
-        self._client = PipelineSessionStateClient()
+        self._client = PipelineSessionStateClient(lambda: 1)
 
     def test_basics(self) -> None:
-        assert self._client.get_state() == PipelineSessionState.PENDING
         self._client.set_state(PipelineSessionState.RUNNING)
         assert self._client.get_state() == PipelineSessionState.RUNNING

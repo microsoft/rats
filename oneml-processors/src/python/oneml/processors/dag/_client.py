@@ -4,20 +4,12 @@ import logging
 from collections import defaultdict
 from typing import Any, Iterable, Mapping, Sequence
 
-from oneml.io import IGetLoaders, PipelineDataId
-from oneml.pipelines.building import PipelineBuilderFactory
-from oneml.pipelines.dag import (
-    PipelineDataDependency,
-    PipelineNode,
-    PipelinePort,
-    PipelineSessionId,
-)
-from oneml.pipelines.session import IExecutable, PipelineSessionClient
-from oneml.pipelines.session._context import OnemlSessionContextIds
-from oneml.pipelines.session._running_session_registry import IGetSessionClient
+from oneml.io import IGetLoaders, IGetPublishers, IManageLoaders, IManagePublishers, PipelineDataId
+from oneml.pipelines.building import PipelineBuilderClient
+from oneml.pipelines.dag import PipelineDataDependency, PipelineNode, PipelinePort
+from oneml.pipelines.session import OnemlSessionContexts
 from oneml.processors.utils import orderedset
-from oneml.services import IProvideServices
-from oneml.services._context import ContextClient
+from oneml.services import IExecutable, IGetContexts, IProvideServices
 
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
 from ._processor import InMethod, InProcessorParam, IProcess
@@ -58,19 +50,19 @@ class P2Pipeline:
 
 class ProcessorDataLoader:
     _node: DagNode
-    _session_id: PipelineSessionId
+    _context_client: IGetContexts
     _loaders_getter: IGetLoaders[Any]
     _port_mapper: dict[str, list[PipelineDataId[Any]]]
 
     def __init__(
         self,
         node: DagNode,
-        session_id: PipelineSessionId,
+        context_client: IGetContexts,
         loaders_getter: IGetLoaders[Any],
         dependencies: Sequence[DagDependency],
     ) -> None:
         self._node = node
-        self._session_id = session_id
+        self._context_client = context_client
         self._loaders_getter = loaders_getter
         self._port_mapper = self._map_ports(dependencies)
 
@@ -81,10 +73,12 @@ class ProcessorDataLoader:
         for dp in dependencies:
             grouped_dps[dp.in_arg.name].append(dp)
 
+        pipeline_context = self._context_client.get_context(OnemlSessionContexts.PIPELINE)
+
         return {
             port_name: [
                 PipelineDataId(
-                    self._session_id,
+                    pipeline_context,
                     P2Pipeline.node(self._node),
                     PipelinePort(dp.in_arg.name + ":" + str(i)),
                 )
@@ -141,25 +135,27 @@ class ProcessorDataLoader:
 
 class SessionExecutableProvider(IExecutable):
     _services_provider: IProvideServices
-    _context_client: ContextClient
-    _session_client_getter: IGetSessionClient
+    _context_client: IGetContexts
+    _publishers_getter: IGetPublishers[Any]
+    _loaders_getter: IGetLoaders[Any]
     _node: DagNode
     _dependencies: orderedset[DagDependency]
     _props: ProcessorProps
 
     def __init__(
         self,
-        # session_provider: "IProvideExecutionContexts[PipelineSessionClient]",
+        publishers_getter: IGetPublishers[Any],
+        loaders_getter: IGetLoaders[Any],
         services_provider: IProvideServices,
-        context_client: ContextClient,
-        session_client_getter: IGetSessionClient,
+        context_client: IGetContexts,
         node: DagNode,
         dependencies: Sequence[DagDependency],
         props: ProcessorProps,
     ) -> None:
         self._services_provider = services_provider
         self._context_client = context_client
-        self._session_client_getter = session_client_getter
+        self._publishers_getter = publishers_getter
+        self._loaders_getter = loaders_getter
         self._node = node
         self._dependencies = orderedset(dependencies)
         self._props = props
@@ -174,15 +170,16 @@ class SessionExecutableProvider(IExecutable):
 
     def execute(self) -> None:
         logger.debug(f"Node {self._node} execute start.")
-        session_id = self._context_client.get_context(OnemlSessionContextIds.SESSION_ID)
-        pipeline_session_client = self._session_client_getter.get(session_id)
-        publishers_getter = pipeline_session_client.pipeline_publisher_getter()
-        loaders_getter = pipeline_session_client.pipeline_loader_getter()
+        pipeline_context = self._context_client.get_context(OnemlSessionContexts.PIPELINE)
         pipeline_node = P2Pipeline.node(self._node)
 
         # TODO: we should be able to turn DataClient into a ProcessorDataLoader
+        # TODO: this is a service and should come from a di container
         data_client = ProcessorDataLoader(
-            self._node, session_id, loaders_getter, self._dependencies
+            node=self._node,
+            context_client=self._context_client,
+            loaders_getter=self._loaders_getter,
+            dependencies=self._dependencies,
         )
         processor = self.get_processor(data_client)
         pos_args, kw_args = data_client.load_parameters(self._props.inputs, InMethod.process)
@@ -193,37 +190,39 @@ class SessionExecutableProvider(IExecutable):
                 outputs = outputs._asdict()
             for key, val in outputs.items():
                 data_id = PipelineDataId(
-                    session_id,
+                    pipeline_context,
                     node=pipeline_node,
                     port=PipelinePort[Any](key),
                 )
-                publishers_getter.get(data_id).publish(val)
+                # TODO: fix law of demeter
+                self._publishers_getter.get(data_id).publish(val)
         logger.debug(f"Node {self._node} execute end.")
 
 
-class PipelineSessionProvider:
+class DagSubmitter:
+    _builder: PipelineBuilderClient
     _services_provider: IProvideServices
-    _context_client: ContextClient
-    _session_client_getter: IGetSessionClient
-    _builder_factory: PipelineBuilderFactory
+    _context_client: IGetContexts
+    _publishers_getter: IGetPublishers[Any] | IManagePublishers[Any]
+    _loaders_getter: IGetLoaders[Any] | IManageLoaders[Any]
 
     def __init__(
         self,
+        builder: PipelineBuilderClient,
         services_provider: IProvideServices,
-        context_client: ContextClient,
-        session_client_getter: IGetSessionClient,
-        builder_factory: PipelineBuilderFactory,
+        context_client: IGetContexts,
+        publishers_getter: IGetPublishers[Any] | IManagePublishers[Any],
+        loaders_getter: IGetLoaders[Any] | IManageLoaders[Any],
     ) -> None:
+        self._builder = builder
         self._services_provider = services_provider
         self._context_client = context_client
-        self._session_client_getter = session_client_getter
-        self._builder_factory = builder_factory
+        self._publishers_getter = publishers_getter
+        self._loaders_getter = loaders_getter
 
-    def get_session(self, dag: DAG) -> PipelineSessionClient:
-        builder = self._builder_factory.get_instance()
-
+    def submit_dag(self, dag: DAG) -> None:
         for node in dag.nodes:
-            builder.add_node(P2Pipeline.node(node))
+            self._builder.add_node(P2Pipeline.node(node))
             props = dag.nodes[node]
 
             sess_executable = SessionExecutableProvider(
@@ -232,12 +231,14 @@ class PipelineSessionProvider:
                 #       we should use a factory class and hide these details from this client
                 services_provider=self._services_provider,
                 context_client=self._context_client,
-                session_client_getter=self._session_client_getter,
+                publishers_getter=self._publishers_getter,
+                loaders_getter=self._loaders_getter,
+                # Factory should take the below args
                 node=node,
                 dependencies=dag.dependencies[node],
                 props=props,
             )
-            builder.add_executable(P2Pipeline.node(node), sess_executable)
+            self._builder.set_executable(P2Pipeline.node(node), sess_executable)
             # for output, id in props.io_managers.items():
             #     type_id = props.serializers.get(
             #         output, default_type_mapper[props.outputs[output].annotation]
@@ -245,9 +246,6 @@ class PipelineSessionProvider:
             #     builder.add_iomanager(P2Pipeline.node(node), PipelinePort(output), id, type_id)
 
         for node, dependencies in dag.dependencies.items():
-            builder.add_data_dependencies(
+            self._builder.add_data_dependencies(
                 P2Pipeline.node(node), P2Pipeline.data_dependencies(dependencies)
             )
-
-        session = builder.build_session()
-        return session

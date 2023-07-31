@@ -1,8 +1,5 @@
-from oneml.services import ServiceId, scoped_service_ids
-
-from .._training import IPersistFittedEvalPipeline
-from ..dag import PipelineSessionProvider
-from ..io import (
+from oneml.processors.dag import DagSubmitter
+from oneml.processors.io import (
     IGetReadServicesForType,
     IGetWriteServicesForType,
     IReadFromUrlPipelineBuilder,
@@ -12,15 +9,21 @@ from ..io import (
     IWriteToUriPipelineBuilder,
     PluginRegisterReadersAndWriters,
 )
-from ..ux import PipelineRunnerFactory
+from oneml.processors.training import IPersistFittedEvalPipeline
+from oneml.processors.ux import PipelineRunnerFactory
+from oneml.services import ServiceId, scoped_service_ids
 
 
 @scoped_service_ids
 class OnemlProcessorsServices:
-    REGISTER_TYPE_READER = ServiceId[IRegisterReadServiceForType]("register-type-reader")
-    REGISTER_TYPE_WRITER = ServiceId[IRegisterWriteServiceForType]("register-type-writer")
-    GET_TYPE_READER = ServiceId[IGetReadServicesForType]("get-type-reader")
-    GET_TYPE_WRITER = ServiceId[IGetWriteServicesForType]("get-type-writer")
+    # Things are grouped by making the service id name match
+    # We create multiple entries here if we want to change the type (but not the id)
+    REGISTER_TYPE_READER = ServiceId[IRegisterReadServiceForType]("type-to-read-service-mapper")
+    GET_TYPE_READER = ServiceId[IGetReadServicesForType]("type-to-read-service-mapper")
+
+    REGISTER_TYPE_WRITER = ServiceId[IRegisterWriteServiceForType]("type-to-write-service-mapper")
+    GET_TYPE_WRITER = ServiceId[IGetWriteServicesForType]("type-to-write-service-mapper")
+
     READ_FROM_URI_PIPELINE_BUILDER = ServiceId[IReadFromUrlPipelineBuilder](
         "read-from-uri-pipeline-builder"
     )
@@ -30,7 +33,7 @@ class OnemlProcessorsServices:
     WRITE_TO_NODE_BASED_URI_PIPELINE_BUILDER = ServiceId[IWriteToNodeBasedUriPipelineBuilder](
         "write-to-node-based-uri-pipeline-builder"
     )
-    PIPELINE_SESSION_PROVIDER = ServiceId[PipelineSessionProvider]("pipeline-session-provider")
+    DAG_SUBMITTER = ServiceId[DagSubmitter]("dag-submitter")
     PIPELINE_RUNNER_FACTORY = ServiceId[PipelineRunnerFactory]("pipeline-runner-factory")
     PERSIST_FITTED_EVAL_PIPELINE = ServiceId[IPersistFittedEvalPipeline](
         "persist-fitted-eval-pipeline"

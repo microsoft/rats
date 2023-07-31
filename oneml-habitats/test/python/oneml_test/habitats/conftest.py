@@ -1,13 +1,10 @@
 import logging
-import shutil
-from pathlib import Path
-from typing import Any, Iterator
 
 import pytest
 
 from oneml.app import OnemlApp
-from oneml.processors import OnemlProcessorsServices
 from oneml.processors.io import IGetReadServicesForType, IGetWriteServicesForType
+from oneml.processors.services import OnemlProcessorsServices
 
 logger = logging.getLogger(__name__)
 

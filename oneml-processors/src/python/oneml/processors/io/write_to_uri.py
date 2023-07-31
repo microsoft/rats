@@ -4,10 +4,10 @@ from typing import Generic, Mapping, Protocol, TypedDict, TypeVar
 from furl import furl
 
 from oneml.io import IWriteData, RWDataUri
-from oneml.pipelines.session import OnemlSessionContextIds
-from oneml.services import IContextProvider, IProvideServices, ServiceId
+from oneml.pipelines.session import OnemlSessionContexts
+from oneml.processors.ux import Pipeline, PipelineBuilder
+from oneml.services import IGetContexts, IProvideServices, ServiceId
 
-from ..ux import Pipeline, PipelineBuilder
 from .type_rw_mappers import IGetWriteServicesForType
 
 DataType = TypeVar("DataType")
@@ -76,12 +76,12 @@ class WriteToNodeBasedUriProcessor(WriteToUriProcessorBase[DataType]):
     def __init__(
         self,
         service_provider: IProvideServices,
-        context_provider: IContextProvider,
+        context_provider: IGetContexts,
         write_service_ids: Mapping[str, ServiceId[IWriteData[DataType]]],
         output_base_uri: str,
     ) -> None:
-        session_id = context_provider.get_context(OnemlSessionContextIds.SESSION_ID).key
-        node_id = context_provider.get_context(OnemlSessionContextIds.NODE_ID).key
+        session_id = context_provider.get_context(OnemlSessionContexts.PIPELINE).id
+        node_id = context_provider.get_context(OnemlSessionContexts.PIPELINE_NODE).id
         uri = RWDataUri(str(furl(output_base_uri) / f"{session_id}/{node_id}"))
         super().__init__(
             service_provider=service_provider, write_service_ids=write_service_ids, uri=uri
@@ -96,13 +96,13 @@ class IWriteToNodeBasedUriPipelineBuilder(Protocol):
 
 class WriteToNodeBasedUriPipelineBuilder(IWriteToNodeBasedUriPipelineBuilder):
     _service_provider_service_id: ServiceId[IProvideServices]
-    _context_provider_service_id: ServiceId[IContextProvider]
+    _context_provider_service_id: ServiceId[IGetContexts]
     _get_write_services_for_type: IGetWriteServicesForType
 
     def __init__(
         self,
         service_provider_service_id: ServiceId[IProvideServices],
-        context_provider_service_id: ServiceId[IContextProvider],
+        context_provider_service_id: ServiceId[IGetContexts],
         get_write_services_for_type: IGetWriteServicesForType,
     ) -> None:
         self._service_provider_service_id = service_provider_service_id

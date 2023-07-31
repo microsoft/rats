@@ -1,12 +1,8 @@
 from typing import Any, Dict, TypedDict
 
-from oneml.processors import (
-    Pipeline,
-    PipelineBuilder,
-    PipelineRunnerFactory,
-    ScatterGatherBuilders,
-    frozendict,
-)
+from oneml.processors.training import ScatterGatherBuilders
+from oneml.processors.utils import frozendict
+from oneml.processors.ux import Pipeline, PipelineBuilder, PipelineRunnerFactory
 
 
 class Scatter:

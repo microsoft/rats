@@ -3,10 +3,12 @@ from __future__ import annotations
 from abc import abstractmethod
 from typing import Iterable
 
+from oneml.services import IExecutable
+
 from .type_rw_mappers import IRegisterReadServiceForType, IRegisterWriteServiceForType
 
 
-class PluginRegisterReadersAndWriters:
+class PluginRegisterReadersAndWriters(IExecutable):
     _readers_registry: IRegisterReadServiceForType
     _writers_registry: IRegisterWriteServiceForType
     _upstream_plugins: list[PluginRegisterReadersAndWriters]
@@ -27,9 +29,9 @@ class PluginRegisterReadersAndWriters:
     def _register(self) -> None:
         ...
 
-    def __call__(self) -> None:
+    def execute(self) -> None:
         if not self._done:
             for plugin in self._upstream_plugins:
-                plugin()
+                plugin.execute()
             self._register()
             self._done = True

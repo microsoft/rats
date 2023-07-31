@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from oneml.processors import (
+from oneml.processors.dag import (
     DAG,
     DagDependency,
     DagNode,
@@ -13,8 +13,8 @@ from oneml.processors import (
     OutProcessorParam,
     ProcessorProps,
     dag_to_svg,
-    orderedset,
 )
+from oneml.processors.utils import orderedset
 
 
 class Array(object):

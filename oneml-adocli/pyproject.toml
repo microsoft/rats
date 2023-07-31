@@ -47,6 +47,10 @@ pytest-nunit = "*"
 
 [tool.poetry.scripts]
 adocli = 'oneml.adocli._main:entrypoint'
+adocli-next = 'oneml.adocli_next._entry_point:main'
+
+[tool.poetry.plugins."oneml.app_plugins"]
+"oneml.adocli-plugin" = "oneml.adocli_next._app_plugin:OnemlAdocliPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

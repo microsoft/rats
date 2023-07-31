@@ -4,7 +4,7 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.processors import CombinedPipeline, PipelineRunnerFactory, Task
+from oneml.processors.ux import CombinedPipeline, PipelineRunnerFactory, Task
 
 Outputs = TypedDict("Outputs", {"d": str})
 

@@ -1,131 +1,53 @@
 import logging
-from pathlib import Path
-from typing import Any, Union
 
-from oneml.io import (
-    DillLocalRW,
-    FilesystemUriFormatter,
-    IFormatUri,
-    InMemoryRW,
-    InMemoryUriFormatter,
-    IReadAndWriteData,
-    OnemlIoServices,
+from oneml.app_api import AppEntryPointPluginRelay, InitializePluginsExe
+from oneml.services import (
+    ContextClient,
+    IManageServices,
+    IProvideServices,
+    service_group,
+    service_provider,
 )
-from oneml.pipelines.building import PipelineBuilderClient, PipelineBuilderFactory
-from oneml.pipelines.data._filesystem import BlobFilesystem, LocalFilesystem
-from oneml.pipelines.registry._pipeline_registry import PipelineRegistry
-from oneml.pipelines.session import OnemlSessionServices, SessionDataClient
-from oneml.pipelines.session._running_session_registry import RunningSessionRegistry
-from oneml.pipelines.session._session_components import PipelineSessionComponents
-from oneml.services import IProvideServices, group, provider
-from oneml.services._context import ContextClient
 
-from ._app_plugins import OnemlAppEntryPointPluginRelay
-from ._oneml_app_services import OnemlAppServiceGroups, OnemlAppServices
+from ._oneml_app_services import OnemlAppServices, PrivateOnemlAppServiceGroups
 
 logger = logging.getLogger(__name__)
 
 
 class OnemlAppDiContainer:
-    _app: IProvideServices
+    _app: IManageServices
 
-    def __init__(self, app: IProvideServices) -> None:
+    def __init__(self, app: IManageServices) -> None:
         self._app = app
 
-    @provider(OnemlAppServices.PIPELINE_BUILDER_FACTORY)
-    def pipeline_builder_factory(self) -> PipelineBuilderFactory:
-        return PipelineBuilderFactory(
-            session_components=self.pipeline_session_components(),
-        )
+    @service_group(PrivateOnemlAppServiceGroups.APP_PLUGINS)
+    def entry_point_plugin(self) -> AppEntryPointPluginRelay:
+        return AppEntryPointPluginRelay(group="oneml.app_plugins")
 
-    @provider(OnemlAppServices.PIPELINE_BUILDER)
-    def pipeline_builder(self) -> PipelineBuilderClient:
-        return PipelineBuilderClient(
-            session_components=self.pipeline_session_components(),
-        )
-
-    @provider(OnemlSessionServices.PIPELINE_SESSION_COMPONENTS)
-    def pipeline_session_components(self) -> PipelineSessionComponents:
-        # TODO: I think we can delete this library and use the service containers
-        return PipelineSessionComponents(
-            running_session_registry=self._app.get_service(
-                OnemlSessionServices.RUNNING_SESSION_REGISTRY
-            ),
-            services=self._app.get_service(OnemlAppServices.SERVICES_REGISTRY),
-            context_client=self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT),
-            session_data_client=self._app.get_service(OnemlSessionServices.SESSION_DATA_CLIENT),
-        )
-
-    @provider(OnemlSessionServices.RUNNING_SESSION_REGISTRY)
-    def running_session_registry(self) -> RunningSessionRegistry:
-        return RunningSessionRegistry()
-
-    @provider(OnemlSessionServices.SESSION_DATA_CLIENT)
-    def session_data_client(self) -> SessionDataClient:
-        return SessionDataClient(self._app)
-
-    @provider(OnemlIoServices.INMEMORY_URI_FORMATTER)
-    def inmemory_uri_formatter(self) -> IFormatUri[Any]:
-        return InMemoryUriFormatter()
-
-    @provider(OnemlIoServices.FILESYSTEM_URI_FORMATTER)
-    def filesystem_uri_formatter(self) -> IFormatUri[Any]:
-        return FilesystemUriFormatter(path=Path("../.tmp/"))
-
-    @provider(OnemlIoServices.INMEMORY_RW)
-    def inmemory_rw(self) -> IReadAndWriteData[Any]:
-        return InMemoryRW()
-
-    @provider(OnemlIoServices.DILL_LOCAL_RW)
-    def dill_local_rw(self) -> IReadAndWriteData[object]:
-        return DillLocalRW()
-
-    # @provider(OnemlAppServices.REMOTE_EXECUTABLE_FACTORY)
-    # def remote_executable_factory(self) -> RemoteExecutableFactory:
-    #     raise NotImplementedError()
-    #     # TODO: clean up this wiring and see if we can eliminate some of these classes now
-    #     # return RemoteExecutableFactory(
-    #     #     context=RemoteContext(self._app.get_service(OnemlAppServices.PIPELINE_SETTINGS)),
-    #     #     driver=K8sExecutableProxy(
-    #     #         # session_provider=self._app.get_service(OnemlAppServices.PIPELINE_SESSION_CONTEXT),
-    #     #         settings_provider=self._app.get_service(OnemlAppServices.PIPELINE_SETTINGS),
-    #     #         cmd_client=self._cmd_client(),
-    #     #     ),
-    #     #     pickler=ExecutablePicklingClient(
-    #     #         fs_client=self._pickled_executables_fs_client(),
-    #     #     ),
-    #     # )
-
-    # @provider(OnemlAppServices.PIPELINE_SETTINGS)
-    # def pipeline_settings(self) -> PipelineSettingsClient:
-    #     return PipelineSettingsClient()
-
-    @provider(OnemlAppServices.SERVICES_REGISTRY)
-    def services_registry(self) -> IProvideServices:
-        return self._app
-
-    @provider(OnemlAppServices.PIPELINE_REGISTRY)
-    def session_registry(self) -> PipelineRegistry:
-        return PipelineRegistry()
-
-    @group(OnemlAppServiceGroups.APP_PLUGINS)
-    def entry_point_plugin(self) -> OnemlAppEntryPointPluginRelay:
-        return OnemlAppEntryPointPluginRelay(group="oneml.app_plugins")
-
-    def _pickled_executables_fs_client(self) -> Union[LocalFilesystem, BlobFilesystem]:
-        # TODO: find a more reliable way to get a tmp path
-        return LocalFilesystem(directory=Path("../.tmp/"))
-        # return BlobFilesystem(
-        #     # TODO: switch to immunodata blob clients here
-        #     credentials=ChainedTokenCredential(
-        #         AzureCliCredential(),  # type: ignore
-        #         ManagedIdentityCredential(),  # type: ignore
-        #     ),
-        #     # TODO: move these to a habitat config
-        #     account="onemltmp2",
-        #     container="onemltmp2",
-        # )
-
-    @provider(OnemlAppServices.APP_CONTEXT_CLIENT)
+    @service_provider(OnemlAppServices.APP_CONTEXT_CLIENT)
     def app_context_client(self) -> ContextClient:
         return ContextClient()
+
+    @service_provider(OnemlAppServices.SERVICE_MANAGER)
+    def service_manager(self) -> IManageServices:
+        return self._app
+
+    @service_provider(OnemlAppServices.SERVICE_CONTAINER)
+    def service_container(self) -> IProvideServices:
+        return self._app
+
+    @service_provider(OnemlAppServices.SERVICE_FACTORY)
+    def service_factory(self) -> IManageServices:
+        return self._app
+
+    @service_provider(OnemlAppServices.PLUGIN_LOAD_EXE)
+    def plugin_init_exe(self) -> InitializePluginsExe:
+        return InitializePluginsExe(
+            app=self._app,
+            group=lambda: self._app.get_service_group(PrivateOnemlAppServiceGroups.APP_PLUGINS),
+        )
+
+
+"""
+TODO: Document how we can promote a private service as public by adding a second decorator
+"""

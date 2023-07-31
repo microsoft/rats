@@ -1,74 +1,79 @@
 import logging
-from abc import abstractmethod
-from typing import Protocol, Tuple
+import uuid
 
-from oneml.pipelines.dag import IManagePipelineNodeDependencies, PipelineNodeId
-from oneml.pipelines.session._executable import IExecutable
-from oneml.pipelines.session._node_execution import IExecutePipelineNodes
-from oneml.pipelines.session._node_state import IManagePipelineNodeState, PipelineNodeState
-from oneml.pipelines.session._session_state import (
-    IManagePipelineSessionState,
-    PipelineSessionState,
-)
-from oneml.services._context import ContextClient
+from oneml.pipelines.dag import IManagePipelineDags
+from oneml.services import IManageContexts
 
-from ._context import OnemlSessionContextIds
+from ._contexts import OnemlSessionContexts, PipelineNodeContext
+from ._node_execution import IExecutePipelineNodes
+from ._node_state import IManagePipelineNodeState, PipelineNodeState
+from ._session_state import IManagePipelineSessionState, PipelineSessionState
 
 logger = logging.getLogger(__name__)
 
 
-class IPipelineSessionFrame(Protocol):
-    @abstractmethod
-    def tick(self) -> None:
-        """"""
-
-
-class BasicPipelineSessionFrameCommands:
-    _context_client: ContextClient
+class PipelineSessionFrameClient:
+    _context_client: IManageContexts
+    _dag_client: IManagePipelineDags
     _session_state_client: IManagePipelineSessionState
     _node_state_client: IManagePipelineNodeState
-    _node_dependencies_client: IManagePipelineNodeDependencies
     _node_executables_client: IExecutePipelineNodes
 
     def __init__(
         self,
-        context_client: ContextClient,
+        context_client: IManageContexts,
+        dag_client: IManagePipelineDags,
         session_state_client: IManagePipelineSessionState,
         node_state_client: IManagePipelineNodeState,
-        node_dependencies_client: IManagePipelineNodeDependencies,
         node_executables_client: IExecutePipelineNodes,
     ):
         self._context_client = context_client
         self._session_state_client = session_state_client
         self._node_state_client = node_state_client
-        self._node_dependencies_client = node_dependencies_client
+        self._dag_client = dag_client
         self._node_executables_client = node_executables_client
 
-    def promote_registered_nodes(self) -> None:
+    def tick(self) -> None:
+        self._promote_new_nodes()
+        self._promote_registered_nodes()
+        self._promote_queued_nodes()
+        self._execute_pending_nodes()
+        self._check_pipeline_completion()
+
+    def _promote_new_nodes(self) -> None:
+        for node in self._dag_client.get_nodes():
+            logger.debug(f"promoting new node {node}")
+            if self._node_state_client.get_node_state(node) == PipelineNodeState.NONE:
+                self._node_state_client.set_node_state(node, PipelineNodeState.REGISTERED)
+
+    def _promote_registered_nodes(self) -> None:
         for node in self._node_state_client.get_nodes_by_state(PipelineNodeState.REGISTERED):
+            logger.debug(f"promoting registered node {node}")
             self._node_state_client.set_node_state(node, PipelineNodeState.QUEUED)
 
-    def promote_queued_nodes(self) -> None:
+    def _promote_queued_nodes(self) -> None:
         completed = self._node_state_client.get_nodes_by_state(PipelineNodeState.COMPLETED)
         queued = self._node_state_client.get_nodes_by_state(PipelineNodeState.QUEUED)
         # These nodes do not have any missing dependencies
-        with_resolved_deps = self._node_dependencies_client.get_nodes_with_dependencies(completed)
+        with_resolved_deps = self._dag_client.get_nodes_with_dependencies(completed)
 
         # All queued nodes without missing dependencies are runnable
         runnable = [x for x in queued if x in with_resolved_deps]
+        logger.debug(f"promoting queued nodes {runnable}")
         for node in runnable:
             self._node_state_client.set_node_state(node, PipelineNodeState.PENDING)
 
-    def execute_pending_nodes(self) -> None:
+    def _execute_pending_nodes(self) -> None:
         pending = self._node_state_client.get_nodes_by_state(PipelineNodeState.PENDING)
         if len(pending) == 0:
-            # TODO: is having 0 pending nodes an exceptional case?
+            # TODO: is having 0 pending nodes an exceptional case? I don't think so any more.
             return
 
         node = pending[0]
 
         with self._context_client.open_context(
-            OnemlSessionContextIds.NODE_ID, PipelineNodeId(node.key)
+            OnemlSessionContexts.PIPELINE_NODE,
+            PipelineNodeContext(id=str(uuid.uuid4()), node=node),
         ):
             logger.debug(f"Executing node: {node}")
             self._node_state_client.set_node_state(node, PipelineNodeState.RUNNING)
@@ -79,7 +84,7 @@ class BasicPipelineSessionFrameCommands:
         # thread = Thread(target=self._execute_node, args=(node,))
         # thread.start()
 
-    def check_pipeline_completion(self) -> None:
+    def _check_pipeline_completion(self) -> None:
         registered = self._node_state_client.get_nodes_by_state(PipelineNodeState.REGISTERED)
         queued = self._node_state_client.get_nodes_by_state(PipelineNodeState.QUEUED)
         pending = self._node_state_client.get_nodes_by_state(PipelineNodeState.PENDING)
@@ -92,16 +97,3 @@ class BasicPipelineSessionFrameCommands:
 
         logger.debug("No pending nodes remaining.")
         self._session_state_client.set_state(PipelineSessionState.STOPPED)
-
-
-class PipelineSessionFrame(IPipelineSessionFrame):
-    # TODO: turn these ideas into lifecycle events and tools to group events (pre/post)
-    _frame_commands: Tuple[IExecutable, ...]
-
-    def __init__(self, frame_commands: Tuple[IExecutable, ...]) -> None:
-        self._frame_commands = frame_commands
-
-    def tick(self) -> None:
-        logger.debug("running pipeline frame tick()")
-        for command in self._frame_commands:
-            command.execute()

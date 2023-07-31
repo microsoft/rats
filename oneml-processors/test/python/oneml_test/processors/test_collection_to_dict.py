@@ -1,10 +1,5 @@
-from oneml.processors import (
-    CollectionToDictBuilder,
-    CombinedPipeline,
-    FixedOutputProcessor,
-    PipelineRunnerFactory,
-    Task,
-)
+from oneml.processors.training import CollectionToDictBuilder
+from oneml.processors.ux import CombinedPipeline, FixedOutputProcessor, PipelineRunnerFactory, Task
 
 
 def test_collection_to_dict_uniform_types() -> None:

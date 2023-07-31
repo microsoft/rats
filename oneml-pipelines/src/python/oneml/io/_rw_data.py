@@ -3,9 +3,9 @@ from typing import Protocol, TypeVar
 
 from typing_extensions import NamedTuple
 
-DataType = TypeVar("DataType")
-DataType_co = TypeVar("DataType_co", covariant=True)
-DataType_contra = TypeVar("DataType_contra", contravariant=True)
+T_DataType = TypeVar("T_DataType")
+Tco_DataType = TypeVar("Tco_DataType", covariant=True)
+Tcontra_DataType = TypeVar("Tcontra_DataType", contravariant=True)
 
 
 class RWDataUri(NamedTuple):
@@ -15,17 +15,17 @@ class RWDataUri(NamedTuple):
         return self.uri
 
 
-class IReadData(Protocol[DataType_co]):
+class IReadData(Protocol[Tco_DataType]):
     @abstractmethod
-    def read(self, data_uri: RWDataUri) -> DataType_co:
+    def read(self, data_uri: RWDataUri) -> Tco_DataType:
         pass
 
 
-class IWriteData(Protocol[DataType_contra]):
+class IWriteData(Protocol[Tcontra_DataType]):
     @abstractmethod
-    def write(self, data_uri: RWDataUri, payload: DataType_contra) -> None:
+    def write(self, data_uri: RWDataUri, payload: Tcontra_DataType) -> None:
         pass
 
 
-class IReadAndWriteData(IReadData[DataType], IWriteData[DataType]):
+class IReadAndWriteData(IReadData[T_DataType], IWriteData[T_DataType], Protocol):
     pass

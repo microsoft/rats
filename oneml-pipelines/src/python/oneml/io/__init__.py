@@ -10,6 +10,7 @@ from ._io_data import (
     IRegisterPublishers,
     PipelineDataId,
 )
+from ._io_defaults import DefaultIoRw
 from ._io_manager import (
     FilesystemUriFormatter,
     InMemoryUriFormatter,
@@ -20,22 +21,21 @@ from ._io_manager import (
 )
 from ._local import DillLocalRW, LocalRWBase
 from ._memory import InMemoryRW
+from ._node_output import NodeOutputClient
+from ._registry_plugins import IoRegistryPluginsExe
 from ._rw_data import (
-    DataType,
-    DataType_co,
-    DataType_contra,
     IReadAndWriteData,
     IReadData,
     IWriteData,
     RWDataUri,
+    T_DataType,
+    Tco_DataType,
+    Tcontra_DataType,
 )
 from ._services import OnemlIoServices
 
 __all__ = [
-    "DataType",
-    "DataType_co",
-    "DataType_contra",
-    "FilesystemUriFormatter",
+    # _io_data
     "IFormatUri",
     "IGetLoaders",
     "IGetPublishers",
@@ -46,19 +46,28 @@ __all__ = [
     "IRegisterLoaders",
     "IRegisterPublishers",
     "PipelineDataId",
+    # _io_manager
+    "FilesystemUriFormatter",
     "InMemoryUriFormatter",
-    "IPublishPipelineData",
-    "IReadAndWriteData",
-    "IReadData",
-    "IWriteData",
-    "InMemoryRW",
-    "OnemlIoServices",
-    "PipelineDataId",
     "PipelineDataLoader",
     "PipelineDataPublisher",
     "PipelineLoaderGetter",
     "PipelinePublisherGetter",
-    "DillLocalRW",
+    # _node_output
+    "NodeOutputClient",
+    # _rw_data
+    "T_DataType",
+    "Tco_DataType",
+    "Tcontra_DataType",
+    "IReadAndWriteData",
+    "IReadData",
+    "IWriteData",
     "RWDataUri",
+    # _rw_manager
+    "InMemoryRW",
+    # _services
+    "OnemlIoServices",
+    "IoRegistryPluginsExe",
+    "DefaultIoRw",
     "LocalRWBase",
 ]

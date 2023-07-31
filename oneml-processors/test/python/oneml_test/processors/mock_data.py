@@ -1,8 +1,6 @@
 import logging
 from dataclasses import dataclass
 
-from oneml.pipelines.data._serialization import ISerializeData
-
 logger = logging.getLogger(__name__)
 
 

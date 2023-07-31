@@ -1,81 +1,84 @@
 from abc import abstractmethod
-from typing import Generic, Iterator, Protocol
+from typing import Generic, Protocol
 
 from typing_extensions import NamedTuple
 
-from ..pipelines.dag import PipelineNode, PipelinePort, PipelineSessionId
-from ..services import ServiceId
-from ._rw_data import DataType, DataType_co, DataType_contra, IReadData, IWriteData, RWDataUri
+from oneml.pipelines.dag import PipelineNode, PipelinePort
+from oneml.pipelines.session import PipelineContext
+from oneml.services import ServiceId
+
+from ._rw_data import IReadData, IWriteData, RWDataUri, T_DataType, Tco_DataType, Tcontra_DataType
 
 
-class PipelineDataId(NamedTuple, Generic[DataType_co]):
-    session_id: PipelineSessionId
+class PipelineDataId(NamedTuple, Generic[Tco_DataType]):
+    # TODO: I think I can fix this confusing name soon
+    pipeline: PipelineContext
     node: PipelineNode
-    port: PipelinePort[DataType_co]
+    port: PipelinePort[Tco_DataType]
 
     def __str__(self) -> str:
-        return f"{self.session_id.key}/{self.node.key}/{self.port.key}"
+        return f"{self.pipeline.id}/{self.node.key}/{self.port.key}"
 
 
 # TODO: Why is this generic? We're not using the type parameter, so we can instead accept
 # PipelineDataId[Any].
-class IFormatUri(Protocol[DataType]):
-    def __call__(self, data_id: PipelineDataId[DataType]) -> RWDataUri:
+class IFormatUri(Protocol[T_DataType]):
+    def __call__(self, data_id: PipelineDataId[T_DataType]) -> RWDataUri:
         ...
 
 
-class ILoadPipelineData(Protocol[DataType_co]):
+class ILoadPipelineData(Protocol[Tco_DataType]):
     @abstractmethod
-    def load(self) -> DataType_co:
+    def load(self) -> Tco_DataType:
         pass
 
 
-class IPublishPipelineData(Protocol[DataType_contra]):
+class IPublishPipelineData(Protocol[Tcontra_DataType]):
     @abstractmethod
-    def publish(self, payload: DataType_contra) -> None:
+    def publish(self, payload: Tcontra_DataType) -> None:
         pass
 
 
-class IGetLoaders(Protocol[DataType]):
+class IGetLoaders(Protocol[T_DataType]):
     @abstractmethod
-    def get(self, data_id: PipelineDataId[DataType]) -> ILoadPipelineData[DataType]:
+    def get(self, data_id: PipelineDataId[T_DataType]) -> ILoadPipelineData[T_DataType]:
         ...
 
 
-class IGetPublishers(Protocol[DataType]):
+class IGetPublishers(Protocol[T_DataType]):
     @abstractmethod
-    def get(self, data_id: PipelineDataId[DataType]) -> IPublishPipelineData[DataType]:
+    def get(self, data_id: PipelineDataId[T_DataType]) -> IPublishPipelineData[T_DataType]:
         ...
 
 
-class IRegisterLoaders(Protocol[DataType]):
+class IRegisterLoaders(Protocol[T_DataType]):
     @abstractmethod
     def register(
         self,
-        input_data_id: PipelineDataId[DataType],
-        output_data_id: PipelineDataId[DataType],
-        uri_formatter_id: ServiceId[IFormatUri[DataType]],
-        reader_id: ServiceId[IReadData[DataType]],
+        input_data_id: PipelineDataId[T_DataType],
+        output_data_id: PipelineDataId[T_DataType],
+        uri_formatter_id: ServiceId[IFormatUri[T_DataType]],
+        reader_id: ServiceId[IReadData[T_DataType]],
     ) -> None:
         ...
 
 
-class IRegisterPublishers(Protocol[DataType]):
+class IRegisterPublishers(Protocol[T_DataType]):
     @abstractmethod
     def register(
         self,
-        data_id: PipelineDataId[DataType],
-        uri_formatter_id: ServiceId[IFormatUri[DataType]],
-        writer_id: ServiceId[IWriteData[DataType]],
+        data_id: PipelineDataId[T_DataType],
+        uri_formatter_id: ServiceId[IFormatUri[T_DataType]],
+        writer_id: ServiceId[IWriteData[T_DataType]],
     ) -> None:
         ...
 
 
 class IManagePublishers(
-    IGetPublishers[DataType], IRegisterPublishers[DataType], Protocol[DataType]
+    IGetPublishers[T_DataType], IRegisterPublishers[T_DataType], Protocol[T_DataType]
 ):
     pass
 
 
-class IManageLoaders(IGetLoaders[DataType], IRegisterLoaders[DataType], Protocol[DataType]):
+class IManageLoaders(IGetLoaders[T_DataType], IRegisterLoaders[T_DataType], Protocol[T_DataType]):
     pass
