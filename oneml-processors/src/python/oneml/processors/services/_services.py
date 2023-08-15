@@ -1,4 +1,4 @@
-from oneml.processors.dag import DagSubmitter
+from oneml.processors.dag import DagSubmitter, INodeExecutableFactory
 from oneml.processors.io import (
     IGetReadServicesForType,
     IGetWriteServicesForType,
@@ -33,6 +33,7 @@ class OnemlProcessorsServices:
     WRITE_TO_NODE_BASED_URI_PIPELINE_BUILDER = ServiceId[IWriteToNodeBasedUriPipelineBuilder](
         "write-to-node-based-uri-pipeline-builder"
     )
+    NODE_EXECUTABLE_FACTORY = ServiceId[INodeExecutableFactory]("node-executable-factory")
     DAG_SUBMITTER = ServiceId[DagSubmitter]("dag-submitter")
     PIPELINE_RUNNER_FACTORY = ServiceId[PipelineRunnerFactory]("pipeline-runner-factory")
     PERSIST_FITTED_EVAL_PIPELINE = ServiceId[IPersistFittedEvalPipeline](

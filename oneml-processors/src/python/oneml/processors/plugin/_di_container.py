@@ -2,7 +2,7 @@ import logging
 
 from oneml.app import OnemlApp, OnemlAppServices
 from oneml.io import OnemlIoServices
-from oneml.processors.dag import DagSubmitter
+from oneml.processors.dag import DagSubmitter, NodeExecutableFactory
 from oneml.processors.io import (
     PluginRegisterReadersAndWriters,
     ReadFromUrlPipelineBuilder,
@@ -28,14 +28,22 @@ class OnemlProcessorsDiContainer:
         assert isinstance(app, OnemlApp)
         self._app = app
 
-    @service_provider(OnemlProcessorsServices.DAG_SUBMITTER)
-    def pipeline_dag_submitter(self) -> DagSubmitter:
-        return DagSubmitter(
-            builder=self._app.get_service(OnemlAppServices.PIPELINE_BUILDER),
+    @service_provider(OnemlProcessorsServices.NODE_EXECUTABLE_FACTORY)
+    def node_executable_factory(self) -> NodeExecutableFactory:
+        return NodeExecutableFactory(
             services_provider=self._app.get_service(OnemlAppServices.SERVICE_CONTAINER),
             context_client=self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT),
             publishers_getter=self._app.get_service(OnemlIoServices.PIPELINE_PUBLISHERS_GETTER),
             loaders_getter=self._app.get_service(OnemlIoServices.PIPELINE_LOADERS_GETTER),
+        )
+
+    @service_provider(OnemlProcessorsServices.DAG_SUBMITTER)
+    def pipeline_dag_submitter(self) -> DagSubmitter:
+        return DagSubmitter(
+            builder=self._app.get_service(OnemlAppServices.PIPELINE_BUILDER),
+            node_executable_factory=self._app.get_service(
+                OnemlProcessorsServices.NODE_EXECUTABLE_FACTORY
+            ),
         )
 
     @service_provider(OnemlProcessorsServices.PIPELINE_RUNNER_FACTORY)

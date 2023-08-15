@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
+from abc import abstractmethod
 from collections import defaultdict
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Iterable, Mapping, Protocol, Sequence
 
 from oneml.io import IGetLoaders, IGetPublishers, IManageLoaders, IManagePublishers, PipelineDataId
 from oneml.pipelines.building import PipelineBuilderClient
@@ -199,8 +200,18 @@ class SessionExecutableProvider(IExecutable):
         logger.debug(f"Node {self._node} execute end.")
 
 
-class DagSubmitter:
-    _builder: PipelineBuilderClient
+class INodeExecutableFactory(Protocol):
+    @abstractmethod
+    def __call__(
+        self,
+        node: DagNode,
+        dependencies: Sequence[DagDependency],
+        props: ProcessorProps,
+    ) -> IExecutable:
+        ...
+
+
+class NodeExecutableFactory(INodeExecutableFactory):
     _services_provider: IProvideServices
     _context_client: IGetContexts
     _publishers_getter: IGetPublishers[Any] | IManagePublishers[Any]
@@ -208,42 +219,56 @@ class DagSubmitter:
 
     def __init__(
         self,
-        builder: PipelineBuilderClient,
         services_provider: IProvideServices,
         context_client: IGetContexts,
         publishers_getter: IGetPublishers[Any] | IManagePublishers[Any],
         loaders_getter: IGetLoaders[Any] | IManageLoaders[Any],
     ) -> None:
-        self._builder = builder
         self._services_provider = services_provider
         self._context_client = context_client
         self._publishers_getter = publishers_getter
         self._loaders_getter = loaders_getter
 
+    def __call__(
+        self,
+        node: DagNode,
+        dependencies: Sequence[DagDependency],
+        props: ProcessorProps,
+    ) -> IExecutable:
+        return SessionExecutableProvider(
+            services_provider=self._services_provider,
+            context_client=self._context_client,
+            publishers_getter=self._publishers_getter,
+            loaders_getter=self._loaders_getter,
+            # Factory should take the below args
+            node=node,
+            dependencies=dependencies,
+            props=props,
+        )
+
+
+class DagSubmitter:
+    _builder: PipelineBuilderClient
+    _node_executable_factory: INodeExecutableFactory
+
+    def __init__(
+        self,
+        builder: PipelineBuilderClient,
+        node_executable_factory: INodeExecutableFactory,
+    ) -> None:
+        self._builder = builder
+        self._node_executable_factory = node_executable_factory
+
     def submit_dag(self, dag: DAG) -> None:
         for node in dag.nodes:
             self._builder.add_node(P2Pipeline.node(node))
-            props = dag.nodes[node]
 
-            sess_executable = SessionExecutableProvider(
-                # session_provider=self._session_context,
-                # TODO: we're only depending on services provider to pass it down to this class
-                #       we should use a factory class and hide these details from this client
-                services_provider=self._services_provider,
-                context_client=self._context_client,
-                publishers_getter=self._publishers_getter,
-                loaders_getter=self._loaders_getter,
-                # Factory should take the below args
+            sess_executable = self._node_executable_factory(
                 node=node,
                 dependencies=dag.dependencies[node],
-                props=props,
+                props=dag.nodes[node],
             )
             self._builder.set_executable(P2Pipeline.node(node), sess_executable)
-            # for output, id in props.io_managers.items():
-            #     type_id = props.serializers.get(
-            #         output, default_type_mapper[props.outputs[output].annotation]
-            #     )
-            #     builder.add_iomanager(P2Pipeline.node(node), PipelinePort(output), id, type_id)
 
         for node, dependencies in dag.dependencies.items():
             self._builder.add_data_dependencies(
