@@ -243,7 +243,7 @@ It needn't have been so and we show below two alternatives that yield the same r
 
 Third, the *processors* that we defined above do not have conflicting output names, i.e., all
 output variable names are different.
-This simplifies the exposition of the example, but in the [intermediate tutorial](intermediate.md)
+This simplifies the exposition of the example, but in the [intermediate tutorial](tutorial_intermediate.md)
 we explain what happens when we combine pipelines that expose the same output variable names.
 
 ### A Second Alternative to Standardized Logistic Regression Example
@@ -356,6 +356,3 @@ standardized_lr_outputs = standardized_lr_runner(dict(
     X_eval=..., X_train=..., Y_eval=..., Y_train=...
 ))
 ```
-
-See [demo_01_SLR_estimator - 202306 immunopipeline](https://msft-amp.azurewebsites.net/atlas/notebooks/51a18cf1-a089-442c-abaa-8066ede48e12?path=elonp@microsoft.com/OneML/demo_01_SLR_estimator%20-%20202306%20immunopipeline.ipynb) for an
-end-to-end working example of `standardized_lr`.

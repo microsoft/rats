@@ -2,7 +2,7 @@
 
 This tutorial is also available in notebook form.  See [Tutorial Notebooks](notebooks.md).
 
-In the [beginners tutorial](beginners.md) we have seen how to construct `hello_world`, `diamond`
+In the [beginners tutorial](tutorial_beginners.md) we have seen how to construct `hello_world`, `diamond`
 and `standardized_lr` pipelines.
 In this tutorial we will dive deeper into some of the concepts we touched upon and discuss more
 complicated use cases.
@@ -12,14 +12,13 @@ complicated use cases.
 - [Defining Tasks](#defining-tasks)
   - [Constructor Parameters](#constructor-parameters)
   - [Dynamic Annotations](#dynamic-annotations)
-  - [Services](#services)
   - [IOManagers and Serializers](#iomanagers-and-serializers)
 - [Combining Pipelines](#combining-pipelines)
   - [Parameter Entries](#parameter-entries)
   - [Parameter Collections](#parameter-collections)
   - [Parameter Types](#parameter-types)
   - [Defaults for `UserInput` and `UserOutput`](#defaults-for-userinput-and-useroutput)
-- [Estimators](#estimators)
+- [TrainAndEval](#trainandeval)
 
 ## Defining Tasks
 
@@ -35,7 +34,7 @@ A *task* has the following construct parameters:
     constructor parameters to values.  The values need to be serializable.
 - `services` (`Mapping[str, oneml.pipelines.session.ServiceId[Any]]`): \[optional\] A mapping from
     (a subset of) the the processor's constructor parameters to service ids.  See
-    [Services](advanced.md#services).
+    [Services](tutorial_advanced.md#services).
 - `input_annotation` (`Mapping[str, type]`): \[optional\] dynamic inputs for variable keyword
     parameter, e.g., `**kwargs`; required if *processor* specifies
     [var keyword](https://docs.python.org/3/library/inspect.html#inspect.Parameter.kind)
@@ -329,7 +328,7 @@ stz_eval.inputs.scale << stz_train.outputs.scale,
 
 We access single inputs and outputs of the pipelines via the `inputs` and `outputs` attributes.
 This happens with `stz_eval.inputs.mean` and `stz_train.outputs.mean`, for example
-In [begginer's tutorial](beginners.md) we saw another example:
+In [begginer's tutorial](tutorial_beginners.md) we saw another example:
 
 ```python
 stz_lr_dependencies = (
@@ -526,6 +525,6 @@ Only `standardization.outputs.Z` is specified in the dependencies list and exclu
 In this tutorial we used `PipelineBuilders.combine` to build an ML pipeline - one that fits a model
 on training data and evaluates that model on that training data and on a holdout data.
 
-See [Tutorial: TrainAndEval](train_and_eval.md) for OneML tools useful in this scenario
+See [Tutorial: TrainAndEval](https://msft-amp.azurewebsites.net/atlas/notebooks/1ee191de-5f6d-4933-ba7c-16fa903205eb?path=elonp@microsoft.com/OneML/Tutorials/train_and_eval.ipynb) for OneML tools useful in this scenario
 including simplifying and standardizing such pipelines, and using this standardization to
 automatically persist fitted eval pipelines.

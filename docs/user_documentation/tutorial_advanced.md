@@ -30,7 +30,7 @@ and build your own meta-pipelines.
 ## Operations with Parameter Entries and Collections
 
 Consider the `standardization`, `logistic_regression` and `stz_lr` examples from the
-[intermediate tutorial](intermediate.md).
+[intermediate tutorial](tutorial_intermediate.md).
 
 ![stz_lr](figures/stz_lr.png){ width="300" }
 
