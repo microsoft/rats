@@ -1,5 +1,7 @@
 # Intermediate Tutorial
 
+This tutorial is also available in notebook form.  See [Tutorial Notebooks](notebooks.md).
+
 In the [beginners tutorial](beginners.md) we have seen how to construct `hello_world`, `diamond`
 and `standardized_lr` pipelines.
 In this tutorial we will dive deeper into some of the concepts we touched upon and discuss more

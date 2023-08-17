@@ -1,6 +1,0 @@
-- [Tutorial Notebook Links](notebooks.md)
-- [Beginners tutorial](beginners.md)
-- [Intermediate tutorial](intermediate.md)
-- [Advanced tutorial](advanced.md)
-- [Terminology](terminology.md)
-- [FAQ](faq.md)

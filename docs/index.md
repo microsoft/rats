@@ -1,5 +1,4 @@
-This is the documentation site for the `oneml` repository.
+oneml docs
 
-- [Tutorials](tutorials/index.md)
-- [Scenarios](scenarios/scenarios.md)
-- [Existing tools](existing_tools/pipeline_tools.md)
+- [User Documentation](user_documentation/)
+- [Planning and Design](planning_and_design/)

@@ -1,5 +1,7 @@
 # Beginners Tutorial
 
+This tutorial is also available in notebook form.  See [Tutorial Notebooks](notebooks.md).
+
 ## "Hello World" Example
 
 Let's start writing the most simple pipeline that takes no inputs or outputs and prints

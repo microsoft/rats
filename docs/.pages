@@ -1,7 +1,5 @@
 nav:
 
 - Home: index.md
-- Existing tools: existing_tools
-- Scenarios: scenarios
-- Tutorials: tutorials
-- Internship Proposals: internship_proposals
+- User Documentation: user_documentation
+- Planning and Design: planning_and_design
