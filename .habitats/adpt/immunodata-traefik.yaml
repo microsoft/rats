@@ -1,0 +1,9 @@
+resource_tags:
+  azure-native:
+    ApplicationName: "Habitats"
+    BusinessUnit: "Research Data Platform"
+    CostCenter: "US065"
+    Env: "production"
+    Owner: "esilgard@adaptivebiotech.com"
+    RG: "AnalyticsWorkbenchIACTest"
+    Segment: "untagged"

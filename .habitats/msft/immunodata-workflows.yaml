@@ -1,13 +1,15 @@
-default_kubernetes_environment: "development"
 kubernetes_environments:
 - environment: "production"
   namespace: "workflows"
-  identity_name: "workflows"
-  service_account_name: "workflow"
+  identity:
+    service_account_name: "workflow"
+    managed_identity_name: "workflows"
+    managed_identity_resource_group: "immunodata.aks"
+    managed_identity_subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
 - environment: "development"
   namespace: "development-workflows"
-  identity_name: "development-workflows"
-  service_account_name: "development-workflow"
-# all external registries from which workflows should be able to pull context images
-image_pull_secrets: []
-scheduled_workflows_utc_offset_hrs: "3"
+  identity:
+    service_account_name: "development-workflow"
+    managed_identity_name: "development-workflows"
+    managed_identity_resource_group: "immunodata.aks"
+    managed_identity_subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"

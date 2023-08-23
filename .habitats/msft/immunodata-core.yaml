@@ -1,11 +1,12 @@
 identity:
-  identity_vault:
-    key_vault_name: "immunodata-infra"
-    resource_group_name: "immunodata.aks"
-    subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-    tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
-    key_rotation_user_group_object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
-    key_rotation_user_group_tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+  secret_storage:
+    vault:
+      key_vault_name: "immunodata-infra"
+      resource_group_name: "immunodata.aks"
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+    key_rotation:
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      user_group_object_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
   default_azure_identity_name: default
   default_azure_cli_identity_name: "azure-cli.msft"
   azure_identities:
@@ -45,6 +46,15 @@ identity:
       client_id: "521b24ff-6ee9-4ed2-9c37-15b168af23ae"
       key_vault_name: "immunodata-msft-adpt"
       key_vault_secret: "immunodata-msft-cam-test-secret"
+  # An identity from MSFT that is used to generate secrets for development habitat 
+  - name: "msft.immunodata-habitat-development"
+    identity_config:
+      identity_type: "client-secret"
+      tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
+      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+      client_id: "d5a4d47d-373c-4ff0-861a-482b21c1a95b"
+      key_vault_name: "habitat-msft-development"
+      key_vault_secret: "habitat-msft-development-secret"
   - name: "jupyter-lab"
     identity_config:
       identity_type: "managed-identity"
@@ -83,11 +93,16 @@ identity:
         kubernetes_namespace: "development-workflows"
 kubernetes:
   namespaces:
+    - "buildkit"
+    - "ci-builds"
+    - "development-workflows"
+    - "documentation"
+    - "immunodata-auth-api"
     - "jupyter-kernels"
     - "jupyter"
     - "workflows"
-    - "development-workflows"
   infrastructure:
+    allow_k8s_deletion: false
     cluster_name: "immunodata-v2"
     location: "eastus"
     kubernetes_version: "1.22.11"
@@ -96,17 +111,18 @@ kubernetes:
     tenant_id: "72f988bf-86f1-41af-91ab-2d7cd011db47"
     agent_pool_profiles:
       - name: "cicd1a"
-        count: 5
-        enable_auto_scaling: false
+        count: 0
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 5
         max_pods: 30
         mode: "User"
         os_disk_size_gb: 1023
         vm_size: "Standard_E64s_v3"
         node_labels:
           purpose: "cicd"
-        # TODO - add taint to this node ("dedicated=cicd:NoSchedule")
-        # node_taints:
-        #   dedicated: "cicd:NoSchedule"
+        node_taints:
+          - "dedicated=cicd:NoSchedule"
       - name: "common1a"
         count: 3
         enable_auto_scaling: false
@@ -116,32 +132,21 @@ kubernetes:
         vm_size: "Standard_E64s_v3"
         node_labels:
           purpose: "common"
-      - name: "jupytercor1a"
-        count: 2
+      - name: "jupyter1a"
+        count: 0
         enable_auto_scaling: true
-        min_count: 2
+        min_count: 0
         max_count: 30
         max_pods: 30
         mode: "User"
         os_disk_size_gb: 1023
-        vm_size: "Standard_E64s_v3"
-        node_labels:
-          purpose: "jupyter-core"
-      - name: "jupytercore1"
-        count: 12
-        enable_auto_scaling: true
-        min_count: 2
-        max_count: 30
-        max_pods: 30
-        mode: "User"
-        os_disk_size_gb: 2048
-        vm_size: "Standard_E64s_v3"
+        vm_size: "Standard_F72s_v2"
         node_labels:
           purpose: "jupyter-core"
       - name: "kernels1a"
-        count: 1
+        count: 0
         enable_auto_scaling: true
-        min_count: 1
+        min_count: 0
         max_count: 100
         max_pods: 30
         mode: "User"
@@ -149,13 +154,12 @@ kubernetes:
         vm_size: "Standard_E64s_v3"
         node_labels:
           purpose: "jupyter-kernels"
-        # TODO - add taint to this node ("dedicated=jupyterKernels:NoSchedule")
-        # node_taints:
-        #   dedicated: "jupyterKernels:NoSchedule"
+        node_taints:
+          - "dedicated=jupyterKernels:NoSchedule"
       - name: "kernels2a"
-        count: 2
+        count: 0
         enable_auto_scaling: true
-        min_count: 2
+        min_count: 0
         max_count: 40
         max_pods: 30
         mode: "User"
@@ -163,13 +167,12 @@ kubernetes:
         vm_size: "Standard_E64s_v3"
         node_labels:
           purpose: "jupyter-kernels"
-        # TODO - add taint to this node ("dedicated=jupyterKernelsHighMem:NoSchedule")
-        # node_taints:
-        #   dedicated: "jupyterKernelsHighMem:NoSchedule"
-      - name: "kernels3"
-        count: 7
+        node_taints:
+          - "dedicated=jupyterKernelsHighMem:NoSchedule"
+      - name: "kernels3a"
+        count: 0
         enable_auto_scaling: true
-        min_count: 1
+        min_count: 0
         max_count: 36
         max_pods: 30
         mode: "User"
@@ -177,13 +180,12 @@ kubernetes:
         vm_size: "Standard_NC24_Promo"
         node_labels:
           purpose: "jupyter-kernels"
-        # TODO - add taint to this node ("dedicated=jupyterKernelsGpu:NoSchedule")
-        # node_taints:
-        #   dedicated: "jupyterKernelsGpu:NoSchedule"
-      - name: "kernels4"
-        count: 1
+        node_taints:
+          - "dedicated=jupyterKernelsGpu:NoSchedule"
+      - name: "kernels4a"
+        count: 0
         enable_auto_scaling: true
-        min_count: 1
+        min_count: 0
         max_count: 28
         max_pods: 30
         mode: "User"
@@ -191,9 +193,21 @@ kubernetes:
         vm_size: "Standard_NC24s_v3"
         node_labels:
           purpose: "jupyter-kernels"
-        # TODO - add taint to this node ("dedicated=jupyterKernelsGpuNc24v3:NoSchedule")
-        # node_taints:
-        #   dedicated: "jupyterKernelsGpuNc24v3:NoSchedule"
+        node_taints:
+          - "dedicated=jupyterKernelsGpuNc24v3:NoSchedule"
+      - name: "kernels5a"
+        count: 0
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 1
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_L80s_v3"
+        node_labels:
+          purpose: "jupyter-kernels"
+        node_taints:
+          - "dedicated=jupyterKernelsStorageOptimized:NoSchedule"
       - name: "kernelscom1a"
         count: 24
         enable_auto_scaling: true
@@ -205,14 +219,7 @@ kubernetes:
         vm_size: "Standard_E64s_v3"
         node_labels:
           purpose: "jupyter-kernels"
-      - name: "system1a"
-        count: 1
-        enable_auto_scaling: false
-        max_pods: 30
-        mode: "System"
-        os_disk_size_gb: 1023
-        vm_size: "Standard_E64s_v3"
-      - name: "workflows1"
+      - name: "workflows1a"
         count: 1
         enable_auto_scaling: true
         min_count: 1
@@ -223,9 +230,8 @@ kubernetes:
         vm_size: "Standard_NC24_Promo"
         node_labels:
           purpose: "workflows"
-        # TODO - add taint to this node ("dedicated=jupyterKernelsGpuNc24v3:NoSchedule")
-        # node_taints:
-        #   dedicated: "workflowsGpu:NoSchedule"
+        node_taints:
+          - "dedicated=workflowsGpu:NoSchedule"
       - name: "workflows2a"
         count: 20
         enable_auto_scaling: true
@@ -237,7 +243,7 @@ kubernetes:
         vm_size: "Standard_NC24_Promo"
         node_labels:
           purpose: "workflows"
-      - name: "workflows3"
+      - name: "workflows3a"
         count: 0
         enable_auto_scaling: true
         min_count: 0
@@ -248,9 +254,15 @@ kubernetes:
         vm_size: "Standard_NC24s_v3"
         node_labels:
           purpose: "workflows"
-        # TODO - add taint to this node ("dedicated=jupyterKernelsGpuNc24v3:NoSchedule")
-        # node_taints:
-        #   dedicated: "workflowsGpu:NoSchedule"
+        node_taints:
+          - "dedicated=workflowsGpu:NoSchedule"
+      - name: "system1a"
+        count: 1
+        enable_auto_scaling: false
+        max_pods: 30
+        mode: "System"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_E64s_v3"
     log_analytics:
       workspace_name: "immunodata-monitoring"
       retention_in_days: 30
@@ -280,6 +292,10 @@ traefik:
   traefik_pod_replicas: 5
   whoami_replicas: 1
 storage:
+  # TODO - someone from the MSFT side needs to update this to reflect reality before we deploy the IaC
+  default_resource_group_name: "immunodata.aks"
+  default_subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+  default_owner_user_group_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
   accounts:
   - name: "immunomicsinfra01"
     account_type: "external"
@@ -291,37 +307,36 @@ storage:
     cli_identity_name: "azure-cli.msft"
     managed:
       resource_group_name: "immunodata.dataset-metadata"
-      subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-      owner_user_group_id: "47d36cba-a985-48ee-9310-e3c4bfcd8a67"
       containers:
-      - container_name: "production"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "workflows"
-          access_level: "write"
-        - identity_name: "development-workflows"
-          access_level: "read"
-      - container_name: "development"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "development-workflows"
-          access_level: "write"
+      - name: "production"
+        tags:
+          - "production"
+      - name: "development"
+        tags:
+          - "development"
+      tags:
+        - "metadata"
   # TODO - bring these under management once someone on the MSFT side provides the right info
   - name: "ampdatasets01"
     account_type: "external"
     storage_account_name: "ampdatasets01"
+    tags:
+      - "production"
+      - "datasets"
   - name: "ampdata02"
     account_type: "external"
     storage_account_name: "ampdata02"
+    tags:
+      - "production"
+      - "datasets"
   - name: "ampdatasetsdev01"
     account_type: "external"
     storage_account_name: "ampdatasetsdev01"
+    tags:
+      - "development"
+      - "datasets"
   - name: "jupyterscratch01"
     account_type: "external"
     storage_account_name: "jupyterscratch01"
+    tags:
+      - "scratch"

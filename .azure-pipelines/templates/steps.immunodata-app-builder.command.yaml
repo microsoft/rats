@@ -25,7 +25,6 @@ steps:
     useGlobalConfig: true
     inlineScript: |
       # Should exist if we've run the authenticate template!
-      export DEVOPS_PYPI_URL=$PIP_EXTRA_INDEX_URL
       export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=$(System.AccessToken)
       export PYENV_SHELL=bash
 
@@ -44,7 +43,6 @@ steps:
       chmod +x $tmpfile
 
       CMD="docker run \
-        -e DEVOPS_PYPI_URL \
         -e POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD \
         -e PYENV_SHELL \
         -e BUILD_VERSION \
@@ -54,7 +52,7 @@ steps:
         -e RPY2_CFFI_MODE=ABI \
         -v $PWD:$PWD \
         -v $PWD/.tmp/docker.virtualenvs.poetry:/root/.cache/pypoetry/virtualenvs \
-        -v $DOCKER_CONFIG:/root/.docker:ro \
+        -v $DOCKER_CONFIG:/root/.docker \
         -v /var/run/docker.sock:/var/run/docker.sock \
         -v $HOME/.azure:/root/.azure \
         -v $HOME/.kube/cache:/root/.kube/cache \

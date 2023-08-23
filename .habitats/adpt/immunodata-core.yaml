@@ -1,13 +1,18 @@
 identity:
-  identity_vault:
-    key_vault_name: "platinum-vault"
-    resource_group_name: "AFPFedRAMPIaCTest"
-    subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
-    tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
-    key_rotation_user_group_object_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
-    key_rotation_user_group_tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+  secret_storage:
+    vault:
+      key_vault_name: "platinum-vault"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+    key_rotation:
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      user_group_object_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
   default_azure_identity_name: default
   default_azure_cli_identity_name: "azure-cli.adpt"
+  # group_object_ids:
+  #   readers: ""
+  #   contributors: ""
+  #   owners: ""
   azure_identities:
   # Default credential used when wanting to authenticate as the local user (us or managed identity)
   - name: "default"
@@ -37,6 +42,15 @@ identity:
       tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
       key_vault_name: "platinum-vault"
       key_vault_secret: "adpt-export-dataset-transfer-identity-secret"
+      key_vault_cli_identity: "azure-cli.adpt"
+  - name: "test-portal-reader"
+    identity_config:
+      identity_type: "client-secret"
+      client_id: 383ae2c0-8858-4029-b7f6-d15fc2693db1
+      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+      tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
+      key_vault_name: "platinum-vault"
+      key_vault_secret: "adpt-portal-job-runner-identity-secret"
       key_vault_cli_identity: "azure-cli.adpt"
   # A service principal given to msft for them to push data into the adpt tenant
   # This identity is not used for any API calls on the adpt habitat
@@ -68,7 +82,7 @@ identity:
     identity_config:
       identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-jupyter-lab"
-      resource_group_name: "AFPFedRAMPIaCTest"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       kubernetes_binding:
         azure_identity_crd_name: "jupyter-lab"
@@ -77,7 +91,7 @@ identity:
     identity_config:
       identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-jupyter-kernel"
-      resource_group_name: "AFPFedRAMPIaCTest"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       kubernetes_binding:
         azure_identity_crd_name: "jupyter-kernel"
@@ -86,7 +100,7 @@ identity:
     identity_config:
       identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-workflows"
-      resource_group_name: "AFPFedRAMPIaCTest"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       kubernetes_binding:
         azure_identity_crd_name: "workflow"
@@ -95,7 +109,7 @@ identity:
     identity_config:
       identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-development-workflows"
-      resource_group_name: "AFPFedRAMPIaCTest"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       kubernetes_binding:
         azure_identity_crd_name: "development-workflow"
@@ -104,7 +118,7 @@ identity:
     identity_config:
       identity_type: "managed-identity"
       managed_identity_name: "k8s-pods-tekton-pipeline"
-      resource_group_name: "AFPFedRAMPIaCTest"
+      resource_group_name: "AnalyticsWorkbenchIACTest"
       subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
       kubernetes_binding:
         azure_identity_crd_name: "tekton-pipeline"
@@ -116,18 +130,11 @@ identity:
       CostCenter: "US065"
       Env: "production"
       Owner: "esilgard@adaptivebiotech.com"
-      RG: "AFPFedRAMPIaCTest"
+      RG: "AnalyticsWorkbenchIACTest"
       Segment: "untagged"
 kubernetes:
-  namespaces:
-    - "jupyter-kernels"
-    - "jupyter"
-    - "workflows"
-    - "development-workflows"
-    - "ci-builds"
-    - "documentation"
-    - "buildkit"
   infrastructure:
+    allow_k8s_deletion: false
     resource_tags:
       azure-native:
         ApplicationName: "Habitats"
@@ -135,16 +142,16 @@ kubernetes:
         CostCenter: "US065"
         Env: "production"
         Owner: "esilgard@adaptivebiotech.com"
-        RG: "AFPFedRAMPIaCTest"
+        RG: "AnalyticsWorkbenchIACTest"
         Segment: "untagged"
     cluster_name: "platinum"
     location: "westus2"
-    kubernetes_version: "1.25.5"
-    resource_group_name: "AFPFedRAMPIaCTest"
+    kubernetes_version: "1.26.3"
+    resource_group_name: "AnalyticsWorkbenchIACTest"
     subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
     tenant_id: "497cd8de-e675-4c7b-aec9-e8f20f8f0026"
     agent_pool_profiles:
-      - name: "cicd1"
+      - name: "cicd1a"
         count: 0
         min_count: 0
         max_count: 5
@@ -157,7 +164,7 @@ kubernetes:
           purpose: "cicd"
         node_taints:
           - "dedicated=cicd:NoSchedule"
-      - name: "common1"
+      - name: "common1a"
         count: 0
         enable_auto_scaling: true
         min_count: 0
@@ -168,7 +175,7 @@ kubernetes:
         vm_size: "Standard_D8_v4"
         node_labels:
           purpose: "common"
-      - name: "jupytercore1"
+      - name: "jupyter1a"
         count: 0
         enable_auto_scaling: true
         min_count: 0
@@ -176,10 +183,10 @@ kubernetes:
         max_pods: 30
         mode: "User"
         os_disk_size_gb: 2048
-        vm_size: "Standard_E64s_v4"
+        vm_size: "Standard_F72s_v2"
         node_labels:
           purpose: "jupyter-core"
-      - name: "kernels1"
+      - name: "kernels1a"
         count: 0
         enable_auto_scaling: true
         min_count: 0
@@ -190,7 +197,20 @@ kubernetes:
         vm_size: "Standard_E64s_v4"
         node_labels:
           purpose: "jupyter-kernels"
-      - name: "workflows1"
+      - name: "kernels2a"
+        count: 0
+        enable_auto_scaling: true
+        min_count: 0
+        max_count: 1
+        max_pods: 30
+        mode: "User"
+        os_disk_size_gb: 1023
+        vm_size: "Standard_L80s_v3"
+        node_labels:
+          purpose: "jupyter-kernels"
+        node_taints:
+          - "dedicated=jupyterKernelsStorageOptimized:NoSchedule"
+      - name: "workflows1a"
         count: 0
         enable_auto_scaling: true
         min_count: 0
@@ -201,9 +221,11 @@ kubernetes:
         vm_size: "Standard_E64s_v4"
         node_labels:
           purpose: "workflows"
-      - name: "system1"
-        count: 3
-        enable_auto_scaling: false
+      - name: "system1a"
+        count: 2
+        enable_auto_scaling: true
+        min_count: 2
+        max_count: 5
         max_pods: 30
         mode: "System"
         os_disk_size_gb: 1023
@@ -226,166 +248,101 @@ kubernetes:
       subnet:
         - name: "platinum-subnet"
           address_prefix: "10.10.128.0/17"
-traefik:
-  load_balancer_ip: "10.10.210.20"
-  image_tag: "traefik:v2.8"
-  helm_namespace: "helm-releases"
-  traefik_pod_replicas: 1
-  whoami_replicas: 1
-  resource_tags:
-      azure-native:
-        ApplicationName: "Habitats"
-        BusinessUnit: "Research Data Platform"
-        CostCenter: "US065"
-        Env: "production"
-        Owner: "esilgard@adaptivebiotech.com"
-        RG: "AFPFedRAMPIaCTest"
-        Segment: "untagged"
 storage:
+  default_subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+  default_resource_group_name: "AnalyticsWorkbenchIACTest"
+  default_owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
   accounts:
   - name: "adptinternalinfra"
     account_type: "external"
     cli_identity_name: "azure-cli.adaptiveanalyticsworkbench"
     storage_account_name: "adptinternalinfra"
+    resource_group_name: "InternalHabitatMGMT"
+    containers:
+    - "pulumi"
+    tags:
+      - "infrastructure"
   - name: "adptplatinummetadata"
     account_type: "managed"
     cli_identity_name: "azure-cli.adpt"
     storage_account_name: "adptplatinummetadata"
-    managed:
-      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
-      resource_group_name: "AFPFedRAMPIaCTest"
-      owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
-      containers:
-      - container_name: "production"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "workflows"
-          access_level: "write"
-        - identity_name: "development-workflows"
-          access_level: "read"
-      - container_name: "development"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "development-workflows"
-          access_level: "write"
+    containers:
+      - name: "production"
+        tags:
+          - "production"
+      - name: "development"
+        tags:
+          - "development"
+    tags:
+      - "metadata"
   - name: "adptjupyterscratch01"
     account_type: "managed"
     storage_account_name: "adptjupyterscratch01"
-    managed:
-      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
-      resource_group_name: "AFPFedRAMPIaCTest"
-      owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
-      containers:
-      - container_name: "adptjupyterscratch01"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "write"
-        - identity_name: "jupyter-kernel"
-          access_level: "write"
+    containers:
+      - "adptjupyterscratch01"
+    tags:
+      - "scratch"
   - name: "adptplatinumfiles"
     account_type: "managed"
     storage_account_name: "adptplatinumfiles"
-    managed:
-      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
-      resource_group_name: "AFPFedRAMPIaCTest"
-      owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
-      containers:
-      - container_name: "general"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "workflows"
-          access_level: "write"
-        - identity_name: "development-workflows"
-          access_level: "read"
-      - container_name: "sideloaded"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "workflows"
-          access_level: "write"
-        - identity_name: "development-workflows"
-          access_level: "read"
-      - container_name: "immunodata-annotations-raw-batches"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "workflows"
-          access_level: "write"
-        - identity_name: "development-workflows"
-          access_level: "read"
+    containers:
+      - "general"
+      - "sideloaded"
+      - "immunodata-annotations-raw-batches"
+    tags:
+      - "production"
+      - "datasets"
   - name: "adptplatinumfilesdev01"
     account_type: "managed"
     storage_account_name: "adptplatinumfilesdev01"
-    managed:
-      subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
-      resource_group_name: "AFPFedRAMPIaCTest"
-      owner_user_group_id: "b50d3a6d-b75b-4cab-8534-a23782a43dde"
-      containers:
-      - container_name: "general"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "development-workflows"
-          access_level: "write"
-      - container_name: "tmp"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "development-workflows"
-          access_level: "write"
-      - container_name: "sideloaded"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "development-workflows"
-          access_level: "write"
-      - container_name: "immunodata-annotations-raw-batches"
-        permissions:
-        - identity_name: "jupyter-lab"
-          access_level: "read"
-        - identity_name: "jupyter-kernel"
-          access_level: "read"
-        - identity_name: "development-workflows"
-          access_level: "write"
+    containers:
+      - "general"
+      - "tmp"
+      - "sideloaded"
+      - "immunodata-annotations-raw-batches"
+    tags:
+      - "development"
+      - "datasets"
+  - name: "adptjupyternotebooks01"
+    account_type: "managed"
+    storage_account_name: "adptjupyternotebooks01"
+    shares:
+      - "jupyter-notebooks"
+    tags:
+      - "notebooks"
   - name: "datasetmetadata"
     account_type: "external"
     storage_account_name: "datasetmetadata"
     identity_name: "msft.immunodata-adpt-habitat"
+    tags:
+      - "metadata"
   - name: "ampdatasets01"
     account_type: "external"
     storage_account_name: "ampdatasets01"
     identity_name: "msft.immunodata-adpt-habitat"
+    tags:
+      - "production"
+      - "datasets"
   - name: "ampdata02"
     account_type: "external"
     storage_account_name: "ampdata02"
     identity_name: "msft.immunodata-adpt-habitat"
+    tags:
+      - "production"
+      - "datasets"
   - name: "ampdatasetsdev01"
     account_type: "external"
     storage_account_name: "ampdatasetsdev01"
     identity_name: "msft.immunodata-adpt-habitat"
+    tags:
+      - "development"
+      - "datasets"
   - name: "jupyterscratch01"
     account_type: "external"
     storage_account_name: "jupyterscratch01"
     identity_name: "msft.immunodata-adpt-habitat"
+    tags:
+      - "scratch"
   - name: "adptdatasethandoffs"
     account_type: "external"
     storage_account_name: "adptdatasethandoffs"
@@ -394,6 +351,10 @@ storage:
     account_type: "external"
     storage_account_name: "adptanalyticsworkbench"
     identity_name: "adpt-export"
+  - name: "adaptiveruopipelinetest"
+    account_type: "external"
+    storage_account_name: "adaptiveruopipelinetest"
+    identity_name: "test-portal-reader"
   resource_tags:
     azure-native:
       ApplicationName: "Habitats"
@@ -401,5 +362,5 @@ storage:
       CostCenter: "US065"
       Env: "production"
       Owner: "esilgard@adaptivebiotech.com"
-      RG: "AFPFedRAMPIaCTest"
+      RG: "AnalyticsWorkbenchIACTest"
       Segment: "untagged"

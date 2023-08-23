@@ -1,0 +1,3 @@
+subscription: "6192729e-e45b-4a39-919b-83d7fa6db718"
+resource_group_name: "AnalyticsWorkbenchIACTest"
+base_url: "https://msft-amp.azurewebsites.net"

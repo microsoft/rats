@@ -45,7 +45,6 @@ jobs:
     parameters:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: ${{ parameters.component }}
       isDevBuild: ${{ parameters.isDevBuild }}
 
   - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml
@@ -58,13 +57,15 @@ jobs:
         docker-build ${{ parameters.component }}
         --path $PWD
         --image-tag $BUILD_VERSION
+        --pull
         --push
+        --build-remote
         --publish-dataset
         --registry immunodata.azurecr.io
         --dataset-namespace ${{ parameters.namespace }}
         --dataset-user azure-devops@managed-identity
         --dataset-branch $BUILD_BRANCH
-        --dataset-partition $(Build.Buildnumber)
+        --dataset-partition $BUILD_VERSION
       name: Build/Push Docker Image
 
   - script: |

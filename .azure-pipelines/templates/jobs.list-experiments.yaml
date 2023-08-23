@@ -42,7 +42,6 @@ jobs:
     parameters:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: ${{ parameters.component }}
       isDevBuild: ${{ parameters.isDevBuild }}
 
   - ${{ if eq(parameters.python_dependency_tool, 'poetry') }}:

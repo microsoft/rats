@@ -1,7 +1,3 @@
-# TODO - clean this up so we're not writing these twice (here and below as managed identities)
-identity_names:
-  lab_identity_name: "jupyter-lab"
-  kernel_identity_name: "jupyter-kernel"
 database:
   account_name: "adpt-jupyterlab-db"
   container_name: "notebooks"
@@ -13,17 +9,12 @@ notebook_fileshare:
   secret_name: jupyter-notebooks-secret
   # TODO - set this to the right value
   identity_name: "msft.immunodata-adpt-habitat"
-# all external registries for images used by Juptyer lab containers (lab, enterprise-gateway)
-image_pull_secrets:
-  - secret_name: "immunodata-pull-secret"
-    registry_name: "immunodata.azurecr.io"
-    identity_name: "msft.immunodata-adpt-habitat"
 users:
   - "afigpope@adaptivebiotech.com"
   - "afurtado@adaptivebiotech.com"
   - "ako@adaptivebiotech.com"
   - "alo@adaptivebiotech.com"
-  - "arhine@adaptivebiotech.com"
+  - "amacqueen@adaptivebiotech.com"
   - "aye@adaptivebiotech.com"
   - "bbanbury@adaptivebiotech.com"
   - "bhenry@adaptivebiotech.com"
@@ -38,11 +29,13 @@ users:
   - "eaguayo@adaptivebiotech.com"
   - "ecalfee@adaptivebiotech.com"
   - "eosborne@adaptivebiotech.com"
-  - "esilgard@adaptivebiotech.com"
   - "eschumacher@adaptivebiotech.com"
+  - "esilgard@adaptivebiotech.com"
   - "halasadi@adaptivebiotech.com"
   - "hchen@adaptivebiotech.com"
+  - "helabd@adaptivebiotech.com"
   - "hnesse@adaptivebiotech.com"
+  - "hpatel@adaptivebiotech.com"
   - "jchin@adaptivebiotech.com"
   - "jgrino@adaptivebiotech.com"
   - "jjones@adaptivebiotech.com"
@@ -52,19 +45,20 @@ users:
   - "jschmalz@adaptivebiotech.com"
   - "kakers@adaptivebiotech.com"
   - "kdoroschak@adaptivebiotech.com"
+  - "krestivo@adaptivebiotech.com"
   - "lhariharan@adaptivebiotech.com"
   - "lwlee@adaptivebiotech.com"
-  - "MAdams@adaptivebiotech.com"
   - "MChan@adaptivebiotech.com"
   - "mgarcianoceda@adaptivebiotech.com"
   - "mjiang@adaptivebiotech.com"
   - "mnoakes@adaptivebiotech.com"
   - "mpesesky@adaptivebiotech.com"
+  - "mwang@adaptivebiotech.com"
   - "pmonnahan@adaptivebiotech.com"
   - "rbharanikumar@adaptivebiotech.com"
   - "relyanow@adaptivebiotech.com"
-  - "rharris@adaptivebiotech.com"
   - "rfropf@adaptivebiotech.com"
+  - "rharris@adaptivebiotech.com"
   - "sbien@adaptivebiotech.com"
   - "scater@adaptivebiotech.com"
   - "skarim@adaptivebiotech.com"
@@ -75,6 +69,8 @@ users:
   - "ttran@adaptivebiotech.com"
   - "wzhou@adaptivebiotech.com"
 infrastructure:
+  subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+  resource_group_name: "AnalyticsWorkbenchIACTest"
   resource_tags:
     azure-native:
       ApplicationName: "Habitats"
@@ -82,15 +78,5 @@ infrastructure:
       CostCenter: "US065"
       Env: "production"
       Owner: "esilgard@adaptivebiotech.com"
-      RG: "AFPFedRAMPIaCTest"
+      RG: "AnalyticsWorkbenchIACTest"
       Segment: "untagged"
-  resource_group_name: "AFPFedRAMPIaCTest"
-  subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
-  jupyter_lab:
-    kubernetes_namespace: "jupyter"
-    service_account_name: "jupyter-lab"
-    managed_identity_name: "jupyter-lab"
-  jupyter_kernels:
-    kubernetes_namespace: "jupyter-kernels"
-    service_account_name: "jupyter-kernel"
-    managed_identity_name: "jupyter-kernel"

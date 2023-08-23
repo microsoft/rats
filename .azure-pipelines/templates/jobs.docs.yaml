@@ -38,7 +38,6 @@ jobs:
     parameters:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: ${{ parameters.driverComponent }}
       isDevBuild: ${{ parameters.isDevBuild }}
 
   - task: AzureCLI@2
@@ -110,7 +109,7 @@ jobs:
         # the `tkn task start` command above will exit with a `0` even when the task fails
         # we use grep here to cause this step to fail if we aren't able to find a succeeded task
         status=$(tkn pipelinerun list -n ci-builds --label job-id=$JOB_ID)
-        while [ ! -z "$(echo $status | grep -E -v 'Failed|Succeeded|Cancelled' || echo '')" ];
+        while [ -n "$(echo $status | grep -E -v 'Failed|Succeeded|Cancelled' || echo '')" ];
         do
           echo $status
           # 'tkn pipelinerun list' takes long enough to run that sleep would be overkill

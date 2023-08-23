@@ -1,0 +1,3 @@
+subscription: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
+resource_group_name: "immunodata.aks"
+base_url: "https://msft-amp.azurewebsites.net"

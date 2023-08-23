@@ -1,6 +1,13 @@
-# all external registries for images used by Juptyer lab containers (lab, enterprise-gateway)
 kernelspec_namespace: "jupyter"
-image_pull_secrets:
-  - secret_name: "immunodata-pull-secret"
-    registry_name: "immunodata.azurecr.io"
-    identity_name: "msft.immunodata-adpt-habitat"
+infrastructure:
+  subscription_id: "6192729e-e45b-4a39-919b-83d7fa6db718"
+  resource_group_name: "AnalyticsWorkbenchIACTest"
+  resource_tags:
+    azure-native:
+      ApplicationName: "Habitats"
+      BusinessUnit: "Research Data Platform"
+      CostCenter: "US065"
+      Env: "production"
+      Owner: "esilgard@adaptivebiotech.com"
+      RG: "AnalyticsWorkbenchIACTest"
+      Segment: "untagged"

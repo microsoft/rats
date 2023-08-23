@@ -30,7 +30,6 @@ jobs:
     parameters:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: ${{ parameters.component }}
       isDevBuild: false
 
   - template: /.azure-pipelines/templates/steps.immunodata-app-builder.command.yaml

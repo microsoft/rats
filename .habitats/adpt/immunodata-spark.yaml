@@ -1,7 +1,3 @@
-image_pull_secrets:
-  - secret_name: "immunodata-pull-secret"
-    registry_name: "immunodata.azurecr.io"
-    identity_name: "msft.immunodata-adpt-habitat"
 # TODO - this config is a temporary hack until we have a proper permissions system
 # this configures the identity to use for cross-tenant reads of storage accounts that would
 # be handled by Managed Identities if they were owned by this Habitat

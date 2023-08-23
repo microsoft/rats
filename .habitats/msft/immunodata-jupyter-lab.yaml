@@ -1,6 +1,3 @@
-identity_names:
-  lab_identity_name: "jupyter-lab"
-  kernel_identity_name: "jupyter-kernel"
 database:
   account_name: "jupyterlab-db"
   container_name: "notebooks"
@@ -12,18 +9,9 @@ notebook_fileshare:
   secret_name: jupyter-notebooks-secret
   # TODO - set this to the right value
   identity_name: "msft.immunodata-adpt-habitat"
-# all external registries for images used by Juptyer lab containers (lab, enterprise-gateway)
-image_pull_secrets: []
-# TODO - figure out how to use these if necessary before IaC is deployed
-# identity_ids:
-#   lab_identity_client_id: 75c52c6c-4c00-439b-8300-05f87576645f
-#   lab_identity_resource_id: /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourceGroups/immunodata.aks/providers/Microsoft.ManagedIdentity/userAssignedIdentities/k8s-pods-jupyter-lab
-#   kernel_identity_client_id: 7a86a94c-84ec-4c87-8738-576eb57fd056
-#   kernel_identity_resource_id: /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourceGroups/immunodata.aks/providers/Microsoft.ManagedIdentity/userAssignedIdentities/k8s-pods-jupyter-kernel
 users:
   # ADAPTIVE
   - "afigpope@adaptivebiotech.com"
-  - "arhine@adaptivebiotech.com"
   - "awallace@adaptivebiotech.com"
   - "aye@adaptivebiotech.com"
   - "bzhang@adaptivebiotech.com"
@@ -33,18 +21,23 @@ users:
   - "dmay@adaptivebiotech.com"
   - "dwhite@adaptivebiotech.com"
   - "eaguayo@adaptivebiotech.com"
+  - "eosborne@adaptivebiotech.com"
   - "esilgard@adaptivebiotech.com"
   - "halasadi@adaptivebiotech.com"
   - "hchen@adaptivebiotech.com"
+  - "helabd@adaptivebiotech.com"
   - "hnesse@adaptivebiotech.com"
   - "jjones@adaptivebiotech.com"
   - "jmoharil@adaptivebiotech.com"
   - "kakers@adaptivebiotech.com"
   - "kdoroschak@adaptivebiotech.com"
+  - "krestivo@adaptivebiotech.com"
   - "lwlee@adaptivebiotech.com"
   - "mgarcianoceda@adaptivebiotech.com"
   - "mnoakes@adaptivebiotech.com"
   - "mpesesky@adaptivebiotech.com"
+  - "mrussell@adaptivebiotech.com"
+  - "mwang@adaptivebiotech.com"
   - "relyanow@adaptivebiotech.com"
   - "skarim@adaptivebiotech.com"
   - "swoodhouse@adaptivebiotech.com"
@@ -60,18 +53,17 @@ users:
   - "javierzazo@microsoft.com"
   - "jinpl@microsoft.com"
   - "jugreiss@microsoft.com"
+  - "leonardo.castorina@microsoft.com"
   - "lopisani@microsoft.com"
   - "melanief@microsoft.com"
   - "niprasa@microsoft.com"
   - "pchapfuwa@microsoft.com"
+  - "t-ethanluk@microsoft.com"
+  - "t-ffalck@microsoft.com"
+  - "t-hamaan@microsoft.com"
+  - "t-lila@microsoft.com"
+  - "t-tpandeva@microsoft.com"
+
 infrastructure:
-  resource_group_name: "immunodata.aks"
   subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-  jupyter_lab:
-    kubernetes_namespace: "jupyter"
-    service_account_name: "jupyter-lab"
-    managed_identity_name: "jupyter-lab"
-  jupyter_kernels:
-    kubernetes_namespace: "jupyter-kernels"
-    service_account_name: "jupyter-kernel"
-    managed_identity_name: "jupyter-kernel"
+  resource_group_name: "immunodata.aks"

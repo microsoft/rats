@@ -8,7 +8,7 @@ parameters:
     default: "immunodata.azurecr.io/immunodata-app-builder"
   - name: appBuilderImageTag
     type: string
-    default: "2023-06-16.14-08-17"
+    default: "2023-07-10.22-15-57"
 
 stages:
 - stage: CI
@@ -21,7 +21,6 @@ stages:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
       component: "oneml-devtools"
-      toxEnvs: "{.python-version},cilint,citype"
       isDevBuild: true
       python_dependency_tool: "poetry"
   # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
@@ -48,7 +47,6 @@ stages:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
       component: "oneml-habitats"
-      toxEnvs: "{.python-version},cilint,citype"
       isDevBuild: true
       python_dependency_tool: "poetry"
   # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
@@ -67,7 +65,6 @@ stages:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
       component: "oneml-pipelines"
-      toxEnvs: "{.python-version},cilint,citype"
       isDevBuild: true
       python_dependency_tool: "poetry"
   # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
@@ -86,7 +83,6 @@ stages:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
       component: "oneml-processors"
-      toxEnvs: "{.python-version},cilint,citype"
       isDevBuild: true
       python_dependency_tool: "poetry"
   # We generate the wheel even if it doesn't get published so that we catch issues in `setup.py` early.
@@ -115,7 +111,9 @@ stages:
   jobs:
   - template: /.azure-pipelines/templates/jobs.build-dataset-marker.yaml
     parameters:
-      builderImage: ${{ parameters.appBuilderImageName }}:${{ parameters.appBuilderImageTag }}
+      appBuilderImageName: ${{ parameters.appBuilderImageName }}
+      appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
+      isDevBuild: true
       project: "oneml"
       namespace: ci-pr-builds
 

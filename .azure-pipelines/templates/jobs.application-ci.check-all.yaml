@@ -15,8 +15,6 @@ parameters:
     - oneml-processors
   - name: isDevBuild
     type: boolean
-  - name: toxEnvs
-    type: string
   - name: python_dependency_tool
     type: string
     values:
@@ -35,12 +33,12 @@ jobs:
       mkdir -p .tmp/artifacts
     displayName: "Artifacts Directory"
 
+  - template: /.azure-pipelines/templates/steps.validate-submodule.yaml
   - template: /.azure-pipelines/templates/steps.authenticate.yaml
   - template: /.azure-pipelines/templates/steps.define-build-variables.yaml
     parameters:
       appBuilderImageName: ${{ parameters.appBuilderImageName }}
       appBuilderImageTag: ${{ parameters.appBuilderImageTag }}
-      component: ${{ parameters.component }}
       isDevBuild: ${{ parameters.isDevBuild }}
 
   - ${{ if eq(parameters.python_dependency_tool, 'poetry') }}:

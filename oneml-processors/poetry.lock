@@ -799,6 +799,23 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
+name = "docstring-parser"
+version = "0.15"
+description = "Parse Python docstrings in reST, Google and Numpydoc format"
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "docstring_parser-0.15-py3-none-any.whl", hash = "sha256:d1679b86250d269d06a99670924d6bce45adc00b08069dae8c47d98e89b667a9"},
+    {file = "docstring_parser-0.15.tar.gz", hash = "sha256:48ddc093e8b1865899956fcc03b03e66bb7240c310fac5af81814580c55bf682"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
 name = "docutils"
 version = "0.20.1"
 description = "Docutils -- Python Documentation Utilities"
@@ -1061,13 +1078,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-cli"
-version = "0.47.11"
+version = "0.50.0"
 description = "The immunocli command line tool and SDK."
 category = "dev"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_cli-0.47.11-py3-none-any.whl", hash = "sha256:cfa60df6924961e67c5c084fb23e57d8d5a4a4226cb9a06e5bafeb13e3bee0a0"},
+    {file = "immunodata_cli-0.50.0-py3-none-any.whl", hash = "sha256:c7851d97f5654baca91e1ce1cdbf20a2ce5f3ca05b741ed6722d7f5cc9c4b0fa"},
 ]
 
 [package.dependencies]
@@ -1084,18 +1101,18 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-core"
-version = "0.47.11"
+version = "0.50.0"
 description = "The immunodata dataset libraries and SDK."
 category = "dev"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_core-0.47.11-py3-none-any.whl", hash = "sha256:adbe2f8848a8df94ef8258ec794f051496150892f04aa3816fb7820cf9781c44"},
+    {file = "immunodata_core-0.50.0-py3-none-any.whl", hash = "sha256:801f23d8c794de3f613bec11b4fb1d18a2bc4d26f8121dd97090d87478c36634"},
 ]
 
 [package.dependencies]
 azure-core = "*"
-azure-identity = "*"
+azure-identity = ">=1.13.0"
 azure-keyvault-secrets = "*"
 azure-mgmt-containerservice = "*"
 azure-storage-blob = "*"
@@ -1103,11 +1120,12 @@ colorlog = "*"
 immunodata-cli = "*"
 immunodata-datasets = "*"
 immunodata-devops = "*"
+pydantic = "*"
 pyyaml = "*"
 tenacity = "*"
 
 [package.extras]
-infra = ["pulumi", "pulumi-azure-native", "pulumi-kubernetes"]
+infra = ["pulumi (>=3.68.0)", "pulumi-azure-native (<2)", "pulumi-kubernetes"]
 
 [package.source]
 type = "legacy"
@@ -1116,13 +1134,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-datasets"
-version = "0.47.11"
+version = "0.50.0"
 description = "The immunodata dataset libraries and SDK."
 category = "dev"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_datasets-0.47.11-py3-none-any.whl", hash = "sha256:429662a5054560227b9b38f67c9cfddd130201aff13e7468a5891401ffe00f18"},
+    {file = "immunodata_datasets-0.50.0-py3-none-any.whl", hash = "sha256:c69949f1255adb1983c72f8420bdd6d17cc12d71d187cae124996d446154c985"},
 ]
 
 [package.dependencies]
@@ -1140,13 +1158,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-devops"
-version = "0.47.11"
+version = "0.50.0"
 description = "The immunodata devops libraries."
 category = "dev"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_devops-0.47.11-py3-none-any.whl", hash = "sha256:4ce47ae1d384c3ca2cb948e4efeea32252ce41b4268753e561026897db4dcd1e"},
+    {file = "immunodata_devops-0.50.0-py3-none-any.whl", hash = "sha256:120079dd0262336a855fa4e3c3d0e798f85d7be3f16f9ae8b36a7b2dd403b0f0"},
 ]
 
 [package.dependencies]
@@ -1155,10 +1173,11 @@ immunodata-cli = "*"
 immunodata-core = "*"
 immunodata-datasets = "*"
 kubernetes = "*"
+simple-parsing = "*"
 toml = "*"
 
 [package.extras]
-infra = ["pulumi", "pulumi-azure-native", "pulumi-kubernetes"]
+infra = ["pulumi (>=3.68.0)", "pulumi-azure-native (<2)", "pulumi-kubernetes"]
 
 [package.source]
 type = "legacy"
@@ -1167,13 +1186,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-docslib"
-version = "0.47.11"
+version = "0.50.0"
 description = ""
 category = "dev"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_docslib-0.47.11-py3-none-any.whl", hash = "sha256:c339c2a64f6435b6e86f6fedfa06693ca11fc6aec5e8d52389c370fefaabcc09"},
+    {file = "immunodata_docslib-0.50.0-py3-none-any.whl", hash = "sha256:4c56419e70e422b11ecb07b62e6517fa32d52675de9d41b1a70f087687284adf"},
 ]
 
 [package.dependencies]
@@ -1185,13 +1204,17 @@ immunodata-devops = "*"
 mkdocs = "*"
 mkdocs-awesome-pages-plugin = "*"
 mkdocs-material = "*"
-pymdown-extensions = "*"
+mkdocs-video = "*"
+pymdown-extensions = ">=10.0.0"
 ratelimit = "*"
 requests = "*"
 sphinx = ">=5.2.3"
 sphinx-autodoc-typehints = "*"
 sphinx-material = "*"
 watchdog = "*"
+
+[package.extras]
+infra = ["pulumi (>=3.68.0)", "pulumi-azure-native (<2)", "pulumi-kubernetes"]
 
 [package.source]
 type = "legacy"
@@ -1200,13 +1223,13 @@ reference = "immunomics-artifacts"
 
 [[package]]
 name = "immunodata-workflows"
-version = "0.47.11"
+version = "0.50.0"
 description = ""
 category = "dev"
 optional = false
 python-versions = ">=3.8.10,<4.0.0"
 files = [
-    {file = "immunodata_workflows-0.47.11-py3-none-any.whl", hash = "sha256:cb244082fd2f06380290f71fdffce1470d43259b633bfbe9770778e012d79b73"},
+    {file = "immunodata_workflows-0.50.0-py3-none-any.whl", hash = "sha256:f039c68b743719969e472c23901c5bc1a336f953892df4e5e3df2456ee9a23dc"},
 ]
 
 [package.dependencies]
@@ -1220,7 +1243,7 @@ kubernetes = "*"
 pyyaml = "*"
 
 [package.extras]
-infra = ["pulumi", "pulumi-azure-native", "pulumi-kubernetes"]
+infra = ["pulumi (>=3.68.0)", "pulumi-azure-native (<2)", "pulumi-kubernetes"]
 
 [package.source]
 type = "legacy"
@@ -1732,6 +1755,27 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
+name = "mkdocs-video"
+version = "1.5.0"
+description = ""
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "mkdocs-video-1.5.0.tar.gz", hash = "sha256:0defc018f4b7927f8afffc4d8e039c84dfba636dffc5e25e2bfa8d6350bc8eca"},
+    {file = "mkdocs_video-1.5.0-py3-none-any.whl", hash = "sha256:b35613d4dacbac2dfa94d8c2600383cda14ad99a1fa1542b5fc4e9c6d19e9fe1"},
+]
+
+[package.dependencies]
+lxml = ">=4.7.0"
+mkdocs = ">=1.1.0,<2"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
 name = "msal"
 version = "1.22.0"
 description = "The Microsoft Authentication Library (MSAL) for Python library enables your app to access the Microsoft Cloud by supporting authentication of users with Microsoft Azure Active Directory accounts (AAD) and Microsoft Accounts (MSA) using industry standard OAuth2 and OpenID Connect."
@@ -2001,12 +2045,12 @@ files = []
 develop = true
 
 [package.dependencies]
-immunodata-cli = "^0.47.11"
-immunodata-core = "^0.47.11"
-immunodata-datasets = "^0.47.11"
-immunodata-devops = "^0.47.11"
-immunodata-docslib = "^0.47.11"
-immunodata-workflows = "^0.47.11"
+immunodata-cli = "^0.50.0"
+immunodata-core = "^0.50.0"
+immunodata-datasets = "^0.50.0"
+immunodata-devops = "^0.50.0"
+immunodata-docslib = "^0.50.0"
+immunodata-workflows = "^0.50.0"
 
 [package.extras]
 dev = []
@@ -2859,6 +2903,32 @@ files = [
 docs = ["furo", "jaraco.packaging (>=9)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (==0.8.3)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
 testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pip (>=19.1)", "pip-run (>=8.8)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=1.3)", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-ruff", "pytest-timeout", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
 testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+reference = "immunomics-artifacts"
+
+[[package]]
+name = "simple-parsing"
+version = "0.1.4"
+description = "A small utility for simplifying and cleaning up argument parsing scripts."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "simple_parsing-0.1.4-py3-none-any.whl", hash = "sha256:1fb042499d8872090ed3aad1f60f4d53026d2062942196a600933bc83787328e"},
+    {file = "simple_parsing-0.1.4.tar.gz", hash = "sha256:312300327d8f0beb61b6419500423bd335be8b83da66f733e9c67c6c18341ae8"},
+]
+
+[package.dependencies]
+docstring-parser = ">=0.15,<1.0"
+typing-extensions = ">=4.5.0"
+
+[package.extras]
+all = ["numpy", "pytest", "pytest-benchmark", "pytest-regressions", "pytest-xdist", "pyyaml"]
+test = ["numpy", "pytest", "pytest-benchmark", "pytest-regressions", "pytest-xdist"]
+yaml = ["pyyaml"]
 
 [package.source]
 type = "legacy"
