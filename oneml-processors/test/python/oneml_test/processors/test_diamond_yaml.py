@@ -6,7 +6,7 @@ from hydra_zen import instantiate
 
 from oneml.processors.ux import CombinedPipeline
 
-CONF_PATH = Path("src/resources/conf")
+CONF_PATH = Path("src/resources/pipelines")
 
 AOutput = TypedDict("AOutput", {"Z1": float, "Z2": float})
 BOutput = TypedDict("BOutput", {"Z": float})
@@ -37,6 +37,6 @@ def test_user_configs(register_resolvers_and_configs: None) -> None:
     with initialize_config_dir(
         config_dir=str(CONF_PATH.absolute()), job_name="pytest", version_base=None
     ):
-        cfg = compose(config_name="config", overrides=["+example=diamond"])
-        res = instantiate(cfg)
-        assert isinstance(res.pipeline, CombinedPipeline)
+        cfg = compose(config_name="pipeline_config", overrides=["+example=diamond"])
+        p = instantiate(cfg.pipeline)
+        assert isinstance(p, CombinedPipeline)

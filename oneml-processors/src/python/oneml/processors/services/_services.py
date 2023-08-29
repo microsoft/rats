@@ -13,6 +13,9 @@ from oneml.processors.training import IPersistFittedEvalPipeline
 from oneml.processors.ux import PipelineRunnerFactory
 from oneml.services import ServiceId, scoped_service_ids
 
+from ._config import ParametersForTaskService
+from ._hydra import PipelineConfigService
+
 
 @scoped_service_ids
 class OnemlProcessorsServices:
@@ -41,6 +44,10 @@ class OnemlProcessorsServices:
     )
     PLUGIN_REGISTER_READERS_AND_WRITERS = ServiceId[PluginRegisterReadersAndWriters](
         "plugin-register-readers-and-writers"
+    )
+    PIPELINE_CONFIG_SERVICE = ServiceId[PipelineConfigService]("pipeline-config-service")
+    PARAMETERS_FOR_TASK_SERVICE = ServiceId[ParametersForTaskService](
+        "parameters-for-task-service"
     )
 
 

@@ -4,13 +4,15 @@ from pathlib import Path
 from typing import Any, Iterator
 
 import pytest
-from hydra.core.config_store import ConfigStore
 
 from oneml.app import OnemlApp
-from oneml.processors.schemas import register_configs
-from oneml.processors.services import OnemlProcessorsServices
+from oneml.processors.services import (
+    OnemlProcessorsServices,
+    ParametersForTaskService,
+    PipelineConfigService,
+)
 from oneml.processors.training import IPersistFittedEvalPipeline
-from oneml.processors.ux import PipelineRunnerFactory, register_resolvers
+from oneml.processors.ux import PipelineRunnerFactory
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +58,15 @@ def persist_fitted_eval_pipeline(
 
 
 @pytest.fixture(scope="package")
-def register_resolvers_and_configs() -> None:
-    register_configs(ConfigStore())
-    register_resolvers()
+def pipeline_config_service(app: OnemlApp) -> PipelineConfigService:
+    return app.get_service(OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE)
+
+
+@pytest.fixture(scope="package")
+def parameters_for_task_service(app: OnemlApp) -> ParametersForTaskService:
+    return app.get_service(OnemlProcessorsServices.PARAMETERS_FOR_TASK_SERVICE)
+
+
+@pytest.fixture(scope="package")
+def register_resolvers_and_configs(pipeline_config_service: PipelineConfigService) -> None:
+    return

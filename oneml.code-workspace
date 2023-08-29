@@ -43,32 +43,22 @@
         "editor.rulers": [
             99
         ],
+        "jupyter.notebookFileRoot": "${workspaceFolder}",
         "python.languageServer": "Pylance",
-        // direnv should activate the environment, and often more correctly than vscode will
-        "python.terminal.activateEnvironment": false,
         // turn off Pylance native typechecking (leaves MyPy intact as Pylance treats it as a linter)
         "python.analysis.typeCheckingMode": "off",
-        "python.linting.pylintEnabled": false,
-        "python.linting.flake8Enabled": true,
-        "python.linting.mypyEnabled": true,
-        "python.linting.mypyArgs": [
-            // vscode lints files on save by calling `mypy <some/single/file-you-just-saved.py>`.
-            // but on a single file, mypy discovers the source file twice, once via the absolute
-            // path vscode passes explicitly, and once via the `mypy_path` in `mypy.ini`. but because
-            // the latter uses `namespace_packages = True`, mypy sees the same file as being under
-            // two different module names, one namespaced and one not, which makes mypy blow up,
-            // but vscode doesn't surface that very obviously, it just fails to highlight type errors.
-            // so, we tell vscode to pass `--explicit-package-base`, so that mypy will locate the
-            // nearest parent directory that is a member of the mypy_path config, and then use the
-            // relative path to determine the fully qualified module name, to be consistent.
-            "--explicit-package-bases",
-            // default mypyArgs are wrong for us anyway (ignore missing imports, etc)
+        "python.analysis.autoImportCompletions": true,
+        "python.autoComplete.extraPaths": [
+            "${workspaceFolder}/src/python/immunocam"
         ],
         "python.analysis.inlayHints.pytestParameters": true,
-        "python.analysis.autoImportCompletions": true,
         "python.envFile": "${workspaceFolder}/.envrc",
         "[python]": {
             "editor.defaultFormatter": "ms-python.black-formatter",
+            "editor.formatOnSave": true,
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": true
+            },
         },
         "markdown.validate.enabled": true,
         "diffEditor.diffAlgorithm": "advanced",
@@ -77,6 +67,9 @@
             "**/.tmp": true,
             "**/outputs": true,
             "**/__pycache__": true
-        }
+        },
+        "python.analysis.extraPaths": [
+            "${workspaceFolder}/src/python"
+        ]
     }
 }

@@ -77,8 +77,8 @@ class Task(Pipeline):
         node = DagNode(name)
         props = ProcessorProps(
             processor_type=processor_type,
-            config=frozendict(config) if config is not None else frozendict(),
-            services=frozendict(services) if services is not None else frozendict(),
+            config=config if config is not None else frozendict(),
+            services=services if services is not None else frozendict(),
             input_annotation=input_annotation,
             return_annotation=return_annotation,
             compute_reqs=compute_reqs,

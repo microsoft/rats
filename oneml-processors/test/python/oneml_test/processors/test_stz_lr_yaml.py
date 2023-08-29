@@ -6,7 +6,7 @@ from hydra_zen import instantiate
 
 from oneml.processors.ux import CombinedPipeline
 
-CONF_PATH = Path("src/resources/conf")
+CONF_PATH = Path("src/resources/pipelines")
 
 
 class Model:
@@ -58,9 +58,9 @@ def test_user_configs(register_resolvers_and_configs: None) -> None:
     with initialize_config_dir(
         config_dir=str(CONF_PATH.absolute()), job_name="test", version_base=None
     ):
-        cfg = compose(config_name="config", overrides=["+example=stz_lr"])
-        res = instantiate(cfg)
-        assert isinstance(res.pipeline, CombinedPipeline)
-        a = instantiate(res.pipeline._config.pipelines["stz"])
+        cfg = compose(config_name="pipeline_config", overrides=["+example=stz_lr"])
+        p = instantiate(cfg.pipeline)
+        assert isinstance(p, CombinedPipeline)
+        a = instantiate(p._config.pipelines["stz"])
         b = instantiate(cfg.pipeline.pipelines.stz)
         assert a == b

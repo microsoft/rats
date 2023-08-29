@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from oneml.app import OnemlApp, OnemlAppServices
 from oneml.io import OnemlIoServices
@@ -11,7 +12,13 @@ from oneml.processors.io import (
     WriteToNodeBasedUriPipelineBuilder,
     WriteToUriPipelineBuilder,
 )
-from oneml.processors.services import OnemlProcessorsServices
+from oneml.processors.services import (
+    HydraPipelineConfigServiceProvider,
+    OnemlProcessorsServices,
+    ParametersForTaskHydraService,
+    ParametersForTaskService,
+    PipelineConfigService,
+)
 from oneml.processors.training import PersistFittedEvalPipeline
 from oneml.processors.ux import PipelineRunnerFactory
 from oneml.services import IProvideServices, after, service_group, service_provider
@@ -108,3 +115,18 @@ class OnemlProcessorsDiContainer:
             readers_registry=self._app.get_service(OnemlProcessorsServices.REGISTER_TYPE_READER),
             writers_registry=self._app.get_service(OnemlProcessorsServices.REGISTER_TYPE_WRITER),
         )
+
+    def _parameters_config_dir(self) -> str:
+        return str(Path("src/resources/params").absolute())
+
+    def _pipeline_config_service_provider(self) -> HydraPipelineConfigServiceProvider:
+        return HydraPipelineConfigServiceProvider(self._parameters_config_dir())
+
+    @service_provider(OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE)
+    def pipeline_config_service(self) -> PipelineConfigService:
+        return self._pipeline_config_service_provider()()
+
+    @service_provider(OnemlProcessorsServices.PARAMETERS_FOR_TASK_SERVICE)
+    def parameters_for_task_service(self) -> ParametersForTaskService:
+        pipeline_config = self._app.get_service(OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE)
+        return ParametersForTaskHydraService(pipeline_config)

@@ -50,8 +50,8 @@ class ComputeReqs:
 @dataclass(frozen=True)
 class ProcessorProps:
     processor_type: type[IProcess]
-    config: frozendict[str, Any] = frozendict()
-    services: frozendict[str, ServiceId[Any]] = frozendict()
+    config: Mapping[str, Any] = frozendict()
+    services: Mapping[str, ServiceId[Any]] = frozendict()
     input_annotation: InitVar[Mapping[str, type] | None] = None
     return_annotation: InitVar[Mapping[str, type] | None] = None
     compute_reqs: ComputeReqs = ComputeReqs()
