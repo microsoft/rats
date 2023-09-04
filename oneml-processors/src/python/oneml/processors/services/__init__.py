@@ -1,6 +1,10 @@
 from ._config import ParametersForTaskHydraService, ParametersForTaskService
-from ._hydra import HydraPipelineConfigServiceProvider, PipelineConfigService
-from ._services import OnemlProcessorServiceGroups, OnemlProcessorsServices
+from ._hydra import HydraContext, HydraPipelineConfigServiceProvider, PipelineConfigService
+from ._services import (
+    OnemlProcessorsContexts,
+    OnemlProcessorServiceGroups,
+    OnemlProcessorsServices,
+)
 
 __all__ = [
     "ParametersForTaskHydraService",
@@ -9,4 +13,6 @@ __all__ = [
     "PipelineConfigService",
     "OnemlProcessorsServices",
     "OnemlProcessorServiceGroups",
+    "OnemlProcessorsContexts",
+    "HydraContext",
 ]

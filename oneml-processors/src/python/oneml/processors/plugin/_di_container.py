@@ -14,6 +14,7 @@ from oneml.processors.io import (
 )
 from oneml.processors.services import (
     HydraPipelineConfigServiceProvider,
+    OnemlProcessorsContexts,
     OnemlProcessorsServices,
     ParametersForTaskHydraService,
     ParametersForTaskService,
@@ -120,7 +121,11 @@ class OnemlProcessorsDiContainer:
         return str(Path("src/resources/params").absolute())
 
     def _pipeline_config_service_provider(self) -> HydraPipelineConfigServiceProvider:
-        return HydraPipelineConfigServiceProvider(self._parameters_config_dir())
+        context_client = self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
+        return HydraPipelineConfigServiceProvider(
+            config_dir=self._parameters_config_dir(),
+            context_provider=context_client.get_context_provider(OnemlProcessorsContexts.HYDRA),
+        )
 
     @service_provider(OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE)
     def pipeline_config_service(self) -> PipelineConfigService:
@@ -128,5 +133,7 @@ class OnemlProcessorsDiContainer:
 
     @service_provider(OnemlProcessorsServices.PARAMETERS_FOR_TASK_SERVICE)
     def parameters_for_task_service(self) -> ParametersForTaskService:
-        pipeline_config = self._app.get_service(OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE)
-        return ParametersForTaskHydraService(pipeline_config)
+        pipeline_config_provider = self._app.get_service(
+            OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE
+        )
+        return ParametersForTaskHydraService(pipeline_config_provider)

@@ -7,6 +7,7 @@ import pytest
 
 from oneml.app import OnemlApp
 from oneml.processors.services import (
+    OnemlProcessorsContexts,
     OnemlProcessorsServices,
     ParametersForTaskService,
     PipelineConfigService,
@@ -60,11 +61,6 @@ def persist_fitted_eval_pipeline(
 @pytest.fixture(scope="package")
 def pipeline_config_service(app: OnemlApp) -> PipelineConfigService:
     return app.get_service(OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE)
-
-
-@pytest.fixture(scope="package")
-def parameters_for_task_service(app: OnemlApp) -> ParametersForTaskService:
-    return app.get_service(OnemlProcessorsServices.PARAMETERS_FOR_TASK_SERVICE)
 
 
 @pytest.fixture(scope="package")

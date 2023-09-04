@@ -11,10 +11,10 @@ from oneml.processors.io import (
 )
 from oneml.processors.training import IPersistFittedEvalPipeline
 from oneml.processors.ux import PipelineRunnerFactory
-from oneml.services import ServiceId, scoped_service_ids
+from oneml.services import ContextId, ServiceId, scoped_context_ids, scoped_service_ids
 
 from ._config import ParametersForTaskService
-from ._hydra import PipelineConfigService
+from ._hydra import HydraContext, PipelineConfigService
 
 
 @scoped_service_ids
@@ -54,3 +54,8 @@ class OnemlProcessorsServices:
 @scoped_service_ids
 class OnemlProcessorServiceGroups:
     pass
+
+
+@scoped_context_ids
+class OnemlProcessorsContexts:
+    HYDRA = ContextId[HydraContext]("hydra")
