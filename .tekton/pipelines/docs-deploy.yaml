@@ -285,7 +285,7 @@ spec:
               /kaniko/executor \
                 --context=dir://$(workspaces.code.path)/.tmp/docs-build/docker \
                 --destination=immunodata.azurecr.io/oneml.docs:$(params.version) \
-                --dockerfile=Dockerfile
+                --dockerfile=Dockerfile --force
             resources:
               limits:
                 memory: "1Gi"
