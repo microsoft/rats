@@ -1,6 +1,6 @@
 from .dag import display_dag
 from .services import OnemlProcessorsServices
-from .training import TrainAndEvalBuilders
+from .training import ScatterGatherBuilders, TrainAndEvalBuilders
 from .ux import Pipeline, PipelineBuilder
 
 __all__ = [
@@ -8,5 +8,6 @@ __all__ = [
     "PipelineBuilder",
     "display_dag",
     "TrainAndEvalBuilders",
+    "ScatterGatherBuilders",
     "Pipeline",
 ]

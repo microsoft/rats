@@ -1,9 +1,5 @@
-from collections import ChainMap
-from functools import reduce
-from typing import Optional, Sequence, Tuple
+from typing import Iterable, Mapping, Sequence
 
-from ..utils._frozendict import frozendict
-from ..utils._orderedset import orderedset
 from ..ux._builder import PipelineBuilder
 from ..ux._pipeline import Pipeline
 
@@ -18,166 +14,113 @@ class ScatterGatherBuilders:
         """
         Args:
             name: name for the built pipeline.
-            scatter: a pipeline that takes inputs and splits them into K batches.
+            scatter: a pipeline that takes inputs and splits them into batches.
             process_batch: a pipeline to be applied to each batch.
             gather: a pipeline that takes K batches of inputs and combines them.
 
-        Scatter outputs names are expected to correspond to process_batch inputs names as follows:
-        * Each outputs name of scatter should be composed of an inputs name of gather followed by a
-          serial number, potentially sperated by an underscore.
-        * The serial numbers form the batch ids.  The set of batch ids should be identical fro all
-          outputs of scatter.
+        batch identifiers: All out_collections of scatter and in_collections of gather should have
+        the same set of entry names.  Those will be the batch identifiers.
 
-        The inputs of scatter become inputs of the ScatterGather pipeline.
-        The outputs of gather become outputs of the ScatterGather pipeline.
+        scatter should not have outputs (just out_collections).
 
-        Each inputs name of process_batch can be:
-        * A prefix of scatter outputs names as explained above.  For each batch, the value for that
-          inputs will come from the corresponding outputs of scatter.
-        * Not a prefix of scatter outputs names.  In this case it is assumed to be
-          batch-independent.  It will become an inputs of the ScatterGather pipeline, and all
-          batches will receive the same value for that inputs.
+        process_batch should not have in_collections or out_collections.
 
-        For every outputs name A of process_batch, gather should either have
-            * an inputs named A that accepts multiple dependencies (*arg)
-            or
-            * K inputs names composed of the A followed by a batch key.
+        All out_collections of scatter should have corresponding-by-name inputs in process_batch.
+        All outputs of process_batch should have corresponding-by-name in_collections in gather.
+
+        process_batch will be duplicated for each batch.
+
+        scatter out_collection entries will be connected with the inputs of the corresponding copy
+        of process_batch. outputs of each copy of process_batch will be connected with the entries
+        of the corresponding in_collections of gather.
+
+        The inputs of the built pipeline will be the inputs of scatter, the inputs of process_batch
+        that do not correspond to out_collections of scatter, and the inputs of gather that do not
+        correspond to out_collections of process_batch.
+        The in_collections of the built pipeline will be the in_collections of scatter, and the
+        in_collections of gather that do not correspond to outputs of process_batch.
+
+        The outputs of the built pipeline will be the outputs of gather.
         """
-        (
-            batch_keys,
-            batch_input_and_batch_key_to_scatter_output,
-        ) = cls._get_batch_input_and_batch_key_to_scatter_output(
-            orderedset(scatter.outputs), orderedset(process_batch.inputs)
-        )
-        batch_output_and_batch_key_to_gather_input = (
-            cls._get_batch_output_and_batch_key_to_gather_input(
-                batch_keys, orderedset(process_batch.outputs), orderedset(gather.inputs)
+        batch_keys = cls._get_batch_keys(scatter.out_collections, gather.in_collections)
+        if len(scatter.outputs) > 0:
+            raise ValueError("scatter should not have outputs.")
+        if len(process_batch.in_collections) > 0:
+            raise ValueError("process_batch should not have in_collections.")
+        if len(process_batch.out_collections) > 0:
+            raise ValueError("process_batch should not have out_collections.")
+        if len(frozenset(scatter.out_collections) - frozenset(process_batch.inputs)) > 0:
+            raise ValueError(
+                "All out_collections of scatter should have corresponding-by-name inputs in "
+                "process_batch."
             )
-        )
-        batch_pipelines = frozendict[int, Pipeline](
-            {
-                batch_key: PipelineBuilder.combine(
-                    pipelines=[process_batch], name=cls._get_batch_pipeline_name(batch_key)
-                )
-                for batch_key in batch_keys
-            }
-        )
-        w = PipelineBuilder.combine(
-            pipelines=[scatter, gather] + list(batch_pipelines.values()),
-            name=name,
+        if len(frozenset(process_batch.outputs) - frozenset(gather.in_collections)) > 0:
+            raise ValueError(
+                "All outputs of process_batch should have corresponding-by-name in_collections in "
+                "gather."
+            )
+
+        process_batch_copies = {
+            batch_key: process_batch.decorate(batch_key) for batch_key in batch_keys
+        }
+
+        pl = PipelineBuilder.combine(
+            [scatter] + list(process_batch_copies.values()) + [gather],
+            name=f"scatter_gather_{process_batch.name}",
             dependencies=(
                 tuple(
                     (
-                        scatter.outputs[
-                            batch_input_and_batch_key_to_scatter_output[port_name][batch_key]
-                        ]
-                        >> batch_pipelines[batch_key].inputs[port_name]
+                        scatter.out_collections[name][batch_key]
+                        >> process_batch_copies[batch_key].inputs[name]
                     )
-                    for port_name in batch_input_and_batch_key_to_scatter_output
+                    for name in scatter.out_collections
                     for batch_key in batch_keys
                 )
                 + tuple(
                     (
-                        batch_pipelines[batch_key].outputs[port_name]
-                        >> gather.inputs[gather_port_mapping[batch_key]]
+                        process_batch_copies[batch_key].outputs[name]
+                        >> gather.in_collections[name][batch_key]
                     )
-                    for port_name, gather_port_mapping in (
-                        batch_output_and_batch_key_to_gather_input.items()
-                    )
+                    for name in process_batch.outputs
                     for batch_key in batch_keys
                 )
             ),
-            inputs=(
-                ChainMap(
-                    {port_name: scatter.inputs[port_name] for port_name in scatter.inputs},
-                    {
-                        port_name: reduce(
-                            lambda x, y: x | y,
-                            (
-                                batch_pipelines[batch_key].inputs[port_name]
-                                for batch_key in batch_keys
-                            ),
-                        )
-                        for port_name in process_batch.inputs
-                        if port_name not in batch_input_and_batch_key_to_scatter_output
-                    },
-                )
-            ),
-            outputs={port_name: gather.outputs[port_name] for port_name in gather.outputs},
         )
-        return w
+        return pl
 
     @classmethod
-    def _get_batch_pipeline_name(cls, batch_key: int) -> str:
-        return f"batch_{batch_key:03d}"
-
-    @classmethod
-    def _parse_batch_key(cls, batch_input: str, scatter_output: str) -> int:
-        suffix = scatter_output[len(batch_input) :]
-        if suffix.startswith("_"):
-            suffix = suffix[1:]
-        try:
-            batch_key = int(suffix)
-        except ValueError:
-            raise ValueError(
-                "Expected scatter outputs names to be composed of process_batch inputs names and an "
-                f"integer.  Scatter outputs <{scatter_output}> starts with batch inputs "
-                f"<{batch_input}> but the suffix is not an integer."
-            )
-        return batch_key
-
-    @classmethod
-    def _get_batch_input_and_batch_key_to_scatter_output(
-        cls, scatter_outputs: orderedset[str], batch_inputs: orderedset[str]
-    ) -> Tuple[Sequence[int], frozendict[str, frozendict[int, str]]]:
-        batch_inputs_by_length_downwards = sorted(batch_inputs, key=lambda s: len(s), reverse=True)
-        batch_keys: Optional[orderedset[int]] = None
-        batch_input_and_batch_key_to_scatter_output: dict[str, frozendict[int, str]] = dict()
-        for batch_input in batch_inputs_by_length_downwards:
-            matching_scatter_outputs = [
-                scatter_output
-                for scatter_output in scatter_outputs
-                if scatter_output.startswith(batch_input)
-            ]
-            if len(matching_scatter_outputs) > 0:
-                batch_keys_mapping = frozendict[int, str](
-                    {
-                        cls._parse_batch_key(batch_input, scatter_output): scatter_output
-                        for scatter_output in matching_scatter_outputs
-                    }
-                )
-                matching_batch_keys = orderedset(batch_keys_mapping)
-                if batch_keys is None:
-                    batch_keys = matching_batch_keys
-                else:
-                    assert set(batch_keys) == set(matching_batch_keys)
-                batch_input_and_batch_key_to_scatter_output[batch_input] = batch_keys_mapping
-        if batch_keys is None:
-            batch_keys = orderedset()
-        return sorted(batch_keys), frozendict(batch_input_and_batch_key_to_scatter_output)
-
-    @classmethod
-    def _get_batch_output_and_batch_key_to_gather_input(
+    def _get_batch_keys(
         cls,
-        batch_keys: Sequence[int],
-        batch_outputs: orderedset[str],
-        gather_inputs: orderedset[str],
-    ) -> frozendict[str, frozendict[int, str]]:
-        def get_mapper_for_port(port_name: str) -> frozendict[int, str]:
-            if port_name in gather_inputs:
-                return frozendict[int, str]({batch_key: port_name for batch_key in batch_keys})
-            else:
-                batch_keys_mapping = frozendict[int, str](
-                    {
-                        cls._parse_batch_key(port_name, gather_input): gather_input
-                        for gather_input in gather_inputs
-                        if gather_input.startswith(port_name)
-                    }
+        scatter_out_collections: Mapping[str, Iterable[str]],
+        gather_in_collections: Mapping[str, Iterable[str]],
+    ) -> Sequence[str]:
+        if len(scatter_out_collections) == 0:
+            raise ValueError("scatter must have at least one out_collection.")
+        if len(gather_in_collections) == 0:
+            raise ValueError("gather must have at least one in_collection.")
+        scatter_batch_key_sets = {
+            col_name: frozenset(v) for col_name, v in scatter_out_collections.items()
+        }
+        gather_batch_key_sets = {
+            col_name: frozenset(v) for col_name, v in gather_in_collections.items()
+        }
+        ref_col_name, ref_batch_keys = scatter_batch_key_sets.popitem()
+        for col_name, batch_keys in scatter_batch_key_sets.items():
+            if batch_keys != ref_batch_keys:
+                missing = ref_batch_keys - batch_keys
+                extra = batch_keys - ref_batch_keys
+                raise ValueError(
+                    "All out_collections of scatter and in_collections of gather must have the "
+                    f"same set of entry names. scatter {col_name} has {missing} missing and "
+                    f"{extra} extra when compared with scatter {ref_col_name}."
                 )
-                matching_batch_keys = set(batch_keys_mapping)
-                assert set(batch_keys) == matching_batch_keys
-                return batch_keys_mapping
-
-        return frozendict(
-            {port_name: get_mapper_for_port(port_name) for port_name in batch_outputs}
-        )
+        for col_name, batch_keys in gather_batch_key_sets.items():
+            if batch_keys != ref_batch_keys:
+                missing = ref_batch_keys - batch_keys
+                extra = batch_keys - ref_batch_keys
+                raise ValueError(
+                    "All out_collections of scatter and in_collections of gather must have the "
+                    f"same set of entry names. gather {col_name} has {missing} missing and "
+                    f"{extra} extra when compared with scatter {ref_col_name}."
+                )
+        return sorted(ref_batch_keys)
