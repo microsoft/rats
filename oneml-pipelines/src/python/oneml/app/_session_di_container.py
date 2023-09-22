@@ -6,10 +6,10 @@ from oneml.pipelines.session import (
     PipelineSessionFrameClient,
     PipelineSessionStateClient,
 )
-from oneml.services import IProvideServices, service_provider
+from oneml.services import IProvideServices, executable, service_provider
 
 from ._oneml_app_services import OnemlAppServices
-from ._session_services import OnemlSessionServices
+from ._session_services import OnemlSessionExecutables, OnemlSessionServices
 
 
 class OnemlSessionDiContainer:
@@ -20,28 +20,27 @@ class OnemlSessionDiContainer:
 
     @service_provider(OnemlSessionServices.SESSION_CLIENT)
     def session_client(self) -> PipelineSessionClient:
-        frame = self._app.get_service(OnemlSessionServices.SESSION_FRAME_CLIENT)
+        exe_client = self._app.get_service(OnemlAppServices.EXE_CLIENT)
         state = self._app.get_service(OnemlSessionServices.SESSION_STATE_CLIENT)
         return PipelineSessionClient(
-            session_frame=frame,
+            session_frame=executable(lambda: exe_client.execute_id(OnemlSessionExecutables.FRAME)),
             session_state_client=state,
         )
 
-    @service_provider(OnemlSessionServices.SESSION_FRAME_CLIENT)
-    def frame_client(self) -> PipelineSessionFrameClient:
+    @service_provider(OnemlSessionExecutables.FRAME)
+    def session_frame_exe(self) -> PipelineSessionFrameClient:
         """
         TODO: revisit this
         I think this provider can only be called when within a session, so it has to be used with
         get_service_provider(). I'm not sure if this is a bad pattern yet or not.
         """
+        exe_client = self._app.get_service(OnemlAppServices.EXE_CLIENT)
         return PipelineSessionFrameClient(
-            context_client=self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT),  # type: ignore
+            context_client=self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT),
             session_state_client=self._app.get_service(OnemlSessionServices.SESSION_STATE_CLIENT),
             node_state_client=self._app.get_service(OnemlSessionServices.NODE_STATE_CLIENT),
-            node_executables_client=self._app.get_service(
-                OnemlSessionServices.NODE_EXECUTABLES_CLIENT,
-            ),
             dag_client=self._app.get_service(OnemlAppServices.PIPELINE_DAG_CLIENT),
+            execute_node=executable(lambda: exe_client.execute_id(OnemlSessionExecutables.NODE)),
         )
 
     @service_provider(OnemlSessionServices.SESSION_STATE_CLIENT)
@@ -60,9 +59,14 @@ class OnemlSessionDiContainer:
 
     @service_provider(OnemlSessionServices.NODE_EXECUTABLES_CLIENT)
     def session_node_exe_client(self) -> PipelineNodeExecutablesClient:
+        return self._app.get_service(OnemlSessionExecutables.NODE)
+
+    @service_provider(OnemlSessionExecutables.NODE)
+    def session_node_exe(self) -> PipelineNodeExecutablesClient:
         # TODO: node execution does not belong to a session
         #       there is more than one way for a node to progress between states
         context_client = self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
         return PipelineNodeExecutablesClient(
-            context=context_client.get_context_provider(OnemlSessionContexts.PIPELINE),
+            namespace=context_client.get_context_provider(OnemlSessionContexts.PIPELINE),
+            node_ctx=context_client.get_context_provider(OnemlSessionContexts.NODE),
         )

@@ -5,7 +5,7 @@ from typing import Any, Callable, ContextManager, FrozenSet, Iterable, NamedTupl
 from uuid import uuid4
 
 from oneml.app_api import App
-from oneml.pipelines.session import OnemlSessionContexts, PipelineContext
+from oneml.pipelines.session import OnemlSessionContexts, PipelineSession
 from oneml.services import (
     ContextClient,
     ContextId,
@@ -27,6 +27,7 @@ from oneml.services import (
 
 from ._building_di_container import OnemlBuildingDiContainer
 from ._dag_di_container import OnemlDagDiContainer
+from ._io2_di_container import OnemlIo2DiContainer
 from ._io_di_container import OnemlIoDiContainer
 from ._oneml_app_di_contianer import OnemlAppDiContainer
 from ._oneml_app_services import OnemlAppServices
@@ -65,11 +66,14 @@ class OnemlApp(App, IManageServices, IManageContexts):
             exe_container,
         )
 
+        app.add_service(OnemlAppServices.EXE_CLIENT, lambda: exe_container)
+
         # This is effectively loading some internal plugins
         app.parse_service_container(OnemlAppDiContainer(app))
         app.parse_service_container(OnemlBuildingDiContainer(app))
         app.parse_service_container(OnemlSessionDiContainer(app))
         app.parse_service_container(OnemlIoDiContainer(app))
+        app.parse_service_container(OnemlIo2DiContainer(app))
         app.parse_service_container(OnemlDagDiContainer(app))
 
         # We initialize plugins here so all services are available when trying to execute pipelines
@@ -87,7 +91,7 @@ class OnemlApp(App, IManageServices, IManageContexts):
         self._app_container = app_container
         self._exe_container = exe_container
 
-    def run_pipeline(self, service_id: ServiceId[IExecutable]) -> None:
+    def run_pipeline(self, service_id: ServiceId[T_ExecutableType]) -> None:
         self.run(lambda: self._exe_container.execute_id(service_id))
 
     def run(self, callback: Callable[[], None]) -> None:
@@ -95,7 +99,7 @@ class OnemlApp(App, IManageServices, IManageContexts):
         #       is it the right executable id?
         #       do we need the pipeline context if we have an executable context already?
         #       should the pipeline context be inside the executable context instead?
-        ctx = PipelineContext(str(uuid4()))
+        ctx = PipelineSession(str(uuid4()))
         with self.open_context(OnemlSessionContexts.PIPELINE, ctx):
             self._exe_container.execute(OnemlAppServices.PIPELINE_EXECUTABLE, executable(callback))
             session = self.get_service(OnemlSessionServices.SESSION_CLIENT)

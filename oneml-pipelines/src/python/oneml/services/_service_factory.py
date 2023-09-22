@@ -1,5 +1,6 @@
-from typing import Any, Dict, FrozenSet, Iterable, List
+from typing import Any, Callable, Dict, FrozenSet, Iterable, List
 
+from ._executables import IExecutable
 from ._service_managers import DuplicateServiceIdError, IManageServices, ServiceIdNotFoundError
 from ._services import ServiceId, ServiceProvider, T_ServiceType
 
@@ -21,6 +22,10 @@ class ServiceFactory(IManageServices):
 
     def get_service_ids(self) -> FrozenSet[ServiceId[Any]]:
         return frozenset(self._providers.keys())
+
+    def get_callable_exe(self, exe_id: ServiceId[IExecutable]) -> Callable[[], None]:
+        service = self.get_service_provider(exe_id)
+        return lambda: service().execute()
 
     def get_service_provider(
         self, service_id: ServiceId[T_ServiceType]

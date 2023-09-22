@@ -1,23 +1,21 @@
 import logging
-import uuid
 
 from oneml.pipelines.dag import IManagePipelineDags
-from oneml.services import IManageContexts
+from oneml.services import IExecutable, IManageContexts
 
-from ._contexts import OnemlSessionContexts, PipelineNodeContext
-from ._node_execution import IExecutePipelineNodes
+from ._contexts import OnemlSessionContexts
 from ._node_state import IManagePipelineNodeState, PipelineNodeState
 from ._session_state import IManagePipelineSessionState, PipelineSessionState
 
 logger = logging.getLogger(__name__)
 
 
-class PipelineSessionFrameClient:
+class PipelineSessionFrameClient(IExecutable):
     _context_client: IManageContexts
     _dag_client: IManagePipelineDags
     _session_state_client: IManagePipelineSessionState
     _node_state_client: IManagePipelineNodeState
-    _node_executables_client: IExecutePipelineNodes
+    _execute_node: IExecutable
 
     def __init__(
         self,
@@ -25,15 +23,15 @@ class PipelineSessionFrameClient:
         dag_client: IManagePipelineDags,
         session_state_client: IManagePipelineSessionState,
         node_state_client: IManagePipelineNodeState,
-        node_executables_client: IExecutePipelineNodes,
+        execute_node: IExecutable,
     ):
         self._context_client = context_client
         self._session_state_client = session_state_client
         self._node_state_client = node_state_client
         self._dag_client = dag_client
-        self._node_executables_client = node_executables_client
+        self._execute_node = execute_node
 
-    def tick(self) -> None:
+    def execute(self) -> None:
         self._promote_new_nodes()
         self._promote_registered_nodes()
         self._promote_queued_nodes()
@@ -71,13 +69,10 @@ class PipelineSessionFrameClient:
 
         node = pending[0]
 
-        with self._context_client.open_context(
-            OnemlSessionContexts.PIPELINE_NODE,
-            PipelineNodeContext(id=str(uuid.uuid4()), node=node),
-        ):
+        with self._context_client.open_context(OnemlSessionContexts.NODE, node):
             logger.debug(f"Executing node: {node}")
             self._node_state_client.set_node_state(node, PipelineNodeState.RUNNING)
-            self._node_executables_client.execute_node(node)
+            self._execute_node.execute()
             self._node_state_client.set_node_state(node, PipelineNodeState.COMPLETED)
 
         # TODO: put this threading logic somewhere

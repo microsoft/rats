@@ -1,7 +1,7 @@
 import pytest
 
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.session import PipelineNodeExecutablesClient
+from oneml.pipelines.session import PipelineNodeExecutablesClient, PipelineSession
 from oneml.services import IExecutable
 
 
@@ -19,7 +19,10 @@ class TestPipelineNodeExecutablesClient:
     _client: PipelineNodeExecutablesClient
 
     def setup_method(self) -> None:
-        self._client = PipelineNodeExecutablesClient(lambda: 1)
+        self._client = PipelineNodeExecutablesClient(
+            namespace=lambda: PipelineSession("fake"),
+            node_ctx=lambda: PipelineNode("fake"),
+        )
 
     def test_basics(self) -> None:
         executable = FakeExecutable()

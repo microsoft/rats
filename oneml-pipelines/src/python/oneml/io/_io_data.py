@@ -4,15 +4,14 @@ from typing import Generic, Protocol
 from typing_extensions import NamedTuple
 
 from oneml.pipelines.dag import PipelineNode, PipelinePort
-from oneml.pipelines.session import PipelineContext
+from oneml.pipelines.session import PipelineSession
 from oneml.services import ServiceId
 
 from ._rw_data import IReadData, IWriteData, RWDataUri, T_DataType, Tco_DataType, Tcontra_DataType
 
 
 class PipelineDataId(NamedTuple, Generic[Tco_DataType]):
-    # TODO: I think I can fix this confusing name soon
-    pipeline: PipelineContext
+    pipeline: PipelineSession
     node: PipelineNode
     port: PipelinePort[Tco_DataType]
 
@@ -20,8 +19,6 @@ class PipelineDataId(NamedTuple, Generic[Tco_DataType]):
         return f"{self.pipeline.id}/{self.node.key}/{self.port.key}"
 
 
-# TODO: Why is this generic? We're not using the type parameter, so we can instead accept
-# PipelineDataId[Any].
 class IFormatUri(Protocol[T_DataType]):
     def __call__(self, data_id: PipelineDataId[T_DataType]) -> RWDataUri:
         ...

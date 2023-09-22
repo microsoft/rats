@@ -25,6 +25,7 @@ metadata = false
 
 [tool.poetry.dependencies]
 dill = "*"
+typing_extensions = "*"
 # we can move the k8s dependency to another package and use plugins
 kubernetes = { version = "*" }
 python = ">=3.8.10,<3.11"
@@ -50,8 +51,7 @@ types-urllib3 = "*"
 [tool.poetry.scripts]
 
 [tool.poetry.plugins."oneml.app_plugins"]
-"oneml.examples" = "oneml.examples._app_plugin:OnemlExamplesPlugin"
-"oneml.examples.paper_search" = "oneml.examples.paper_search._app_plugin:OnemlPaperSearchPlugin"
+"oneml.examples.io2" = "oneml.examples.io2._app_plugin:Io2ExamplePlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

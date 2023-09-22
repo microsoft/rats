@@ -33,6 +33,121 @@ collaboration related to the contents of that file by other individuals is done 
 - watch out using service ids in libraries, it implies this is an app-specific library
 """
 
+"""
+Thoughts on APIs like the below:
+
+```python
+from typing import Protocol
+from oneml.pipelines.dag import PipelineNode
+
+class OnemlIoPlugin(Protocol):
+    def on_node_completion(self, node: PipelineNode) -> None:
+        """"""
+```
+
+It's often requested that we add arguments like `node` because we don't want to use the context 
+client everywhere. But this pattern makes us decide on the appropriate arguments to forward to 
+io plugins. The plugin system is supposed to decouple us from the implementation details of 
+plugins, but this pattern above decides what plugins should need before plugins are written.
+
+My gut feeling is that we tend to like the above pattern because it reads well. Intuitively, an 
+event that fires when a node completes should forward the node datastructure. But this is a trap! We 
+need to focus on the target audience and design the API for them. We are providing an API for 
+IO focused plugins, and we are creating a new lifecycle event for when nodes complete, because 
+we think that will be useful to IO Plugin Authors. We do not want to depend on the 
+implementation details of IO Plugins, so we should not be able to tell what they need. An IO 
+Plugin that clears local tmp files after each node, does not need to import and depend on 
+`PipelineNode`.
+
+IO Plugins that require information, can depend on that information's owner to provide a way to 
+retrieve it. Often, I use `ContextProvider` functions, but this is no different than using a 
+dataset client. At this level of the architecture, we want to make close to no assumptions 
+about the behaviors being added to OneML with any kind of plugin. Especially this early in the 
+life of the project, when we want to be able to explore the problem space in many directions 
+and as quickly as possible.
+
+```python
+class OnemlIoPlugin:
+    def on_node_completion(self) -> None:
+        """"""
+
+
+class ExampleIoPlugins(OnemlIoPlugin):
+    def on_node_completion(self) -> None:
+        # If we want to track all node completions with a dataset commit, we might want to do this:
+        self._dataset_client.commit(pipeline, node)
+        
+        # Something about node data being written to a standard location and using a plugin to 
+        # commit it. I don't need to know the node in this case.
+        self._local_storage.commit()
+
+        # A plugin that makes a tmp storage location available to nodes can clear it without 
+        # knowing the node that completed.
+        self._tmp_storage.clear()
+
+        # Same with a plugin that maybe gives nodes a way to access secrets without exposing 
+        # them to other nodes.
+        self._secret_manager.clear()
+```
+
+
+
+```python 
+"""
+
+"""
+DI Containers are specific to the `main` layer of the application, which should only be used for
+wiring together library capabilities. This means we should never depend on a specific DI Container,
+which we've already removed the need for, by making them all fully private. However, we need to 
+avoid the Service IDs for the same reason. The DI Container is deciding to fulfill a dependency 
+with certain Service IDs, and the DI Container will decide to change IDs in order to change 
+behavior, which leaves libraries unable to expect a specific Service ID to have been used at all.
+
+But we are allowed to reference a few service concepts from library code. A ServiceProvider is just
+a callable, without any specific details. I think these are safe to use, but I would try to 
+only use them within creational classes. A Factory or Builder class is useful to include within a 
+library because it wraps the concept of creating object from the library, but we can implement 
+it without details about wiring (I think).
+
+These seem safe to use in libraries:
+- ServiceProvider
+- ServiceGroupProvider
+- ContextProvider
+- ContextGroupProvider
+
+I'm a little less certain about a dependency on the ServiceId type, but I haven't needed it yet.
+My gut instinct is that we just need to avoid referencing instances of ServiceId (our enums). I 
+think a good way to separate all the fragile classes is to put these all in one module and 
+never import this module from the related libraries.
+
+```python
+from oneml.services import ServiceId, ContextId, service_provider
+
+class FooServices:
+    CAT = ServiceId("cat")
+    DOG = ServiceId("dog")
+
+
+class FooContexts:
+    PIPELINE = ContextId[Pipeline]("pipeline")
+
+
+class FooDiContainer:
+
+    @service_provider(FooServices.CAT)
+    def cat(self) -> Cat:
+        return Cat()
+
+    @service_provider(FooServices.DOG)
+    def dog(self) -> Dog:
+        return Dog()
+```
+
+In the above example, Pipeline, Cat, and Dog are in library modules; everything else is wiring 
+and belongs in the `main()` layer. We should never depend on items from `main()` because it's 
+the outer most layer in our architecture.
+"""
+
 """ (dag building api)
 I want to do this:
 with sdk.open_node(sdk.node("a")) as a:

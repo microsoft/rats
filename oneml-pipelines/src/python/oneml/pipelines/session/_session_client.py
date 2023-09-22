@@ -2,7 +2,8 @@ import logging
 from abc import abstractmethod
 from typing import Protocol
 
-from ._session_frame import PipelineSessionFrameClient
+from oneml.services import IExecutable
+
 from ._session_state import IManagePipelineSessionState, PipelineSessionState
 
 logger = logging.getLogger(__name__)
@@ -25,14 +26,14 @@ class IPipelineSession(IRunnablePipelineSession, IStoppablePipelineSession, Prot
 
 
 class PipelineSessionClient(IPipelineSession):
-    _session_frame: PipelineSessionFrameClient
+    _session_frame: IExecutable
     _session_state_client: IManagePipelineSessionState
 
     def __init__(
         self,
-        session_frame: PipelineSessionFrameClient,
+        session_frame: IExecutable,
         session_state_client: IManagePipelineSessionState,
-    ):
+    ) -> None:
         self._session_frame = session_frame
         self._session_state_client = session_state_client
 
@@ -43,7 +44,7 @@ class PipelineSessionClient(IPipelineSession):
         self._session_state_client.set_state(PipelineSessionState.RUNNING)
         while self._session_state_client.get_state() == PipelineSessionState.RUNNING:
             logger.debug("ticking the pipeline forward")
-            self._session_frame.tick()
+            self._session_frame.execute()
         logger.debug("pipeline session is done running")
 
     def stop(self) -> None:

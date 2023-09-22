@@ -39,6 +39,12 @@ class ContextOpener(Protocol[Tcontra_ContextType]):
 
 
 class IOpenContexts(Protocol):
+    def get_context_opener(
+        self,
+        context_id: ContextId[T_ContextType],
+    ) -> ContextOpener[T_ContextType]:
+        return lambda context: self.open_context(context_id, context)
+
     @abstractmethod
     def open_context(
         self,

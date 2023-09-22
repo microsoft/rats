@@ -1,4 +1,4 @@
-from ._contexts import OnemlSessionContexts, PipelineContext, PipelineNodeContext
+from ._contexts import OnemlSessionContexts, PipelineSession
 from ._node_execution import (
     IExecutePipelineNodes,
     ILocatePipelineNodeExecutables,
@@ -32,8 +32,7 @@ from ._session_state import (
 __all__ = [
     # _contexts
     "OnemlSessionContexts",
-    "PipelineContext",
-    "PipelineNodeContext",
+    "PipelineSession",
     # _node_execution
     "IExecutePipelineNodes",
     "ILocatePipelineNodeExecutables",

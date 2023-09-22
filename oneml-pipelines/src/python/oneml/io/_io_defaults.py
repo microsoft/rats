@@ -1,7 +1,7 @@
 from typing import Any
 
 from oneml.pipelines.dag import IManagePipelineDags
-from oneml.pipelines.session import PipelineContext
+from oneml.pipelines.session import PipelineSession
 from oneml.services import ContextProvider, IExecutable
 
 from ._io_manager import IManageLoaders, IManagePublishers, PipelineDataId
@@ -9,14 +9,14 @@ from ._services import OnemlIoServices
 
 
 class DefaultIoRw(IExecutable):
-    _context: ContextProvider[PipelineContext]
+    _context: ContextProvider[PipelineSession]
     _dag_client: IManagePipelineDags
     _loaders: IManageLoaders[Any]
     _publishers: IManagePublishers[Any]
 
     def __init__(
         self,
-        context: ContextProvider[PipelineContext],
+        context: ContextProvider[PipelineSession],
         dag_client: IManagePipelineDags,
         loaders: IManageLoaders[Any],
         publishers: IManagePublishers[Any],

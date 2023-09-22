@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Any, Dict, Protocol
 
 from oneml.pipelines.dag import PipelineNode
+from oneml.pipelines.session import PipelineSession
 from oneml.services import ContextProvider, IExecutable
 
 
@@ -34,24 +35,33 @@ class IManagePipelineNodeExecutables(
 
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables):
     _executables: Dict[Any, Dict[PipelineNode, IExecutable]]
-    _context: ContextProvider[Any]
+    _namespace: ContextProvider[PipelineSession]
+    _node_ctx: ContextProvider[PipelineNode]
 
-    def __init__(self, context: ContextProvider[Any]) -> None:
+    def __init__(
+        self,
+        namespace: ContextProvider[PipelineSession],
+        node_ctx: ContextProvider[PipelineNode],
+    ) -> None:
         self._executables = {}
-        self._context = context
+        self._namespace = namespace
+        self._node_ctx = node_ctx
+
+    def execute(self) -> None:
+        self.execute_node(self._node_ctx())
 
     def execute_node(self, node: PipelineNode) -> None:
         self.get_executable(node).execute()
 
     def get_executable(self, node: PipelineNode) -> IExecutable:
-        ctx = self._context()
+        ctx = self._namespace()
         if node not in self._executables[ctx]:
             raise NodeExecutableNotFoundError(node)
 
         return self._executables[ctx][node]
 
     def set_executable(self, node: PipelineNode, executable: IExecutable) -> None:
-        ctx = self._context()
+        ctx = self._namespace()
         if ctx not in self._executables:
             self._executables[ctx] = {}
 

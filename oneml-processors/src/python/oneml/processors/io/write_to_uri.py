@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Generic, Mapping, Protocol, TypedDict, TypeVar
+from typing import Any, Generic, Mapping, Protocol, TypeVar, TypedDict
 
 from furl import furl
 
@@ -7,7 +7,6 @@ from oneml.io import IWriteData, RWDataUri
 from oneml.pipelines.session import OnemlSessionContexts
 from oneml.processors.ux import Pipeline, PipelineBuilder
 from oneml.services import IGetContexts, IProvideServices, ServiceId
-
 from .type_rw_mappers import IGetWriteServicesForType
 
 DataType = TypeVar("DataType")
@@ -81,7 +80,7 @@ class WriteToNodeBasedUriProcessor(WriteToUriProcessorBase[DataType]):
         output_base_uri: str,
     ) -> None:
         session_id = context_provider.get_context(OnemlSessionContexts.PIPELINE).id
-        node_id = context_provider.get_context(OnemlSessionContexts.PIPELINE_NODE).id
+        node_id = context_provider.get_context(OnemlSessionContexts.NODE).key
         uri = RWDataUri(str(furl(output_base_uri) / f"{session_id}/{node_id}"))
         super().__init__(
             service_provider=service_provider, write_service_ids=write_service_ids, uri=uri
@@ -94,15 +93,18 @@ class IWriteToNodeBasedUriPipelineBuilder(Protocol):
         ...
 
 
+T_IGetContexts = TypeVar("T_IGetContexts", bound=IGetContexts)
+
+
 class WriteToNodeBasedUriPipelineBuilder(IWriteToNodeBasedUriPipelineBuilder):
     _service_provider_service_id: ServiceId[IProvideServices]
-    _context_provider_service_id: ServiceId[IGetContexts]
+    _context_provider_service_id: ServiceId[Any]
     _get_write_services_for_type: IGetWriteServicesForType
 
     def __init__(
         self,
         service_provider_service_id: ServiceId[IProvideServices],
-        context_provider_service_id: ServiceId[IGetContexts],
+        context_provider_service_id: ServiceId[T_IGetContexts],
         get_write_services_for_type: IGetWriteServicesForType,
     ) -> None:
         self._service_provider_service_id = service_provider_service_id

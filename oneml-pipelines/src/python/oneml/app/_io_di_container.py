@@ -31,7 +31,7 @@ class OnemlIoDiContainer:
         context_client = self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
         return NodeOutputClient(
             pipeline_context=context_client.get_context_provider(OnemlSessionContexts.PIPELINE),
-            node_context=context_client.get_context_provider(OnemlSessionContexts.PIPELINE_NODE),
+            node_context=context_client.get_context_provider(OnemlSessionContexts.NODE),
             publishers=self._app.get_service(OnemlIoServices.PIPELINE_PUBLISHERS_GETTER),
         )
 

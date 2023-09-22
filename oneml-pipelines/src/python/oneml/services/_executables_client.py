@@ -1,3 +1,6 @@
+from abc import abstractmethod
+from typing import Protocol
+
 from ._executables import IExecutable, T_ExecutableType, after, before
 from ._services import ServiceGroupProvider, ServiceId
 from ._typed_containers import TypedServiceContainer
@@ -14,7 +17,21 @@ class _ExecutableGroupExe(IExecutable):
             exe.execute()
 
 
-class ExecutablesClient:
+class IExecuteServices(Protocol):
+    @abstractmethod
+    def execute_id(self, exe_id: ServiceId[T_ExecutableType]) -> None:
+        """"""
+
+    @abstractmethod
+    def execute(self, exe_id: ServiceId[T_ExecutableType], exe: IExecutable) -> None:
+        """"""
+
+    @abstractmethod
+    def execute_group(self, exe_id: ServiceId[T_ExecutableType]) -> None:
+        """"""
+
+
+class ExecutablesClient(IExecuteServices):
     _container: TypedServiceContainer[IExecutable]
 
     def __init__(self, container: TypedServiceContainer[IExecutable]) -> None:
