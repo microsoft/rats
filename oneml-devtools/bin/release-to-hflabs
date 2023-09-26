@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+set -e
+
+VERSION=$1
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+TMP_DIR="$SCRIPT_DIR/../../.tmp/wheels"
+RELEASE_DIR="$TMP_DIR/$(date +%s)"
+
+mkdir -p $RELEASE_DIR
+
+echo "releasing oneml-pipelines and oneml-processors wheels for $VERSION"
+echo "this script copies the wheels from the immunomics ADO instance to health-futures-lab"
+
+AMP_URL="https://$POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD@pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+LABS_URL="https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/upload"
+
+pip download -i $AMP_URL --dest $RELEASE_DIR --no-deps oneml-pipelines==$VERSION oneml-processors==$VERSION
+twine upload \
+  --non-interactive \
+  -p "$POETRY_HTTP_BASIC_HEALTH_FUTURES_LAB_PASSWORD" -u "" \
+  --repository-url "$LABS_URL" \
+  "$RELEASE_DIR/*.whl"

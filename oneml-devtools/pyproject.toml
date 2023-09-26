@@ -46,6 +46,8 @@ mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
+# to release packages to hflabs
+twine = "*"
 
 [tool.poetry.scripts]
 
