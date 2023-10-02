@@ -5,7 +5,7 @@ from typing import TypedDict
 import pytest
 
 from oneml.processors.dag import IProcess
-from oneml.processors.ux import Dependency, Pipeline, PipelineBuilder
+from oneml.processors.ux import Dependency, UPipeline, UPipelineBuilder
 
 StzTrainOut = TypedDict("StzTrainOut", {"shift": float, "scale": float, "Z": float})
 StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
@@ -28,18 +28,24 @@ class StandardizeEval(IProcess):
 
 
 @pytest.fixture
-def train_stz() -> Pipeline:
-    p = PipelineBuilder.task(StandardizeTrain).rename_inputs({"X": "X.train"})
-    return p.rename_outputs({"Z": "Z.train"})
+def train_stz() -> UPipeline:
+    return (
+        UPipelineBuilder.task(StandardizeTrain)
+        .rename_inputs({"X": "X.train"})
+        .rename_outputs({"Z": "Z.train"})
+    )
 
 
 @pytest.fixture
-def eval_stz() -> Pipeline:
-    p = PipelineBuilder.task(StandardizeEval).rename_inputs({"X": "X.eval"})
-    return p.rename_outputs({"Z": "Z.eval"})
+def eval_stz() -> UPipeline:
+    return (
+        UPipelineBuilder.task(StandardizeEval)
+        .rename_inputs({"X": "X.eval"})
+        .rename_outputs({"Z": "Z.eval"})
+    )
 
 
-def test_single_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
+def test_single_UPipelineparams_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
     # Tests Inputs << Outputs assignments
     dp = eval_stz.inputs.shift << train_stz.outputs.shift
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
@@ -69,7 +75,7 @@ def test_single_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipeli
         train_stz.out_collections.Z.train << eval_stz.in_collections.X.eval  # type: ignore
 
 
-def test_mixed_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
+def test_mixed_UPipelineparams_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
     with pytest.raises(ValueError):  # not supported
         eval_stz.in_collections.X << train_stz.outputs.shift  # type: ignore
 
@@ -83,8 +89,8 @@ def test_mixed_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipelin
         train_stz.out_collections.Z >> eval_stz.inputs.shift  # type: ignore
 
 
-def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
-    stz1 = PipelineBuilder.combine(
+def test_collection_UPipelineparams_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
+    stz1 = UPipelineBuilder.combine(
         pipelines=[train_stz, eval_stz],
         dependencies=(
             train_stz.outputs.shift >> eval_stz.inputs.shift,
@@ -92,7 +98,7 @@ def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pi
         ),
         name="stz1",
     )
-    stz2 = PipelineBuilder.combine(
+    stz2 = UPipelineBuilder.combine(
         pipelines=[train_stz, eval_stz],
         dependencies=(
             train_stz.outputs.shift >> eval_stz.inputs.shift,
@@ -136,7 +142,7 @@ def test_collection_pipelineparams_assignments(train_stz: Pipeline, eval_stz: Pi
         stz1.out_collections.Z.eval << stz1.in_collections.X.eval  # type: ignore
 
 
-def test_IOCollections_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
+def test_IOCollections_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
     dependencies = set(
         chain(
             eval_stz.inputs.shift << train_stz.outputs.shift,
@@ -161,10 +167,10 @@ def test_IOCollections_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> N
         train_stz.inputs >> eval_stz.outputs  # type: ignore
 
 
-def test_pipeline_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
+def test_UPipeline_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
     dependencies = set(eval_stz.inputs << train_stz.outputs)
 
-    # Test Pipeline << Pipeline
+    # Test UPipeline << UPipeline
     dps = eval_stz << train_stz
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
     assert dependencies == set(dps)
@@ -172,7 +178,7 @@ def test_pipeline_assignments(train_stz: Pipeline, eval_stz: Pipeline) -> None:
     dps = train_stz << eval_stz
     assert len(dps) == 0
 
-    # Test Pipeline >> Pipeline
+    # Test UPipeline >> UPipeline
     dps = train_stz >> eval_stz
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
     assert dependencies == set(dps)

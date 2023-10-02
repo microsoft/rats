@@ -3,12 +3,12 @@ from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass
 from itertools import chain
-from typing import Any, Generic, Iterable, Mapping, TypeAlias, TypeVar, final, overload
+from typing import Any, Generic, Iterable, Mapping, NoReturn, cast, final, overload
 
-from omegaconf import MISSING
+from typing_extensions import Self, TypeVar
 
 from ..dag import DAG, DagNode, InProcessorParam, OutProcessorParam
-from ..utils import frozendict, orderedset
+from ..utils import NamedCollection, orderedset
 from ._ops import (
     CollectionDependencyOp,
     Dependency,
@@ -18,8 +18,9 @@ from ._ops import (
 )
 from ._verification import verify_pipeline_integrity
 
+T = TypeVar("T")
 PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
-PM = TypeVar("PM", bound="PipelineParam[Any]", covariant=True)
+PM = TypeVar("PM", bound="PipelineParam[Any, Any]", covariant=True)
 PE = TypeVar("PE", bound="ParamEntry[Any]", covariant=True)
 PC = TypeVar("PC", bound="ParamCollection[Any]", covariant=True)
 PL = TypeVar("PL", bound="IOCollections[Any]", covariant=True)
@@ -28,7 +29,7 @@ PLi = TypeVar("PLi", bound="IOCollections[Any]")
 
 
 @dataclass(frozen=True)
-class PipelineParam(Generic[PP], ABC):
+class PipelineParam(Generic[PP, T], ABC):
     node: DagNode
     param: PP
 
@@ -42,19 +43,19 @@ class PipelineParam(Generic[PP], ABC):
     def __repr__(self) -> str:
         return f"({repr(self.node)}) {repr(self.param)}"
 
-    def decorate(self: PM, name: str) -> PM:
+    def decorate(self, name: str) -> Self:
         return self.__class__(self.node.decorate(name), self.param)
 
 
 @final
 @dataclass(frozen=True)
-class InParameter(PipelineParam[InProcessorParam]):
+class InParameter(PipelineParam[InProcessorParam, T]):
     def __post_init__(self) -> None:
         super().__post_init__()
         if not isinstance(self.param, InProcessorParam):
             raise ValueError("`param` needs to be `InProcessorParam`.")
 
-    def __lshift__(self, other: OutParameter) -> Dependency:
+    def __lshift__(self, other: OutParameter[T]) -> Dependency[T]:
         if not isinstance(other, OutParameter):
             raise ValueError("Not assinging outputs to inputs.")
 
@@ -71,13 +72,13 @@ class InParameter(PipelineParam[InProcessorParam]):
 
 @final
 @dataclass(frozen=True)
-class OutParameter(PipelineParam[OutProcessorParam]):
+class OutParameter(PipelineParam[OutProcessorParam, T]):
     def __post_init__(self) -> None:
         super().__post_init__()
         if not isinstance(self.param, OutProcessorParam):
             raise ValueError("`param` needs to be `OutProcessorParam`.")
 
-    def __rshift__(self, other: InParameter) -> Dependency:
+    def __rshift__(self, other: InParameter[T]) -> Dependency[T]:
         if not isinstance(other, InParameter):
             raise ValueError("Not assinging outputs to inputs.")
 
@@ -85,18 +86,22 @@ class OutParameter(PipelineParam[OutProcessorParam]):
 
 
 class ParamEntry(orderedset[PM], ABC):
-    def decorate(self: PE, name: str) -> PE:
+    def __repr__(self) -> str:
+        ann = str(self[0].param.annotation).replace("<class '", "").replace("'>", "")
+        return f"{self.__class__.__name__}[{ann}]"
+
+    def decorate(self, name: str) -> Self:
         return self.__class__(param.decorate(name) for param in self)
 
 
 @final
-class InEntry(ParamEntry[InParameter]):
-    def __init__(self, __iterable: Iterable[InParameter] = ()) -> None:
+class InEntry(ParamEntry[InParameter[T]]):
+    def __init__(self, __iterable: Iterable[InParameter[T]] = ()) -> None:
         super().__init__(__iterable)
         if not all(isinstance(in_param, InParameter) for in_param in self):
             raise ValueError("All elements of `InEntry` must be `InParameter`s.")
 
-    def __lshift__(self, other: OutEntry) -> EntryDependencyOp:
+    def __lshift__(self, other: OutEntry[T]) -> EntryDependencyOp[T]:
         if not isinstance(other, OutEntry):
             raise ValueError("Cannot assign to `InEntry`; `other` must be `OutEntry`.")
 
@@ -112,74 +117,32 @@ class InEntry(ParamEntry[InParameter]):
 
 
 @final
-class OutEntry(ParamEntry[OutParameter]):
-    def __init__(self, __iterable: Iterable[OutParameter] = ()) -> None:
+class OutEntry(ParamEntry[OutParameter[T]]):
+    def __init__(self, __iterable: Iterable[OutParameter[T]] = ()) -> None:
         super().__init__(__iterable)
         if not all(isinstance(out_param, OutParameter) for out_param in self):
             raise ValueError("All elements of `OutEntry` must be `OutParameter`s.")
 
-    def __rshift__(self, other: InEntry) -> EntryDependencyOp:
+    def __rshift__(self, other: InEntry[T]) -> EntryDependencyOp[T]:
         if not isinstance(other, InEntry):
             raise ValueError("Cannot assign to `OutEntry`; `other` must be `InEntry`.")
 
         return EntryDependencyOp(other, self)
 
 
-class ParamCollection(frozendict[str, PE], ABC):
+class ParamCollection(NamedCollection[PE], ABC):
+    def decorate(self, name: str) -> Self:
+        return self.__class__({k: entry.decorate(name) for k, entry in self._asdict().items()})
+
+
+class InCollection(ParamCollection[InEntry[T]]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        if not all(isinstance(k, str) for k in self):
-            raise ValueError("Input keys need to be `str` types.")
-
-    def __or__(self: PC, other: Mapping[str, Any]) -> PC:
-        if not isinstance(other, Mapping):
-            raise ValueError("`other` needs to be a `Mapping`.")
-        new_d = dict(self) | dict(other) | {k: self[k] | other[k] for k in set(self) & set(other)}
-        return self.__class__(new_d)
-
-    def __repr__(self) -> str:
-        return "\n".join([repr(p) + "." + entry for entry, params in self.items() for p in params])
-
-    def __sub__(self: PC, other: Iterable[str | PE | PM]) -> PC:
-        def get_key(v: str | PE | PM) -> str | None:
-            if isinstance(v, str):
-                return v
-            elif isinstance(v, ParamEntry):
-                return next(iter(k for k, e in self.items() if v == e), None)
-            elif isinstance(v, PipelineParam):
-                return next(iter(k for k, params in self.items() for p in params if p == v), None)
-            else:
-                raise ValueError(
-                    "`other` needs to be an iterator of `str`, "
-                    + "`PipelineParamEntry` or `PipelineParam`."
-                )
-
-        return super().__sub__(filter(None, map(get_key, other)))
-
-    def decorate(self: PC, name: str) -> PC:
-        return self.__class__({k: entry.decorate(name) for k, entry in self.items()})
-
-    def rename(self: PC, names: Mapping[str, str]) -> PC:
-        if any(k.count(".") > 0 for k in names.values()):
-            raise ValueError("New names cannot contain dots.")
-
-        d = self
-        for ko, kn in names.items():
-            d -= (ko,)
-            d |= {kn: self[ko]}
-
-        return d
-
-
-@final
-class Inputs(ParamCollection[InEntry]):
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        if not all(isinstance(entry, InEntry) for entry in self.values()):
+        if not all(isinstance(entry, InEntry) for entry in self._asdict().values()):
             raise ValueError("Input values need to be `InEntry` types.")
 
-    def __lshift__(self, other: Outputs) -> CollectionDependencyOp:
-        if not isinstance(other, Outputs):
+    def __lshift__(self, other: OutCollection[T]) -> CollectionDependencyOp[T]:
+        if not isinstance(other, OutCollection):
             raise ValueError("Cannot assign to `Inputs`; `other` must be `Outputs`.")
 
         if set(self) != set(other):
@@ -187,20 +150,19 @@ class Inputs(ParamCollection[InEntry]):
 
         return CollectionDependencyOp(self, other)
 
-    def get_required(self) -> Inputs:
+    def get_required(self) -> InCollection[T]:
         """Returns the subset of the inputs that are required."""
-        return Inputs(filter(lambda t: t[1].required, self.items()))
+        return InCollection(filter(lambda t: t[1].required, self._asdict().items()))
 
 
-@final
-class Outputs(ParamCollection[OutEntry]):
+class OutCollection(ParamCollection[OutEntry[T]]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        if not all(isinstance(entry, OutEntry) for entry in self.values()):
+        if not all(isinstance(entry, OutEntry) for entry in self._asdict().values()):
             raise ValueError("Inputs values need to be `OutEntry` types.")
 
-    def __rshift__(self, other: Inputs) -> CollectionDependencyOp:
-        if not isinstance(other, Inputs):
+    def __rshift__(self, other: InCollection[T]) -> CollectionDependencyOp[T]:
+        if not isinstance(other, InCollection):
             raise ValueError("Cannot assign to `Outputs`; `other` must be `Inputs`.")
 
         if set(self) != set(other):
@@ -209,82 +171,34 @@ class Outputs(ParamCollection[OutEntry]):
         return CollectionDependencyOp(other, self)
 
 
-class IOCollections(frozendict[str, PC], ABC):
+Inputs = InCollection[Any]
+Outputs = OutCollection[Any]
+
+
+class NoInputs(InCollection[Any]):
+    def __getattr__(self, key: str) -> NoReturn:
+        raise KeyError(f"Inputs has no attribute {key}.")
+
+
+class NoOutputs(OutCollection[Any]):
+    def __getattr__(self, key: str) -> NoReturn:
+        raise KeyError(f"Outputs has no attribute {key}.")
+
+
+class IOCollections(NamedCollection[PC], ABC):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        if not all(isinstance(k, str) for k in self._d):
-            raise ValueError("inputs keys be `str`.")
-        if not all(isinstance(e, ParamCollection) for e in self.values()):
+        if not all(isinstance(e, ParamCollection) for e in self._asdict().values()):
             raise ValueError("inputs values be `ParamCollection`.")
 
-    def __or__(self: PL, other: Mapping[str, Any]) -> PL:
-        if not isinstance(other, Mapping):
-            raise ValueError("`other` needs to be a `Mapping`.")
-        d = dict(self) | dict(other) | {k: self[k] | other[k] for k in set(self) & set(other)}
-        return self.__class__(d)
-
-    def __sub__(self: PL, other: Iterable[str | PC | PE | PM]) -> PL:
-        def get_key(val: str | PC | PE | PM) -> str | None:
-            if isinstance(val, str):
-                return val
-            elif isinstance(val, ParamCollection):
-                return next(iter(k for k, c in self.items() if c == val), None)
-            elif not (isinstance(val, ParamEntry) or isinstance(val, PipelineParam)):
-                raise ValueError(
-                    "`other` needs to be an iterator of `str`, `ParamCollection`, "
-                    + "`ParamEntry` or `PipelineParam`."
-                )
-            return None
-
-        d = dict(super().__sub__(filter(None, map(get_key, other))))
-        for v in other:
-            if isinstance(v, str) and v.count(".") == 1 and v.split(".")[0] in d:
-                v0, v1 = v.split(".")
-                d[v0] -= (v1,)
-                if len(d[v0]) == 0:
-                    del d[v0]
-            elif isinstance(v, ParamEntry) or isinstance(v, PipelineParam):
-                for k in tuple(d):
-                    d[k] -= (v,)
-                    if len(d[k]) == 0:
-                        del d[k]
-
-        return self.__class__(d)
-
-    def decorate(self: PL, name: str) -> PL:
-        return self.__class__({k: v.decorate(name) for k, v in self.items()})
-
-    def rename(self: PL, names: Mapping[str, str]) -> PL:
-        if any(k.count(".") > 1 for k in chain.from_iterable(names.items())):
-            raise ValueError("Names cannot contain more than single dot in keys or values.")
-
-        d: dict[str, PC] = dict(self)
-        for ok, nk in names.items():  # old key, new key
-            ok_split, nk_split = ok.split(".", 1), nk.split(".", 1)
-            ok1, ok2 = ok_split if len(ok_split) == 2 else (ok, "")
-            nk1, nk2 = nk_split if len(nk_split) == 2 else (nk, "")
-            if ok2 and nk2:  # ParamCollection.ParamEntry -> ParamCollection.ParamEntry
-                d[ok1] = self[ok1] - (ok2,)  # removes ParamEntry from ParamCollection
-                if len(d[ok1]) == 0:
-                    del d[ok1]
-                d[nk1] = d.get(nk1, self[ok1].__class__()) | {nk2: self[ok1][ok2]}
-            elif not ok2 and not nk2:  # ParamCollection -> ParamCollection
-                del d[ok]
-                d[nk] = self.get(nk, self[ok].__class__()) | self[ok]
-            else:
-                raise ValueError("Not supported.")
-
-        return self.__class__(d)
+    def decorate(self, name: str) -> Self:
+        return self.__class__({k: v.decorate(name) for k, v in self._asdict().items()})
 
 
-InCollection: TypeAlias = Inputs
-OutCollection: TypeAlias = Outputs
-
-
-class InCollections(IOCollections[InCollection]):
+class InCollections(IOCollections[InCollection[Any]]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        if not all(isinstance(v, Inputs) for v in self.values()):
+        if not all(isinstance(v, InCollection) for v in self._asdict().values()):
             raise ValueError("all `inputs` values need to be `Inputs` type.")
 
     def __lshift__(self, other: OutCollections) -> IOCollectionDependencyOp:
@@ -298,15 +212,15 @@ class InCollections(IOCollections[InCollection]):
         return InCollections(
             filter(
                 lambda t: len(t[1]) > 0,
-                ((name, collection.get_required()) for name, collection in self.items()),
+                ((name, collection.get_required()) for name, collection in self._asdict().items()),
             )
         )
 
 
-class OutCollections(IOCollections[OutCollection]):
+class OutCollections(IOCollections[OutCollection[Any]]):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        if not all(isinstance(v, Outputs) for v in self.values()):
+        if not all(isinstance(v, OutCollection) for v in self._asdict().values()):
             raise ValueError("all `outputs` values need to be `Outputs` type.")
 
     def __rshift__(self, other: InCollections) -> IOCollectionDependencyOp:
@@ -316,25 +230,43 @@ class OutCollections(IOCollections[OutCollection]):
         return IOCollectionDependencyOp(other, self)
 
 
+class NoInCollections(InCollections):
+    pass
+    # def __getattr__(self, key: str) -> NoReturn:
+    #     raise KeyError(f"InCollections has no attribute {key}.")
+
+
+class NoOutCollections(OutCollections):
+    pass
+    # def __getattr__(self, key: str) -> NoReturn:
+    #     raise KeyError(f"OutCollections has no attribute {key}.")
+
+
 @dataclass
 class PipelineConf:
     ...
 
 
-class Pipeline:
+TInputs = TypeVar("TInputs", bound=InCollection[Any])
+TOutputs = TypeVar("TOutputs", bound=OutCollection[Any])
+TInCollections = TypeVar("TInCollections", bound=InCollections)
+TOutCollections = TypeVar("TOutCollections", bound=OutCollections)
+
+
+class Pipeline(Generic[TInputs, TOutputs, TInCollections, TOutCollections]):
     _name: str
-    _dag: DAG = DAG()
-    _config: PipelineConf = PipelineConf()
-    _inputs: Inputs = Inputs()
-    _outputs: Outputs = Outputs()
-    _in_collections: InCollections = InCollections()
-    _out_collections: OutCollections = OutCollections()
+    _dag: DAG
+    _config: PipelineConf
+    _inputs: TInputs
+    _outputs: TOutputs
+    _in_collections: TInCollections
+    _out_collections: TOutCollections
 
     @overload
     def __init__(
         self,
         *,
-        other: Pipeline,
+        other: Pipeline[TInputs, TOutputs, TInCollections, TOutCollections],
         config: PipelineConf | None = None,
     ) -> None:
         ...
@@ -346,10 +278,10 @@ class Pipeline:
         name: str,
         dag: DAG,
         config: PipelineConf,
-        inputs: Inputs = Inputs(),
-        outputs: Outputs = Outputs(),
-        in_collections: InCollections = InCollections(),
-        out_collections: OutCollections = OutCollections(),
+        inputs: TInputs,
+        outputs: TOutputs,
+        in_collections: TInCollections | None = None,
+        out_collections: TOutCollections | None = None,
     ) -> None:
         ...
 
@@ -358,11 +290,11 @@ class Pipeline:
         name: str | None = None,
         dag: DAG | None = None,
         config: PipelineConf | None = None,
-        inputs: Inputs | None = None,
-        outputs: Outputs | None = None,
-        in_collections: InCollections | None = None,
-        out_collections: OutCollections | None = None,
-        other: Pipeline | None = None,
+        inputs: TInputs | None = None,
+        outputs: TOutputs | None = None,
+        in_collections: TInCollections | None = None,
+        out_collections: TOutCollections | None = None,
+        other: Pipeline[TInputs, TOutputs, TInCollections, TOutCollections] | None = None,
     ) -> None:
         if other is None:
             if not isinstance(name, str) or len(name) == 0:
@@ -370,19 +302,19 @@ class Pipeline:
             if not isinstance(dag, DAG):
                 raise ValueError(f"{dag} needs to be an instance of DAG.")
             if inputs is None:
-                inputs = Inputs()
-            if not isinstance(inputs, Inputs):
+                inputs = cast(TInputs, InCollection())
+            if not isinstance(inputs, InCollection):
                 raise ValueError("`inputs` need to be of `Inputs` type.")
             if outputs is None:
-                outputs = Outputs()
-            if not isinstance(outputs, Outputs):
+                outputs = cast(TOutputs, OutCollection())
+            if not isinstance(outputs, OutCollection):
                 raise ValueError("`outputs` needs to be of `Outputs` type.")
             if in_collections is None:
-                in_collections = InCollections()
+                in_collections = cast(TInCollections, InCollections())
             if not isinstance(in_collections, InCollections):
                 raise ValueError("`in_collections` need to be of `InCollections` type.")
             if out_collections is None:
-                out_collections = OutCollections()
+                out_collections = cast(TOutCollections, OutCollections())
             if not isinstance(out_collections, OutCollections):
                 raise ValueError("`out_collections` needs to be of `OutCollections` type.")
             if not isinstance(config, PipelineConf):
@@ -440,24 +372,24 @@ class Pipeline:
     def __repr__(self) -> str:
         return f"{self.name}({self._dag})"
 
-    def __lshift__(self, other: Pipeline) -> PipelineDependencyOp:
+    def __lshift__(self, other: UPipeline) -> PipelineDependencyOp:
         if not isinstance(other, Pipeline):
-            raise ValueError("Dependency assignment only accepts another `Pipeline`.")
+            raise ValueError("Dependency assignment only accepts another `TypedPipeline`.")
 
-        return PipelineDependencyOp(self, other)
+        return PipelineDependencyOp(cast(UPipeline, self), other)
 
-    def __rshift__(self, other: Pipeline) -> PipelineDependencyOp:
+    def __rshift__(self, other: UPipeline) -> PipelineDependencyOp:
         if not isinstance(other, Pipeline):
-            raise ValueError("Dependency assignment only accepts `Pipeline`.")
+            raise ValueError("Dependency assignment only accepts `TypedPipeline`.")
 
-        return PipelineDependencyOp(other, self)
+        return PipelineDependencyOp(other, cast(UPipeline, self))
 
-    def decorate(self, name: str) -> Pipeline:
+    def decorate(self, name: str) -> Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]:
         dag = self._dag.decorate(name)
-        inputs = self.inputs.decorate(name)
-        outputs = self.outputs.decorate(name)
-        in_collections = self.in_collections.decorate(name)
-        out_collections = self.out_collections.decorate(name)
+        inputs = self._inputs.decorate(name)
+        outputs = self._outputs.decorate(name)
+        in_collections = self._in_collections.decorate(name)
+        out_collections = self._out_collections.decorate(name)
         return Pipeline(
             name=name,
             dag=dag,
@@ -468,7 +400,8 @@ class Pipeline:
             out_collections=out_collections,
         )
 
-    def _fill_wildcard_collections(self, names: Mapping[str, str], io: PLi) -> Mapping[str, str]:
+    @staticmethod
+    def _fill_wildcard_collections(names: Mapping[str, str], io: PLi) -> Mapping[str, str]:
         resolved = dict[str, str]()
 
         def resolve_new_key(ok1: str, ok2: str, nk1: str, nk2: str) -> None:
@@ -499,33 +432,36 @@ class Pipeline:
                             resolve_new_key(k1, ok2, nk1, nk2)
         return resolved
 
-    def _rename(self, names: Mapping[str, str], collection: PCi, io: PLi) -> tuple[PCi, PLi]:
+    @classmethod
+    def _rename(cls, names: Mapping[str, str], collection: PCi, io: PLi) -> tuple[PCi, PLi]:
         if any(k.count(".") > 1 for k in chain.from_iterable(names.items())):
             raise ValueError("Names cannot contain more than single dot in keys or values.")
 
-        names = self._fill_wildcard_collections(names, io)
+        names = cls._fill_wildcard_collections(names, io)
 
         for ok, nk in names.items():  # old key, new key
             ok_split, nk_split = ok.split(".", 1), nk.split(".", 1)
             ok1, ok2 = ok_split if len(ok_split) == 2 else (ok, "")
             nk1, nk2 = nk_split if len(nk_split) == 2 else (nk, "")
-            if (ok1 in io and ok2 in io[ok1] and nk2) or (ok1 in io and not ok2 and not nk2):
+            if ok1 in io and ((ok2 and nk2) or not (ok2 or nk2)):
                 # ParamCollection.ParamEntry -> ParamCollection.ParamEntry
-                io = io.rename({ok: nk})  # or ParamCollection -> ParamCollection
+                io = io._rename({ok: nk})  # or ParamCollection -> ParamCollection
             elif ok1 in collection and not ok2 and not nk2:  # ParamEntry -> ParamEntry
-                collection = collection.rename({ok: nk})
+                collection = collection._rename({ok1: nk1})
             elif ok1 in collection and not ok2 and nk2:  # ParamEntry -> ParamCollection.ParamEntry
-                io |= {nk1: io.get(nk1, collection.__class__()) | {nk2: collection[ok1]}}
-                collection -= (collection[ok1],)
-            elif ok1 in io and ok2 in io[ok1]:  # ParamCollection.ParamEntry -> ParamEntry
+                io |= {nk1: getattr(io, nk1, collection.__class__()) | {nk2: collection[ok1]}}
+                collection -= (ok1,)
+            elif ok1 in io and ok2 and not nk2:  # ParamCollection.ParamEntry -> ParamEntry
                 collection |= {nk: io[ok1][ok2]}
-                io -= (io[ok1][ok2],)
+                io -= (f"{ok1}.{ok2}",)
             else:
                 raise ValueError(f"Cannot rename {ok} to {nk}; non existing {ok} or wrong format.")
 
         return collection, io
 
-    def rename_inputs(self, names: Mapping[str, str]) -> Pipeline:
+    def rename_inputs(
+        self, names: Mapping[str, str]
+    ) -> Pipeline[Inputs, TOutputs, InCollections, TOutCollections]:
         new_PC, new_PL = self._rename(names, self.inputs, self.in_collections)
         return Pipeline(
             name=self.name,
@@ -537,7 +473,9 @@ class Pipeline:
             out_collections=self.out_collections,
         )
 
-    def rename_outputs(self, names: Mapping[str, str]) -> Pipeline:
+    def rename_outputs(
+        self, names: Mapping[str, str]
+    ) -> Pipeline[TInputs, Outputs, TInCollections, OutCollections]:
         new_PC, new_PL = self._rename(names, self.outputs, self.out_collections)
         return Pipeline(
             name=self.name,
@@ -554,25 +492,29 @@ class Pipeline:
         return self._name
 
     @property
-    def inputs(self) -> Inputs:
+    def inputs(self) -> TInputs:
         return self._inputs
 
     @property
-    def outputs(self) -> Outputs:
+    def outputs(self) -> TOutputs:
         return self._outputs
 
     @property
-    def in_collections(self) -> InCollections:
+    def in_collections(self) -> TInCollections:
         return self._in_collections
 
     @property
-    def out_collections(self) -> OutCollections:
+    def out_collections(self) -> TOutCollections:
         return self._out_collections
 
     @property
     def required_inputs(self) -> Inputs:
-        return self.inputs.get_required()
+        return self._inputs.get_required()
 
     @property
     def required_in_collections(self) -> InCollections:
-        return self.in_collections.get_required()
+        return self._in_collections.get_required()
+
+
+UPipeline = Pipeline[Inputs, Outputs, InCollections, OutCollections]
+AnyPipeline = Pipeline[Any, Any, Any, Any]

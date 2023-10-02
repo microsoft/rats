@@ -4,6 +4,6 @@ from oneml.processors.example._pipeline import DiamondExampleServices
 
 app = OnemlApp.default()
 app.parse_service_container(DiamondExampleDiContainer(app))
-print(f"running pipeline: {DiamondExampleServices.PIPELINE}")
-app.run_pipeline(DiamondExampleServices.PIPELINE)
+print(f"running pipeline: {DiamondExampleServices.DIAMOND}")
+app.run_pipeline(DiamondExampleServices.DIAMOND)
 print("done running pipeline")

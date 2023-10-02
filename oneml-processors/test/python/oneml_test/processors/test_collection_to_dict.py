@@ -1,5 +1,11 @@
 from oneml.processors.training import CollectionToDictBuilder
-from oneml.processors.ux import CombinedPipeline, FixedOutputProcessor, PipelineRunnerFactory, Task
+from oneml.processors.ux import (
+    CombinedPipeline,
+    FixedOutputProcessor,
+    PipelineRunnerFactory,
+    UPipeline,
+    UTask,
+)
 
 
 def test_collection_to_dict_uniform_types() -> None:
@@ -34,19 +40,19 @@ def test_collection_to_dict_wiring(pipeline_runner_factory: PipelineRunnerFactor
     assert set(to_dict.outputs) == set(("c",))
     assert set(to_dict.out_collections) == set()
 
-    in1 = Task(
+    in1 = UTask(
         FixedOutputProcessor,
         name="in1",
         config=dict(data=10),
         return_annotation=dict(data=int),
     )
-    in2 = Task(
+    in2 = UTask(
         FixedOutputProcessor,
         name="in2",
         config=dict(data="a"),
         return_annotation=dict(data=str),
     )
-    p = CombinedPipeline(
+    p: UPipeline = CombinedPipeline(
         [in1, in2, to_dict],
         name="p",
         dependencies=(

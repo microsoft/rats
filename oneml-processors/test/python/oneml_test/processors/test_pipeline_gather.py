@@ -3,7 +3,7 @@ from typing import Sequence, TypedDict
 import pytest
 
 from oneml.processors.dag import IProcess
-from oneml.processors.ux import CombinedPipeline, Pipeline, PipelineRunnerFactory, Task
+from oneml.processors.ux import CombinedPipeline, PipelineRunnerFactory, Task, UPipeline
 
 AccOutput = TypedDict("AccOutput", {"acc": float})
 
@@ -19,25 +19,25 @@ class ReportGenerator(IProcess):
 
 
 @pytest.fixture
-def acc1() -> Pipeline:
+def acc1() -> UPipeline:
     return Task(Acc, "acc1")
 
 
 @pytest.fixture
-def acc2() -> Pipeline:
+def acc2() -> UPipeline:
     return Task(Acc, "acc2")
 
 
 @pytest.fixture
-def report() -> Pipeline:
+def report() -> UPipeline:
     return Task(ReportGenerator, "report")
 
 
 def test_gather_inputs_to_single_output(
-    pipeline_runner_factory: PipelineRunnerFactory, acc1: Pipeline, acc2: Pipeline
+    pipeline_runner_factory: PipelineRunnerFactory, acc1: UPipeline, acc2: UPipeline
 ) -> None:
     # OutEntry | OutEntry -> OutEntry
-    p = CombinedPipeline(
+    p: UPipeline = CombinedPipeline(
         pipelines=[acc1, acc2],
         name="p",
         outputs={"acc": acc1.outputs.acc | acc2.outputs.acc},

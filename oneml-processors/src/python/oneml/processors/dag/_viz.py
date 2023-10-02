@@ -15,7 +15,7 @@ if TYPE_CHECKING:
         OutEntry,
         Outputs,
         ParamCollection,
-        Pipeline,
+        UPipeline,
     )
     from ._dag import DAG
 
@@ -90,14 +90,14 @@ class DotBuilder:
     def _get_io_entries(
         self, io: ParamCollection[PE], io_collections: IOCollections[ParamCollection[PE]]
     ) -> Iterable[Tuple[str, PE]]:
-        for entry_name, entry in io.items():
+        for entry_name, entry in io._asdict().items():
             yield entry_name, entry
-        for collection_name, entry_collection in io_collections.items():
-            for entry_name, entry in entry_collection.items():
+        for collection_name, entry_collection in io_collections._asdict().items():
+            for entry_name, entry in entry_collection._asdict().items():
                 yield f"{collection_name}.{entry_name}", entry
 
     def _add_inputs(self, inputs: Inputs, in_collections: InCollections) -> None:
-        def add_entry(source: str, entry: InEntry) -> None:
+        def add_entry(source: str, entry: InEntry[Any]) -> None:
             for p in entry:
                 target = self._get_i_port_tag(repr(p.node), p.param.name)
                 self._g.add_edge(
@@ -105,7 +105,7 @@ class DotBuilder:
                 )
 
         def add_inputs_node(
-            ro: Literal["required", "optional"], entries: Mapping[str, InEntry]
+            ro: Literal["required", "optional"], entries: Mapping[str, InEntry[Any]]
         ) -> None:
             name = f"{ro}_inputs"
             self._add_name_to_mapping(name)
@@ -134,7 +134,7 @@ class DotBuilder:
             add_inputs_node("optional", optional)
 
     def _add_outputs(self, outputs: Outputs, out_collections: OutCollections) -> None:
-        def add_entry(entry: OutEntry, target: str) -> None:
+        def add_entry(entry: OutEntry[Any], target: str) -> None:
             for p in entry:
                 source = self._get_o_port_tag(repr(p.node), p.param.name)
                 self._g.add_edge(pydot.Edge(source, target))
@@ -155,7 +155,7 @@ class DotBuilder:
                 target = self._get_i_port_tag(name, entry_name)
                 add_entry(entry, target)
 
-    def add_pipeline(self, pipeline: Pipeline) -> None:
+    def add_pipeline(self, pipeline: UPipeline) -> None:
         self._add_pipeline(pipeline._dag)
         self._add_inputs(pipeline.inputs, pipeline.in_collections)
         self._add_outputs(pipeline.outputs, pipeline.out_collections)
@@ -170,7 +170,7 @@ def dag_to_dot(dag: DAG, include_optional: bool = True) -> pydot.Dot:  # type: i
     return builder.get_dot()
 
 
-def pipeline_to_dot(pipeline: Pipeline, include_optional: bool = True) -> pydot.Dot:  # type: ignore[no-any-unimported]
+def pipeline_to_dot(pipeline: UPipeline, include_optional: bool = True) -> pydot.Dot:  # type: ignore[no-any-unimported]
     builder = DotBuilder(include_optional=include_optional)
     builder.add_pipeline(pipeline)
     return builder.get_dot()
@@ -181,7 +181,7 @@ def dag_to_svg(dag: DAG, **kwds: Any) -> bytes:
     return dot.create(format="svg")
 
 
-def display_dag(pipeline: Pipeline, format: str = "png", **kwds: Any) -> None:
+def display_dag(pipeline: UPipeline, format: str = "png", **kwds: Any) -> None:
     from IPython.display import SVG, Image, display  # type: ignore
 
     if format == "png":

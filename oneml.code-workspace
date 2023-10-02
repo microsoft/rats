@@ -49,7 +49,7 @@
         "python.analysis.typeCheckingMode": "off",
         "python.analysis.autoImportCompletions": true,
         "python.autoComplete.extraPaths": [
-            "${workspaceFolder}/src/python/immunocam"
+            "${workspaceFolder}/src/python"
         ],
         "python.analysis.inlayHints.pytestParameters": true,
         "python.envFile": "${workspaceFolder}/.envrc",

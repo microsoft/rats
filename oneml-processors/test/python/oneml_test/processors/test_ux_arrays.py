@@ -5,7 +5,7 @@ import pytest
 
 from oneml.processors.dag import IProcess
 from oneml.processors.utils import frozendict
-from oneml.processors.ux import Pipeline, PipelineBuilder, PipelineRunnerFactory
+from oneml.processors.ux import PipelineRunnerFactory, UPipeline, UPipelineBuilder
 
 # PROCESSORS (aka they do stuff; aka almost transformers)
 
@@ -72,12 +72,12 @@ def right_config(storage: dict[str, Array]) -> frozendict[str, Any]:
 
 # PIPELINE
 @pytest.fixture(scope="module")
-def pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, Any]) -> Pipeline:
-    left_reader = PipelineBuilder.task(ArrayReader, "left_reader", left_config)
-    right_reader = PipelineBuilder.task(ArrayReader, "right_reader", right_config)
-    product = PipelineBuilder.task(ArrayProduct, "array_product")
+def pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, Any]) -> UPipeline:
+    left_reader = UPipelineBuilder.task(ArrayReader, "left_reader", left_config)
+    right_reader = UPipelineBuilder.task(ArrayReader, "right_reader", right_config)
+    product = UPipelineBuilder.task(ArrayProduct, "array_product")
 
-    w1 = PipelineBuilder.combine(
+    w1 = UPipelineBuilder.combine(
         pipelines=[left_reader, right_reader, product],
         name="w1",
         inputs={},
@@ -87,7 +87,7 @@ def pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, An
             product.inputs.right_arr << right_reader.outputs.array,
         ),
     )
-    w2 = PipelineBuilder.combine(
+    w2 = UPipelineBuilder.combine(
         pipelines=[left_reader, right_reader, product],
         name="w2",
         inputs={},
@@ -97,7 +97,7 @@ def pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, An
             product.inputs.right_arr << right_reader.outputs.array,
         ),
     )
-    w3 = PipelineBuilder.combine(
+    w3 = UPipelineBuilder.combine(
         pipelines=[left_reader, right_reader, product],
         inputs={},
         outputs={"result": product.outputs.result},
@@ -107,8 +107,8 @@ def pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, An
         ),
         name="w3",
     )
-    sum_arrays = PipelineBuilder.task(SumFloats, "sum_floats")
-    return PipelineBuilder.combine(
+    sum_arrays = UPipelineBuilder.task(SumFloats, "sum_floats")
+    return UPipelineBuilder.combine(
         pipelines=[sum_arrays, w1, w2, w3],
         inputs={},
         outputs={"result": sum_arrays.outputs.result},
@@ -122,7 +122,7 @@ def pipeline(left_config: frozendict[str, Any], right_config: frozendict[str, An
 
 
 def test_final_pipeline(
-    pipeline_runner_factory: PipelineRunnerFactory, pipeline: Pipeline
+    pipeline_runner_factory: PipelineRunnerFactory, pipeline: UPipeline
 ) -> None:
     runner = pipeline_runner_factory(pipeline)
     outputs = runner()

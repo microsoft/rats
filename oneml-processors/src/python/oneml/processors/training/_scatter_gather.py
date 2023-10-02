@@ -1,7 +1,7 @@
 from typing import Iterable, Mapping, Sequence
 
-from ..ux._builder import PipelineBuilder
-from ..ux._pipeline import Pipeline
+from ..ux._builder import UPipelineBuilder
+from ..ux._pipeline import UPipeline
 
 
 class ScatterGatherBuilders:
@@ -9,8 +9,8 @@ class ScatterGatherBuilders:
 
     @classmethod
     def build(
-        cls, name: str, scatter: Pipeline, process_batch: Pipeline, gather: Pipeline
-    ) -> Pipeline:
+        cls, name: str, scatter: UPipeline, process_batch: UPipeline, gather: UPipeline
+    ) -> UPipeline:
         """
         Args:
             name: name for the built pipeline.
@@ -42,7 +42,9 @@ class ScatterGatherBuilders:
 
         The outputs of the built pipeline will be the outputs of gather.
         """
-        batch_keys = cls._get_batch_keys(scatter.out_collections, gather.in_collections)
+        batch_keys = cls._get_batch_keys(
+            scatter.out_collections._asdict(), gather.in_collections._asdict()
+        )
         if len(scatter.outputs) > 0:
             raise ValueError("scatter should not have outputs.")
         if len(process_batch.in_collections) > 0:
@@ -64,7 +66,7 @@ class ScatterGatherBuilders:
             batch_key: process_batch.decorate(batch_key) for batch_key in batch_keys
         }
 
-        pl = PipelineBuilder.combine(
+        pl = UPipelineBuilder.combine(
             [scatter] + list(process_batch_copies.values()) + [gather],
             name=f"scatter_gather_{process_batch.name}",
             dependencies=(

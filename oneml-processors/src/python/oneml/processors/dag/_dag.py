@@ -97,7 +97,7 @@ class ProcessorProps:
         elif len(kwargs) == 1 and input_annotation is not None:
             k = next(iter(kwargs))
             in_method = k.in_method
-            in_kwargs = {
+            in_kwargs: dict[str, InProcessorParam] = {
                 k: InProcessorParam(k, ann, in_method, InProcessorParam.KEYWORD_ONLY)
                 for k, ann in input_annotation.items()
             }

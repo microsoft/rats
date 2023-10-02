@@ -5,7 +5,6 @@ import sys
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
-from inspect import _empty as _inspect_module_empty
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
 from typing import Any, Callable, Mapping, NamedTuple, Protocol, final, runtime_checkable
 
@@ -38,7 +37,7 @@ class InMethod(Enum):
 @dataclass(frozen=True)
 class ProcessorParam(ABC):
     name: str
-    annotation: Any
+    annotation: type
 
     def __eq__(self, other: Any) -> bool:
         return self.__class__ == other.__class__ and self.name == other.name
@@ -57,7 +56,7 @@ class InProcessorParam(ProcessorParam):
     VAR_KEYWORD = _VAR_KEYWORD
 
     name: str
-    annotation: Any
+    annotation: type | Any
     in_method: InMethod
     kind: _ParameterKind = POSITIONAL_OR_KEYWORD
     default: Any = _empty

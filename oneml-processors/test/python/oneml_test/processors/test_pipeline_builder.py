@@ -1,4 +1,4 @@
-"""These tests are copies of the examples in the docstrings of PipelineBuilder methods."""
+"""These tests are copies of the examples in the docstrings of UPipelineBuilder methods."""
 
 from abc import abstractmethod
 from typing import Dict, TypedDict, TypeVar
@@ -7,7 +7,7 @@ import pytest
 
 from oneml.processors.dag import IProcess
 from oneml.processors.utils import frozendict
-from oneml.processors.ux import Pipeline, PipelineBuilder
+from oneml.processors.ux import UPipeline, UPipelineBuilder
 
 Array = TypeVar("Array")
 
@@ -40,18 +40,18 @@ class Scatter:
 
 
 @pytest.fixture
-def train_stz() -> Pipeline:
-    return PipelineBuilder.task(Standardize, config=frozendict(shift=10.0, scale=2.0))
+def train_stz() -> UPipeline:
+    return UPipelineBuilder.task(Standardize, config=frozendict(shift=10.0, scale=2.0))
 
 
 @pytest.fixture
-def eval_stz() -> Pipeline:
-    return PipelineBuilder.task(Standardize)
+def eval_stz() -> UPipeline:
+    return UPipelineBuilder.task(Standardize)
 
 
 @pytest.fixture
-def scatter() -> Pipeline:
-    return PipelineBuilder.task(
+def scatter() -> UPipeline:
+    return UPipelineBuilder.task(
         processor_type=Scatter,
         name="scatter",
         config=frozendict(K=3),
@@ -59,17 +59,17 @@ def scatter() -> Pipeline:
     )
 
 
-def test_predefined_standardize(train_stz: Pipeline) -> None:
+def test_predefined_standardize(train_stz: UPipeline) -> None:
     assert set(train_stz.inputs) == set(("X",))
     assert set(train_stz.outputs) == set(("Z", "scale", "shift"))
 
 
-def test_eval_stz(eval_stz: Pipeline) -> None:
+def test_eval_stz(eval_stz: UPipeline) -> None:
     assert set(eval_stz.inputs) == set(("shift", "scale", "X"))
     assert set(eval_stz.outputs) == set(("Z", "shift", "scale"))
 
 
-def test_scatter(scatter: Pipeline) -> None:
+def test_scatter(scatter: UPipeline) -> None:
     assert set(scatter.inputs) == set(("in1", "in2"))
     assert set(scatter.outputs) == set(
         ("in1_n0", "in1_n1", "in1_n2", "in2_n0", "in2_n1", "in2_n2")
@@ -77,7 +77,7 @@ def test_scatter(scatter: Pipeline) -> None:
 
 
 @pytest.fixture
-def w1() -> Pipeline:
+def w1() -> UPipeline:
     W1Output = TypedDict("W1Output", {"C": str})
 
     class W1:
@@ -85,11 +85,11 @@ def w1() -> Pipeline:
         def process(self, A: str, B: str) -> W1Output:
             ...
 
-    return PipelineBuilder.task(W1, name="w1")
+    return UPipelineBuilder.task(W1, name="w1")
 
 
 @pytest.fixture
-def w2() -> Pipeline:
+def w2() -> UPipeline:
     W2Output = TypedDict("W2Output", {"E": str, "F": str})
 
     class W2:
@@ -97,11 +97,11 @@ def w2() -> Pipeline:
         def process(self, D: str) -> W2Output:
             ...
 
-    return PipelineBuilder.task(W2, name="w2")
+    return UPipelineBuilder.task(W2, name="w2")
 
 
 @pytest.fixture
-def w3() -> Pipeline:
+def w3() -> UPipeline:
     W3Output = TypedDict("W3Output", {"H": str})
 
     class W3:
@@ -109,11 +109,11 @@ def w3() -> Pipeline:
         def process(self, A: str, G: str) -> W3Output:
             ...
 
-    return PipelineBuilder.task(W3, name="w3")
+    return UPipelineBuilder.task(W3, name="w3")
 
 
 @pytest.fixture
-def w4() -> Pipeline:
+def w4() -> UPipeline:
     W4Output = TypedDict("W4Output", {"E": str})
 
     class W4:
@@ -121,20 +121,20 @@ def w4() -> Pipeline:
         def process(self, A: str) -> W4Output:
             ...
 
-    return PipelineBuilder.task(W4, name="w4")
+    return UPipelineBuilder.task(W4, name="w4")
 
 
-def test_no_dependencies_default_inputs_and_outputs(w1: Pipeline, w2: Pipeline) -> None:
-    combined = PipelineBuilder.combine(pipelines=[w1, w2], name="combined")
+def test_no_dependencies_default_inputs_and_outputs(w1: UPipeline, w2: UPipeline) -> None:
+    combined = UPipelineBuilder.combine(pipelines=[w1, w2], name="combined")
 
     assert set(combined.inputs) == set(("A", "B", "D"))
     assert set(combined.outputs) == set(("C", "E", "F"))
 
 
 def test_with_dependencies_default_inputs_and_outputs(
-    w1: Pipeline, w2: Pipeline, w3: Pipeline
+    w1: UPipeline, w2: UPipeline, w3: UPipeline
 ) -> None:
-    combined = PipelineBuilder.combine(
+    combined = UPipelineBuilder.combine(
         pipelines=[w1, w2, w3],
         name="combined",
         dependencies=(
@@ -149,9 +149,9 @@ def test_with_dependencies_default_inputs_and_outputs(
 
 
 def test_with_dependencies_default_inputs_and_outputs_with_shared_input(
-    w1: Pipeline, w2: Pipeline, w3: Pipeline
+    w1: UPipeline, w2: UPipeline, w3: UPipeline
 ) -> None:
-    combined = PipelineBuilder.combine(
+    combined = UPipelineBuilder.combine(
         pipelines=[w1, w2, w3],
         name="combined",
         dependencies=(
@@ -165,9 +165,9 @@ def test_with_dependencies_default_inputs_and_outputs_with_shared_input(
 
 
 def test_with_dependencies_inputs_and_outputs_specified(
-    w1: Pipeline, w2: Pipeline, w3: Pipeline, w4: Pipeline
+    w1: UPipeline, w2: UPipeline, w3: UPipeline, w4: UPipeline
 ) -> None:
-    combined = PipelineBuilder.combine(
+    combined = UPipelineBuilder.combine(
         pipelines=[w1, w2, w3, w4],
         name="combined",
         dependencies=(
@@ -187,7 +187,7 @@ def test_with_dependencies_inputs_and_outputs_specified(
     assert set(combined.outputs) == set(("c", "h", "e"))
 
     with pytest.raises(ValueError):
-        PipelineBuilder.combine(
+        UPipelineBuilder.combine(
             pipelines=[w1, w3],
             name="combined",
             dependencies=(w1.outputs.C >> w3.inputs.A,),
@@ -196,16 +196,16 @@ def test_with_dependencies_inputs_and_outputs_specified(
         )
 
 
-def test_missing_input_error(w1: Pipeline, w2: Pipeline) -> None:
+def test_missing_input_error(w1: UPipeline, w2: UPipeline) -> None:
     with pytest.raises(ValueError):
-        _ = PipelineBuilder.combine(
+        _ = UPipelineBuilder.combine(
             pipelines=[w1, w2],
             name="combined",
             dependencies=(w1.outputs.C >> w2.inputs.D,),
             inputs={"a": w1.inputs.A},
         )
 
-    mitigated_combined = PipelineBuilder.combine(
+    mitigated_combined = UPipelineBuilder.combine(
         pipelines=[w1, w2],
         name="combined",
         dependencies=(w1.outputs.C >> w2.inputs.D,),
@@ -219,14 +219,14 @@ def test_missing_input_error(w1: Pipeline, w2: Pipeline) -> None:
     assert set(mitigated_combined.outputs) == set(("E", "F"))
 
 
-def test_clashing_outputs_error(w2: Pipeline, w4: Pipeline) -> None:
-    combined = PipelineBuilder.combine(pipelines=[w2, w4], name="combined")
+def test_clashing_outputs_error(w2: UPipeline, w4: UPipeline) -> None:
+    combined = UPipelineBuilder.combine(pipelines=[w2, w4], name="combined")
     assert set(combined.inputs) == set(("D", "A"))
     assert set(combined.outputs) == set(("F", "E"))
     assert set(combined.outputs.F) == set(w2.decorate("combined").outputs.F)
     assert len(combined.outputs.E) == 1
 
-    mitigated_combined = PipelineBuilder.combine(
+    mitigated_combined = UPipelineBuilder.combine(
         pipelines=[w2, w4], name="combined", outputs={"e": w2.outputs.E}
     )
     assert set(mitigated_combined.inputs) == set(("D", "A"))

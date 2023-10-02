@@ -1,26 +1,16 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Sequence, Set
 from functools import cache, reduce
 from itertools import chain
-from typing import (
-    AbstractSet,
-    Any,
-    Hashable,
-    Iterable,
-    Iterator,
-    SupportsIndex,
-    TypeAlias,
-    TypeVar,
-    overload,
-)
+from typing import AbstractSet, Any, Hashable, Iterable, Iterator, SupportsIndex, TypeVar, overload
 
 _T_co = TypeVar("_T_co", covariant=True)
 _S = TypeVar("_S")
 Self = TypeVar("Self", bound="orderedset[Any]")
 
 
-class orderedset(Hashable, AbstractSet[_T_co], Sequence[_T_co]):
+class orderedset(Hashable, Set[_T_co], Sequence[_T_co]):
     _d: dict[_T_co, None]
 
     @overload
@@ -93,4 +83,4 @@ class orderedset(Hashable, AbstractSet[_T_co], Sequence[_T_co]):
         return reduce(lambda xi, si: xi.__or__(si), s, self)
 
 
-oset: TypeAlias = orderedset[_T_co]
+oset = orderedset

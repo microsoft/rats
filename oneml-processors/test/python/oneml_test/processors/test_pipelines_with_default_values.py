@@ -4,7 +4,7 @@ from typing import TypedDict
 
 import pytest
 
-from oneml.processors.ux import CombinedPipeline, PipelineRunnerFactory, Task
+from oneml.processors.ux import CombinedPipeline, PipelineRunnerFactory, UPipeline, UTask
 
 Outputs = TypedDict("Outputs", {"d": str})
 
@@ -35,7 +35,7 @@ class Processor3:
 
 
 def test_task_with_default_values(pipeline_runner_factory: PipelineRunnerFactory) -> None:
-    p = Task(Processor1, config=dict(a=10))
+    p = UTask(Processor1, config=dict(a=10))
     r = pipeline_runner_factory(p)
 
     # Not setting b.  The default value should be used.
@@ -47,7 +47,7 @@ def test_task_with_default_values(pipeline_runner_factory: PipelineRunnerFactory
     assert o.d == "10,ddd,ccc"
 
     # Setting b in the config.  The given value should be used.
-    p = Task(Processor1, config=dict(a=10, b="bbb"))
+    p = UTask(Processor1, config=dict(a=10, b="bbb"))
     r = pipeline_runner_factory(p)
     o = r(dict(c="ccc"))
     assert o.d == "10,bbb,ccc"
@@ -63,7 +63,7 @@ def test_task_with_default_values(pipeline_runner_factory: PipelineRunnerFactory
     assert str(ex.value) == "Missing pipeline inputs: {'c'}."
 
     # Not setting a in the config and in the runner inputs should fail b/c is it a process input.
-    p = Task(Processor1)
+    p = UTask(Processor1)
     r = pipeline_runner_factory(p)
 
     with pytest.raises(ValueError) as ex:
@@ -74,10 +74,10 @@ def test_task_with_default_values(pipeline_runner_factory: PipelineRunnerFactory
 def test_combined_pipeline_with_default_values(
     pipeline_runner_factory: PipelineRunnerFactory,
 ) -> None:
-    p1 = Task(Processor1, config=dict(a=10))
-    p2 = Task(Processor2)
+    p1 = UTask(Processor1, config=dict(a=10))
+    p2 = UTask(Processor2)
 
-    p = CombinedPipeline(
+    p: UPipeline = CombinedPipeline(
         [p1, p2],
         name="p",
         outputs={"d.p1": p1.outputs.d, "d.p2": p2.outputs.d},
@@ -100,14 +100,14 @@ def test_combined_pipeline_with_default_values(
     assert o.d.p2 == "bbb"
 
     # Adding a processor with no default value for b.
-    p3 = Task(Processor3)
-    p = CombinedPipeline(
+    p3 = UTask(Processor3)
+    p4: UPipeline = CombinedPipeline(
         [p1, p2, p3],
-        name="p",
+        name="p4",
         outputs={"d.p1": p1.outputs.d, "d.p2": p2.outputs.d, "d.p3": p3.outputs.d},
     )
 
-    r = pipeline_runner_factory(p)
+    r = pipeline_runner_factory(p4)
 
     # Setting b in the runner inputs.  All processors should use the given value.
     o = r(dict(c="ccc", b="bbb"))
@@ -121,15 +121,15 @@ def test_combined_pipeline_with_default_values(
     assert str(ex.value) == "Missing pipeline inputs: {'b'}."
 
     # Providing the value for p3's b in the config.
-    p3 = Task(Processor3, config=dict(b="mmm"))
-    p = CombinedPipeline(
+    p3 = UTask(Processor3, config=dict(b="mmm"))
+    p5: UPipeline = CombinedPipeline(
         [p1, p2, p3],
-        name="p",
+        name="p5",
         outputs={"d.p1": p1.outputs.d, "d.p2": p2.outputs.d, "d.p3": p3.outputs.d},
     )
 
     # Not setting b, p1 an p2 should use their defaults, p3 should use the config value.
-    r = pipeline_runner_factory(p)
+    r = pipeline_runner_factory(p5)
     o = r(dict(c="ccc"))
     assert o.d.p1 == "10,aaa,ccc"
     assert o.d.p2 == "kkk"

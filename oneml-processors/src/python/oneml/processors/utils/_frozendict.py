@@ -9,11 +9,7 @@ from typing import (
     ItemsView,
     Iterable,
     Iterator,
-    KeysView,
     Mapping,
-    Optional,
-    Protocol,
-    TypeAlias,
     TypeVar,
     ValuesView,
     get_args,
@@ -33,7 +29,7 @@ Self = TypeVar("Self", bound="frozendict[Any, Any]")
 class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
     """Dictionary like class with private storage."""
 
-    _hash: Optional[int]
+    _hash: int | None = None
     _type_T: Any
 
     @overload
@@ -106,15 +102,15 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
             raise AttributeError(key)
 
     def __contains__(self, __o: object) -> bool:
-        return self._d.__contains__(__o)
+        return __o in self._d
 
     def __hash__(self) -> int:
         """Computes hash of object."""
         if self._hash is None:
-            hash_ = 0
+            _hash = 0
             for pair in self.items():
-                hash_ ^= hash(pair)
-            self._hash = hash_
+                _hash ^= hash(pair)
+            return _hash
         return self._hash
 
     def __repr__(self) -> str:
@@ -171,4 +167,4 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
         return reduce(lambda xi, si: xi.__or__(si), s, self)
 
 
-fdict: TypeAlias = frozendict[_KT, _VT_co]
+fdict = frozendict

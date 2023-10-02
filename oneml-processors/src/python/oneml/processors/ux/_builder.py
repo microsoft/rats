@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import ChainMap
 from functools import reduce
 from itertools import chain
-from typing import Any, Mapping, Sequence, TypeAlias, TypeVar, final
+from typing import Any, Generic, Mapping, Sequence, TypeAlias, TypeVar, cast, final
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
@@ -14,11 +14,13 @@ from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IProcess, ProcessorP
 from ..utils import frozendict
 from ._ops import DependencyOp
 from ._pipeline import (
+    InCollection,
     InCollections,
     InEntry,
     InParameter,
     Inputs,
     IOCollections,
+    OutCollection,
     OutCollections,
     OutEntry,
     OutParameter,
@@ -27,6 +29,11 @@ from ._pipeline import (
     ParamEntry,
     Pipeline,
     PipelineConf,
+    TInCollections,
+    TInputs,
+    TOutCollections,
+    TOutputs,
+    UPipeline,
 )
 from ._utils import (
     _input_annotation,
@@ -41,17 +48,19 @@ PC = TypeVar("PC", bound=ParamCollection[Any])
 PL = TypeVar("PL", bound=IOCollections[Any])
 
 UserIO = Mapping[str, PE | PC]
-UserInput: TypeAlias = UserIO[InEntry, Inputs]
-UserOutput: TypeAlias = UserIO[OutEntry, Outputs]
+UserInput: TypeAlias = UserIO[InEntry[Any], Inputs]
+UserOutput: TypeAlias = UserIO[OutEntry[Any], Outputs]
 
 
 @final
-class Task(Pipeline):
+class Task(
+    Pipeline[TInputs, TOutputs, InCollections, OutCollections]
+):  # InCollections, OutCollections types could be more precise
     _config: TaskConf
 
     def __init__(
         self,
-        processor_type: type,
+        processor_type: type[IProcess] | type,
         name: str | None = None,
         config: Mapping[str, Any] | None = None,
         services: Mapping[str, ServiceId[Any]] | None = None,
@@ -59,7 +68,9 @@ class Task(Pipeline):
         return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
     ) -> None:
-        if not (isinstance(processor_type, type) and callable(getattr(processor_type, "process"))):
+        if not (
+            isinstance(processor_type, type) and callable(getattr(processor_type, "process", None))
+        ):
             raise ValueError("`processor_type` needs to satisfy the `IProcess` protocol.")
         if name is not None and not isinstance(name, str):
             raise ValueError("`name` needs to be string or None.")
@@ -76,15 +87,15 @@ class Task(Pipeline):
         name = name if name else processor_type.__name__
         node = DagNode(name)
         props = ProcessorProps(
-            processor_type=processor_type,
+            processor_type=cast(type[IProcess], processor_type),
             config=config if config is not None else frozendict(),
             services=services if services is not None else frozendict(),
             input_annotation=input_annotation,
             return_annotation=return_annotation,
             compute_reqs=compute_reqs,
         )
-        inputs = {k: InEntry((InParameter(node, p),)) for k, p in props.inputs.items()}
-        outputs = {k: OutEntry((OutParameter(node, p),)) for k, p in props.outputs.items()}
+        inputs = {k: InEntry[Any]((InParameter(node, p),)) for k, p in props.inputs.items()}
+        outputs = {k: OutEntry[Any]((OutParameter(node, p),)) for k, p in props.outputs.items()}
         task_config = TaskConf(
             name=name,
             processor_type=processor_type.__module__ + "." + processor_type.__name__,
@@ -99,19 +110,32 @@ class Task(Pipeline):
             name=name,
             dag=DAG({node: props}),
             config=task_config,
-            inputs=Inputs(inputs),
-            outputs=Outputs(outputs),
+            inputs=cast(TInputs, Inputs(inputs)),
+            outputs=cast(TOutputs, Outputs(outputs)),
         )
 
 
-class CombinedPipeline(Pipeline):
+UTask = Task[Inputs, Outputs]
+
+
+@hydrated_dataclass(Task, zen_wrappers=[_processor_type, _input_annotation, _return_annotation])
+class TaskConf(PipelineConf):
+    processor_type: str = MISSING
+    name: str = "${parent_or_processor_name:}"
+    config: Any = None
+    services: Any = None
+    input_annotation: dict[str, str] | None = None
+    return_annotation: dict[str, str] | None = None
+
+
+class CombinedPipeline(Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]):
     _config: CombinedConf
 
     def __init__(
         self,
-        pipelines: Sequence[Pipeline],
+        pipelines: Sequence[Pipeline[Any, Any, Any, Any]],
         name: str,
-        dependencies: Sequence[DependencyOp] | None = None,
+        dependencies: Sequence[DependencyOp[Any]] | None = None,
         inputs: UserInput | None = None,
         outputs: UserOutput | None = None,
     ) -> None:
@@ -125,12 +149,12 @@ class CombinedPipeline(Pipeline):
             dependencies = ()
         shared_input = tuple(dp.in_param for dp in chain.from_iterable(dependencies))
         shared_out = tuple(dp.out_param for dp in chain.from_iterable(dependencies))
-        flat_input: tuple[InParameter, ...] = ()
+        flat_input: tuple[InParameter[Any], ...] = ()
         for uv in inputs.values() if inputs else ():  # flattens user inputs
             if isinstance(uv, InEntry):
                 flat_input += tuple(uv)
-            elif isinstance(uv, Inputs):
-                flat_input += tuple(chain.from_iterable(chain(uv.values())))
+            elif isinstance(uv, InCollection):
+                flat_input += tuple(chain.from_iterable(chain(uv._asdict().values())))
             else:
                 raise ValueError(f"Invalid input type {uv}.")
 
@@ -140,32 +164,38 @@ class CombinedPipeline(Pipeline):
             raise ValueError(msg)
 
         if inputs is not None:  # verifies all pipeline inputs have been specified
-            pl_input: tuple[InParameter, ...] = ()
+            pl_input: tuple[InParameter[Any], ...] = ()
             for pl in pipelines:
-                pl_input += reduce(lambda x, y: x + tuple(y), pl.inputs.values(), pl_input)
-                for c in pl.in_collections.values():
-                    pl_input += reduce(lambda x, y: x + tuple(y), c.values(), pl_input)
+                pl_input += reduce(
+                    lambda x, y: x + tuple(y), pl.inputs._asdict().values(), pl_input
+                )
+                for c in pl.in_collections._asdict().values():
+                    pl_input += reduce(lambda x, y: x + tuple(y), c._asdict().values(), pl_input)
             if set(pl_input) - set(flat_input) - set(shared_input):
                 missing = set(pl_input) - set(flat_input) - set(shared_input)
                 msg = f"Not all inputs have been specified as inputs or dependencies: {missing}"
                 raise ValueError(msg)
 
-        in_entries = Inputs()  # build inputs
+        in_entries = InCollection[Any]()  # build inputs
         in_collections = InCollections()
         if inputs is None:  # build default inputs
             for pl in pipelines:
-                in_entries |= (pl.inputs - shared_input).decorate(name)
-                in_collections |= (pl.in_collections - shared_input).decorate(name)
+                shared_input_strs = pl.inputs._find(*shared_input)
+                shared_incol_strs = pl.in_collections._find(*shared_input)
+                in_entries |= (pl.inputs - shared_input_strs).decorate(name)
+                in_collections |= (pl.in_collections - shared_incol_strs).decorate(name)
         else:  # build inputs from user input
             in_entries, in_collections = self._format_io(inputs, in_entries, in_collections)
             in_entries, in_collections = in_entries.decorate(name), in_collections.decorate(name)
 
-        out_entries = Outputs()  # build outputs
+        out_entries = OutCollection[Any]()  # build outputs
         out_collections = OutCollections()
         if outputs is None:  # build default outputs
             for pl in pipelines:
-                out_entries |= (pl.outputs - shared_out).decorate(name)
-                out_collections |= (pl.out_collections - shared_out).decorate(name)
+                shared_output_str = pl.outputs._find(*shared_out)
+                shared_outcol_str = pl.out_collections._find(*shared_out)
+                out_entries |= (pl.outputs - shared_output_str).decorate(name)
+                out_collections |= (pl.out_collections - shared_outcol_str).decorate(name)
         else:  # build outputs from user output
             out_entries, out_collections = self._format_io(outputs, out_entries, out_collections)
             out_entries = out_entries.decorate(name)
@@ -191,10 +221,10 @@ class CombinedPipeline(Pipeline):
             name=name,
             dag=new_pl,
             config=config,
-            inputs=in_entries,
-            outputs=out_entries,
-            in_collections=in_collections,
-            out_collections=out_collections,
+            inputs=cast(TInputs, in_entries),
+            outputs=cast(TOutputs, out_entries),
+            in_collections=cast(TInCollections, in_collections),
+            out_collections=cast(TOutCollections, out_collections),
         )
 
     @staticmethod
@@ -207,14 +237,16 @@ class CombinedPipeline(Pipeline):
                 entries |= {k: v}  # ParamEntry or ParamCollection.ParamEntry -> ParamEntry
             elif k.count(".") == 1 and isinstance(v, ParamEntry):
                 k0, k1 = k.split(".")
-                temp_c = collections.get(k0, empty_collection)
+                temp_c = getattr(collections, k0, empty_collection)
                 collections |= {k0: temp_c | {k1: v}}  # ParamEntry -> ParamCollection.ParamEntry
             elif k.count(".") == 0 and isinstance(v, ParamCollection):
                 collections |= {k: v}  # ParamCollection -> ParamCollection
             elif k.count(".") == 1 and isinstance(v, ParamCollection):
                 k0, k1 = k.split(".")  # ParamCollection -> ParamCollection.ParamEntry
-                temp_c = collections.get(k0, empty_collection)
-                collections |= {k0: temp_c | {k1: reduce(lambda x, y: x | y, v.values())}}
+                temp_c = getattr(collections, k0, empty_collection)
+                collections |= {
+                    k0: temp_c | {k1: reduce(lambda x, y: x | y, v._asdict().values())}
+                }
             else:
                 raise ValueError(f"Invalid formatting string {k} or input type {v}.")
         return entries, collections
@@ -222,10 +254,10 @@ class CombinedPipeline(Pipeline):
     @staticmethod
     def _gather_outputs(
         out_collections: OutCollections, out_entries: Outputs, name: str
-    ) -> tuple[Outputs, OutCollections, tuple[Pipeline, ...], tuple[DependencyOp, ...]]:
-        def gathering_tasks(entries: dict[str, OutEntry]) -> dict[str, Pipeline]:
+    ) -> tuple[Outputs, OutCollections, tuple[UPipeline, ...], tuple[DependencyOp[Any], ...]]:
+        def gathering_tasks(entries: dict[str, OutEntry[Any]]) -> dict[str, UPipeline]:
             return {
-                en: Task(
+                en: UTask(
                     GatherSequence,
                     name="Gather_" + en,
                     return_annotation={"output": tuple[entry[0].param.annotation, ...]},  # type: ignore[name-defined]
@@ -234,11 +266,11 @@ class CombinedPipeline(Pipeline):
             }
 
         # multiple output entries and collections
-        gathered_entries = {k: v for k, v in out_entries.items() if len(v) > 1}
+        gathered_entries = {k: v for k, v in out_entries._asdict().items() if len(v) > 1}
         gathered_collections = {
             k + "." + en: entry
-            for k, v in out_collections.items()
-            for en, entry in v.items()
+            for k, v in out_collections._asdict().items()
+            for en, entry in v._asdict().items()
             if len(entry) > 1
         }
         gathered_all = ChainMap(gathered_entries, gathered_collections)
@@ -268,7 +300,7 @@ class GatherSequence(IProcess):
         return {"output": args}
 
 
-class PipelineBuilder:
+class PipelineBuilder(Generic[TInputs, TOutputs, TInCollections, TOutCollections]):
     @classmethod
     def task(
         cls,
@@ -279,7 +311,7 @@ class PipelineBuilder:
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
         compute_reqs: ComputeReqs = ComputeReqs(),
-    ) -> Pipeline:
+    ) -> Task[TInputs, TOutputs]:
         """Create a single node pipeline wrapping a Processor.
 
         Args:
@@ -413,14 +445,15 @@ class PipelineBuilder:
             compute_reqs=compute_reqs,
         )
 
-    @staticmethod
+    @classmethod
     def combine(
-        pipelines: Sequence[Pipeline],
+        cls,
+        pipelines: Sequence[UPipeline],
         name: str,
-        dependencies: Sequence[DependencyOp] | None = None,
+        dependencies: Sequence[DependencyOp[Any]] | None = None,
         inputs: UserInput | None = None,
         outputs: UserOutput | None = None,
-    ) -> Pipeline:
+    ) -> Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]:
         """Combine multiple pipelines into one pipeline.
 
         Args:
@@ -567,14 +600,7 @@ class PipelineBuilder:
         )
 
 
-@hydrated_dataclass(Task, zen_wrappers=[_processor_type, _input_annotation, _return_annotation])
-class TaskConf(PipelineConf):
-    processor_type: str = MISSING
-    name: str = "${parent_or_processor_name:}"
-    config: Any = None
-    services: Any = None
-    input_annotation: dict[str, str] | None = None
-    return_annotation: dict[str, str] | None = None
+UPipelineBuilder = PipelineBuilder[Inputs, Outputs, InCollections, OutCollections]
 
 
 @hydrated_dataclass(

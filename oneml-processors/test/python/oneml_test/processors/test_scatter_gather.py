@@ -2,7 +2,7 @@ from typing import Any, Dict, TypedDict
 
 from oneml.processors import ScatterGatherBuilders
 from oneml.processors.utils import frozendict
-from oneml.processors.ux import Pipeline, PipelineBuilder, PipelineRunnerFactory
+from oneml.processors.ux import PipelineRunnerFactory, UPipeline, UPipelineBuilder
 
 
 class Scatter:
@@ -26,8 +26,8 @@ class Scatter:
         }
 
 
-def get_scatter_pipeline(K: int) -> Pipeline:
-    return PipelineBuilder.task(
+def get_scatter_pipeline(K: int) -> UPipeline:
+    return UPipelineBuilder.task(
         Scatter,
         "scatter",
         config=frozendict(K=K),
@@ -43,8 +43,8 @@ class BatchProcess:
         return BatchProcessOutput(out12=in1 + "*" + in2, out23=in2 + "*" + in3)
 
 
-def get_batch_process_pipeline() -> Pipeline:
-    return PipelineBuilder.task(BatchProcess, "batch_process")
+def get_batch_process_pipeline() -> UPipeline:
+    return UPipelineBuilder.task(BatchProcess, "batch_process")
 
 
 ConcatStringsAsLinesOutput = TypedDict("ConcatStringsAsLinesOutput", {"out": str})
@@ -55,9 +55,9 @@ class ConcatStringsAsLines:
         return ConcatStringsAsLinesOutput(out="\n".join(inp.values()))
 
 
-def get_concat_strings_as_lines_pipeline(port_name: str, K: int) -> Pipeline:
+def get_concat_strings_as_lines_pipeline(port_name: str, K: int) -> UPipeline:
     w = (
-        PipelineBuilder.task(
+        UPipelineBuilder.task(
             ConcatStringsAsLines,
             f"concat_{port_name}",
             input_annotation={f"{port_name}_{k}": str for k in range(K)},
@@ -68,8 +68,8 @@ def get_concat_strings_as_lines_pipeline(port_name: str, K: int) -> Pipeline:
     return w
 
 
-def get_gather_pipeline(K: int) -> Pipeline:
-    return PipelineBuilder.combine(
+def get_gather_pipeline(K: int) -> UPipeline:
+    return UPipelineBuilder.combine(
         pipelines=[
             get_concat_strings_as_lines_pipeline("out12", K),
             get_concat_strings_as_lines_pipeline("out23", K),

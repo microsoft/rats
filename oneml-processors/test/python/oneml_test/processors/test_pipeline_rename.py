@@ -1,9 +1,9 @@
 from abc import abstractmethod
-from typing import TypedDict
+from typing import Any, TypedDict
 
 import pytest
 
-from oneml.processors.ux import Pipeline, PipelineBuilder, Task
+from oneml.processors.ux import Pipeline, PipelineBuilder, UPipeline, UTask
 
 StzTrainOut = TypedDict("StzTrainOut", {"mean": float, "scale": float, "Z": float})
 StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
@@ -26,17 +26,17 @@ class StandardizeEval:
 
 
 @pytest.fixture
-def train_stz() -> Pipeline:
-    return Task(StandardizeTrain)
+def train_stz() -> UTask:
+    return UTask(StandardizeTrain)
 
 
 @pytest.fixture
-def eval_stz() -> Pipeline:
-    return Task(StandardizeEval)
+def eval_stz() -> UTask:
+    return UTask(StandardizeEval)
 
 
 @pytest.fixture
-def stz(train_stz: Pipeline, eval_stz: Pipeline) -> Pipeline:
+def stz(train_stz: UPipeline, eval_stz: UPipeline) -> UPipeline:
     return PipelineBuilder.combine(
         pipelines=[train_stz, eval_stz],
         name="stz",
@@ -50,7 +50,7 @@ def stz(train_stz: Pipeline, eval_stz: Pipeline) -> Pipeline:
 
 
 @pytest.fixture
-def double_stz(stz: Pipeline) -> Pipeline:
+def double_stz(stz: UPipeline) -> UPipeline:
     stz1 = stz.decorate("stz1").rename_inputs({"X": "X1"}).rename_outputs({"Z": "Z1"})
     stz2 = stz.decorate("stz2").rename_inputs({"X": "X2"}).rename_outputs({"Z": "Z2"})
     return PipelineBuilder.combine(
@@ -59,7 +59,7 @@ def double_stz(stz: Pipeline) -> Pipeline:
     )
 
 
-def test_wildcard_rename(double_stz: Pipeline) -> None:
+def test_wildcard_rename(double_stz: UPipeline) -> None:
     pipeline = double_stz.rename_inputs({"*.train": "*.train0"}).rename_outputs(
         {"*.eval": "*.eval0"}
     )
@@ -73,7 +73,7 @@ def test_wildcard_rename(double_stz: Pipeline) -> None:
     assert set(pipeline.out_collections.Z2) == set(("train", "eval0"))
 
 
-def test_IOCollections_rename(train_stz: Pipeline) -> None:
+def test_IOCollections_rename(train_stz: UPipeline) -> None:
     # InEntry -> InEntry
     pipeline1 = train_stz.rename_inputs({"X": "X0"})
     assert train_stz.inputs.X == pipeline1.inputs.X0
@@ -107,7 +107,7 @@ def test_IOCollections_rename(train_stz: Pipeline) -> None:
     assert pipeline1.out_collections.Z.train == pipeline2.outputs.Z
 
 
-def test_IOCollections_rename_and_merge_with_multiple_entries(stz: Pipeline) -> None:
+def test_IOCollections_rename_and_merge_with_multiple_entries(stz: UPipeline) -> None:
     # Inputs.InEntry -> Inputs.InEntry
     pipeline1 = stz.rename_inputs({"X.train": "X0.train0"})
     assert stz.in_collections.X.train == pipeline1.in_collections.X0.train0

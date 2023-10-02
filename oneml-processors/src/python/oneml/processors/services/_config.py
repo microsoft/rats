@@ -50,6 +50,9 @@ class InstantiateConfMapping(Mapping[str, Any]):
     def __getitem__(self, key: str) -> Any:
         return self._instantiated[key]
 
+    def __contains__(self, key: object) -> bool:
+        return key in self._cfg
+
     def __hash__(self) -> int:
         return hash(self._cfg)
 

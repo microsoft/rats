@@ -6,7 +6,7 @@ from furl import furl
 from oneml.io import IReadData, RWDataUri
 from oneml.services import IProvideServices, ServiceId
 
-from ..ux import Pipeline, PipelineBuilder
+from ..ux import UPipeline, UPipelineBuilder
 from .type_rw_mappers import IGetReadServicesForType
 
 DataType = TypeVar("DataType")
@@ -41,7 +41,7 @@ class ReadFromUriProcessor(Generic[DataType]):
 
 class IReadFromUrlPipelineBuilder(Protocol):
     @abstractmethod
-    def build(self, data_type: type[DataType], uri: str | None = None) -> Pipeline:
+    def build(self, data_type: type[DataType], uri: str | None = None) -> UPipeline:
         ...
 
 
@@ -57,7 +57,7 @@ class ReadFromUrlPipelineBuilder(IReadFromUrlPipelineBuilder):
         self._service_provider_service_id = service_provider_service_id
         self._get_read_services_for_type = get_read_services_for_type
 
-    def build(self, data_type: type[DataType], uri: str | None = None) -> Pipeline:
+    def build(self, data_type: type[DataType], uri: str | None = None) -> UPipeline:
         read_service_ids = self._get_read_services_for_type.get_read_service_ids(data_type)
         config = {
             k: v
@@ -67,7 +67,7 @@ class ReadFromUrlPipelineBuilder(IReadFromUrlPipelineBuilder):
             ).items()
             if v is not None
         }
-        task = PipelineBuilder.task(
+        task = UPipelineBuilder.task(
             processor_type=ReadFromUriProcessor,
             config=config,
             services=dict(service_provider=self._service_provider_service_id),

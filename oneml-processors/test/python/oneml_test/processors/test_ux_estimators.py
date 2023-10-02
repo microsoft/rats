@@ -1,13 +1,29 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import TypedDict
 
 import pytest
 
 from oneml.processors.dag import IProcess
 from oneml.processors.training import IPersistFittedEvalPipeline, TrainAndEvalBuilders
-from oneml.processors.ux import CombinedPipeline, Pipeline, PipelineRunnerFactory, Task
+from oneml.processors.ux import (
+    CombinedPipeline,
+    InCollection,
+    InCollections,
+    InEntry,
+    Inputs,
+    NoInputs,
+    NoOutputs,
+    OutCollection,
+    OutCollections,
+    OutEntry,
+    Outputs,
+    Pipeline,
+    PipelineRunnerFactory,
+    Task,
+    UPipeline,
+    UTask,
+)
 
 from .mock_data import Array, Model
 
@@ -54,7 +70,7 @@ ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": Array, "acc": Array})
 
 
 class ModelEval(IProcess):
-    def __init__(self, model: Model) -> None:  # wblogger: WBLogger, sp: SparkClient
+    def __init__(self, model: Model) -> None:
         self.model = model
 
     def process(self, X: Array, Y: Array) -> ModelEvalOutput:
@@ -65,33 +81,7 @@ class ModelEval(IProcess):
 
 class ReportGenerator(IProcess):
     def process(self, acc: Array) -> None:
-        ...
-
-
-########
-
-# REGISTRY
-
-
-class SparkClient:
-    pass
-
-
-class WBLogger:
-    pass
-
-
-# @pytest.fixture
-# def params_registry() -> ParamsRegistry:
-#     registry = ParamsRegistry()
-#     registry.add(RegistryId("spark_client", SparkClient), SparkClient())
-#     registry.add(RegistryId("wb_logger", WBLogger), WBLogger())
-#     return registry
-
-
-@pytest.fixture
-def call_log() -> defaultdict[str, int]:
-    return defaultdict(int)
+        return
 
 
 ########
@@ -99,11 +89,56 @@ def call_log() -> defaultdict[str, int]:
 # ESTIMATORS
 
 
+class StzTrainIn(Inputs):
+    X: InEntry[Array]
+
+
+class StzTrainOut(Outputs):
+    mean: OutEntry[Array]
+    scale: OutEntry[Array]
+    Z: OutEntry[Array]
+
+
+class StzEvalIn(Inputs):
+    mean: InEntry[Array]
+    scale: InEntry[Array]
+
+
+class StzEvalOut(Outputs):
+    Z: OutEntry[Array]
+
+
+class TrainEvalArrayIn(InCollection[Array]):
+    train: InEntry[Array]
+    eval: InEntry[Array]
+
+
+class TrainEvalArrayOut(OutCollection[Array]):
+    train: OutEntry[Array]
+    eval: OutEntry[Array]
+
+
+class XIn(InCollections):
+    X: TrainEvalArrayIn
+
+
+class MeanScaleOut(Outputs):
+    mean: OutEntry[Array]
+    scale: OutEntry[Array]
+
+
+class ZOut(OutCollections):
+    Z: TrainEvalArrayOut
+
+
+StzPipeline = Pipeline[NoInputs, MeanScaleOut, XIn, ZOut]
+
+
 @pytest.fixture
-def standardization() -> Pipeline:
-    standardize_train = Task(StandardizeTrain, name="train")
-    standardize_eval = Task(StandardizeEval)
-    e = TrainAndEvalBuilders.build_when_train_also_evaluates(
+def standardization() -> StzPipeline:
+    standardize_train = Task[StzTrainIn, StzTrainOut](StandardizeTrain, name="train")
+    standardize_eval = Task[StzEvalIn, StzEvalOut](StandardizeEval)
+    return TrainAndEvalBuilders.build_when_train_also_evaluates(  # type: ignore[return-value]
         name="standardization",
         train_pl=standardize_train,
         eval_pl=standardize_eval,
@@ -112,25 +147,45 @@ def standardization() -> Pipeline:
             standardize_eval.inputs.scale << standardize_train.outputs.scale,
         ),
     )
-    return e
+
+
+class XYIn(InCollections):
+    X: TrainEvalArrayIn
+    Y: TrainEvalArrayIn
+
+
+class ModelOut(Outputs):
+    model: OutEntry[Model]
+
+
+class ProbsAccOut(OutCollections):
+    probs: TrainEvalArrayOut
+    acc: TrainEvalArrayOut
+
+
+LrPipeline = Pipeline[NoInputs, ModelOut, XYIn, ProbsAccOut]
 
 
 @pytest.fixture
-def logistic_regression() -> Pipeline:
-    model_train = Task(
-        ModelTrain,
-        name="train",
-        # io_managers={"model": IOManagerId("local")},
-        # serializers={"model": DataTypeId("model")},
-    )
-    model_eval = Task(ModelEval)
+def logistic_regression() -> LrPipeline:
+    model_train = UTask(ModelTrain, name="train")
+    model_eval = UTask(ModelEval)
 
-    e = TrainAndEvalBuilders.build_using_train_and_eval(
+    return TrainAndEvalBuilders.build_using_train_and_eval(  # type: ignore[return-value]
         name="logistic_regression",
         train_pl=model_train,
         eval_pl=model_eval,
     )
-    return e
+
+
+def mypy_static_checks(standardization: StzPipeline, logistic_regression: LrPipeline) -> None:
+    standardization.outputs.mean << logistic_regression.outputs.model  # type: ignore[operator]
+    standardization.inputs.noreturn << logistic_regression.outputs.model  # type: ignore[operator]
+    standardization.in_collections.X << logistic_regression.out_collections.acc  # ok
+    standardization.in_collections.X << logistic_regression.out_collections.acc.train  # type: ignore[operator]
+    logistic_regression.outputs.model >> standardization.in_collections.X  # type: ignore[operator]
+    logistic_regression.outputs.model >> standardization.in_collections.X.train  # type: ignore[operator]
+    standardization.outputs.mean >> standardization.in_collections.X.train  # ok
 
 
 #######
@@ -138,9 +193,18 @@ def logistic_regression() -> Pipeline:
 # STANDARDIZED LR PIPELINE
 
 
+class ModelMeanScaleOut(ModelOut, MeanScaleOut):
+    pass
+
+
+StzLrPipeline = Pipeline[NoInputs, ModelMeanScaleOut, XYIn, ProbsAccOut]
+
+
 @pytest.fixture
-def standardized_lr(standardization: Pipeline, logistic_regression: Pipeline) -> Pipeline:
-    e = CombinedPipeline(
+def standardized_lr(
+    standardization: StzPipeline, logistic_regression: LrPipeline
+) -> StzLrPipeline:
+    return CombinedPipeline(
         pipelines=[standardization, logistic_regression],
         inputs={"X": standardization.in_collections.X, "Y": logistic_regression.in_collections.Y},
         outputs={
@@ -153,25 +217,25 @@ def standardized_lr(standardization: Pipeline, logistic_regression: Pipeline) ->
         dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
         name="standardized_lr",
     )
-    return e
+
+
+class AccIn(Inputs):
+    acc: InEntry[Array]
 
 
 @pytest.fixture
-def report1() -> Pipeline:
-    return Task(ReportGenerator, "report1")
+def report1() -> Task[AccIn, NoOutputs]:
+    return Task[AccIn, NoOutputs](ReportGenerator, "report1")
 
 
 @pytest.fixture
-def report2() -> Pipeline:
-    return Task(ReportGenerator, "report2")
+def report2() -> Task[AccIn, NoOutputs]:
+    return Task[AccIn, NoOutputs](ReportGenerator, "report2")
 
 
-# # Commented b/c at least in the test setup we can't run this in the same process as
-# # test_standardized_lr_with_persistance.
-# # https://immunomics.visualstudio.com/Antigen%20Map%20Software/_workitems/edit/7698
 def test_standardized_lr(
     pipeline_runner_factory: PipelineRunnerFactory,
-    standardized_lr: Pipeline,
+    standardized_lr: UPipeline,
 ) -> None:
     standardized_lr = TrainAndEvalBuilders.with_multiple_eval_inputs(
         standardized_lr, eval_names=("eval_1", "eval_2")
@@ -220,7 +284,7 @@ def test_standardized_lr(
 def test_standardized_lr_with_persistance(
     pipeline_runner_factory: PipelineRunnerFactory,
     persist_fitted_eval_pipeline: IPersistFittedEvalPipeline,
-    standardized_lr: Pipeline,
+    standardized_lr: UPipeline,
     output_base_uri: str,
 ) -> None:
     standardized_lr = persist_fitted_eval_pipeline.with_persistance(standardized_lr)
@@ -278,18 +342,18 @@ def test_standardized_lr_with_persistance(
 
 
 def test_single_output_multiple_input(
-    standardized_lr: Pipeline, report1: Pipeline, report2: Pipeline
+    standardized_lr: UPipeline, report1: Task[AccIn, NoOutputs], report2: Task[AccIn, NoOutputs]
 ) -> None:
     standardized_lr = TrainAndEvalBuilders.with_multiple_eval_inputs(
         standardized_lr, eval_names=("eval_1", "eval_2")
     )
 
-    reports = CombinedPipeline(
+    reports: UPipeline = CombinedPipeline(
         pipelines=[report1, report2],
         name="reports",
         inputs={"acc": report1.inputs.acc | report2.inputs.acc},
     )
-    pl = CombinedPipeline(
+    pl: UPipeline = CombinedPipeline(
         pipelines=[standardized_lr, reports],
         name="pl",
         dependencies=(reports.inputs.acc << standardized_lr.out_collections.acc.eval_1,),
@@ -304,14 +368,14 @@ def test_single_output_multiple_input(
     assert set(pl.out_collections.acc) == set(("train", "eval_2"))
 
 
-def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline) -> None:
+def test_wiring_outputs(standardization: UPipeline, logistic_regression: UPipeline) -> None:
     standardization = TrainAndEvalBuilders.with_multiple_eval_inputs(
         standardization, eval_names=("eval_1", "eval_2")
     )
     logistic_regression = TrainAndEvalBuilders.with_multiple_eval_inputs(
         logistic_regression, eval_names=("eval_1", "eval_2")
     )
-    e = CombinedPipeline(
+    e: UPipeline = CombinedPipeline(
         pipelines=[standardization, logistic_regression],
         name="standardized_lr",
         dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
@@ -334,7 +398,7 @@ def test_wiring_outputs(standardization: Pipeline, logistic_regression: Pipeline
 
 # Fails on devops b/c the graphviz binary is not available.
 # TODO: install graphviz on build machines?
-# def test_viz(standardized_lr: Pipeline) -> None:
+# def test_viz(standardized_lr: UPipeline) -> None:
 #     pipeline_to_svg(standardized_lr)
 
 # test svg painting

@@ -21,25 +21,36 @@ Let `e` be an estimator object.
 from __future__ import annotations
 
 from itertools import chain
-from typing import Any, Sequence, final
+from typing import Any, Generic, Sequence, cast, final
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
 
-from ..ux import CombinedPipeline, DependencyOp, Pipeline, PipelineConf, UserOutput
+from ..ux import (
+    CombinedPipeline,
+    DependencyOp,
+    Pipeline,
+    PipelineConf,
+    TInCollections,
+    TInputs,
+    TOutCollections,
+    TOutputs,
+    UPipeline,
+    UserOutput,
+)
 from ..ux._utils import _parse_dependencies_to_list
 
 
 @final
-class Estimator(Pipeline):
+class Estimator(Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]):
     _config: EstimatorConf
 
     def __init__(
         self,
         name: str,
-        train_pl: Pipeline,
-        eval_pl: Pipeline,
-        dependencies: Sequence[DependencyOp] | None = None,
+        train_pl: UPipeline,
+        eval_pl: UPipeline,
+        dependencies: Sequence[DependencyOp[Any]] | None = None,
     ) -> None:
         dependencies = tuple(dependencies) if dependencies is not None else ()
         if not isinstance(name, str):
@@ -71,11 +82,11 @@ class Estimator(Pipeline):
         new_dps = tuple(dp_op.decorate("eval", "train") for dp_op in dependencies)
 
         # merge the `outputs` and `out_collections` of train and eval pipelines
-        outputs: UserOutput = dict(new_train.outputs | new_eval.outputs)
-        outputs |= dict(new_train.out_collections | new_eval.out_collections)
+        outputs: UserOutput = (new_train.outputs | new_eval.outputs)._asdict()
+        outputs |= (new_train.out_collections | new_eval.out_collections)._asdict()
 
         # combine all ingredients into a new pipeline
-        p = CombinedPipeline(
+        p: UPipeline = CombinedPipeline(
             pipelines=[new_train, new_eval],
             name=name,
             outputs=outputs,
@@ -89,7 +100,10 @@ class Estimator(Pipeline):
         config = EstimatorConf(
             name=name, train_pl=train_pl._config, eval_pl=eval_pl._config, dependencies=dp_confs
         )
-        super().__init__(other=p, config=config)
+        super().__init__(
+            other=cast(Pipeline[TInputs, TOutputs, TInCollections, TOutCollections], p),
+            config=config,
+        )
 
 
 @hydrated_dataclass(
@@ -107,13 +121,13 @@ class EstimatorConf(PipelineConf):
     dependencies: Any = None
 
 
-class EstimatorClient:
+class EstimatorClient(Generic[TInputs, TOutputs, TInCollections, TOutCollections]):
     @classmethod
     def estimator(
         cls,
         name: str,
-        train_pl: Pipeline,
-        eval_pl: Pipeline,
-        dependencies: Sequence[DependencyOp] | None = None,
-    ) -> Estimator:
+        train_pl: UPipeline,
+        eval_pl: UPipeline,
+        dependencies: Sequence[DependencyOp[Any]] | None = None,
+    ) -> Estimator[TInputs, TOutputs, TInCollections, TOutCollections]:
         return Estimator(name, train_pl, eval_pl, dependencies)

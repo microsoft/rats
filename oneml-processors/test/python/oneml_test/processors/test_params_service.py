@@ -1,6 +1,6 @@
 import pickle
 from dataclasses import dataclass
-from typing import Iterator, NoReturn, Sequence, TypedDict
+from typing import NoReturn, TypedDict
 
 import pytest
 from hydra_zen import ZenStore
@@ -13,7 +13,16 @@ from oneml.processors.services import (
     OnemlProcessorsServices,
     ParametersForTaskService,
 )
-from oneml.processors.ux import CombinedPipeline, Pipeline, Task
+from oneml.processors.ux import (
+    CombinedPipeline,
+    InEntry,
+    Inputs,
+    NoInputs,
+    OutEntry,
+    Outputs,
+    Task,
+    UPipeline,
+)
 
 LoadDataOut = TypedDict("LoadDataOut", {"data": float})
 AOut = TypedDict("AOut", {"Z": float})
@@ -46,18 +55,30 @@ class A(IProcess):
         return {"Z": X + self.num}
 
 
+class _LoadDataOutputs(Outputs):
+    data: OutEntry[float]
+
+
+class _AInputs(Inputs):
+    X: InEntry[float]
+
+
+class _AOutputs(Outputs):
+    Z: OutEntry[float]
+
+
 class PipelineProvider:
     _params_for_task: ParametersForTaskService
 
     def __init__(self, params_for_task: ParametersForTaskService) -> None:
         self._params_for_task = params_for_task
 
-    def __call__(self) -> Pipeline:
+    def __call__(self) -> UPipeline:
         data_cfg = self._params_for_task.get_config("data")
-        data = Task(LoadData, "data", config=data_cfg)
+        data = Task[NoInputs, _LoadDataOutputs](LoadData, "data", config=data_cfg)
 
         a_cfg = self._params_for_task.get_config("a")
-        a = Task(A, "a", config=a_cfg)
+        a = Task[_AInputs, _AOutputs](A, "a", config=a_cfg)
 
         return CombinedPipeline(
             pipelines=[data, a], name="test", dependencies=[a.inputs.X << data.outputs.data]
@@ -109,14 +130,14 @@ def get_hydra_context(data_num: int) -> HydraContext:
     return HydraContext(overrides=overrides)
 
 
-def get_pipeline(app: OnemlApp, pipeline_provider: PipelineProvider, data_num: int) -> Pipeline:
+def get_pipeline(app: OnemlApp, pipeline_provider: PipelineProvider, data_num: int) -> UPipeline:
     context = get_hydra_context(data_num)
     with app.open_context(OnemlProcessorsContexts.HYDRA, context):
         pipeline = pipeline_provider()
     return pipeline
 
 
-def verify_pipeline(pipeline: Pipeline, data_num: int) -> None:
+def verify_pipeline(pipeline: UPipeline, data_num: int) -> None:
     ex = {"name": "a", "num": 1, "example": ExampleObj()}
     assert dict(pipeline._dag.nodes[DagNode("a", "test")].config) == ex
     assert dict(pipeline._dag.nodes[DagNode("data", "test")].config) == {
@@ -135,8 +156,8 @@ def test_pipeline_config_service(app: OnemlApp, pipeline_provider: PipelineProvi
 def test_serialization(app: OnemlApp, pipeline_provider: PipelineProvider) -> None:
     pipeline = get_pipeline(app, pipeline_provider, 5)
     s = pickle.dumps(pipeline)
-    pipeline = pickle.loads(s)
-    verify_pipeline(pipeline, 5)
+    lpipeline: UPipeline = pickle.loads(s)
+    verify_pipeline(lpipeline, 5)
 
     with pytest.raises(RuntimeError):
         pickle.dumps(pipeline._dag.nodes[DagNode("a", "test")].config["example"])

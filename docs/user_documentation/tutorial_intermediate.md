@@ -12,7 +12,6 @@ complicated use cases.
 - [Defining Tasks](#defining-tasks)
   - [Constructor Parameters](#constructor-parameters)
   - [Dynamic Annotations](#dynamic-annotations)
-  - [IOManagers and Serializers](#iomanagers-and-serializers)
 - [Combining Pipelines](#combining-pipelines)
   - [Parameter Entries](#parameter-entries)
   - [Parameter Collections](#parameter-collections)

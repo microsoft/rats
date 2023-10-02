@@ -18,6 +18,7 @@ from omegaconf import MISSING
 from ..dag._utils import DAG, find_downstream_nodes
 from ..utils import frozendict, orderedset
 from ..ux import (
+    AnyPipeline,
     DependencyOp,
     InCollections,
     InEntry,
@@ -27,9 +28,9 @@ from ..ux import (
     OutEntry,
     OutParameter,
     Outputs,
-    Pipeline,
-    PipelineBuilder,
     PipelineConf,
+    UPipeline,
+    UPipelineBuilder,
 )
 from ..ux._utils import (
     _parse_dependencies_to_list,
@@ -40,7 +41,7 @@ from ..ux._utils import (
 )
 
 
-class ITrainAndEval(Pipeline):
+class ITrainAndEval(UPipeline):
     """
     A TrainAndEval is a pipeline that fits using train data and evaluates on that same train data
     and on a separate eval data.
@@ -56,9 +57,9 @@ class _TrainAndEval(ITrainAndEval):
     def __init__(
         self,
         name: str,
-        train_pl: Pipeline,
-        eval_pl: Pipeline,
-        second_eval_pl: Pipeline | None,
+        train_pl: UPipeline,
+        eval_pl: UPipeline,
+        second_eval_pl: UPipeline | None,
     ):
         # A config holding the parameters of this TrainAndEval.
         config = TrainAndEvalConf(
@@ -69,7 +70,7 @@ class _TrainAndEval(ITrainAndEval):
         )
 
         # A dictionary from dataset name to the corresponding eval pipeline.
-        eval_pls: Mapping[str, Pipeline] = {
+        eval_pls: Mapping[str, UPipeline] = {
             "eval": (second_eval_pl or eval_pl).decorate("eval"),
             "train": eval_pl.decorate("train"),
         }
@@ -86,7 +87,7 @@ class _TrainAndEval(ITrainAndEval):
         # ds_name entries.
         # Each non-collection input will become a single input of the combined pipeline.
 
-        evals_pl = PipelineBuilder.combine(
+        evals_pl = UPipelineBuilder.combine(
             name="eval",
             pipelines=tuple(eval_pls.values()),
         )
@@ -108,7 +109,7 @@ class _TrainAndEval(ITrainAndEval):
         # Input will be merged into the correct collections.
         # Outputs are combined as the fitted parameters in train_pl.outputs, the output collections
         # of evals_pl, and the single entry "train" in the output collections of train_pl.
-        pipeline = PipelineBuilder.combine(
+        pipeline = UPipelineBuilder.combine(
             name=name,
             pipelines=[train_pl, evals_pl],
             dependencies=tuple(
@@ -154,9 +155,9 @@ class _TrainAndEvalWhenTrainAlsoEvaluates(ITrainAndEval):
     def __init__(
         self,
         name: str,
-        train_pl: Pipeline,
-        eval_pl: Pipeline,
-        dependencies: Sequence[DependencyOp],
+        train_pl: AnyPipeline,
+        eval_pl: AnyPipeline,
+        dependencies: Sequence[DependencyOp[Any]],
     ):
         # A config holding the parameters of this TrainAndEval.
         dp_confs = {
@@ -210,7 +211,7 @@ class _TrainAndEvalWhenTrainAlsoEvaluates(ITrainAndEval):
         # Input will be merged into the correct collections.
         # Outputs are combined as the fitted parameters in train_pl.outputs, the output collections
         # of evals_pl, and the single entry "train" in the output collections of train_pl.
-        pipeline = PipelineBuilder.combine(
+        pipeline = UPipelineBuilder.combine(
             name=name,
             pipelines=[train_pl, eval_pl],
             dependencies=tuple(
@@ -271,10 +272,10 @@ class TrainAndEvalBuilders:
     def build_when_train_also_evaluates(
         cls,
         name: str,
-        train_pl: Pipeline,
-        eval_pl: Pipeline,
-        dependencies: Sequence[DependencyOp] = (),
-    ) -> Pipeline:
+        train_pl: AnyPipeline,
+        eval_pl: AnyPipeline,
+        dependencies: Sequence[DependencyOp[Any]] = (),
+    ) -> UPipeline:
         """Builds a TrainAndEval pipeline when the train pipeline also evaluates train data.
 
         Args:
@@ -320,10 +321,10 @@ class TrainAndEvalBuilders:
     def build_using_train_and_two_evals(
         cls,
         name: str,
-        train_pl: Pipeline,
-        train_eval_pl: Pipeline,
-        eval_eval_pl: Pipeline,
-    ) -> Pipeline:
+        train_pl: AnyPipeline,
+        train_eval_pl: AnyPipeline,
+        eval_eval_pl: AnyPipeline,
+    ) -> UPipeline:
         """Builds a TrainAndEval pipeline, using different eval pipelines for train and eval data.
 
         Args:
@@ -372,9 +373,9 @@ class TrainAndEvalBuilders:
     def build_using_train_and_eval(
         cls,
         name: str,
-        train_pl: Pipeline,
-        eval_pl: Pipeline,
-    ) -> Pipeline:
+        train_pl: AnyPipeline,
+        eval_pl: AnyPipeline,
+    ) -> UPipeline:
         """Builds a TrainAndEval pipeline from a fit pipeline and an eval pipeline.
 
         Args:
@@ -421,9 +422,9 @@ class TrainAndEvalBuilders:
     @classmethod
     def with_multiple_eval_inputs(
         cls,
-        pipeline: Pipeline,
+        pipeline: AnyPipeline,
         eval_names: Tuple[str, ...],
-    ) -> Pipeline:
+    ) -> UPipeline:
         """Builds a pipeline accepting multiple eval inputs from a TrainAndEval pipeline."""
         train_pl, eval_pl = cls.split_pipeline(pipeline)
         eval_pls = [
@@ -434,10 +435,10 @@ class TrainAndEvalBuilders:
             )
             for eval_name in eval_names
         ]
-        # Note: we need to specify outputs because there's a bug in the way PipelineBuilder.combine
+        # Note: we need to specify outputs because there's a bug in the way UPipelineBuilder.combine
         # builds the default outputs.
         # See oneml_test.processors.test_pipeline_userio.test_combine_outputs.
-        p = PipelineBuilder.combine(
+        p = UPipelineBuilder.combine(
             name=pipeline.name,
             pipelines=[train_pl] + eval_pls,
             dependencies=tuple(
@@ -466,8 +467,8 @@ class TrainAndEvalBuilders:
     @classmethod
     def split_pipeline(
         cls,
-        train_and_eval_pl: Pipeline,
-    ) -> tuple[Pipeline, Pipeline]:
+        train_and_eval_pl: AnyPipeline,
+    ) -> tuple[UPipeline, UPipeline]:
         """Splits a TrainAndEval pipeline into a train pipeline and an eval pipeline.
 
         Args:
@@ -502,11 +503,11 @@ class TrainAndEvalBuilders:
                 ioc = train_and_eval_pl.out_collections
             if "fitted" in io or "fitted" in ioc:
                 raise ValueError(
-                    f"Pipeline already has a `fitted` {iol}.  Please rename it because "
+                    f"UPipeline already has a `fitted` {iol}.  Please rename it because "
                     f"we need it for the {iol}s of the {pll} pipeline."
                 )
             train_and_eval_entry_names = frozenset(("train", "eval"))
-            for collection_name, collection in ioc.items():
+            for collection_name, collection in ioc._asdict().items():
                 entry_names = frozenset(collection)
                 intersection = entry_names & train_and_eval_entry_names
                 if intersection:
@@ -526,8 +527,8 @@ class TrainAndEvalBuilders:
                 train_and_eval_pl._dag,
                 (
                     in_param.node
-                    for collection in train_and_eval_pl.in_collections.values()
-                    for entry_name, entry in collection.items()
+                    for collection in train_and_eval_pl.in_collections._asdict().values()
+                    for entry_name, entry in collection._asdict().items()
                     if entry_name == "eval"
                     for in_param in entry
                 ),
@@ -557,8 +558,8 @@ class TrainAndEvalBuilders:
         train_dag = DAG(nodes=train_nodes, dependencies=train_dependencies)
 
         fitted_param_names = defaultdict[str, int](int)
-        fitted_outputs = dict[str, OutParameter]()
-        fitted_inputs = defaultdict[str, list[InParameter]](list)
+        fitted_outputs = dict[str, OutParameter[Any]]()
+        fitted_inputs = defaultdict[str, list[InParameter[Any]]](list)
         for node, dependencies in train_and_eval_pl._dag.dependencies.items():
             for dependency in dependencies:
                 if node in eval_nodes and dependency.node in train_nodes:
@@ -569,13 +570,13 @@ class TrainAndEvalBuilders:
                     copy_number = fitted_param_names[source_param.name]
                     fitted_param_names[source_param.name] = copy_number + 1
                     entry_name = f"{source_param.name}_{copy_number}"
-                    fitted_outputs[entry_name] = OutParameter(source_node, source_param)
-                    fitted_inputs[entry_name].append(InParameter(target_node, target_param))
+                    fitted_outputs[entry_name] = OutParameter[Any](source_node, source_param)
+                    fitted_inputs[entry_name].append(InParameter[Any](target_node, target_param))
 
-        def is_train_param(param: InParameter | OutParameter) -> bool:
+        def is_train_param(param: InParameter[Any] | OutParameter[Any]) -> bool:
             return param.node in train_nodes
 
-        def is_eval_param(param: InParameter | OutParameter) -> bool:
+        def is_eval_param(param: InParameter[Any] | OutParameter[Any]) -> bool:
             return param.node in eval_nodes
 
         eval_inputs = filter_inputs(train_and_eval_pl.inputs, is_eval_param)
@@ -589,7 +590,7 @@ class TrainAndEvalBuilders:
             train_and_eval_pl.out_collections, is_eval_param
         )
 
-        eval_pl = Pipeline(
+        eval_pl = UPipeline(
             name=train_and_eval_pl.name,
             dag=eval_dag,
             inputs=eval_inputs,
@@ -613,7 +614,7 @@ class TrainAndEvalBuilders:
                 }
             )
         ) | filter_out_collections(train_and_eval_pl.out_collections, is_train_param)
-        train_pl = Pipeline(
+        train_pl = UPipeline(
             name=train_and_eval_pl.name,
             dag=train_dag,
             inputs=train_inputs,

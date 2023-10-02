@@ -5,7 +5,7 @@ from furl import furl
 
 from oneml.io import IWriteData, RWDataUri
 from oneml.pipelines.session import OnemlSessionContexts
-from oneml.processors.ux import Pipeline, PipelineBuilder
+from oneml.processors.ux import UPipeline, UPipelineBuilder
 from oneml.services import IGetContexts, IProvideServices, ServiceId
 from .type_rw_mappers import IGetWriteServicesForType
 
@@ -45,7 +45,7 @@ class WriteToUriProcessor(WriteToUriProcessorBase[DataType]):
 
 class IWriteToUriPipelineBuilder(Protocol):
     @abstractmethod
-    def build(self, uri: str, data_type: type[DataType]) -> Pipeline:
+    def build(self, uri: str, data_type: type[DataType]) -> UPipeline:
         ...
 
 
@@ -61,9 +61,9 @@ class WriteToUriPipelineBuilder(IWriteToUriPipelineBuilder):
         self._service_provider_service_id = service_provider_service_id
         self._get_write_services_for_type = get_write_services_for_type
 
-    def build(self, uri: str, data_type: type[DataType]) -> Pipeline:
+    def build(self, uri: str, data_type: type[DataType]) -> UPipeline:
         write_service_ids = self._get_write_services_for_type.get_write_service_ids(data_type)
-        task = PipelineBuilder.task(
+        task = UPipelineBuilder.task(
             processor_type=WriteToUriProcessor,
             config=dict(uri=RWDataUri(uri), write_service_ids=write_service_ids),
             services=dict(service_provider=self._service_provider_service_id),
@@ -89,7 +89,7 @@ class WriteToNodeBasedUriProcessor(WriteToUriProcessorBase[DataType]):
 
 class IWriteToNodeBasedUriPipelineBuilder(Protocol):
     @abstractmethod
-    def build(self, data_type: type[DataType], node_name: str) -> Pipeline:
+    def build(self, data_type: type[DataType], node_name: str) -> UPipeline:
         ...
 
 
@@ -111,9 +111,9 @@ class WriteToNodeBasedUriPipelineBuilder(IWriteToNodeBasedUriPipelineBuilder):
         self._context_provider_service_id = context_provider_service_id
         self._get_write_services_for_type = get_write_services_for_type
 
-    def build(self, data_type: type[DataType], node_name: str) -> Pipeline:
+    def build(self, data_type: type[DataType], node_name: str) -> UPipeline:
         write_service_ids = self._get_write_services_for_type.get_write_service_ids(data_type)
-        task = PipelineBuilder.task(
+        task = UPipelineBuilder.task(
             name=node_name,
             processor_type=WriteToNodeBasedUriProcessor,
             config=dict(

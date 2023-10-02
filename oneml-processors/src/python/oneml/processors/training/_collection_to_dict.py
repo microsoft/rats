@@ -1,6 +1,6 @@
 from typing import Any, Mapping, Set, TypedDict, overload
 
-from ..ux import Pipeline, Task
+from ..ux import UPipeline, UTask
 
 
 class InputsToDict:
@@ -20,7 +20,7 @@ class CollectionToDictBuilder:
         *,
         entries: Set[str],
         element_type: type,
-    ) -> Pipeline:
+    ) -> UPipeline:
         """Convert a collection input into a dictionary output.
 
         Builds a pipeline that takes a single collection input and outputs a single simple output.
@@ -41,7 +41,7 @@ class CollectionToDictBuilder:
         collection_name: str,
         *,
         entries_to_types: Mapping[str, type],
-    ) -> Pipeline:
+    ) -> UPipeline:
         """Convert a collection input into a dictionary output.
 
         Builds a pipeline that takes a single collection input and outputs a single simple output.
@@ -63,7 +63,7 @@ class CollectionToDictBuilder:
         entries: Set[str] | None = None,
         element_type: type | None = None,
         entries_to_types: Mapping[str, type] | None = None,
-    ) -> Pipeline:
+    ) -> UPipeline:
         if entries_to_types is None:
             assert entries is not None
             assert element_type is not None
@@ -72,14 +72,14 @@ class CollectionToDictBuilder:
             assert entries is None
             assert element_type is None
         output_type = TypedDict(collection_name, entries_to_types)  # type: ignore[misc]
-        task = Task(
+        task = UTask(
             processor_type=InputsToDict,
             name="collect",
             config=dict(output_name=collection_name),
             input_annotation=entries_to_types,
             return_annotation={collection_name: output_type},
         )
-        pipeline = task.rename_inputs(
+        pipeline: UPipeline = task.rename_inputs(
             {entry: f"{collection_name}.{entry}" for entry in entries_to_types}
         )
         return pipeline
