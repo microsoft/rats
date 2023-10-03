@@ -179,6 +179,7 @@ def logistic_regression() -> LrPipeline:
 
 
 def mypy_static_checks(standardization: StzPipeline, logistic_regression: LrPipeline) -> None:
+    """Does not run; used to test mypy static checks."""
     standardization.outputs.mean << logistic_regression.outputs.model  # type: ignore[operator]
     standardization.inputs.noreturn << logistic_regression.outputs.model  # type: ignore[operator]
     standardization.in_collections.X << logistic_regression.out_collections.acc  # ok

@@ -28,7 +28,6 @@ from ._ops import (
     PipelinePortConf,
 )
 from ._pipeline import (
-    AnyPipeline,
     InCollection,
     InCollections,
     InEntry,
@@ -76,7 +75,6 @@ __all__ = [
     "PipelineDependencyOpConf",
     "PipelinePortConf",
     "UPipeline",
-    "AnyPipeline",
     "InCollection",
     "InCollections",
     "InEntry",

@@ -236,6 +236,8 @@ class namedcollection(Generic[T_co]):
                     new_v = d[ok_split[0]].__class__(**{nk_split[1]: d[ok_split[0]][ok_split[1]]})  # type: ignore
                     d[nk_split[0]] = new_v if nk_split[0] not in d else d[nk_split[0]] | new_v  # type: ignore
                     d[ok_split[0]] -= (ok_split[1],)  # type: ignore
+                    if len(d[ok_split[0]]) == 0:  # type: ignore[arg-type]
+                        d.pop(ok_split[0])
             else:
                 raise ValueError(f"Cannot rename {ok} to {nk}.")
         return self.__class__(**d)

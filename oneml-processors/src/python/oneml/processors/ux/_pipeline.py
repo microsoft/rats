@@ -175,12 +175,12 @@ Inputs = InCollection[Any]
 Outputs = OutCollection[Any]
 
 
-class NoInputs(InCollection[Any]):
+class NoInputs(Inputs):
     def __getattr__(self, key: str) -> NoReturn:
         raise KeyError(f"Inputs has no attribute {key}.")
 
 
-class NoOutputs(OutCollection[Any]):
+class NoOutputs(Outputs):
     def __getattr__(self, key: str) -> NoReturn:
         raise KeyError(f"Outputs has no attribute {key}.")
 
@@ -231,15 +231,13 @@ class OutCollections(IOCollections[OutCollection[Any]]):
 
 
 class NoInCollections(InCollections):
-    pass
-    # def __getattr__(self, key: str) -> NoReturn:
-    #     raise KeyError(f"InCollections has no attribute {key}.")
+    def __getattr__(self, key: str) -> NoReturn:
+        raise KeyError(f"InCollections has no attribute {key}.")
 
 
 class NoOutCollections(OutCollections):
-    pass
-    # def __getattr__(self, key: str) -> NoReturn:
-    #     raise KeyError(f"OutCollections has no attribute {key}.")
+    def __getattr__(self, key: str) -> NoReturn:
+        raise KeyError(f"OutCollections has no attribute {key}.")
 
 
 @dataclass
@@ -247,10 +245,10 @@ class PipelineConf:
     ...
 
 
-TInputs = TypeVar("TInputs", bound=InCollection[Any])
-TOutputs = TypeVar("TOutputs", bound=OutCollection[Any])
-TInCollections = TypeVar("TInCollections", bound=InCollections)
-TOutCollections = TypeVar("TOutCollections", bound=OutCollections)
+TInputs = TypeVar("TInputs", bound=Inputs, covariant=True)
+TOutputs = TypeVar("TOutputs", bound=Outputs, covariant=True)
+TInCollections = TypeVar("TInCollections", bound=InCollections, covariant=True)
+TOutCollections = TypeVar("TOutCollections", bound=OutCollections, covariant=True)
 
 
 class Pipeline(Generic[TInputs, TOutputs, TInCollections, TOutCollections]):
@@ -517,4 +515,3 @@ class Pipeline(Generic[TInputs, TOutputs, TInCollections, TOutCollections]):
 
 
 UPipeline = Pipeline[Inputs, Outputs, InCollections, OutCollections]
-AnyPipeline = Pipeline[Any, Any, Any, Any]

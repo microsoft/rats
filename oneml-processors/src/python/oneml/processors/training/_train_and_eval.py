@@ -18,7 +18,7 @@ from omegaconf import MISSING
 from ..dag._utils import DAG, find_downstream_nodes
 from ..utils import frozendict, orderedset
 from ..ux import (
-    AnyPipeline,
+    UPipeline,
     DependencyOp,
     InCollections,
     InEntry,
@@ -155,8 +155,8 @@ class _TrainAndEvalWhenTrainAlsoEvaluates(ITrainAndEval):
     def __init__(
         self,
         name: str,
-        train_pl: AnyPipeline,
-        eval_pl: AnyPipeline,
+        train_pl: UPipeline,
+        eval_pl: UPipeline,
         dependencies: Sequence[DependencyOp[Any]],
     ):
         # A config holding the parameters of this TrainAndEval.
@@ -272,8 +272,8 @@ class TrainAndEvalBuilders:
     def build_when_train_also_evaluates(
         cls,
         name: str,
-        train_pl: AnyPipeline,
-        eval_pl: AnyPipeline,
+        train_pl: UPipeline,
+        eval_pl: UPipeline,
         dependencies: Sequence[DependencyOp[Any]] = (),
     ) -> UPipeline:
         """Builds a TrainAndEval pipeline when the train pipeline also evaluates train data.
@@ -321,9 +321,9 @@ class TrainAndEvalBuilders:
     def build_using_train_and_two_evals(
         cls,
         name: str,
-        train_pl: AnyPipeline,
-        train_eval_pl: AnyPipeline,
-        eval_eval_pl: AnyPipeline,
+        train_pl: UPipeline,
+        train_eval_pl: UPipeline,
+        eval_eval_pl: UPipeline,
     ) -> UPipeline:
         """Builds a TrainAndEval pipeline, using different eval pipelines for train and eval data.
 
@@ -373,8 +373,8 @@ class TrainAndEvalBuilders:
     def build_using_train_and_eval(
         cls,
         name: str,
-        train_pl: AnyPipeline,
-        eval_pl: AnyPipeline,
+        train_pl: UPipeline,
+        eval_pl: UPipeline,
     ) -> UPipeline:
         """Builds a TrainAndEval pipeline from a fit pipeline and an eval pipeline.
 
@@ -422,7 +422,7 @@ class TrainAndEvalBuilders:
     @classmethod
     def with_multiple_eval_inputs(
         cls,
-        pipeline: AnyPipeline,
+        pipeline: UPipeline,
         eval_names: Tuple[str, ...],
     ) -> UPipeline:
         """Builds a pipeline accepting multiple eval inputs from a TrainAndEval pipeline."""
@@ -467,7 +467,7 @@ class TrainAndEvalBuilders:
     @classmethod
     def split_pipeline(
         cls,
-        train_and_eval_pl: AnyPipeline,
+        train_and_eval_pl: UPipeline,
     ) -> tuple[UPipeline, UPipeline]:
         """Splits a TrainAndEval pipeline into a train pipeline and an eval pipeline.
 

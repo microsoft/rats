@@ -26,6 +26,8 @@ from ._pipeline import (
     OutParameter,
     Outputs,
     ParamCollection,
+    NoInCollections,
+    NoOutCollections,
     ParamEntry,
     Pipeline,
     PipelineConf,
@@ -53,9 +55,7 @@ UserOutput: TypeAlias = UserIO[OutEntry[Any], Outputs]
 
 
 @final
-class Task(
-    Pipeline[TInputs, TOutputs, InCollections, OutCollections]
-):  # InCollections, OutCollections types could be more precise
+class Task(Pipeline[TInputs, TOutputs, NoInCollections, NoOutCollections]):
     _config: TaskConf
 
     def __init__(

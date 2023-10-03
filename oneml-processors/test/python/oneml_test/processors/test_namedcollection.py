@@ -112,6 +112,9 @@ def test_recursive_nameset_sub() -> None:
         {"foo": 1, "boo": 2, "bar": n2 - ("bur",), "hey": 4, "bee": 2, "bur": 3}
     )
 
+    n10 = n3 - ("bar.foo", "bar.bee", "bar.bur", "bar.hey")
+    assert n10 == namedcollection({"foo": 1, "boo": 2, "hey": 4, "bee": 2, "bur": 3})
+
 
 def test_namedcollection_rename() -> None:
     n1 = namedcollection({"foo": 1, "boo": 2, "bar": 3, "hey": 4})
@@ -145,6 +148,16 @@ def test_namedcollection_rename() -> None:
             "bar2": n2._rename({"bee": "bee2"}) - ("foo", "bur", "hey"),
         }
     )
+
+    n8 = n3._rename(
+        {
+            "bar.foo": "bar2.foo",
+            "bar.bee": "bar2.bee",
+            "bar.bur": "bar2.bur",
+            "bar.hey": "bar2.hey",
+        }
+    )
+    assert n8 == namedcollection({"foo": 1, "boo": 2, "bar2": n2, "hey": 4, "bee": 2, "bur": 3})
 
 
 def test_namedcollection_find() -> None:

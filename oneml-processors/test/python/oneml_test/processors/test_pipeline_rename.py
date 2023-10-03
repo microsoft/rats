@@ -113,6 +113,13 @@ def test_IOCollections_rename_and_merge_with_multiple_entries(stz: UPipeline) ->
     assert stz.in_collections.X.train == pipeline1.in_collections.X0.train0
     assert stz.in_collections.X.eval == pipeline1.in_collections.X.eval
 
+    # Inputs.InEntry -> Inputs.InEntry
+    pipeline1 = stz.rename_inputs({"X.train": "X0.train0", "X.eval": "X0.eval0"})
+    assert stz.in_collections.X.train == pipeline1.in_collections.X0.train0
+    assert stz.in_collections.X.eval == pipeline1.in_collections.X0.eval0
+    with pytest.raises(AttributeError):
+        pipeline1.in_collections.X
+
     # Inputs.InEntry -> InEntry
     pipeline1 = stz.rename_inputs({"X.train": "X0"})
     assert stz.in_collections.X.train == pipeline1.inputs.X0

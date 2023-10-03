@@ -11,11 +11,6 @@ if TYPE_CHECKING:
         OutCollections,
         OutEntry,
         Outputs,
-        Pipeline,
-        TInCollections,
-        TInputs,
-        TOutCollections,
-        TOutputs,
         UPipeline,
     )
 
@@ -60,12 +55,12 @@ def _verify_input_entry(in_name: str, in_entry: InEntry[Any], dag: DAG) -> None:
             )
 
 
-def _verify_pipeline_inputs(inputs: TInputs, dag: DAG) -> None:
+def _verify_pipeline_inputs(inputs: Inputs, dag: DAG) -> None:
     for in_name, in_entry in inputs._asdict().items():
         _verify_input_entry(in_name, in_entry, dag)
 
 
-def _verify_pipeline_in_collections(in_collections: TInCollections, dag: DAG) -> None:
+def _verify_pipeline_in_collections(in_collections: InCollections, dag: DAG) -> None:
     for col_name, collection in in_collections._asdict().items():
         for in_name, in_entry in collection._asdict().items():
             _verify_input_entry(f"{col_name}.{in_name}", in_entry, dag)
@@ -89,19 +84,19 @@ def _verify_output_entry(out_name: str, out_entry: OutEntry[Any], dag: DAG) -> N
             )
 
 
-def _verify_pipeline_outputs(outputs: TOutputs, dag: DAG) -> None:
+def _verify_pipeline_outputs(outputs: Outputs, dag: DAG) -> None:
     for out_name, out_entry in outputs._asdict().items():
         _verify_output_entry(out_name, out_entry, dag)
 
 
-def _verify_pipeline_out_collections(out_collections: TOutCollections, dag: DAG) -> None:
+def _verify_pipeline_out_collections(out_collections: OutCollections, dag: DAG) -> None:
     for col_name, collection in out_collections._asdict().items():
         for out_name, out_entry in collection._asdict().items():
             _verify_output_entry(f"{col_name}.{out_name}", out_entry, dag)
 
 
 def verify_pipeline_integrity(
-    pipeline: Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]
+    pipeline: UPipeline
 ) -> None:
     _verify_dag_integrity(pipeline._dag)
     _verify_pipeline_name(pipeline.name, pipeline._dag)
