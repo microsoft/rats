@@ -8,7 +8,7 @@ from oneml.services import ServiceId, scoped_service_ids
 
 
 @scoped_service_ids
-class OnemlHabitatsIoServices:
+class OnemlHabitatsIoRwServices:
     NUMPY_LOCAL_READER = ServiceId[IReadData[npt.ArrayLike]]("numpy-local-rw")
     NUMPY_LOCAL_WRITER = ServiceId[IWriteData[npt.ArrayLike]]("numpy-local-rw")
 
@@ -22,3 +22,5 @@ class OnemlHabitatsIoServices:
     PANDAS_BLOB_WRITER = ServiceId[IWriteData[pd.DataFrame]]("pandas-blob-writer")
     DILL_BLOB_READER = ServiceId[IReadData[Any]]("dill-blob-reader")
     DILL_BLOB_WRITER = ServiceId[IWriteData[Any]]("dill-blob-writer")
+    JSON_BLOB_READER = ServiceId[IReadData[Any]]("json-blob-reader")
+    JSON_BLOB_WRITER = ServiceId[IWriteData[Any]]("json-blob-writer")

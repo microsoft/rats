@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Generic, Mapping, Protocol, TypeVar, TypedDict
+from typing import Any, Generic, Mapping, Protocol, TypedDict, TypeVar
 
 from furl import furl
 
@@ -7,6 +7,7 @@ from oneml.io import IWriteData, RWDataUri
 from oneml.pipelines.session import OnemlSessionContexts
 from oneml.processors.ux import UPipeline, UPipelineBuilder
 from oneml.services import IGetContexts, IProvideServices, ServiceId
+
 from .type_rw_mappers import IGetWriteServicesForType
 
 DataType = TypeVar("DataType")
@@ -14,38 +15,34 @@ DataType = TypeVar("DataType")
 WriteToUriProcessorOutput = TypedDict("WriteToUriProcessorOutput", {"uri": str})
 
 
-class WriteToUriProcessorBase(Generic[DataType]):
+class WriteToUriProcessor(Generic[DataType]):
     _service_provider: IProvideServices
     _write_service_ids: Mapping[str, ServiceId[IWriteData[DataType]]]
-    _uri: RWDataUri
+    _uri: str
 
     def __init__(
         self,
         service_provider: IProvideServices,
         write_service_ids: Mapping[str, ServiceId[IWriteData[DataType]]],
-        uri: RWDataUri,
+        uri: str,
     ) -> None:
         self._service_provider = service_provider
         self._write_service_ids = write_service_ids
         self._uri = uri
 
     def process(self, data: DataType) -> WriteToUriProcessorOutput:
-        scheme = furl(self._uri.uri).scheme
+        scheme = furl(self._uri).scheme
         write_service_id = self._write_service_ids.get(scheme, None)
         if write_service_id is None:
             raise ValueError(f"Unsupported scheme: {scheme}")
         writer = self._service_provider.get_service(write_service_id)
-        writer.write(self._uri, data)
-        return WriteToUriProcessorOutput(uri=self._uri.uri)
-
-
-class WriteToUriProcessor(WriteToUriProcessorBase[DataType]):
-    pass
+        writer.write(RWDataUri(self._uri), data)
+        return WriteToUriProcessorOutput(uri=self._uri)
 
 
 class IWriteToUriPipelineBuilder(Protocol):
     @abstractmethod
-    def build(self, uri: str, data_type: type[DataType]) -> UPipeline:
+    def build(self, data_type: type[DataType], uri: str | None = None) -> UPipeline:
         ...
 
 
@@ -61,35 +58,85 @@ class WriteToUriPipelineBuilder(IWriteToUriPipelineBuilder):
         self._service_provider_service_id = service_provider_service_id
         self._get_write_services_for_type = get_write_services_for_type
 
-    def build(self, uri: str, data_type: type[DataType]) -> UPipeline:
+    def build(self, data_type: type[DataType], uri: str | None = None) -> UPipeline:
         write_service_ids = self._get_write_services_for_type.get_write_service_ids(data_type)
         task = UPipelineBuilder.task(
             processor_type=WriteToUriProcessor,
-            config=dict(uri=RWDataUri(uri), write_service_ids=write_service_ids),
+            config={
+                k: v
+                for k, v in dict(
+                    write_service_ids=write_service_ids,
+                    uri=uri,
+                ).items()
+                if v is not None
+            },
             services=dict(service_provider=self._service_provider_service_id),
         )
         return task
 
 
-class WriteToNodeBasedUriProcessor(WriteToUriProcessorBase[DataType]):
+class ComputeOutputUriFromRelativePathProcessor:
     def __init__(
         self,
-        service_provider: IProvideServices,
-        context_provider: IGetContexts,
-        write_service_ids: Mapping[str, ServiceId[IWriteData[DataType]]],
+        relative_path: str,
         output_base_uri: str,
+    ):
+        self._relative_path = relative_path
+        self._output_base_uri = output_base_uri
+
+    def process(self) -> WriteToUriProcessorOutput:
+        uri = str(furl(self._output_base_uri) / self._relative_path)
+        return WriteToUriProcessorOutput(uri=uri)
+
+
+class IWriteToRelativePathPipelineBuilder(Protocol):
+    @abstractmethod
+    def build(self, data_type: type[DataType], relative_path: str) -> UPipeline:
+        ...
+
+
+class WriteToRelativePathPipelineBuilder(IWriteToRelativePathPipelineBuilder):
+    _write_to_uri_pipeline_builder: IWriteToUriPipelineBuilder
+
+    def __init__(
+        self,
+        write_to_uri_pipeline_builder: IWriteToUriPipelineBuilder,
     ) -> None:
-        session_id = context_provider.get_context(OnemlSessionContexts.PIPELINE).id
-        node_id = context_provider.get_context(OnemlSessionContexts.NODE).key
-        uri = RWDataUri(str(furl(output_base_uri) / f"{session_id}/{node_id}"))
-        super().__init__(
-            service_provider=service_provider, write_service_ids=write_service_ids, uri=uri
+        self._write_to_uri_pipeline_builder = write_to_uri_pipeline_builder
+
+    def build(self, data_type: type[DataType], relative_path: str) -> UPipeline:
+        compute_uri = UPipelineBuilder.task(
+            processor_type=ComputeOutputUriFromRelativePathProcessor,
+            config=dict(relative_path=relative_path),
         )
+        write = self._write_to_uri_pipeline_builder.build(data_type)
+        pl = UPipelineBuilder.combine(
+            [compute_uri, write],
+            name="write_to_relative_path",
+            dependencies=(compute_uri.outputs.uri >> write.inputs.uri,),
+        )
+        return pl
+
+
+class ComputeNodeBasedOutputUriProcessor:
+    def __init__(
+        self,
+        context_provider: IGetContexts,
+        output_base_uri: str,
+    ):
+        self._context_provider = context_provider
+        self._output_base_uri = output_base_uri
+
+    def process(self) -> WriteToUriProcessorOutput:
+        session_id = self._context_provider.get_context(OnemlSessionContexts.PIPELINE).id
+        node_id = self._context_provider.get_context(OnemlSessionContexts.NODE).key
+        uri = str(furl(self._output_base_uri) / f"{session_id}/{node_id}")
+        return WriteToUriProcessorOutput(uri=uri)
 
 
 class IWriteToNodeBasedUriPipelineBuilder(Protocol):
     @abstractmethod
-    def build(self, data_type: type[DataType], node_name: str) -> UPipeline:
+    def build(self, data_type: type[DataType]) -> UPipeline:
         ...
 
 
@@ -97,31 +144,26 @@ T_IGetContexts = TypeVar("T_IGetContexts", bound=IGetContexts)
 
 
 class WriteToNodeBasedUriPipelineBuilder(IWriteToNodeBasedUriPipelineBuilder):
-    _service_provider_service_id: ServiceId[IProvideServices]
+    _write_to_uri_pipeline_builder: IWriteToUriPipelineBuilder
     _context_provider_service_id: ServiceId[Any]
-    _get_write_services_for_type: IGetWriteServicesForType
 
     def __init__(
         self,
-        service_provider_service_id: ServiceId[IProvideServices],
+        write_to_uri_pipeline_builder: IWriteToUriPipelineBuilder,
         context_provider_service_id: ServiceId[T_IGetContexts],
-        get_write_services_for_type: IGetWriteServicesForType,
     ) -> None:
-        self._service_provider_service_id = service_provider_service_id
+        self._write_to_uri_pipeline_builder = write_to_uri_pipeline_builder
         self._context_provider_service_id = context_provider_service_id
-        self._get_write_services_for_type = get_write_services_for_type
 
-    def build(self, data_type: type[DataType], node_name: str) -> UPipeline:
-        write_service_ids = self._get_write_services_for_type.get_write_service_ids(data_type)
-        task = UPipelineBuilder.task(
-            name=node_name,
-            processor_type=WriteToNodeBasedUriProcessor,
-            config=dict(
-                write_service_ids=write_service_ids,
-            ),
-            services=dict(
-                service_provider=self._service_provider_service_id,
-                context_provider=self._context_provider_service_id,
-            ),
+    def build(self, data_type: type[DataType]) -> UPipeline:
+        compute_uri = UPipelineBuilder.task(
+            processor_type=ComputeNodeBasedOutputUriProcessor,
+            services=dict(context_provider=self._context_provider_service_id),
         )
-        return task
+        write = self._write_to_uri_pipeline_builder.build(data_type)
+        pl = UPipelineBuilder.combine(
+            [compute_uri, write],
+            name="write_to_node_based_uri",
+            dependencies=(compute_uri.outputs.uri >> write.inputs.uri,),
+        )
+        return pl

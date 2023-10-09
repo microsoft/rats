@@ -6,12 +6,7 @@ from typing import Any, Iterator
 import pytest
 
 from oneml.app import OnemlApp
-from oneml.processors.services import (
-    OnemlProcessorsContexts,
-    OnemlProcessorsServices,
-    ParametersForTaskService,
-    PipelineConfigService,
-)
+from oneml.processors.services import OnemlProcessorsServices, PipelineConfigService
 from oneml.processors.training import IPersistFittedEvalPipeline
 from oneml.processors.ux import PipelineRunnerFactory
 

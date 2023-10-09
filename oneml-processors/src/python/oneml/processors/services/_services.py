@@ -2,10 +2,11 @@ from oneml.processors.dag import DagSubmitter, INodeExecutableFactory
 from oneml.processors.io import (
     IGetReadServicesForType,
     IGetWriteServicesForType,
-    IReadFromUrlPipelineBuilder,
+    IReadFromUriPipelineBuilder,
     IRegisterReadServiceForType,
     IRegisterWriteServiceForType,
     IWriteToNodeBasedUriPipelineBuilder,
+    IWriteToRelativePathPipelineBuilder,
     IWriteToUriPipelineBuilder,
     PluginRegisterReadersAndWriters,
 )
@@ -27,11 +28,14 @@ class OnemlProcessorsServices:
     REGISTER_TYPE_WRITER = ServiceId[IRegisterWriteServiceForType]("type-to-write-service-mapper")
     GET_TYPE_WRITER = ServiceId[IGetWriteServicesForType]("type-to-write-service-mapper")
 
-    READ_FROM_URI_PIPELINE_BUILDER = ServiceId[IReadFromUrlPipelineBuilder](
+    READ_FROM_URI_PIPELINE_BUILDER = ServiceId[IReadFromUriPipelineBuilder](
         "read-from-uri-pipeline-builder"
     )
     WRITE_TO_URI_PIPELINE_BUILDER = ServiceId[IWriteToUriPipelineBuilder](
         "write-to-uri-pipeline-builder"
+    )
+    WRITE_TO_RELATIVE_PATH_PIPELINE_BUILDER = ServiceId[IWriteToRelativePathPipelineBuilder](
+        "write-to-relative-path-pipeline-builder"
     )
     WRITE_TO_NODE_BASED_URI_PIPELINE_BUILDER = ServiceId[IWriteToNodeBasedUriPipelineBuilder](
         "write-to-node-based-uri-pipeline-builder"

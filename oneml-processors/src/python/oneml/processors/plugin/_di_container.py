@@ -6,10 +6,11 @@ from oneml.io import OnemlIoServices
 from oneml.processors.dag import DagSubmitter, NodeExecutableFactory
 from oneml.processors.io import (
     PluginRegisterReadersAndWriters,
-    ReadFromUrlPipelineBuilder,
+    ReadFromUriPipelineBuilder,
     TypeToReadServiceMapper,
     TypeToWriteServiceMapper,
     WriteToNodeBasedUriPipelineBuilder,
+    WriteToRelativePathPipelineBuilder,
     WriteToUriPipelineBuilder,
 )
 from oneml.processors.services import (
@@ -70,8 +71,8 @@ class OnemlProcessorsDiContainer:
         return TypeToWriteServiceMapper()
 
     @service_provider(OnemlProcessorsServices.READ_FROM_URI_PIPELINE_BUILDER)
-    def read_from_url_pipeline_builder(self) -> ReadFromUrlPipelineBuilder:
-        return ReadFromUrlPipelineBuilder(
+    def read_from_url_pipeline_builder(self) -> ReadFromUriPipelineBuilder:
+        return ReadFromUriPipelineBuilder(
             service_provider_service_id=OnemlAppServices.SERVICE_CONTAINER,
             get_read_services_for_type=self._app.get_service(
                 OnemlProcessorsServices.GET_TYPE_READER
@@ -87,14 +88,21 @@ class OnemlProcessorsDiContainer:
             ),
         )
 
+    @service_provider(OnemlProcessorsServices.WRITE_TO_RELATIVE_PATH_PIPELINE_BUILDER)
+    def write_to_relative_path_pipeline_builder(self) -> WriteToRelativePathPipelineBuilder:
+        return WriteToRelativePathPipelineBuilder(
+            write_to_uri_pipeline_builder=self._app.get_service(
+                OnemlProcessorsServices.WRITE_TO_URI_PIPELINE_BUILDER
+            ),
+        )
+
     @service_provider(OnemlProcessorsServices.WRITE_TO_NODE_BASED_URI_PIPELINE_BUILDER)
     def write_to_node_based_uri_pipeline_builder(self) -> WriteToNodeBasedUriPipelineBuilder:
         return WriteToNodeBasedUriPipelineBuilder(
-            service_provider_service_id=OnemlAppServices.SERVICE_CONTAINER,
-            context_provider_service_id=OnemlAppServices.APP_CONTEXT_CLIENT,
-            get_write_services_for_type=self._app.get_service(
-                OnemlProcessorsServices.GET_TYPE_WRITER
+            write_to_uri_pipeline_builder=self._app.get_service(
+                OnemlProcessorsServices.WRITE_TO_URI_PIPELINE_BUILDER
             ),
+            context_provider_service_id=OnemlAppServices.APP_CONTEXT_CLIENT,
         )
 
     @service_provider(OnemlProcessorsServices.PERSIST_FITTED_EVAL_PIPELINE)

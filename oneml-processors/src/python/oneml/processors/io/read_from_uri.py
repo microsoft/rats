@@ -39,13 +39,13 @@ class ReadFromUriProcessor(Generic[DataType]):
         return dict(data=reader.read(self._uri))
 
 
-class IReadFromUrlPipelineBuilder(Protocol):
+class IReadFromUriPipelineBuilder(Protocol):
     @abstractmethod
     def build(self, data_type: type[DataType], uri: str | None = None) -> UPipeline:
         ...
 
 
-class ReadFromUrlPipelineBuilder(IReadFromUrlPipelineBuilder):
+class ReadFromUriPipelineBuilder(IReadFromUriPipelineBuilder):
     _service_provider_service_id: ServiceId[IProvideServices]
     _get_read_services_for_type: IGetReadServicesForType
 

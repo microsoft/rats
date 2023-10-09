@@ -11,7 +11,7 @@ from ._builder import CombinedPipeline, DependencyOp, UTask
 from ._pipeline import UPipeline
 
 
-class FixedOutputProcessor(IProcess):
+class ExposeGivenOutputsProcessor(IProcess):
     def __init__(self, data: Any) -> None:
         self._data = data
 
@@ -23,7 +23,7 @@ def build_data_provider_pipeline_from_objects(data: Mapping[str, Any]) -> UPipel
     tasks = {
         k: UTask(
             name=k,
-            processor_type=FixedOutputProcessor,
+            processor_type=ExposeGivenOutputsProcessor,
             config=frozendict(data=v),
             return_annotation=dict(data=type(v)),
         ).rename_outputs({"data": k})

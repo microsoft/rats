@@ -13,6 +13,7 @@ from ._builder import (
     UserOutput,
     UTask,
 )
+from ._declash import ensure_non_clashing_pipeline_names, find_non_clashing_name
 from ._omegaconf import register_resolvers
 from ._ops import (
     CollectionDependencyOp,
@@ -46,7 +47,7 @@ from ._pipeline import (
     PipelineConf,
     UPipeline,
 )
-from ._session import FixedOutputProcessor, PipelineRunner, PipelineRunnerFactory
+from ._session import ExposeGivenOutputsProcessor, PipelineRunner, PipelineRunnerFactory
 
 __all__ = [
     "CombinedConf",
@@ -92,7 +93,9 @@ __all__ = [
     "Pipeline",
     "PipelineConf",
     "PipelinePort",
-    "FixedOutputProcessor",
+    "ExposeGivenOutputsProcessor",
     "PipelineRunner",
     "PipelineRunnerFactory",
+    "find_non_clashing_name",
+    "ensure_non_clashing_pipeline_names",
 ]

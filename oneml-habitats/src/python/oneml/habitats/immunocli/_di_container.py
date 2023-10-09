@@ -4,8 +4,8 @@ from immunodata.cli import ILocateDiContainers
 
 from oneml.app import OnemlApp
 
-from ..services import OnemlHabitatsServices
-from ..services._locate_habitats_cli_di_container import LocateHabitatsCliDiContainers
+from ._app_plugin import OnemlHabitatsImmunocliServices
+from ._locate_habitats_cli_di_container import LocateHabitatsCliDiContainers
 
 
 class OnemlHabitatsCliDiContainer:
@@ -18,7 +18,7 @@ class OnemlHabitatsCliDiContainer:
     def oneml_app(self) -> OnemlApp:
         oneml_app = OnemlApp.default()
         oneml_app.add_service(
-            OnemlHabitatsServices.LOCATE_HABITATS_CLI_DI_CONTAINERS,
+            OnemlHabitatsImmunocliServices.LOCATE_HABITATS_CLI_DI_CONTAINERS,
             lambda: LocateHabitatsCliDiContainers(self._app),
         )
         return oneml_app

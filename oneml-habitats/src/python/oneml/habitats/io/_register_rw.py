@@ -1,12 +1,14 @@
 import numpy as np
 import pandas as pd
 
-from oneml.habitats.io import OnemlHabitatsIoServices
 from oneml.processors.io import (
     IRegisterReadServiceForType,
     IRegisterWriteServiceForType,
     PluginRegisterReadersAndWriters,
 )
+from oneml.processors.pipeline_operations import Manifest
+
+from ._rw_services import OnemlHabitatsIoRwServices
 
 
 class OnemlHabitatsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
@@ -28,16 +30,16 @@ class OnemlHabitatsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
             return issubclass(t, np.ndarray)
 
         self._readers_registry.register(
-            "file", numpy_filter, OnemlHabitatsIoServices.NUMPY_LOCAL_READER
+            "file", numpy_filter, OnemlHabitatsIoRwServices.NUMPY_LOCAL_READER
         )
         self._writers_registry.register(
-            "file", numpy_filter, OnemlHabitatsIoServices.NUMPY_LOCAL_WRITER
+            "file", numpy_filter, OnemlHabitatsIoRwServices.NUMPY_LOCAL_WRITER
         )
         self._readers_registry.register(
-            "abfss", numpy_filter, OnemlHabitatsIoServices.NUMPY_BLOB_READER
+            "abfss", numpy_filter, OnemlHabitatsIoRwServices.NUMPY_BLOB_READER
         )
         self._writers_registry.register(
-            "abfss", numpy_filter, OnemlHabitatsIoServices.NUMPY_BLOB_WRITER
+            "abfss", numpy_filter, OnemlHabitatsIoRwServices.NUMPY_BLOB_WRITER
         )
 
     def _register_pandas(self) -> None:
@@ -45,22 +47,35 @@ class OnemlHabitatsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
             return issubclass(t, pd.DataFrame)
 
         self._readers_registry.register(
-            "file", pandas_filter, OnemlHabitatsIoServices.PANDAS_LOCAL_READER
+            "file", pandas_filter, OnemlHabitatsIoRwServices.PANDAS_LOCAL_READER
         )
         self._writers_registry.register(
-            "file", pandas_filter, OnemlHabitatsIoServices.PANDAS_LOCAL_WRITER
+            "file", pandas_filter, OnemlHabitatsIoRwServices.PANDAS_LOCAL_WRITER
         )
         self._readers_registry.register(
-            "abfss", pandas_filter, OnemlHabitatsIoServices.PANDAS_BLOB_READER
+            "abfss", pandas_filter, OnemlHabitatsIoRwServices.PANDAS_BLOB_READER
         )
         self._writers_registry.register(
-            "abfss", pandas_filter, OnemlHabitatsIoServices.PANDAS_BLOB_WRITER
+            "abfss", pandas_filter, OnemlHabitatsIoRwServices.PANDAS_BLOB_WRITER
         )
 
     def _register_dill(self) -> None:
         self._readers_registry.register(
-            "abfss", lambda t: True, OnemlHabitatsIoServices.DILL_BLOB_READER
+            "abfss", lambda t: True, OnemlHabitatsIoRwServices.DILL_BLOB_READER
         )
         self._writers_registry.register(
-            "abfss", lambda t: True, OnemlHabitatsIoServices.DILL_BLOB_WRITER
+            "abfss", lambda t: True, OnemlHabitatsIoRwServices.DILL_BLOB_WRITER
+        )
+
+    def _register_manifest(self) -> None:
+        def type_filter(t: type) -> bool:
+            if not isinstance(t, type):
+                return False
+            return issubclass(t, Manifest)
+
+        self._readers_registry.register(
+            "file", type_filter, OnemlHabitatsIoRwServices.JSON_BLOB_READER
+        )
+        self._writers_registry.register(
+            "file", type_filter, OnemlHabitatsIoRwServices.JSON_BLOB_WRITER
         )

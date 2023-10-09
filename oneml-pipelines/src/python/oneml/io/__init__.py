@@ -19,7 +19,7 @@ from ._io_manager import (
     PipelineLoaderGetter,
     PipelinePublisherGetter,
 )
-from ._local import DillLocalRW, LocalRWBase
+from ._local import DillLocalRW, JsonLocalRW, LocalRWBase
 from ._memory import InMemoryRW
 from ._node_output import NodeOutputClient
 from ._registry_plugins import IoRegistryPluginsExe
@@ -70,4 +70,6 @@ __all__ = [
     "IoRegistryPluginsExe",
     "DefaultIoRw",
     "LocalRWBase",
+    "JsonLocalRW",
+    "DillLocalRW",
 ]

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Protocol, TypedDict
 
-from ..io import IReadFromUrlPipelineBuilder, IWriteToNodeBasedUriPipelineBuilder
+from ..io import IReadFromUriPipelineBuilder, IWriteToNodeBasedUriPipelineBuilder
 from ..ux import UPipeline, UPipelineBuilder
 from ._train_and_eval import TrainAndEvalBuilders
 
@@ -16,12 +16,12 @@ class IPersistFittedEvalPipeline(Protocol):
 
 
 class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
-    _read_pb: IReadFromUrlPipelineBuilder
+    _read_pb: IReadFromUriPipelineBuilder
     _write_pb: IWriteToNodeBasedUriPipelineBuilder
 
     def __init__(
         self,
-        read_pb: IReadFromUrlPipelineBuilder,
+        read_pb: IReadFromUriPipelineBuilder,
         write_pb: IWriteToNodeBasedUriPipelineBuilder,
     ) -> None:
         self._read_pb = read_pb
@@ -41,7 +41,8 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
             name="write_fitted",
             pipelines=[
                 (
-                    self._write_pb.build(data_type=param_type, node_name=fitted_name)
+                    self._write_pb.build(data_type=param_type)
+                    .decorate(fitted_name)
                     .rename_inputs({"data": f"fitted.{fitted_name}"})
                     .rename_outputs({"uri": f"uris.{fitted_name}"})
                 )
@@ -102,7 +103,8 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
 
     def _get_write_fitted_eval_pipeline_pl(self) -> UPipeline:
         return (
-            self._write_pb.build(data_type=UPipeline, node_name="fitted_eval_pipeline")
+            self._write_pb.build(data_type=UPipeline)
+            .decorate("fitted_eval_pipeline")
             .rename_inputs({"data": "fitted_eval_pipeline"})
             .rename_outputs({"uri": "uris.fitted_eval_pipeline"})
         )

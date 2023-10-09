@@ -9,6 +9,7 @@ from oneml.io import (
     InMemoryRW,
     InMemoryUriFormatter,
     IReadAndWriteData,
+    JsonLocalRW,
     NodeOutputClient,
     OnemlIoServices,
     PipelineLoaderGetter,
@@ -58,6 +59,10 @@ class OnemlIoDiContainer:
     @service_provider(OnemlIoServices.DILL_LOCAL_RW)
     def dill_local_rw(self) -> IReadAndWriteData[object]:
         return DillLocalRW()
+
+    @service_provider(OnemlIoServices.JSON_LOCAL_RW)
+    def json_local_rw(self) -> IReadAndWriteData[object]:
+        return JsonLocalRW()
 
     @service_group(after(OnemlAppServices.PIPELINE_EXECUTABLE))
     def default_io_rw(self) -> DefaultIoRw:

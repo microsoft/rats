@@ -4,6 +4,7 @@ from oneml.processors.io import (
     IRegisterWriteServiceForType,
     PluginRegisterReadersAndWriters,
 )
+from oneml.processors.pipeline_operations import Manifest
 
 
 class OnemlProcessorsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
@@ -19,3 +20,13 @@ class OnemlProcessorsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
         self._readers_registry.register("file", lambda t: True, OnemlIoServices.DILL_LOCAL_READER)
         self._writers_registry.register("memory", lambda t: True, OnemlIoServices.INMEMORY_WRITER)
         self._writers_registry.register("file", lambda t: True, OnemlIoServices.DILL_LOCAL_WRITER)
+        self._register_manifest()
+
+    def _register_manifest(self) -> None:
+        def type_filter(t: type) -> bool:
+            if not isinstance(t, type):
+                return False
+            return issubclass(t, Manifest)
+
+        self._readers_registry.register("file", type_filter, OnemlIoServices.JSON_LOCAL_READER)
+        self._writers_registry.register("file", type_filter, OnemlIoServices.JSON_LOCAL_WRITER)
