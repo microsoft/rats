@@ -7,9 +7,11 @@ not by the standard oneml service registration mechanism.
 """
 
 from ._app_plugin import OnemlHabitatsImmunocliServices
+from ._di_container import OnemlHabitatsCliDiContainer
 from ._plugin import OnemlHabitatsCliPlugin
 
 __all__ = [
     "OnemlHabitatsImmunocliServices",
     "OnemlHabitatsCliPlugin",
+    "OnemlHabitatsCliDiContainer",
 ]
