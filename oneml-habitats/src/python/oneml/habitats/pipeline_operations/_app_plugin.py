@@ -31,7 +31,7 @@ class OnemlHabitatsPipelineOperationsDiContainer:
         self._app = app
 
     @service_provider(_PrivateServices.PUBLISH_OUTPUTS_AS_DATASET)
-    def _publish_outputs_as_dataset(self) -> ITransformPipeline:
+    def publish_outputs_as_dataset(self) -> ITransformPipeline:
         return PublishOutputsAsDataset(
             collection_to_dict=self._app.get_service(
                 OnemlProcessorsPipelineOperationsServices.COLLECTION_TO_DICT

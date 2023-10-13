@@ -8,6 +8,7 @@ from immunodata.datasets import DatasetClient, IDatasetClient
 from immunodata.datasets.storage import DatasetMemoryStorage
 
 from oneml.app import OnemlApp
+from oneml.habitats.pipeline_operations import OnemlHabitatsPipelineOperationsServices
 from oneml.habitats.pipeline_operations._datasets._ampds_uri_service import (
     ComposeAmpdsUriFromCommit,
     ParseAmpdsUriForRead,
@@ -577,3 +578,7 @@ def test_publish_outputs_as_dataset_with_datasets(
     assert outputs.a.a == 10
     assert outputs.a.b == "s"
     assert outputs.c == 100
+
+
+def test_service_exists(app: OnemlApp) -> None:
+    app.get_service(OnemlHabitatsPipelineOperationsServices.PUBLISH_OUTPUTS_AS_DATASET)
