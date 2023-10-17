@@ -1,6 +1,6 @@
 import logging
 
-from oneml.app import AppPlugin, OnemlApp
+from oneml.app import AppPlugin
 from oneml.services import (
     IManageServices,
     IProvideServices,
@@ -33,10 +33,9 @@ class _PrivateServices:
 
 
 class OnemlProcessorsPipelineOperationsDiContainer:
-    _app: OnemlApp
+    _app: IProvideServices
 
     def __init__(self, app: IProvideServices) -> None:
-        assert isinstance(app, OnemlApp)
         self._app = app
 
     @service_provider(_PrivateServices.DUPLICATE_PIPELINE)
@@ -92,5 +91,6 @@ class OnemlProcessorsPipelineOperationsServices:
     EXPOSE_GIVEN_OUTPUTS = _PrivateServices.EXPOSE_GIVEN_OUTPUTS
     LOAD_INPUTS_SAVE_OUTPUTS = _PrivateServices.LOAD_INPUTS_SAVE_OUTPUTS
     EXPOSE_PIPELINE_AS_OUTPUT = _PrivateServices.EXPOSE_PIPELINE_AS_OUTPUT
+    WRITE_MANIFEST = _PrivateServices.WRITE_MANIFEST
     COLLECTION_TO_DICT = _PrivateServices.COLLECTION_TO_DICT
     DICT_TO_COLLECTION = _PrivateServices.DICT_TO_COLLECTION
