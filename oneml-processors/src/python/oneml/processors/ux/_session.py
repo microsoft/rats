@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from itertools import chain
 from typing import Any, Iterable, Iterator, Mapping
 
 from oneml.app import OnemlApp
 from oneml.processors.dag import DagSubmitter, IProcess
-from oneml.processors.utils import frozendict
+from oneml.processors.utils import frozendict, namedcollection
 
 from ._builder import CombinedPipeline, DependencyOp, UTask
 from ._pipeline import UPipeline
@@ -52,57 +51,36 @@ class PopulateOutputValue:
         self._storage.set(data)
 
 
-def build_output_collector(
-    output_storage: dict[str, Ref | Mapping[str, Ref]],
-    pipeline: UPipeline,
-) -> UPipeline:
-    for k in pipeline.outputs:
+def build_output_collector(output_storage: dict[str, Ref], pipeline: UPipeline) -> UPipeline:
+    for k in pipeline.outputs._asdict():
         output_storage[k] = Ref()
-    for k0, col in pipeline.out_collections._asdict().items():
-        col_s = dict[str, Ref]()
-        output_storage[k0] = col_s
-        for k1 in col:
-            col_s[k1] = Ref()
 
     output_populators = [
         UTask(
-            name=f"PopulateOutputValue_{k}",
+            name=f"""PopulateOutputValue_{k.replace(".", "_")}""",
             processor_type=PopulateOutputValue,
             config=frozendict(storage=output_storage[k]),
         ).rename_inputs({"data": k})
-        for k in pipeline.outputs
-    ]
-    output_collection_populators = [
-        UTask(
-            name=f"PopulateOutputCollectionValue_{k0}_{k1}",
-            processor_type=PopulateOutputValue,
-            config=frozendict(storage=output_storage[k0][k1]),  # type: ignore
-        ).rename_inputs({"data": f"{k0}.{k1}"})
-        for k0, col in pipeline.out_collections._asdict().items()
-        for k1 in col
+        for k in pipeline.outputs._asdict()
     ]
 
-    output_collector: UPipeline = CombinedPipeline(
-        name="OutputCollector",
-        pipelines=output_populators + output_collection_populators,
-    )
-    return output_collector
+    return CombinedPipeline(name="OutputCollector", pipelines=output_populators)
 
 
 class SessionOutputsGetter(Iterable[str]):
-    _storage: Mapping[str, Ref | Mapping[str, Ref]]
+    _storage: namedcollection[Ref]
 
-    def __init__(self, storage: Mapping[str, Ref | Mapping[str, Ref]]) -> None:
-        self._storage = storage
+    def __init__(self, storage: Mapping[str, Ref]) -> None:
+        self._storage = namedcollection(storage)
 
-    def __getitem__(self, key: str) -> Any | SessionOutputsGetter:
+    def __getitem__(self, key: str) -> Any:
         v = self._storage[key]
         if isinstance(v, Ref):
             return v.get()
         else:
-            return SessionOutputsGetter(v)
+            return SessionOutputsGetter(v._asdict())
 
-    def __getattr__(self, key: str) -> Any | SessionOutputsGetter:
+    def __getattr__(self, key: str) -> Any:
         return self[key]
 
     def __iter__(self) -> Iterator[str]:
@@ -118,11 +96,7 @@ class PipelineRunnerFactory:
         self._dag_submitter = dag_submitter
 
     def __call__(self, pipeline: UPipeline) -> PipelineRunner:
-        return PipelineRunner(
-            app=self._app,
-            dag_submitter=self._dag_submitter,
-            pipeline=pipeline,
-        )
+        return PipelineRunner(app=self._app, dag_submitter=self._dag_submitter, pipeline=pipeline)
 
 
 class PipelineRunner:
@@ -136,7 +110,7 @@ class PipelineRunner:
         self._pipeline = pipeline
 
     def _add_inputs_and_collect_outputs(
-        self, inputs: Mapping[str, Any], output_storage: dict[str, Ref | Mapping[str, Ref]]
+        self, inputs: Mapping[str, Any], output_storage: dict[str, Ref]
     ) -> UPipeline:
         pipelines = [self._pipeline]
         dependencies = list[DependencyOp[Any]]()
@@ -149,13 +123,8 @@ class PipelineRunner:
             pipelines.append(data_provider_pipeline)
             for k in data_provider_pipeline.outputs:
                 dependencies.append(data_provider_pipeline.outputs[k] >> self._pipeline.inputs[k])
-            for k0, col in data_provider_pipeline.out_collections._asdict().items():
-                for k1 in col:
-                    dependencies.append(
-                        data_provider_pipeline.out_collections[k0][k1]
-                        >> self._pipeline.in_collections[k0][k1]
-                    )
-        if len(self._pipeline.out_collections) > 0 or len(self._pipeline.outputs) > 0:
+
+        if len(self._pipeline.outputs) > 0:
             output_pipeline = build_output_collector(output_storage, self._pipeline)
             if self._pipeline.name == output_pipeline.name:
                 output_pipeline = output_pipeline.decorate(output_pipeline.name + "_")
@@ -166,15 +135,15 @@ class PipelineRunner:
             pipelines=pipelines,
             dependencies=dependencies,
         )
-        required_inputs = set(chain(pipeline.required_inputs, pipeline.required_in_collections))
+        required_inputs = set(pipeline.required_inputs)
         if len(required_inputs) > 0:
             raise ValueError(f"Missing pipeline inputs: {required_inputs}.")
-        if len(tuple(*pipeline.out_collections, *pipeline.outputs)) > 0:
+        if len(pipeline.outputs) > 0:
             raise ValueError("UPipeline outputs should have been collected.")
         return pipeline
 
     def __call__(self, inputs: Mapping[str, Any] = {}) -> SessionOutputsGetter:
-        output_storage = dict[str, Ref | Mapping[str, Ref]]()
+        output_storage = dict[str, Ref]()
         pipeline = self._add_inputs_and_collect_outputs(inputs, output_storage)
         dag_submitter = self._dag_submitter
         self._app.run(lambda: dag_submitter.submit_dag(pipeline._dag))

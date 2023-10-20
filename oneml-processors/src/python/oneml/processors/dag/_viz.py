@@ -1,22 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Literal, Mapping, Tuple
+from typing import TYPE_CHECKING, Any, Iterable, Literal, Mapping
 
 import pydot
 
 if TYPE_CHECKING:
-    from ..ux._pipeline import (
-        PE,
-        InCollections,
-        InEntry,
-        Inputs,
-        IOCollections,
-        OutCollections,
-        OutEntry,
-        Outputs,
-        ParamCollection,
-        UPipeline,
-    )
+    from ..ux._pipeline import InPort, Inputs, OutPort, Outputs, UPipeline
     from ._dag import DAG
 
 
@@ -87,17 +76,8 @@ class DotBuilder:
                         )
                     )
 
-    def _get_io_entries(
-        self, io: ParamCollection[PE], io_collections: IOCollections[ParamCollection[PE]]
-    ) -> Iterable[Tuple[str, PE]]:
-        for entry_name, entry in io._asdict().items():
-            yield entry_name, entry
-        for collection_name, entry_collection in io_collections._asdict().items():
-            for entry_name, entry in entry_collection._asdict().items():
-                yield f"{collection_name}.{entry_name}", entry
-
-    def _add_inputs(self, inputs: Inputs, in_collections: InCollections) -> None:
-        def add_entry(source: str, entry: InEntry[Any]) -> None:
+    def _add_inputs(self, inputs: Inputs) -> None:
+        def add_entry(source: str, entry: InPort[Any]) -> None:
             for p in entry:
                 target = self._get_i_port_tag(repr(p.node), p.param.name)
                 self._g.add_edge(
@@ -105,7 +85,7 @@ class DotBuilder:
                 )
 
         def add_inputs_node(
-            ro: Literal["required", "optional"], entries: Mapping[str, InEntry[Any]]
+            ro: Literal["required", "optional"], entries: Mapping[str, InPort[Any]]
         ) -> None:
             name = f"{ro}_inputs"
             self._add_name_to_mapping(name)
@@ -125,7 +105,7 @@ class DotBuilder:
                 source = self._get_o_port_tag(name, entry_name)
                 add_entry(source, entry)
 
-        entries = dict(self._get_io_entries(inputs, in_collections))
+        entries = inputs._asdict()
         required = {k: v for k, v in entries.items() if v.required}
         optional = {k: v for k, v in entries.items() if v.optional}
         if len(required) > 0:
@@ -133,14 +113,14 @@ class DotBuilder:
         if len(optional) > 0 and self._include_optional:
             add_inputs_node("optional", optional)
 
-    def _add_outputs(self, outputs: Outputs, out_collections: OutCollections) -> None:
-        def add_entry(entry: OutEntry[Any], target: str) -> None:
+    def _add_outputs(self, outputs: Outputs) -> None:
+        def add_entry(entry: OutPort[Any], target: str) -> None:
             for p in entry:
                 source = self._get_o_port_tag(repr(p.node), p.param.name)
                 self._g.add_edge(pydot.Edge(source, target))
 
-        if len(outputs) > 0 or len(out_collections) > 0:
-            entries = dict(self._get_io_entries(outputs, out_collections))
+        if len(outputs) > 0:
+            entries = outputs._asdict()
             name = "outputs"
             self._add_name_to_mapping(name)
 
@@ -157,8 +137,8 @@ class DotBuilder:
 
     def add_pipeline(self, pipeline: UPipeline) -> None:
         self._add_pipeline(pipeline._dag)
-        self._add_inputs(pipeline.inputs, pipeline.in_collections)
-        self._add_outputs(pipeline.outputs, pipeline.out_collections)
+        self._add_inputs(pipeline.inputs)
+        self._add_outputs(pipeline.outputs)
 
     def get_dot(self) -> pydot.Dot:  # type: ignore[no-any-unimported]
         return self._g

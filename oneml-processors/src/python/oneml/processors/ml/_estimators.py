@@ -31,9 +31,7 @@ from ..ux import (
     DependencyOp,
     Pipeline,
     PipelineConf,
-    TInCollections,
     TInputs,
-    TOutCollections,
     TOutputs,
     UPipeline,
     UserOutput,
@@ -42,7 +40,7 @@ from ..ux._utils import _parse_dependencies_to_list
 
 
 @final
-class Estimator(Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]):
+class Estimator(Pipeline[TInputs, TOutputs]):
     _config: EstimatorConf
 
     def __init__(
@@ -83,7 +81,6 @@ class Estimator(Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]):
 
         # merge the `outputs` and `out_collections` of train and eval pipelines
         outputs: UserOutput = (new_train.outputs | new_eval.outputs)._asdict()
-        outputs |= (new_train.out_collections | new_eval.out_collections)._asdict()
 
         # combine all ingredients into a new pipeline
         p: UPipeline = CombinedPipeline(
@@ -100,10 +97,7 @@ class Estimator(Pipeline[TInputs, TOutputs, TInCollections, TOutCollections]):
         config = EstimatorConf(
             name=name, train_pl=train_pl._config, eval_pl=eval_pl._config, dependencies=dp_confs
         )
-        super().__init__(
-            other=cast(Pipeline[TInputs, TOutputs, TInCollections, TOutCollections], p),
-            config=config,
-        )
+        super().__init__(other=cast(Pipeline[TInputs, TOutputs], p), config=config)
 
 
 @hydrated_dataclass(
@@ -121,7 +115,7 @@ class EstimatorConf(PipelineConf):
     dependencies: Any = None
 
 
-class EstimatorClient(Generic[TInputs, TOutputs, TInCollections, TOutCollections]):
+class EstimatorClient(Generic[TInputs, TOutputs]):
     @classmethod
     def estimator(
         cls,
@@ -129,5 +123,5 @@ class EstimatorClient(Generic[TInputs, TOutputs, TInCollections, TOutCollections
         train_pl: UPipeline,
         eval_pl: UPipeline,
         dependencies: Sequence[DependencyOp[Any]] | None = None,
-    ) -> Estimator[TInputs, TOutputs, TInCollections, TOutCollections]:
+    ) -> Estimator[TInputs, TOutputs]:
         return Estimator(name, train_pl, eval_pl, dependencies)

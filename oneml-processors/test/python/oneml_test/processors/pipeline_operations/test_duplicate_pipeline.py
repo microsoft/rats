@@ -1,5 +1,3 @@
-import pytest
-
 from oneml.processors.pipeline_operations._duplicate_pipeline import DuplicatePipeline
 from oneml.processors.ux import UPipeline
 
@@ -18,27 +16,25 @@ def test_duplicate_pipeline(
     assert duplicated_pipeline.name == pipeline.name
 
     # Test inputs
-    assert set(duplicated_pipeline.inputs) == set()
-    assert set(duplicated_pipeline.in_collections) == {"u", "v", "w", "x"}
-    assert set(duplicated_pipeline.in_collections.u) == {"copy1", "copy2"}
-    assert set(duplicated_pipeline.in_collections.v) == {"copy1", "copy2"}
-    assert set(duplicated_pipeline.in_collections.w) == {
-        "copy1_a",
-        "copy2_a",
-        "copy1_b",
-        "copy2_b",
+    assert set(duplicated_pipeline.inputs) == {"u", "v", "w", "x"}
+    assert set(duplicated_pipeline.inputs.u) == {"copy1", "copy2"}
+    assert set(duplicated_pipeline.inputs.v) == {"copy1", "copy2"}
+    assert set(duplicated_pipeline.inputs.w) == {
+        "a_copy1",
+        "a_copy2",
+        "b_copy1",
+        "b_copy2",
     }
-    assert set(duplicated_pipeline.in_collections.x) == {"copy1_k", "copy2_k"}
+    assert set(duplicated_pipeline.inputs.x) == {"k_copy1", "k_copy2"}
 
     # Test outputs
-    assert set(duplicated_pipeline.outputs) == set()
-    assert set(duplicated_pipeline.out_collections) == {"a", "b", "c", "d"}
-    assert set(duplicated_pipeline.out_collections.a) == {"copy1", "copy2"}
-    assert set(duplicated_pipeline.out_collections.b) == {"copy1", "copy2"}
-    assert set(duplicated_pipeline.out_collections.c) == {
-        "copy1_a",
-        "copy2_a",
-        "copy1_b",
-        "copy2_b",
+    assert set(duplicated_pipeline.outputs) == {"a", "b", "c", "d"}
+    assert set(duplicated_pipeline.outputs.a) == {"copy1", "copy2"}
+    assert set(duplicated_pipeline.outputs.b) == {"copy1", "copy2"}
+    assert set(duplicated_pipeline.outputs.c) == {
+        "a_copy1",
+        "a_copy2",
+        "b_copy1",
+        "b_copy2",
     }
-    assert set(duplicated_pipeline.out_collections.d) == {"copy1_a", "copy2_a"}
+    assert set(duplicated_pipeline.outputs.d) == {"a_copy1", "a_copy2"}

@@ -5,14 +5,13 @@ from typing import Any, Iterator, NamedTuple, cast
 from uuid import uuid4
 
 import pytest
-from furl import furl
 
 from oneml.app import OnemlApp
 from oneml.processors import OnemlProcessorsServices
 from oneml.processors.dag import IProcess
 from oneml.processors.io import IReadFromUriPipelineBuilder, IWriteToUriPipelineBuilder
 from oneml.processors.pipeline_operations import ITransformPipeline
-from oneml.processors.ux import PipelineRunnerFactory, UPipeline, UPipelineBuilder
+from oneml.processors.ux import Inputs, Outputs, PipelineRunnerFactory, UPipeline, UPipelineBuilder
 
 
 class _OperateOutputs(NamedTuple):
@@ -41,12 +40,10 @@ def internal_pipeline_with_inputs_and_outputs() -> UPipeline:
         .rename_outputs({"sum": "outputs_to_save.sum", "statement": "outputs_to_save.statement"})
     )
 
-    assert set(operate.inputs) == {"b"}
-    assert set(operate.in_collections) == {"inputs_to_load"}
-    assert set(operate.in_collections.inputs_to_load) == {"a", "format"}
-    assert set(operate.outputs) == {"product"}
-    assert set(operate.out_collections) == {"outputs_to_save"}
-    assert set(operate.out_collections.outputs_to_save) == {"sum", "statement"}
+    assert set(operate.inputs) == {"b", "inputs_to_load"}
+    assert set(operate.inputs.inputs_to_load) == {"a", "format"}
+    assert set(operate.outputs) == {"product", "outputs_to_save"}
+    assert set(operate.outputs.outputs_to_save) == {"sum", "statement"}
 
     return operate
 
@@ -57,9 +54,8 @@ def internal_pipeline_with_inputs() -> UPipeline:
         {"a": "inputs_to_load.a", "format": "inputs_to_load.format"}
     )
 
-    assert set(operate.inputs) == {"b"}
-    assert set(operate.in_collections) == {"inputs_to_load"}
-    assert set(operate.in_collections.inputs_to_load) == {"a", "format"}
+    assert set(operate.inputs) == {"b", "inputs_to_load"}
+    assert set(operate.inputs.inputs_to_load) == {"a", "format"}
     assert set(operate.outputs) == {"sum", "product", "statement"}
 
     return operate
@@ -72,10 +68,8 @@ def internal_pipeline_with_outputs() -> UPipeline:
     )
 
     assert set(operate.inputs) == {"a", "b", "format"}
-    assert set(operate.in_collections) == set()
-    assert set(operate.outputs) == {"product"}
-    assert set(operate.out_collections) == {"outputs_to_save"}
-    assert set(operate.out_collections.outputs_to_save) == {"sum", "statement"}
+    assert set(operate.outputs) == {"product", "outputs_to_save"}
+    assert set(operate.outputs.outputs_to_save) == {"sum", "statement"}
 
     return operate
 
@@ -127,7 +121,7 @@ def get_output_path(tmp_path: Path) -> Path:
 
 def test_load_inputs_save_outputs_with_inputs_and_outputs(
     internal_pipeline_with_inputs_and_outputs: UPipeline,
-    load_inputs_save_outputs: ITransformPipeline,
+    load_inputs_save_outputs: ITransformPipeline[UPipeline, UPipeline],
     pipeline_runner_factory: PipelineRunnerFactory,
     tmp_path: Path,
     input_path: Path,
@@ -143,11 +137,9 @@ def test_load_inputs_save_outputs_with_inputs_and_outputs(
         "input_uris.format": (input_path / "format").as_uri(),
     }
 
-    assert set(pipeline.inputs) == expected_inputs
-    assert set(pipeline.in_collections) == {"input_uris"}
-    assert set(pipeline.outputs) == {"product"}
-    assert set(pipeline.out_collections) == {"output_uris"}
-    assert set(pipeline.out_collections.output_uris) == {"sum", "statement"}
+    assert set(pipeline.inputs) == expected_inputs | {"input_uris"}
+    assert set(pipeline.outputs) == {"product", "output_uris"}
+    assert set(pipeline.outputs.output_uris) == {"sum", "statement"}
 
     runner = pipeline_runner_factory(pipeline)
     out = runner(inputs)
@@ -173,15 +165,13 @@ def test_load_inputs_save_outputs_with_inputs_and_outputs(
 
 def test_load_inputs_save_outputs_with_inputs(
     internal_pipeline_with_inputs: UPipeline,
-    load_inputs_save_outputs: ITransformPipeline,
+    load_inputs_save_outputs: ITransformPipeline[UPipeline, UPipeline],
     pipeline_runner_factory: PipelineRunnerFactory,
     input_path: Path,
 ) -> None:
     pipeline = load_inputs_save_outputs(internal_pipeline_with_inputs)
-    assert set(pipeline.inputs) == {"b"}
-    assert set(pipeline.in_collections) == {"input_uris"}
+    assert set(pipeline.inputs) == {"b", "input_uris"}
     assert set(pipeline.outputs) == {"sum", "product", "statement"}
-    assert set(pipeline.out_collections) == set()
 
     runner = pipeline_runner_factory(pipeline)
     out = runner(
@@ -199,7 +189,7 @@ def test_load_inputs_save_outputs_with_inputs(
 
 def test_load_inputs_save_outputs_with_outputs(
     internal_pipeline_with_outputs: UPipeline,
-    load_inputs_save_outputs: ITransformPipeline,
+    load_inputs_save_outputs: ITransformPipeline[UPipeline, UPipeline],
     pipeline_runner_factory: PipelineRunnerFactory,
     tmp_path: Path,
     read_from_uri_pipeline_builder: IReadFromUriPipelineBuilder,
@@ -215,10 +205,8 @@ def test_load_inputs_save_outputs_with_outputs(
     }
 
     assert set(pipeline.inputs) == expected_inputs
-    assert set(pipeline.in_collections) == set()
-    assert set(pipeline.outputs) == {"product"}
-    assert set(pipeline.out_collections) == {"output_uris"}
-    assert set(pipeline.out_collections.output_uris) == {"sum", "statement"}
+    assert set(pipeline.outputs) == {"product", "output_uris"}
+    assert set(pipeline.outputs.output_uris) == {"sum", "statement"}
 
     runner = pipeline_runner_factory(pipeline)
     out = runner(inputs)
@@ -244,8 +232,8 @@ def test_load_inputs_save_outputs_with_outputs(
 
 def test_load_inputs_save_outputs_with_manifest(
     internal_pipeline_with_outputs: UPipeline,
-    load_inputs_save_outputs: ITransformPipeline,
-    write_manifest: ITransformPipeline,
+    load_inputs_save_outputs: ITransformPipeline[UPipeline, UPipeline],
+    write_manifest: ITransformPipeline[UPipeline, UPipeline],
     pipeline_runner_factory: PipelineRunnerFactory,
     tmp_path: Path,
     read_from_uri_pipeline_builder: IReadFromUriPipelineBuilder,
@@ -262,10 +250,8 @@ def test_load_inputs_save_outputs_with_manifest(
     }
 
     assert set(pipeline.inputs) == expected_inputs
-    assert set(pipeline.in_collections) == set()
-    assert set(pipeline.outputs) == {"product"}
-    assert set(pipeline.out_collections) == {"output_uris"}
-    assert set(pipeline.out_collections.output_uris) == {"manifest"}
+    assert set(pipeline.outputs) == {"product", "output_uris"}
+    assert set(pipeline.outputs.output_uris) == {"manifest"}
 
     runner = pipeline_runner_factory(pipeline)
     out = runner(inputs)

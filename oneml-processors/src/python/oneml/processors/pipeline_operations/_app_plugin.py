@@ -1,6 +1,7 @@
 import logging
 
 from oneml.app import AppPlugin
+from oneml.processors.ux import UPipeline
 from oneml.services import (
     IManageServices,
     IProvideServices,
@@ -25,9 +26,13 @@ logger = logging.getLogger(__name__)
 class _PrivateServices:
     DUPLICATE_PIPELINE = ServiceId[DuplicatePipeline]("duplicate-pipeline")
     EXPOSE_GIVEN_OUTPUTS = ServiceId[ExposeGivenOutputs]("expose-given-outputs")
-    LOAD_INPUTS_SAVE_OUTPUTS = ServiceId[ITransformPipeline]("load-inputs-save-outputs")
-    EXPOSE_PIPELINE_AS_OUTPUT = ServiceId[ITransformPipeline]("expose-pipeline-as-output")
-    WRITE_MANIFEST = ServiceId[ITransformPipeline]("write-manifest")
+    LOAD_INPUTS_SAVE_OUTPUTS = ServiceId[ITransformPipeline[UPipeline, UPipeline]](
+        "load-inputs-save-outputs"
+    )
+    EXPOSE_PIPELINE_AS_OUTPUT = ServiceId[ITransformPipeline[UPipeline, UPipeline]](
+        "expose-pipeline-as-output"
+    )
+    WRITE_MANIFEST = ServiceId[ITransformPipeline[UPipeline, UPipeline]]("write-manifest")
     COLLECTION_TO_DICT = ServiceId[CollectionToDict]("collection-to-dict")
     DICT_TO_COLLECTION = ServiceId[DictToCollection]("dict-to-collection")
 

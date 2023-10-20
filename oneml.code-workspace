@@ -60,6 +60,9 @@
                 "source.organizeImports": true
             },
         },
+        "mypy-type-checker.reportingScope": "file",
+        "mypy-type-checker.preferDaemon": true,
+        "debug.toolBarLocation": "commandCenter",
         "markdown.validate.enabled": true,
         "diffEditor.diffAlgorithm": "advanced",
         "search.exclude": {

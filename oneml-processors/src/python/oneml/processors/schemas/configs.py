@@ -12,7 +12,6 @@ from ..ux import (
     CollectionDependencyOpConf,
     CombinedConf,
     EntryDependencyOpConf,
-    IOCollectionDependencyOpConf,
     PipelineDependencyOpConf,
     TaskConf,
 )
@@ -41,7 +40,6 @@ def register_configs(store: ZenStore) -> None:
     store(EstimatorConf(), name="base", group="estimator")
     store(EntryDependencyOpConf(), name="entry", group="dependency")
     store(CollectionDependencyOpConf(), name="collection", group="dependency")
-    store(IOCollectionDependencyOpConf(), name="collections", group="dependency")
     store(PipelineDependencyOpConf(), name="pipeline", group="dependency")
     store(ServiceIdConf(), name="service_id")
     store(TaskParametersConf, name="task_parameters")

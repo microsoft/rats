@@ -14,10 +14,10 @@ class AddOutputManifest:
         self._write_to_relative_path = write_to_relative_path
 
     def _write_manifest_provider(self, pipeline: UPipeline) -> UPipeline:
-        input_annotation = {f"_{k}": str for k in pipeline.out_collections.output_uris} | {
+        input_annotation = {f"_{k}": str for k in pipeline.outputs.output_uris} | {
             "output_base_uri": str,
         }
-        renames = {f"_{k}": f"output_uris.{k}" for k in pipeline.out_collections.output_uris}
+        renames = {f"_{k}": f"output_uris.{k}" for k in pipeline.outputs.output_uris}
         build_manfiest = UPipelineBuilder.task(
             BuildManifestProcessor, input_annotation=input_annotation
         ).rename_inputs(renames)
@@ -40,9 +40,7 @@ class AddOutputManifest:
         pl = UPipelineBuilder.combine(
             [pipeline, write_manifest],
             name=pipeline.name,
-            dependencies=(
-                pipeline.out_collections.output_uris >> write_manifest.in_collections.output_uris,
-            ),
+            dependencies=(pipeline.outputs.output_uris >> write_manifest.inputs.output_uris,),
         )
         return pl
 
@@ -55,7 +53,7 @@ class AddOutputManifest:
         Expected pipeline inputs:
             output_base_uri: str
                 A folder uri to save the manifest to.
-        Expected pipeline out_collections:
+        Expected pipeline outputs:
             output_uris:
                 A mapping of output names to locations where they were saved by the pipeline.
 
@@ -64,8 +62,8 @@ class AddOutputManifest:
         output_base_uri will be relative paths, otherwise they will be the original uris provided
         in the pipeline's output_uris collection.  Any existing manifest.json will be overwritten.
 
-        The returned pipeline will have the same inputs, in_collections, outputs, and
-        out_collections as the given pipeline, except the out_collection output_uris will contain
+        The returned pipeline will have the same inputs, inputs, outputs, and
+        outputs as the given pipeline, except the out_collection output_uris will contain
         a single entry, manifest, holding the uri of the saved manifest.json.
         """
         return self._provider(pipeline)

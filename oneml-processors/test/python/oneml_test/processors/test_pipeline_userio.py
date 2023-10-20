@@ -34,76 +34,64 @@ def test_sequence_inputs_to_single_output(report1: UPipeline, report2: UPipeline
     reportsA: UPipeline = CombinedPipeline(
         pipelines=[report1, report2],
         name="reportsA",
-        inputs={"acc": report1.in_collections.acc | report2.in_collections.acc},
+        inputs={"acc": report1.inputs.acc | report2.inputs.acc},
     )
-    assert len(reportsA.in_collections) == 1
-    assert len(reportsA.in_collections.acc) == 2
-    assert (
-        reportsA.in_collections.acc.report1
-        == report1.decorate("reportsA").in_collections.acc.report1
-    )
-    assert (
-        reportsA.in_collections.acc.report2
-        == report2.decorate("reportsA").in_collections.acc.report2
-    )
+    assert len(reportsA.inputs) == 1
+    assert len(reportsA.inputs.acc) == 2
+    assert reportsA.inputs.acc.report1 == report1.decorate("reportsA").inputs.acc.report1
+    assert reportsA.inputs.acc.report2 == report2.decorate("reportsA").inputs.acc.report2
 
-    # Inputs <- InEntry
+    # Inputs <- InPort
     reportsB: UPipeline = CombinedPipeline(
         pipelines=[report1, report2],
         name="reportsB",
         inputs={
-            "acc.report1": report1.in_collections.acc.report1,
-            "acc.report2": report2.in_collections.acc.report2,
+            "acc.report1": report1.inputs.acc.report1,
+            "acc.report2": report2.inputs.acc.report2,
         },
     )
-    assert len(reportsB.in_collections) == 1
-    assert len(reportsB.in_collections.acc) == 2
-    assert (
-        reportsB.in_collections.acc.report1
-        == report1.decorate("reportsB").in_collections.acc.report1
-    )
-    assert (
-        reportsB.in_collections.acc.report2
-        == report2.decorate("reportsB").in_collections.acc.report2
-    )
+    assert len(reportsB.inputs) == 1
+    assert len(reportsB.inputs.acc) == 2
+    assert reportsB.inputs.acc.report1 == report1.decorate("reportsB").inputs.acc.report1
+    assert reportsB.inputs.acc.report2 == report2.decorate("reportsB").inputs.acc.report2
 
-    # Inputs | InEntry -> raises ValueError
-    with pytest.raises(ValueError):
-        report1.in_collections.acc | report2.in_collections.acc.report2  # type: ignore[operator]
+    # Inputs | InPort -> raises TypeError
+    with pytest.raises(TypeError):
+        report1.inputs.acc | report2.inputs.acc.report2
 
-    # Inputs.InEntry <- InEntry | InEntry
+    # Inputs.InPort <- InPort | InPort
     reportsC: UPipeline = CombinedPipeline(
         pipelines=[report1, report2],
         name="reportsC",
-        inputs={"acc.r": report1.in_collections.acc.report1 | report2.in_collections.acc.report2},
+        inputs={"acc.r": report1.inputs.acc.report1 | report2.inputs.acc.report2},
     )
-    assert len(reportsC.in_collections) == 1
-    assert len(reportsC.in_collections.acc) == 1
-    assert len(reportsC.in_collections.acc.r) == 2
+    assert len(reportsC.inputs) == 1
+    assert len(reportsC.inputs.acc) == 1
+    assert len(reportsC.inputs.acc.r) == 2
     assert (
-        reportsC.in_collections.acc.r
-        == report1.decorate("reportsC").in_collections.acc.report1
-        | report2.decorate("reportsC").in_collections.acc.report2
+        reportsC.inputs.acc.r
+        == report1.decorate("reportsC").inputs.acc.report1
+        | report2.decorate("reportsC").inputs.acc.report2
     )
 
-    # Inputs.InEntry <- Inputs | Inputs
+    # Inputs.InPort <- Inputs | Inputs
     reportsC = CombinedPipeline(
         pipelines=[report1, report2],
         name="reportsC",
-        inputs={"acc.r": report1.in_collections.acc | report2.in_collections.acc},
+        inputs={"acc.r": report1.inputs.acc.report1 | report2.inputs.acc.report2},
     )
-    assert len(reportsC.in_collections) == 1
-    assert len(reportsC.in_collections.acc) == 1
-    assert len(reportsC.in_collections.acc.r) == 2
+    assert len(reportsC.inputs) == 1
+    assert len(reportsC.inputs.acc) == 1
+    assert len(reportsC.inputs.acc.r) == 2
     assert (
-        reportsC.in_collections.acc.r
-        == report1.decorate("reportsC").in_collections.acc.report1
-        | report2.decorate("reportsC").in_collections.acc.report2
+        reportsC.inputs.acc.r
+        == report1.decorate("reportsC").inputs.acc.report1
+        | report2.decorate("reportsC").inputs.acc.report2
     )
 
-    # InEntry <- InEntry | Inputs
-    with pytest.raises(ValueError):
-        report1.in_collections.acc.report1 | report2.in_collections.acc
+    # InPort <- InPort | Inputs
+    with pytest.raises(TypeError):
+        report1.inputs.acc.report1 | report2.inputs.acc
 
 
 AOutput = TypedDict("AOutput", {"z": str})
@@ -212,24 +200,23 @@ def ABC(A: UPipeline, B: UPipeline, C: UPipeline) -> UPipeline:
 def test_combine_inputs(A: UPipeline, B: UPipeline, C: UPipeline, ABC: UPipeline) -> None:
     assert set(ABC.inputs) == set(("x",))
     assert ABC.inputs.x == A.inputs.x.decorate("ABC")
-    assert set(ABC.outputs) == set(("z_A", "z_B", "z_C"))
-    assert set(ABC.out_collections) == set(("z"))
+    assert set(ABC.outputs) == set(("z_A", "z_B", "z_C", "z"))
     assert ABC.outputs.z_A == A.outputs.z.decorate("ABC")
     assert ABC.outputs.z_B == B.outputs.z.decorate("ABC")
     assert ABC.outputs.z_C == C.outputs.z.decorate("ABC")
-    assert set(ABC.out_collections.z) == set(("A_eval", "B_train", "C_eval", "C_train"))
-    assert ABC.out_collections.z.A_eval == A.outputs.z.decorate("ABC")
-    assert ABC.out_collections.z.C_eval == C.outputs.z.decorate("ABC")
-    assert ABC.out_collections.z.B_train == B.outputs.z.decorate("ABC")
-    assert ABC.out_collections.z.C_train == C.outputs.z.decorate("ABC")
+    assert set(ABC.outputs.z) == set(("A_eval", "B_train", "C_eval", "C_train"))
+    assert ABC.outputs.z.A_eval == A.outputs.z.decorate("ABC")
+    assert ABC.outputs.z.C_eval == C.outputs.z.decorate("ABC")
+    assert ABC.outputs.z.B_train == B.outputs.z.decorate("ABC")
+    assert ABC.outputs.z.C_train == C.outputs.z.decorate("ABC")
 
-    # InEntry <- InEntry | InEntry
+    # InPort <- InPort | InPort
     D1: UPipeline = CombinedPipeline(
         pipelines=[B, C], name="D1", inputs={"x": B.inputs.x | C.inputs.x}, outputs={}
     )
     assert D1.inputs.x == (B.inputs.x | C.inputs.x).decorate("D1")
 
-    # Inputs.InEntry <- InEntry | InEntry
+    # Inputs.InPort <- InPort | InPort
     D2: UPipeline = CombinedPipeline(
         pipelines=[B, C],
         name="D2",
@@ -239,10 +226,10 @@ def test_combine_inputs(A: UPipeline, B: UPipeline, C: UPipeline, ABC: UPipeline
         },
         outputs={},
     )
-    assert D2.in_collections.x.train == (B.inputs.x | C.inputs.x).decorate("D2")
-    assert D2.in_collections.x.eval == C.inputs.x.decorate("D2")
+    assert D2.inputs.x.train == (B.inputs.x | C.inputs.x).decorate("D2")
+    assert D2.inputs.x.eval == C.inputs.x.decorate("D2")
 
-    # InEntry <- Inputs | Inputs
+    # InPort <- Inputs | Inputs
     D3: UPipeline = CombinedPipeline(
         pipelines=[B, C],
         name="D3",
@@ -273,17 +260,15 @@ def test_combine_outputs(ATrain: UPipeline, AEval: UPipeline, Sink: UPipeline) -
             "z.b": AEval.outputs.z,
         },
     )
-    assert set(ATrain_AEval.outputs) == set()
-    assert set(ATrain_AEval.out_collections) == set(("z",))
-    assert set(ATrain_AEval.out_collections.z) == set(("a", "b"))
+    assert set(ATrain_AEval.outputs) == set(("z",))
+    assert set(ATrain_AEval.outputs.z) == set(("a", "b"))
     ATrain_AEval_S2: UPipeline = CombinedPipeline(
         name="ATrain_AEval_S2",
         pipelines=(ATrain_AEval, S2),
-        dependencies=(S2.inputs.x << ATrain_AEval.out_collections.z.a,),
+        dependencies=(S2.inputs.x << ATrain_AEval.outputs.z.a,),
     )
-    assert set(ATrain_AEval_S2.outputs) == set()
-    assert set(ATrain_AEval_S2.out_collections) == set(("z",))
-    assert set(ATrain_AEval_S2.out_collections.z) == set(("b"))
+    assert set(ATrain_AEval_S2.outputs) == set(("z",))
+    assert set(ATrain_AEval_S2.outputs.z) == set(("b"))
 
     ATrain_duplicated: UPipeline = CombinedPipeline(
         name="ATrain_duplicated",
@@ -293,10 +278,9 @@ def test_combine_outputs(ATrain: UPipeline, AEval: UPipeline, Sink: UPipeline) -
             "z.b": ATrain.outputs.z,
         },
     )
-    assert set(ATrain_duplicated.outputs) == set()
-    assert set(ATrain_duplicated.out_collections) == set(("z",))
-    assert set(ATrain_duplicated.out_collections.z) == set(("a", "b"))
-    dependencies = (ATrain_duplicated.out_collections.z.a >> S2.inputs.x,)
+    assert set(ATrain_duplicated.outputs) == set(("z",))
+    assert set(ATrain_duplicated.outputs.z) == set(("a", "b"))
+    dependencies = (ATrain_duplicated.outputs.z.a >> S2.inputs.x,)
     ATrain_duplicated_S2: UPipeline = CombinedPipeline(
         name="ATrain_duplicated_S2",
         pipelines=(ATrain_duplicated, S2),
@@ -304,7 +288,7 @@ def test_combine_outputs(ATrain: UPipeline, AEval: UPipeline, Sink: UPipeline) -
     )
     assert set(ATrain_duplicated_S2.outputs) == set()
     # should be:
-    # assert set(ATrain_duplicated_S2.out_collections) == set(("z",))
-    # assert set(ATrain_duplicated_S2.out_collections.z) == set(("b",))
+    # assert set(ATrain_duplicated_S2.outputs) == set(("z",))
+    # assert set(ATrain_duplicated_S2.outputs.z) == set(("b",))
     # but instead we have:
-    assert set(ATrain_duplicated_S2.out_collections) == set()
+    assert set(ATrain_duplicated_S2.outputs) == set()

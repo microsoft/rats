@@ -30,7 +30,7 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
     def _get_types_of_fitted_params(self, train_pl: UPipeline) -> dict[str, type]:
         return {
             fitted_name: tuple(entry)[0].param.annotation
-            for fitted_name, entry in train_pl.out_collections.fitted._asdict().items()
+            for fitted_name, entry in train_pl.outputs.fitted._asdict().items()
         }
 
     def _get_write_fitted_pl(
@@ -75,7 +75,7 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
         p = UPipelineBuilder.combine(
             name="eval_using_persistance",
             pipelines=[read_fitted_pl, eval_pl],
-            dependencies=(read_fitted_pl.out_collections.fitted >> eval_pl.in_collections.fitted,),
+            dependencies=(read_fitted_pl.outputs.fitted >> eval_pl.inputs.fitted,),
         )
         return p
 
@@ -90,14 +90,9 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
             config=dict(
                 eval_using_persistance_pl=eval_using_persistance_pl,
             ),
-            input_annotation={
-                fitted_name: str for fitted_name in read_fitted_pl.in_collections.uris
-            },
+            input_annotation={fitted_name: str for fitted_name in read_fitted_pl.inputs.uris},
         ).rename_inputs(
-            {
-                fitted_name: f"uris.{fitted_name}"
-                for fitted_name in read_fitted_pl.in_collections.uris
-            }
+            {fitted_name: f"uris.{fitted_name}" for fitted_name in read_fitted_pl.inputs.uris}
         )
         return create_fitted_eval_pipeline
 
@@ -120,7 +115,7 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
             fitted_to_types, eval_pl
         )
         write_fitted_eval_pipeline_pl = self._get_write_fitted_eval_pipeline_pl()
-        p = UPipelineBuilder.combine(
+        return UPipelineBuilder.combine(
             name=train_and_eval_pl.name,
             pipelines=[
                 train_pl,
@@ -130,38 +125,21 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
                 write_fitted_eval_pipeline_pl,
             ],
             dependencies=(
-                train_pl.out_collections.fitted >> eval_pl.in_collections.fitted,
-                train_pl.out_collections.fitted >> write_fitted_pl.in_collections.fitted,
-                write_fitted_pl.out_collections.uris
-                >> create_fitted_eval_pipeline_pl.in_collections.uris,
+                train_pl.outputs.fitted >> eval_pl.inputs.fitted,
+                train_pl.outputs.fitted >> write_fitted_pl.inputs.fitted,
+                write_fitted_pl.outputs.uris >> create_fitted_eval_pipeline_pl.inputs.uris,
                 create_fitted_eval_pipeline_pl.outputs.fitted_eval_pipeline
                 >> write_fitted_eval_pipeline_pl.inputs.fitted_eval_pipeline,
             ),
             outputs=train_pl.outputs._asdict()
             | eval_pl.outputs._asdict()
             | create_fitted_eval_pipeline_pl.outputs._asdict()
+            | {k: v for k, v in train_pl.outputs._asdict().items() if not k.startswith("fitted.")}
+            | {k: v for k, v in write_fitted_pl.outputs._asdict().items() if k.startswith("uris.")}
             | {
-                f"{col}.{entry}": train_pl.out_collections[col][entry]
-                for col in train_pl.out_collections
-                if col != "fitted"
-                for entry in train_pl.out_collections[col]
-            }
-            | {
-                f"{col}.{entry}": eval_pl.out_collections[col][entry]
-                for col in eval_pl.out_collections
-                for entry in eval_pl.out_collections[col]
-            }
-            | {
-                f"uris.{entry_name}": write_fitted_pl.out_collections.uris[entry_name]
-                for entry_name in write_fitted_pl.out_collections.uris
-            }
-            | {
-                "uris.fitted_eval_pipeline": (
-                    write_fitted_eval_pipeline_pl.out_collections.uris.fitted_eval_pipeline
-                )
+                "uris.fitted_eval_pipeline": write_fitted_eval_pipeline_pl.outputs.uris.fitted_eval_pipeline
             },
         )
-        return p
 
 
 ProvideFixedUriProcessorOutputs = TypedDict("ProvideFixedUriProcessorOutputs", {"uri": str})
@@ -194,13 +172,9 @@ class CreateFittedEvalPipelineProcessor:
         self._eval_using_persistance_pl = eval_using_persistance_pl
 
     def process(self, **uris: str) -> CreateFittedEvalPipelineProcessorOutputs:
-        if frozenset(uris) != frozenset(self._eval_using_persistance_pl.in_collections.uris):
-            missing = frozenset(self._eval_using_persistance_pl.in_collections.uris) - frozenset(
-                uris
-            )
-            spurious = frozenset(uris) - frozenset(
-                self._eval_using_persistance_pl.in_collections.uris
-            )
+        if frozenset(uris) != frozenset(self._eval_using_persistance_pl.inputs.uris):
+            missing = frozenset(self._eval_using_persistance_pl.inputs.uris) - frozenset(uris)
+            spurious = frozenset(uris) - frozenset(self._eval_using_persistance_pl.inputs.uris)
             raise ValueError(f"Expected uris to contain {missing} and not contain {spurious}")
         provide_uris_pl = UPipelineBuilder.combine(
             name="uris",
@@ -219,8 +193,7 @@ class CreateFittedEvalPipelineProcessor:
             name="fitted_eval",
             pipelines=[provide_uris_pl, self._eval_using_persistance_pl],
             dependencies=(
-                provide_uris_pl.out_collections.uris
-                >> self._eval_using_persistance_pl.in_collections.uris,
+                provide_uris_pl.outputs.uris >> self._eval_using_persistance_pl.inputs.uris,
             ),
         )
         return CreateFittedEvalPipelineProcessorOutputs(fitted_eval_pipeline=fitted_eval_pl)

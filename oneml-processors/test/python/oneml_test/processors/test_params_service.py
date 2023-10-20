@@ -15,10 +15,10 @@ from oneml.processors.services import (
 )
 from oneml.processors.ux import (
     CombinedPipeline,
-    InEntry,
+    InPort,
     Inputs,
     NoInputs,
-    OutEntry,
+    OutPort,
     Outputs,
     Task,
     UPipeline,
@@ -56,15 +56,15 @@ class A(IProcess):
 
 
 class _LoadDataOutputs(Outputs):
-    data: OutEntry[float]
+    data: OutPort[float]
 
 
 class _AInputs(Inputs):
-    X: InEntry[float]
+    X: InPort[float]
 
 
 class _AOutputs(Outputs):
-    Z: OutEntry[float]
+    Z: OutPort[float]
 
 
 class PipelineProvider:

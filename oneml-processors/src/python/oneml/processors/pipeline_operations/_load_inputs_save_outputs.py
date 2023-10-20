@@ -2,8 +2,8 @@ from typing import Any, Literal
 
 from oneml.processors.io import IReadFromUriPipelineBuilder, IWriteToNodeBasedUriPipelineBuilder
 from oneml.processors.ux import (
-    InEntry,
-    OutEntry,
+    InPort,
+    OutPort,
     UPipeline,
     UPipelineBuilder,
     ensure_non_clashing_pipeline_names,
@@ -23,7 +23,7 @@ class LoadInputsSaveOutputs:
         self._write_to_node_based_uri = write_to_node_based_uri
 
     def _get_data_type(
-        self, entry: InEntry[Any] | OutEntry[Any], name: str, kind: Literal["Input", "Output"]
+        self, entry: InPort[Any] | OutPort[Any], name: str, kind: Literal["Input", "Output"]
     ) -> type:
         parameter = entry[0]
         processor_param = parameter.param
@@ -39,7 +39,7 @@ class LoadInputsSaveOutputs:
                 .decorate(entry_name)
                 .rename_inputs({"uri": f"input_uris.{entry_name}"})
                 .rename_outputs({"data": f"inputs.{entry_name}"})
-                for entry_name, entry in pipeline.in_collections.inputs_to_load._asdict().items()
+                for entry_name, entry in pipeline.inputs.inputs_to_load._asdict().items()
             )
         )
         pl = UPipelineBuilder.combine(
@@ -59,7 +59,7 @@ class LoadInputsSaveOutputs:
                 .decorate(entry_name)
                 .rename_inputs({"data": f"outputs.{entry_name}"})
                 .rename_outputs({"uri": f"output_uris.{entry_name}"})
-                for entry_name, entry in pipeline.out_collections.outputs_to_save._asdict().items()
+                for entry_name, entry in pipeline.outputs.outputs_to_save._asdict().items()
             )
         )
         pl = UPipelineBuilder.combine(
@@ -73,17 +73,17 @@ class LoadInputsSaveOutputs:
     def _add_load_and_save(self, pipeline: UPipeline) -> UPipeline:
         pipelines: tuple[UPipeline, ...] = (pipeline,)
         dependencies = tuple()  # type: ignore[var-annotated]
-        if "inputs_to_load" in pipeline.in_collections:
+        if "inputs_to_load" in pipeline.inputs:
             load_pipeline = self._get_load_pipeline(pipeline)
             pipelines = pipelines + (load_pipeline,)
             dependencies = dependencies + (
-                load_pipeline.out_collections.inputs >> pipeline.in_collections.inputs_to_load,
+                load_pipeline.outputs.inputs >> pipeline.inputs.inputs_to_load,
             )
-        if "outputs_to_save" in pipeline.out_collections:
+        if "outputs_to_save" in pipeline.outputs:
             save_pipeline = self._get_save_pipeline(pipeline)
             pipelines = pipelines + (save_pipeline,)
             dependencies = dependencies + (
-                pipeline.out_collections.outputs_to_save >> save_pipeline.in_collections.outputs,
+                pipeline.outputs.outputs_to_save >> save_pipeline.inputs.outputs,
             )
         if len(pipelines) == 1:
             return pipeline

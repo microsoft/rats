@@ -177,14 +177,12 @@ def get_verification_pipeline_1(
             a_b="a.b",
         )
     )
-    assert set(pl.inputs) == {"output_base_uri", "y"}
-    assert set(pl.in_collections) == {"input_uris", "x"}
-    assert set(pl.in_collections.input_uris) == {"i1", "i2"}
-    assert set(pl.in_collections.x) == {"a", "b"}
-    assert set(pl.outputs) == {"c"}
-    assert set(pl.out_collections) == {"output_uris", "a"}
-    assert set(pl.out_collections.output_uris) == {"o1", "o2", "o3"}
-    assert set(pl.out_collections.a) == {"a", "b"}
+    assert set(pl.inputs) == {"output_base_uri", "y", "input_uris", "x"}
+    assert set(pl.inputs.input_uris) == {"i1", "i2"}
+    assert set(pl.inputs.x) == {"a", "b"}
+    assert set(pl.outputs) == {"c", "output_uris", "a"}
+    assert set(pl.outputs.output_uris) == {"o1", "o2", "o3"}
+    assert set(pl.outputs.a) == {"a", "b"}
     return pl
 
 
@@ -198,12 +196,10 @@ def test_publish_outputs_as_datasets_pipeline_interface(
         expected_output_base_uri_pattern="",
     )
     pl = publish_outputs_as_dataset(pl)
-    assert set(pl.inputs) == {"output_base_uri", "y", "allow_overwrite"}
-    assert set(pl.in_collections) == {"input_uris", "x"}
-    assert set(pl.in_collections.input_uris) == {"i1", "i2"}
-    assert set(pl.in_collections.x) == {"a", "b"}
-    assert set(pl.outputs) == {"c"}
-    assert set(pl.out_collections) == {"output_uris", "a"}
+    assert set(pl.inputs) == {"output_base_uri", "y", "allow_overwrite", "input_uris", "x"}
+    assert set(pl.inputs.input_uris) == {"i1", "i2"}
+    assert set(pl.inputs.x) == {"a", "b"}
+    assert set(pl.outputs) == {"c", "output_uris", "a"}
 
 
 def test_publish_outputs_as_dataset_with_no_datasets(

@@ -2,17 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..utils import namedcollection, orderedset
+
 if TYPE_CHECKING:
     from ..dag import DAG
-    from ._pipeline import (
-        InCollections,
-        InEntry,
-        Inputs,
-        OutCollections,
-        OutEntry,
-        Outputs,
-        UPipeline,
-    )
+    from ._pipeline import InPort, InPorts, Inputs, OutPort, OutPorts, Outputs, UPipeline
 
 
 def _verify_dag_integrity(dag: DAG) -> None:
@@ -41,7 +35,7 @@ def _verify_pipeline_name(name: str, dag: DAG) -> None:
             raise ValueError(f"First part of node path {node} is not pipeline name {name}.")
 
 
-def _verify_input_entry(in_name: str, in_entry: InEntry[Any], dag: DAG) -> None:
+def _verify_input_entry(in_name: str, in_entry: InPort[Any], dag: DAG) -> None:
     if len(in_entry) == 0:
         raise ValueError(f"Input parameter {in_name} does not point to any node.")
     for in_param in in_entry:
@@ -56,17 +50,23 @@ def _verify_input_entry(in_name: str, in_entry: InEntry[Any], dag: DAG) -> None:
 
 
 def _verify_pipeline_inputs(inputs: Inputs, dag: DAG) -> None:
-    for in_name, in_entry in inputs._asdict().items():
-        _verify_input_entry(in_name, in_entry, dag)
+    for in_name, entry in inputs._asdict().items():
+        if isinstance(entry, orderedset):
+            _verify_input_entry(in_name, entry, dag)
+        elif isinstance(entry, InPorts):
+            _verify_pipeline_in_collections(entry, dag)
+        else:
+            raise ValueError(f"Input parameter {in_name} has unknown type {type(entry)}.")
 
 
-def _verify_pipeline_in_collections(in_collections: InCollections, dag: DAG) -> None:
-    for col_name, collection in in_collections._asdict().items():
-        for in_name, in_entry in collection._asdict().items():
-            _verify_input_entry(f"{col_name}.{in_name}", in_entry, dag)
+def _verify_pipeline_in_collections(inputs: Inputs, dag: DAG) -> None:
+    if inputs._depth > 1:
+        raise UnsupportedFeatureError("Input collections with depth > 1 are not supported.")
+    for n, in_entry in inputs._asdict().items():
+        _verify_input_entry(n, in_entry, dag)
 
 
-def _verify_output_entry(out_name: str, out_entry: OutEntry[Any], dag: DAG) -> None:
+def _verify_output_entry(out_name: str, out_entry: OutPort[Any], dag: DAG) -> None:
     # Is there a legit situation where out_entry has more than one element?
     # If not, then maybe we should change the type of out_entry to OutParam?
     if len(out_entry) != 1:
@@ -86,22 +86,28 @@ def _verify_output_entry(out_name: str, out_entry: OutEntry[Any], dag: DAG) -> N
 
 def _verify_pipeline_outputs(outputs: Outputs, dag: DAG) -> None:
     for out_name, out_entry in outputs._asdict().items():
-        _verify_output_entry(out_name, out_entry, dag)
+        if isinstance(out_entry, orderedset):
+            _verify_output_entry(out_name, out_entry, dag)
+        elif isinstance(out_entry, namedcollection):
+            _verify_pipeline_out_collections(out_entry, dag)
+        else:
+            raise ValueError(f"Output parameter {out_name} has unknown type {type(out_entry)}.")
 
 
-def _verify_pipeline_out_collections(out_collections: OutCollections, dag: DAG) -> None:
-    for col_name, collection in out_collections._asdict().items():
-        for out_name, out_entry in collection._asdict().items():
-            _verify_output_entry(f"{col_name}.{out_name}", out_entry, dag)
+def _verify_pipeline_out_collections(outputs: Outputs, dag: DAG) -> None:
+    if outputs._depth > 1:
+        raise UnsupportedFeatureError("Output collections with depth > 1 are not supported.")
+    for n, out_entry in outputs._asdict().items():
+        _verify_output_entry(n, out_entry, dag)
 
 
-def verify_pipeline_integrity(
-    pipeline: UPipeline
-) -> None:
+def verify_pipeline_integrity(pipeline: UPipeline) -> None:
     _verify_dag_integrity(pipeline._dag)
     _verify_pipeline_name(pipeline.name, pipeline._dag)
     _verify_pipeline_inputs(pipeline.inputs, pipeline._dag)
-    _verify_pipeline_in_collections(pipeline.in_collections, pipeline._dag)
     _verify_pipeline_outputs(pipeline.outputs, pipeline._dag)
-    _verify_pipeline_out_collections(pipeline.out_collections, pipeline._dag)
     return
+
+
+class UnsupportedFeatureError(Exception):
+    pass

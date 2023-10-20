@@ -1,31 +1,20 @@
-from typing import Any, Mapping
+from typing import Any, Mapping, TypeVar
 
-from oneml.processors.utils import frozendict
-from oneml.processors.ux import UPipeline, UTask, find_non_clashing_name
+from oneml.processors.utils import frozendict, namedcollection
+from oneml.processors.ux import Task, UPipeline
 
 from ._expose_given_outputs_processor import ExposeGivenOutputsProcessor
 
+TOutputs = TypeVar("TOutputs")
+
 
 class ExposeGivenOutputs:
-    def __call__(
-        self,
-        outputs: Mapping[str, Any] = dict(),
-        out_collections: Mapping[str, Mapping[str, Any]] = dict(),
-    ) -> UPipeline:
-        combined_data = dict(**outputs)
-        renames = dict()
-        for collection_name, collection in out_collections.items():
-            for entry_name, value in collection.items():
-                key = find_non_clashing_name(f"{collection_name}_{entry_name}", set(combined_data))
-                renames[key] = f"{collection_name}.{entry_name}"
-                combined_data[key] = value
-        frozen_outputs = frozendict(combined_data)
-
-        return_annotation = frozendict({k: type(v) for k, v in combined_data.items()})
-        pl = UTask(
+    def __call__(self, outputs: Mapping[str, Any] = dict()) -> UPipeline:
+        data = namedcollection(outputs)
+        return_annotation = frozendict({k: type(v) for k, v in outputs.items()})
+        return Task(
             ExposeGivenOutputsProcessor,
             name="fixed_output",
-            config=frozendict(outputs=frozen_outputs),
+            config=frozendict(outputs=data),
             return_annotation=return_annotation,
-        ).rename_outputs(renames)
-        return pl
+        ).rename_outputs({k: k for k in outputs})

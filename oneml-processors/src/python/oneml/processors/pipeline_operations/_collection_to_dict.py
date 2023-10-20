@@ -1,38 +1,20 @@
-from typing import Any, Generic, Mapping, Sequence, TypedDict, TypeVar, overload
+from typing import Any, Mapping, Sequence, TypedDict, TypeVar, overload
 
-from ..ux import (
-    InCollection,
-    InCollections,
-    InEntry,
-    Inputs,
-    NoInCollections,
-    NoInputs,
-    NoOutCollections,
-    NoOutputs,
-    OutCollection,
-    OutCollections,
-    OutEntry,
-    Outputs,
-    Pipeline,
-    UPipeline,
-    UTask,
-)
+from ..ux import InPort, InPorts, OutPort, OutPorts, Outputs, Pipeline, UPipeline, UTask
 from ._collection_to_dict_processors import DictToOutputs, InputsToDict
 
 T = TypeVar("T")
 
 
-class CollectionToDictInCollections(InCollections, Generic[T]):
-    col: InCollection[T]
+class CollectionToDictInputs(InPorts[T]):
+    col: InPorts[T]
 
 
-class CollectionToDictOutputs(OutCollection[Mapping[str, T]]):
-    dct: OutEntry[Mapping[str, T]]
+class CollectionToDictOutputs(OutPorts[Mapping[str, T]]):
+    dct: OutPort[Mapping[str, T]]
 
 
-CollectionToDictPL = Pipeline[
-    NoInputs, CollectionToDictOutputs[T], CollectionToDictInCollections[T], NoOutCollections
-]
+CollectionToDictPL = Pipeline[CollectionToDictInputs[T], CollectionToDictOutputs[T]]
 
 
 class CollectionToDict:
@@ -101,17 +83,15 @@ class CollectionToDict:
         return pipeline
 
 
-class DictToCollectionInputs(InCollection[Mapping[str, T]]):
-    dct: InEntry[Mapping[str, T]]
+class DictToCollectionInputs(InPorts[Mapping[str, T]]):
+    dct: InPort[Mapping[str, T]]
 
 
-class DictToCollectionOutCollections(OutCollections, Generic[T]):
-    col: OutCollection[T]
+class DictToCollectionOutCollections(OutPorts[T]):
+    col: OutPorts[T]
 
 
-DictToCollectionPL = Pipeline[
-    DictToCollectionInputs[T], NoOutputs, NoInCollections, DictToCollectionOutCollections[T]
-]
+DictToCollectionPL = Pipeline[DictToCollectionInputs[T], Outputs]
 
 
 class DictToCollection:

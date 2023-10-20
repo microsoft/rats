@@ -12,13 +12,17 @@ def test_expose_given_outputs_processor() -> None:
 
 def test_expose_given_outputs(expose_given_outputs: ExposeGivenOutputs) -> None:
     p = expose_given_outputs(
-        outputs={"foo": 1, "bar": "baz"},
-        out_collections={"col1": {"foo1": 1, "bar1": "baz"}, "col2": {"foo2": 1, "bar2": "baz"}},
+        outputs={
+            "foo": 1,
+            "bar": "baz",
+            "col1.foo1": 1,
+            "col1.bar1": "baz",
+            "col2.foo2": 1,
+            "col2.bar2": "baz",
+        }
     )
 
     assert set(p.inputs) == set()
-    assert set(p.in_collections) == set()
-    assert set(p.outputs) == {"foo", "bar"}
-    assert set(p.out_collections) == {"col1", "col2"}
-    assert set(p.out_collections.col1) == {"foo1", "bar1"}
-    assert set(p.out_collections.col2) == {"foo2", "bar2"}
+    assert set(p.outputs) == {"foo", "bar", "col1", "col2"}
+    assert set(p.outputs.col1) == {"foo1", "bar1"}
+    assert set(p.outputs.col2) == {"foo2", "bar2"}

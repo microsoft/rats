@@ -1,13 +1,11 @@
 from oneml.processors.dag._client import DagSubmitter
 from oneml.processors.ux import (
     CombinedPipeline,
-    InEntry,
+    InPort,
     Inputs,
-    NoInCollections,
     NoInputs,
-    NoOutCollections,
     NoOutputs,
-    OutEntry,
+    OutPort,
     Outputs,
     Task,
 )
@@ -17,29 +15,29 @@ from ._processors import A, B, C, D
 
 
 class InB(Inputs):
-    x: InEntry[float]
+    x: InPort[float]
 
 
 class InC(Inputs):
-    x: InEntry[float]
+    x: InPort[float]
 
 
 class InD(Inputs):
-    x1: InEntry[float]
-    x2: InEntry[float]
+    x1: InPort[float]
+    x2: InPort[float]
 
 
 class OutA(Outputs):
-    z1: OutEntry[float]
-    z2: OutEntry[float]
+    z1: OutPort[float]
+    z2: OutPort[float]
 
 
 class OutB(Outputs):
-    z: OutEntry[float]
+    z: OutPort[float]
 
 
 class OutC(Outputs):
-    z: OutEntry[float]
+    z: OutPort[float]
 
 
 class DiamondPipeline:
@@ -54,7 +52,7 @@ class DiamondPipeline:
         c = Task[InC, OutC](C, "C")
         d = Task[InD, NoOutputs](D, "D")
 
-        diamond = CombinedPipeline[NoInputs, NoOutputs, NoInCollections, NoOutCollections](
+        diamond = CombinedPipeline[NoInputs, NoOutputs](
             pipelines=[a, b, c, d],
             dependencies=(
                 b.inputs.x << a.outputs.z1,

@@ -27,8 +27,8 @@ def stz() -> UPipeline:
 
 
 def test_single_incollection_subtract(stz: UPipeline) -> None:
-    in_collection = stz.in_collections.X
-    assert len(stz.in_collections.X) == 1
+    in_collection = stz.inputs.X
+    assert len(stz.inputs.X) == 1
 
     # Tests InParameterCollection - Iterable[str]
     res = in_collection - ("eval",)
@@ -36,7 +36,7 @@ def test_single_incollection_subtract(stz: UPipeline) -> None:
 
 
 def test_pipelineinput_subtract(stz: UPipeline) -> None:
-    inputs = stz.in_collections
+    inputs = stz.inputs
     assert len(inputs) == 3
 
     # Tests InParameterCollection - Iterable[str]

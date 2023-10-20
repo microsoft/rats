@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import TypedDict, TypeVar, cast
 
 import pytest
 
@@ -8,15 +8,12 @@ from oneml.processors.dag import IProcess
 from oneml.processors.training import IPersistFittedEvalPipeline, TrainAndEvalBuilders
 from oneml.processors.ux import (
     CombinedPipeline,
-    InCollection,
-    InCollections,
-    InEntry,
+    InPort,
+    InPorts,
     Inputs,
-    NoInputs,
     NoOutputs,
-    OutCollection,
-    OutCollections,
-    OutEntry,
+    OutPort,
+    OutPorts,
     Outputs,
     Pipeline,
     PipelineRunnerFactory,
@@ -26,6 +23,8 @@ from oneml.processors.ux import (
 )
 
 from .mock_data import Array, Model
+
+T = TypeVar("T")
 
 ########
 
@@ -90,48 +89,45 @@ class ReportGenerator(IProcess):
 
 
 class StzTrainIn(Inputs):
-    X: InEntry[Array]
+    X: InPort[Array]
 
 
 class StzTrainOut(Outputs):
-    mean: OutEntry[Array]
-    scale: OutEntry[Array]
-    Z: OutEntry[Array]
+    mean: OutPort[Array]
+    scale: OutPort[Array]
+    Z: OutPort[Array]
 
 
 class StzEvalIn(Inputs):
-    mean: InEntry[Array]
-    scale: InEntry[Array]
+    mean: InPort[Array]
+    scale: InPort[Array]
 
 
 class StzEvalOut(Outputs):
-    Z: OutEntry[Array]
+    Z: OutPort[Array]
 
 
-class TrainEvalArrayIn(InCollection[Array]):
-    train: InEntry[Array]
-    eval: InEntry[Array]
+class TrainEvalIn(InPorts[T]):
+    train: InPort[T]
+    eval: InPort[T]
 
 
-class TrainEvalArrayOut(OutCollection[Array]):
-    train: OutEntry[Array]
-    eval: OutEntry[Array]
+class TrainEvalOut(OutPorts[T]):
+    train: OutPort[T]
+    eval: OutPort[T]
 
 
-class XIn(InCollections):
-    X: TrainEvalArrayIn
+class XIn(Inputs):
+    X: TrainEvalIn[Array]
 
 
-class MeanScaleOut(Outputs):
-    mean: OutEntry[Array]
-    scale: OutEntry[Array]
+class ZMeanScaleOut(Outputs):
+    Z: TrainEvalOut[Array]
+    mean: OutPort[Array]
+    scale: OutPort[Array]
 
 
-class ZOut(OutCollections):
-    Z: TrainEvalArrayOut
-
-
-StzPipeline = Pipeline[NoInputs, MeanScaleOut, XIn, ZOut]
+StzPipeline = Pipeline[XIn, ZMeanScaleOut]
 
 
 @pytest.fixture
@@ -149,21 +145,18 @@ def standardization() -> StzPipeline:
     )
 
 
-class XYIn(InCollections):
-    X: TrainEvalArrayIn
-    Y: TrainEvalArrayIn
+class XYIn(Inputs):
+    X: TrainEvalIn[Array]
+    Y: TrainEvalIn[Array]
 
 
-class ModelOut(Outputs):
-    model: OutEntry[Model]
+class ModelProbsAccOut(Outputs):
+    model: OutPort[Model]
+    probs: TrainEvalOut[Array]
+    acc: TrainEvalOut[Array]
 
 
-class ProbsAccOut(OutCollections):
-    probs: TrainEvalArrayOut
-    acc: TrainEvalArrayOut
-
-
-LrPipeline = Pipeline[NoInputs, ModelOut, XYIn, ProbsAccOut]
+LrPipeline = Pipeline[XYIn, ModelProbsAccOut]
 
 
 @pytest.fixture
@@ -181,12 +174,12 @@ def logistic_regression() -> LrPipeline:
 def mypy_static_checks(standardization: StzPipeline, logistic_regression: LrPipeline) -> None:
     """Does not run; used to test mypy static checks."""
     standardization.outputs.mean << logistic_regression.outputs.model  # type: ignore[operator]
-    standardization.inputs.noreturn << logistic_regression.outputs.model  # type: ignore[operator]
-    standardization.in_collections.X << logistic_regression.out_collections.acc  # ok
-    standardization.in_collections.X << logistic_regression.out_collections.acc.train  # type: ignore[operator]
-    logistic_regression.outputs.model >> standardization.in_collections.X  # type: ignore[operator]
-    logistic_regression.outputs.model >> standardization.in_collections.X.train  # type: ignore[operator]
-    standardization.outputs.mean >> standardization.in_collections.X.train  # ok
+    standardization.inputs.noreturn << logistic_regression.outputs.model  # ok; cannot detect
+    standardization.inputs.X << logistic_regression.outputs.acc  # ok
+    standardization.inputs.X << logistic_regression.outputs.acc.train  # type: ignore[operator]
+    logistic_regression.outputs.model >> standardization.inputs.X  # type: ignore[operator]
+    logistic_regression.outputs.model >> standardization.inputs.X.train  # type: ignore[operator]
+    standardization.outputs.mean >> standardization.inputs.X.train  # ok
 
 
 #######
@@ -194,11 +187,11 @@ def mypy_static_checks(standardization: StzPipeline, logistic_regression: LrPipe
 # STANDARDIZED LR PIPELINE
 
 
-class ModelMeanScaleOut(ModelOut, MeanScaleOut):
+class ZModelMeanScaleOut(ModelProbsAccOut, ZMeanScaleOut):
     pass
 
 
-StzLrPipeline = Pipeline[NoInputs, ModelMeanScaleOut, XYIn, ProbsAccOut]
+StzLrPipeline = Pipeline[XYIn, ZModelMeanScaleOut]
 
 
 @pytest.fixture
@@ -207,21 +200,21 @@ def standardized_lr(
 ) -> StzLrPipeline:
     return CombinedPipeline(
         pipelines=[standardization, logistic_regression],
-        inputs={"X": standardization.in_collections.X, "Y": logistic_regression.in_collections.Y},
+        inputs={"X": standardization.inputs.X, "Y": logistic_regression.inputs.Y},
         outputs={
             "mean": standardization.outputs.mean,
             "scale": standardization.outputs.scale,
             "model": logistic_regression.outputs.model,
-            "probs": logistic_regression.out_collections.probs,
-            "acc": logistic_regression.out_collections.acc,
+            "probs": logistic_regression.outputs.probs,
+            "acc": logistic_regression.outputs.acc,
         },
-        dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
+        dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
         name="standardized_lr",
     )
 
 
 class AccIn(Inputs):
-    acc: InEntry[Array]
+    acc: InPort[Array]
 
 
 @pytest.fixture
@@ -300,7 +293,7 @@ def test_standardized_lr_with_persistance(
         }
     )
     assert set(outputs) == set(
-        ("mean", "scale", "model", "probs", "acc", "fitted_eval_pipeline", "uris")
+        ("mean", "scale", "model", "probs", "acc", "fitted_eval_pipeline", "uris", "fitted")
     )
     assert str(outputs.mean) == "mean(Xt)"
     assert str(outputs.scale) == "scale(Xt)"
@@ -357,44 +350,46 @@ def test_single_output_multiple_input(
     pl: UPipeline = CombinedPipeline(
         pipelines=[standardized_lr, reports],
         name="pl",
-        dependencies=(reports.inputs.acc << standardized_lr.out_collections.acc.eval_1,),
+        dependencies=(reports.inputs.acc << standardized_lr.outputs.acc.eval_1,),
     )
-    assert set(pl.inputs) == set()
-    assert set(pl.in_collections) == set(("X", "Y"))
-    assert set(pl.in_collections.X) == set(("train", "eval_1", "eval_2"))
-    assert set(pl.in_collections.Y) == set(("train", "eval_1", "eval_2"))
-    assert set(pl.outputs) == set(("mean", "scale", "model"))
-    assert set(pl.out_collections) == set(("probs", "acc"))
-    assert set(pl.out_collections.probs) == set(("train", "eval_1", "eval_2"))
-    assert set(pl.out_collections.acc) == set(("train", "eval_2"))
+    assert set(pl.inputs) == set(("X", "Y"))
+    assert set(pl.inputs.X) == set(("train", "eval_1", "eval_2"))
+    assert set(pl.inputs.Y) == set(("train", "eval_1", "eval_2"))
+    assert set(pl.outputs) == set(("mean", "scale", "model", "probs", "acc"))
+    assert set(pl.outputs.probs) == set(("train", "eval_1", "eval_2"))
+    assert set(pl.outputs.acc) == set(("train", "eval_2"))
 
 
-def test_wiring_outputs(standardization: UPipeline, logistic_regression: UPipeline) -> None:
-    standardization = TrainAndEvalBuilders.with_multiple_eval_inputs(
-        standardization, eval_names=("eval_1", "eval_2")
+def test_wiring_outputs(standardization: StzPipeline, logistic_regression: LrPipeline) -> None:
+    standardization = cast(
+        Pipeline[XIn, ZMeanScaleOut],
+        TrainAndEvalBuilders.with_multiple_eval_inputs(
+            standardization, eval_names=("eval_1", "eval_2")
+        ),
     )
-    logistic_regression = TrainAndEvalBuilders.with_multiple_eval_inputs(
-        logistic_regression, eval_names=("eval_1", "eval_2")
+    logistic_regression = cast(
+        Pipeline[XYIn, ModelProbsAccOut],
+        TrainAndEvalBuilders.with_multiple_eval_inputs(
+            logistic_regression, eval_names=("eval_1", "eval_2")
+        ),
     )
     e: UPipeline = CombinedPipeline(
         pipelines=[standardization, logistic_regression],
         name="standardized_lr",
-        dependencies=(logistic_regression.in_collections.X << standardization.out_collections.Z,),
+        dependencies=(logistic_regression.inputs.X << standardization.outputs.Z,),
         outputs={
             "A.mean": standardization.outputs.mean,
             "A.scale": standardization.outputs.scale,
             "A.model": logistic_regression.outputs.model,
-            "A.probs_train": logistic_regression.out_collections.probs.train,
-            "A.probs_eval": logistic_regression.out_collections.probs.eval_1,
-            "A.acc": logistic_regression.out_collections.acc.eval_1,
+            "A.probs_train": logistic_regression.outputs.probs.train,
+            "A.probs_eval": logistic_regression.outputs.probs.eval_1,
+            "A.acc": logistic_regression.outputs.acc.eval_1,
         },
     )
 
-    assert len(e.out_collections) == 1 and tuple(e.out_collections) == ("A",)
-    assert len(e.out_collections.A) == 6
-    assert set(e.out_collections.A) == set(
-        ("mean", "scale", "model", "probs_train", "probs_eval", "acc")
-    )
+    assert len(e.outputs) == 1 and tuple(e.outputs) == ("A",)
+    assert len(e.outputs.A) == 6
+    assert set(e.outputs.A) == set(("mean", "scale", "model", "probs_train", "probs_eval", "acc"))
 
 
 # Fails on devops b/c the graphviz binary is not available.

@@ -5,6 +5,7 @@ from oneml.processors.pipeline_operations import (
     ITransformPipeline,
     OnemlProcessorsPipelineOperationsServices,
 )
+from oneml.processors.ux import UPipeline
 from oneml.services import (
     IManageServices,
     IProvideServices,
@@ -21,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 @scoped_service_ids
 class _PrivateServices:
-    PUBLISH_OUTPUTS_AS_DATASET = ServiceId[ITransformPipeline]("publish-outputs-as-dataset")
+    PUBLISH_OUTPUTS_AS_DATASET = ServiceId[ITransformPipeline[UPipeline, UPipeline]](
+        "publish-outputs-as-dataset"
+    )
 
 
 class OnemlHabitatsPipelineOperationsDiContainer:
@@ -31,7 +34,7 @@ class OnemlHabitatsPipelineOperationsDiContainer:
         self._app = app
 
     @service_provider(_PrivateServices.PUBLISH_OUTPUTS_AS_DATASET)
-    def publish_outputs_as_dataset(self) -> ITransformPipeline:
+    def publish_outputs_as_dataset(self) -> ITransformPipeline[UPipeline, UPipeline]:
         return PublishOutputsAsDataset(
             collection_to_dict=self._app.get_service(
                 OnemlProcessorsPipelineOperationsServices.COLLECTION_TO_DICT

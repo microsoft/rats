@@ -38,11 +38,9 @@ def _parse_dict(key: str, _parent_: DictConfig) -> None:
 DPTYPE: dict[str, str] = {
     "in_entry": "oneml.processors.ux._ops.EntryDependencyOp",
     "in_collection": "oneml.processors.ux._ops.CollectionDependencyOp",
-    "in_collections": "oneml.processors.ux._ops.IOCollectionDependencyOp",
     "in_pipeline": "oneml.processors.ux._ops.PipelineDependencyOp",
     "out_entry": "oneml.processors.ux._ops.EntryDependencyOp",
     "out_collection": "oneml.processors.ux._ops.CollectionDependencyOp",
-    "out_collections": "oneml.processors.ux._ops.IOCollectionDependencyOp",
     "out_pipeline": "oneml.processors.ux._ops.PipelineDependencyOp",
 }
 
@@ -52,7 +50,7 @@ def _parse_dependencies(dependencies: DictConfig | None) -> None:
         if "_target_" not in v:
             err_msg = "Only the following pairs of (input, output) attributes are recogized: "
             err_msg += "(in_entry, out_entry), (in_collection, out_collection), "
-            err_msg += "(in_collections, out_collections), (in_pipeline, out_pipeline)."
+            err_msg += "(in_pipeline, out_pipeline)."
             if len(v) > 2:
                 raise ValueError(err_msg)
             base_target = ""

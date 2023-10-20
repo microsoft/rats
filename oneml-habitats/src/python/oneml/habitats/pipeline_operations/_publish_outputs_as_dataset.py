@@ -103,16 +103,16 @@ class PublishOutputsAsDataset:
         )
         return pl
 
-    def _publish_outputs_as_dataset_provider(self, pipeline: UPipeline) -> UPipeline:
+    def publish_outputs_as_dataset_provider(self, pipeline: UPipeline) -> UPipeline:
         if "output_base_uri" not in pipeline.inputs:
             raise ValueError("pipeline must have output_base_uri input")
 
-        if "input_uris" in pipeline.in_collections:
-            prepare = self._prepare_with_inputs(list(pipeline.in_collections.input_uris))
+        if "input_uris" in pipeline.inputs:
+            prepare = self._prepare_with_inputs(list(pipeline.inputs.input_uris))
         else:
             prepare = self._prepare_without_inputs()
 
-        publish = self._publish(list(pipeline.out_collections.output_uris))
+        publish = self._publish(list(pipeline.outputs.output_uris))
         if pipeline.name in (prepare.name, publish.name):
             pipeline = pipeline.decorate("_" + pipeline.name)
 
@@ -127,15 +127,11 @@ class PublishOutputsAsDataset:
                 >> publish.inputs.output_base_path_within_dataset,
                 prepare.outputs.dataset_publish_specifications
                 >> publish.inputs.dataset_publish_specifications,
-                pipeline.out_collections.output_uris
-                >> publish.in_collections.resolved_output_uris,
+                pipeline.outputs.output_uris >> publish.inputs.resolved_output_uris,
             )
             + (
-                (
-                    prepare.out_collections.resolved_input_uris
-                    >> pipeline.in_collections.input_uris,
-                )
-                if "input_uris" in pipeline.in_collections
+                (prepare.outputs.resolved_input_uris >> pipeline.inputs.input_uris,)
+                if "input_uris" in pipeline.inputs
                 else tuple()
             ),
         )
@@ -151,7 +147,7 @@ class PublishOutputsAsDataset:
             output_base_uri: str
                     Whatever is saved to that location will become part of the published dataset.
                     Supported schemes should include file:// and abfss://.
-            Optional pipeline in_collections:
+            Optional pipeline inputs:
                 input_uris: str
                     Locations from which the pipeline will read inputs.
                     Supported schemes should include file:// and abfss://.
@@ -180,4 +176,4 @@ class PublishOutputsAsDataset:
             4. The output uris will be an ampds:// uri, fully specifying the created commit,
                 pointing to the locations within the dataset where the outputs were saved.
         """
-        return self._publish_outputs_as_dataset_provider(pipeline)
+        return self.publish_outputs_as_dataset_provider(pipeline)

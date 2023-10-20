@@ -12,7 +12,7 @@ from oneml.processors.pipeline_operations import (
     OnemlProcessorsPipelineOperationsServices,
 )
 from oneml.processors.pipeline_operations._app_plugin import _PrivateServices
-from oneml.processors.ux import UPipeline, UPipelineBuilder
+from oneml.processors.ux import Inputs, Outputs, UPipeline, UPipelineBuilder
 
 
 @pytest.fixture(scope="package")
@@ -26,17 +26,17 @@ def expose_given_outputs(app: OnemlApp) -> ExposeGivenOutputs:
 
 
 @pytest.fixture(scope="package")
-def load_inputs_save_outputs(app: OnemlApp) -> ITransformPipeline:
+def load_inputs_save_outputs(app: OnemlApp) -> ITransformPipeline[UPipeline, UPipeline]:
     return app.get_service(OnemlProcessorsPipelineOperationsServices.LOAD_INPUTS_SAVE_OUTPUTS)
 
 
 @pytest.fixture(scope="package")
-def expose_pipeline_as_output(app: OnemlApp) -> ITransformPipeline:
+def expose_pipeline_as_output(app: OnemlApp) -> ITransformPipeline[UPipeline, UPipeline]:
     return app.get_service(OnemlProcessorsPipelineOperationsServices.EXPOSE_PIPELINE_AS_OUTPUT)
 
 
 @pytest.fixture(scope="package")
-def write_manifest(app: OnemlApp) -> ITransformPipeline:
+def write_manifest(app: OnemlApp) -> ITransformPipeline[UPipeline, UPipeline]:
     return app.get_service(_PrivateServices.WRITE_MANIFEST)
 
 
@@ -70,12 +70,10 @@ def pipeline_for_tests() -> UPipeline:
         .rename_inputs({"w_a": "w.a", "w_b": "w.b", "x_k": "x.k"})
         .rename_outputs({"c_a": "c.a", "c_b": "c.b", "d_a": "d.a"})
     )
-    assert set(pl.inputs) == {"u", "v"}
-    assert set(pl.in_collections) == {"w", "x"}
-    assert set(pl.in_collections.w) == {"a", "b"}
-    assert set(pl.in_collections.x) == {"k"}
-    assert set(pl.outputs) == {"a", "b"}
-    assert set(pl.out_collections) == {"c", "d"}
-    assert set(pl.out_collections.c) == {"a", "b"}
-    assert set(pl.out_collections.d) == {"a"}
+    assert set(pl.inputs) == {"u", "v", "w", "x"}
+    assert set(pl.inputs.w) == {"a", "b"}
+    assert set(pl.inputs.x) == {"k"}
+    assert set(pl.outputs) == {"a", "b", "c", "d"}
+    assert set(pl.outputs.c) == {"a", "b"}
+    assert set(pl.outputs.d) == {"a"}
     return pl
