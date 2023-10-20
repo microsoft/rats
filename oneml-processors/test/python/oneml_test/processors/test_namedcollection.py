@@ -26,6 +26,12 @@ def test_namedcollection_init() -> None:
     n7 = namedcollection({"foo.foo": 1, "foo.bar": 2, "bar.bar": 2, "hey": 3}, boo=4)
     assert n7.foo.foo == 1 and n7.bar.bar == 2 and n7.hey == 3 and n7.boo == 4  # type: ignore[union-attr]
 
+    n8 = namedcollection({"foo": n1, "foo.tee": 2})
+    assert n8.foo.foo == 1 and n8.foo.bar == 2 and n8.foo.hey == 3 and n8.foo.tee == 2  # type: ignore[attr-defined]
+
+    n9 = namedcollection({"foo.tee": 2, "foo": n1})
+    assert n9.foo.foo == 1 and n9.foo.bar == 2 and n9.foo.hey == 3 and n9.foo.tee == 2  # type: ignore[attr-defined]
+
 
 def test_namedcollection_eq() -> None:
     t = {"foo": 1, "bar": 2, "hey": 3}

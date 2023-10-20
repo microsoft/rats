@@ -147,7 +147,7 @@ class namedcollection(Generic[T_co]):
             if k1:
                 d[k0] = self.__class__({k1: v}) if k0 not in d else d[k0] | self.__class__({k1: v})  # type: ignore[operator]
             else:
-                d[k0] = v
+                d[k0] = v if k0 not in d else d[k0] | v  # type: ignore[operator]
         return d
 
     def __eq__(self, __o: Any) -> bool:
