@@ -5,6 +5,7 @@ from typing import Any, Iterator, NamedTuple, cast
 from uuid import uuid4
 
 import pytest
+from furl import furl
 
 from oneml.app import OnemlApp
 from oneml.processors import OnemlProcessorsServices
@@ -70,6 +71,61 @@ def internal_pipeline_with_outputs() -> UPipeline:
     assert set(operate.inputs) == {"a", "b", "format"}
     assert set(operate.outputs) == {"product", "outputs_to_save"}
     assert set(operate.outputs.outputs_to_save) == {"sum", "statement"}
+
+    return operate
+
+
+class _OperateWithUrisOutputs(NamedTuple):
+    sum: int
+    product: int
+    statement: str
+    out_uri1: str
+    out_uri2: str
+
+
+class _OperateWithUris(IProcess):
+    def process(
+        self, a: int, b: int, format: str, in_uri1: str, output_base_uri: str
+    ) -> _OperateWithUrisOutputs:
+        sum = a + b
+        product = a * b
+        statement = format.format(sum=sum, product=product)
+        return _OperateWithUrisOutputs(
+            sum=sum,
+            product=product,
+            statement=statement,
+            out_uri1=str(furl(output_base_uri) / "out1"),
+            out_uri2="out2",
+        )
+
+
+@pytest.fixture(scope="module")
+def internal_pipeline_with_inputs_and_outputs_and_uris() -> UPipeline:
+    operate = (
+        UPipelineBuilder.task(_OperateWithUris)
+        .rename_inputs(
+            {
+                "a": "inputs_to_load.a",
+                "format": "inputs_to_load.format",
+                "in_uri1": "input_uris.uri1",
+            }
+        )
+        .rename_outputs(
+            {
+                "sum": "outputs_to_save.sum",
+                "statement": "outputs_to_save.statement",
+                "out_uri1": "output_uris.uri1",
+                "out_uri2": "output_uris.uri2",
+            }
+        )
+    )
+
+    assert set(operate.inputs) == {"b", "inputs_to_load", "input_uris", "output_base_uri"}
+    assert set(operate.inputs.inputs_to_load) == {"a", "format"}
+    assert set(operate.inputs.input_uris) == {"uri1"}
+    assert set(operate.outputs) == {"product", "outputs_to_save", "output_uris"}
+    assert set(operate.outputs.outputs_to_save) == {"sum", "statement"}
+    assert set(operate.outputs.output_uris) == {"uri1", "uri2"}
 
     return operate
 
@@ -279,5 +335,50 @@ def test_load_inputs_save_outputs_with_manifest(
     )
     statement = cast(str, pipeline_runner_factory(read_statement)().data)
 
+    assert sum == 5
+    assert statement == "operation result: sum=5 product=6"
+
+
+def test_load_inputs_save_outputs_with_inputs_and_outputs_and_uris(
+    internal_pipeline_with_inputs_and_outputs_and_uris: UPipeline,
+    load_inputs_save_outputs: ITransformPipeline[UPipeline, UPipeline],
+    pipeline_runner_factory: PipelineRunnerFactory,
+    tmp_path: Path,
+    input_path: Path,
+    read_from_uri_pipeline_builder: IReadFromUriPipelineBuilder,
+) -> None:
+    pipeline = load_inputs_save_outputs(internal_pipeline_with_inputs_and_outputs_and_uris)
+    output_path = get_output_path(tmp_path)
+    expected_inputs = {"b", "output_base_uri"}
+    inputs = {
+        "b": 3,
+        "output_base_uri": output_path.as_uri(),
+        "input_uris.a": (input_path / "a").as_uri(),
+        "input_uris.format": (input_path / "format").as_uri(),
+        "input_uris.uri1": "not_used",
+    }
+
+    assert set(pipeline.inputs) == expected_inputs | {"input_uris"}
+    assert set(pipeline.outputs) == {"product", "output_uris"}
+    assert set(pipeline.outputs.output_uris) == {"sum", "statement", "uri1", "uri2"}
+
+    runner = pipeline_runner_factory(pipeline)
+    out = runner(inputs)
+
+    assert out.product == 6
+
+    sum_uri = cast(str, out.output_uris.sum)
+    read_sum = read_from_uri_pipeline_builder.build(
+        data_type=int,
+        uri=sum_uri,
+    )
+    sum = cast(int, pipeline_runner_factory(read_sum)().data)
+
+    statement_uri = cast(str, out.output_uris.statement)
+    read_statement = read_from_uri_pipeline_builder.build(
+        data_type=str,
+        uri=statement_uri,
+    )
+    statement = cast(str, pipeline_runner_factory(read_statement)().data)
     assert sum == 5
     assert statement == "operation result: sum=5 product=6"
