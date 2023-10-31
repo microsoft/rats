@@ -138,7 +138,7 @@ class PublishOutputsAsDataset:
         return pl
 
     def __call__(self, pipeline: UPipeline) -> UPipeline:
-        """Add dataset publishing to pipeline.
+        """Add dataset publishing to pipeline that already handles load and save from uris.
 
         Args:
             pipeline: A pipeline that loads from uris and saves to a uri base folder.

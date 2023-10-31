@@ -66,7 +66,7 @@ class OnemlHabitatsDatasetsDiContainer:
         self._app = app
 
     @service_provider(_PrivateServices.DATASET_PREPARE_AND_PUBLISH)
-    def _dataset_prepare_service(self) -> DatasetPrepareAndPublishService:
+    def dataset_prepare_service(self) -> DatasetPrepareAndPublishService:
         return DatasetPrepareAndPublishService(
             parse_ampds_uri_for_read=self._app.get_service(
                 _PrivateServices.PARSE_AMPDS_URI_FOR_READ
@@ -93,7 +93,7 @@ class OnemlHabitatsDatasetsDiContainer:
         return dataset_client
 
     @service_provider(_PrivateServices.DATASET_WRITE_STORAGE_LOCATION)
-    def _dataset_write_storage_location_service(self) -> DatasetWriteStorageLocationService:
+    def dataset_write_storage_location_service(self) -> DatasetWriteStorageLocationService:
         return DatasetWriteStorageLocationService(
             blob_store_base_location_service=self._app.get_service(
                 _PrivateServices.DATASET_BLOB_STORE_BASE_LOCATION
@@ -101,31 +101,31 @@ class OnemlHabitatsDatasetsDiContainer:
         )
 
     @service_provider(_PrivateServices.DATASET_READ_COMMIT)
-    def _dataset_read_commit_service(self) -> DatasetReadCommitService:
+    def dataset_read_commit_service(self) -> DatasetReadCommitService:
         return DatasetReadCommitService(
             dataset_client=self._dataset_client(),
         )
 
     @service_provider(_PrivateServices.DATASET_PUBLISH)
-    def _dataset_publish_service(self) -> DatasetPublishService:
+    def dataset_publish_service(self) -> DatasetPublishService:
         return DatasetPublishService(
             dataset_client=self._dataset_client(),
         )
 
     @service_provider(_PrivateServices.PARSE_AMPDS_URI_FOR_READ)
-    def _parse_ampds_uri_for_read_service(self) -> ParseAmpdsUriForRead:
+    def parse_ampds_uri_for_read_service(self) -> ParseAmpdsUriForRead:
         return ParseAmpdsUriForRead()
 
     @service_provider(_PrivateServices.PARSE_AMPDS_URI_FOR_WRITE)
-    def _parse_ampds_uri_for_write_service(self) -> ParseAmpdsUriForWrite:
+    def parse_ampds_uri_for_write_service(self) -> ParseAmpdsUriForWrite:
         return ParseAmpdsUriForWrite()
 
     @service_provider(_PrivateServices.COMPOSE_AMPDS_URI_FROM_COMMIT)
-    def _compose_ampds_uri_from_commit_service(self) -> ComposeAmpdsUriFromCommit:
+    def compose_ampds_uri_from_commit_service(self) -> ComposeAmpdsUriFromCommit:
         return ComposeAmpdsUriFromCommit()
 
     @service_provider(_PrivateServices.DATASET_BLOB_STORE_BASE_LOCATION)
-    def _dataset_blob_store_base_location_service(self) -> DatasetBlobStoreBaseLocationService:
+    def dataset_blob_store_base_location_service(self) -> DatasetBlobStoreBaseLocationService:
         return DatasetBlobStoreBaseLocationService()
 
 
