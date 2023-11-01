@@ -12,13 +12,27 @@ from oneml.habitats.pipeline_operations._datasets._ampds_uri_service import (
 )
 
 
+def test_parse_ampds_uri_for_read_no_namespace() -> None:
+    parser = ParseAmpdsUriForRead()
+    uri = "ampds://My-Dataset/path/to/file?partition=2022-01-01&commit_id=123"
+    expected = DatasetReadSpecifications(
+        name="My-Dataset",
+        namespace="production",
+        partition="2022-01-01",
+        snapshot=None,
+        commit_id="123",
+        path_in_dataset="/path/to/file",
+    )
+    assert parser(uri) == expected
+
+
 def test_parse_ampds_uri_for_read_with_partition() -> None:
     parser = ParseAmpdsUriForRead()
     uri = (
-        "ampds://my-dataset/path/to/file?namespace=my-namespace&partition=2022-01-01&commit_id=123"
+        "ampds://My-Dataset/path/to/file?namespace=my-namespace&partition=2022-01-01&commit_id=123"
     )
     expected = DatasetReadSpecifications(
-        name="my-dataset",
+        name="My-Dataset",
         namespace="my-namespace",
         partition="2022-01-01",
         snapshot=None,

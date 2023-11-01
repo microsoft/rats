@@ -1,7 +1,8 @@
+import os.path
 from abc import abstractmethod
 from typing import Mapping, NamedTuple, Protocol
+from urllib.parse import urlparse
 
-from furl import furl
 from immunodata.datasets import ParentDatasetCommit
 
 from ._ampds_uri_service import (
@@ -11,6 +12,7 @@ from ._ampds_uri_service import (
 )
 from ._publish_service import IDatasetPublishService
 from ._read_commit_service import IDatasetReadCommitService
+from ._utils import extend_uri_path, get_relative_path
 from ._write_specifications import DatasetPublishSpecifications
 from ._write_storage_location_service import IDatasetWriteStorageLocationService
 
@@ -69,11 +71,10 @@ class DatasetPrepareAndPublishService:
         self._compose_ampds_uri_from_commit = compose_ampds_uri_from_commit
 
     def _parse_input_uri(self, input_uri: str) -> tuple[str, ParentDatasetCommit | None]:
-        f = furl(input_uri)
-        if f.scheme == "ampds":
+        if urlparse(input_uri).scheme == "ampds":
             read_specification = self._parse_ampds_uri_for_read(input_uri)
             commit = self._dataset_read_commit.get_commit(read_specification)
-            uri = str(furl(commit.uri) / read_specification.path_in_dataset)
+            uri = extend_uri_path(commit.uri, read_specification.path_in_dataset)
             parent = commit.as_parent_dataset_commit()
         else:
             uri = input_uri
@@ -86,14 +87,13 @@ class DatasetPrepareAndPublishService:
         allow_overwrite: bool,
         parent_commits: tuple[ParentDatasetCommit, ...],
     ) -> tuple[str, str | None, DatasetPublishSpecifications | None]:
-        f = furl(output_uri)
-        if f.scheme == "ampds":
+        if urlparse(output_uri).scheme == "ampds":
             write_specifications = self._parse_ampds_uri_for_write(output_uri, allow_overwrite)
             self._dataset_publish.verify_ahead(write_specifications)
             storage_uri = self._dataset_write_storage_location.get_storage_uri(
                 write_specifications
             )
-            uri = str(furl(storage_uri) / write_specifications.path_in_dataset)
+            uri = extend_uri_path(storage_uri, write_specifications.path_in_dataset)
             publish_specifications = DatasetPublishSpecifications(
                 name=write_specifications.name,
                 namespace=write_specifications.namespace,
@@ -125,25 +125,6 @@ class DatasetPrepareAndPublishService:
             dataset_publish_specifications=publish_specifications,
         )
 
-    def _get_relative_path(self, base_uri: str, target_uri: str) -> str:
-        """Return the relative path of target_uri from base_uri"""
-        base_parts = furl(base_uri)
-        target_parts = furl(target_uri)
-
-        base_path_segments = list[str](filter(None, base_parts.path.segments))
-        target_path_segments = list[str](filter(None, target_parts.path.segments))
-
-        base_parts = base_parts.copy().remove(path=True)
-        target_parts = target_parts.copy().remove(path=True)
-
-        # Check if the base and target URIs are identical up to the path component
-        if base_parts != target_parts:
-            raise ValueError(f"target URI {target_uri} is not a child of base URI {base_uri}")
-        if base_path_segments != target_path_segments[: len(base_path_segments)]:
-            raise ValueError(f"target URI {target_uri} is not a child of base URI {base_uri}")
-
-        return "/".join(target_path_segments[len(base_path_segments) :])
-
     def publish(
         self,
         resolved_output_base_uri: str,
@@ -154,13 +135,15 @@ class DatasetPrepareAndPublishService:
         if dataset_publish_specifications is not None:
             commit = self._dataset_publish.publish(dataset_publish_specifications)
             dataset_uri = self._compose_ampds_uri_from_commit(commit)
-            furi = furl(dataset_uri)
+
             relative_output_paths = {
-                name: self._get_relative_path(resolved_output_base_uri, uri)
+                name: get_relative_path(resolved_output_base_uri, uri)
                 for name, uri in resolved_output_uris.items()
             }
             output_uris: Mapping[str, str] = {
-                name: str(furi / output_base_path_within_dataset / relative_path)
+                name: extend_uri_path(
+                    dataset_uri, os.path.join(output_base_path_within_dataset or "", relative_path)
+                )
                 for name, relative_path in relative_output_paths.items()
             }
         else:

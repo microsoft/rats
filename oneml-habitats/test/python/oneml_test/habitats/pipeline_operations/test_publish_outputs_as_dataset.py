@@ -1,9 +1,9 @@
 import re
 from typing import NamedTuple
+from urllib.parse import parse_qs, urlparse
 from uuid import uuid4
 
 import pytest
-from furl import furl
 from immunodata.datasets import DatasetClient, IDatasetClient
 from immunodata.datasets.storage import DatasetMemoryStorage
 
@@ -23,6 +23,7 @@ from oneml.habitats.pipeline_operations._datasets._read_commit_service import (
     DatasetReadCommitService,
     DatasetReadSpecifications,
 )
+from oneml.habitats.pipeline_operations._datasets._utils import extend_uri_path
 from oneml.habitats.pipeline_operations._datasets._write_specifications import (
     DatasetWriteSpecifications,
 )
@@ -39,7 +40,7 @@ from oneml.services import ServiceId
 class MockDatasetWriteStorageLocationService(IDatasetWriteStorageLocationService):
     def get_storage_uri(self, dataset: DatasetWriteSpecifications) -> str:
         uuid = str(uuid4())
-        return f"mock://{dataset.name}/{dataset.namespace}/{dataset.partition}/{uuid}"
+        return f"mock://mockloc/{dataset.name}/{dataset.namespace}/{dataset.partition}/{uuid}"
 
 
 @pytest.fixture
@@ -139,9 +140,9 @@ class VerificationProcessor1:
         assert re.match(self._expected_input_uri_2_pattern, input_uri_2)
         assert re.match(self._expected_output_base_uri_pattern, output_base_uri)
         return VerificationProcessor1Outputs(
-            output_uri_1=str(furl(output_base_uri) / "output_1"),
-            output_uri_2=str(furl(output_base_uri) / "output_2"),
-            output_uri_3=str(furl(output_base_uri) / "output_3"),
+            output_uri_1=extend_uri_path(output_base_uri, "output_1"),
+            output_uri_2=extend_uri_path(output_base_uri, "output_2"),
+            output_uri_3=extend_uri_path(output_base_uri, "output_3"),
             a_a=10,
             a_b="s",
             c=100,
@@ -206,12 +207,12 @@ def test_publish_outputs_as_dataset_with_no_datasets(
     publish_outputs_as_dataset: PublishOutputsAsDataset,
     pipeline_runner_factory: PipelineRunnerFactory,
 ) -> None:
-    input_uri_1 = "file://path1/to/file1"
-    expected_resolved_pattern_1 = "^file://path1/to/file1$"
-    input_uri_2 = "file://path1/to/file2"
-    expected_resolved_pattern_2 = "^file://path1/to/file2$"
-    output_base_uri = "file://path_to_output/under_here"
-    expected_resolved_output_base_uri_pattern = "^file://path_to_output/under_here$"
+    input_uri_1 = "file:///path1/to/file1"
+    expected_resolved_pattern_1 = "^file:///path1/to/file1$"
+    input_uri_2 = "file:///path1/to/file2"
+    expected_resolved_pattern_2 = "^file:///path1/to/file2$"
+    output_base_uri = "file:///path_to_output/under_here"
+    expected_resolved_output_base_uri_pattern = "^file:///path_to_output/under_here$"
     pl = get_verification_pipeline_1(
         expected_input_uri_1_pattern=expected_resolved_pattern_1,
         expected_input_uri_2_pattern=expected_resolved_pattern_2,
@@ -229,9 +230,9 @@ def test_publish_outputs_as_dataset_with_no_datasets(
     }
     runner = pipeline_runner_factory(pl)
     outputs = runner(inputs)
-    assert outputs.output_uris.o1 == str(furl(output_base_uri) / "output_1")
-    assert outputs.output_uris.o2 == str(furl(output_base_uri) / "output_2")
-    assert outputs.output_uris.o3 == str(furl(output_base_uri) / "output_3")
+    assert outputs.output_uris.o1 == extend_uri_path(output_base_uri, "output_1")
+    assert outputs.output_uris.o2 == extend_uri_path(output_base_uri, "output_2")
+    assert outputs.output_uris.o3 == extend_uri_path(output_base_uri, "output_3")
     assert outputs.a.a == 10
     assert outputs.a.b == "s"
     assert outputs.c == 100
@@ -244,13 +245,13 @@ def test_publish_outputs_as_dataset_with_datasets(
 ) -> None:
     # case 1: inputs are not datasets, output is
     # published commit should have no parents
-    input_uri_1 = "file://path1/to/file1"
-    expected_resolved_pattern_1 = "^file://path1/to/file1$"
-    input_uri_2 = "file://path1/to/file2"
-    expected_resolved_pattern_2 = "^file://path1/to/file2$"
-    output_base_uri = "ampds://dataset1/path/to/folder?partition=2022-02-23&namespace=namespace1"
+    input_uri_1 = "file:///path1/to/file1"
+    expected_resolved_pattern_1 = "^file:///path1/to/file1$"
+    input_uri_2 = "file:///path1/to/file2"
+    expected_resolved_pattern_2 = "^file:///path1/to/file2$"
+    output_base_uri = "ampds://datASet1/path/to/folder?partition=2022-02-23&namespace=namespace1"
     expected_resolved_output_base_uri_pattern = (
-        "^mock://dataset1/namespace1/2022-02-23/[^/]+/path/to/folder$"
+        "^mock://mockloc/datASet1/namespace1/2022-02-23/[^/]+/path/to/folder$"
     )
 
     pl = get_verification_pipeline_1(
@@ -271,28 +272,32 @@ def test_publish_outputs_as_dataset_with_datasets(
     runner = pipeline_runner_factory(pl)
     outputs = runner(inputs)
 
-    f1 = furl(outputs.output_uris.o1)
-    f2 = furl(outputs.output_uris.o2)
-    f3 = furl(outputs.output_uris.o3)
+    f1 = urlparse(outputs.output_uris.o1)
+    f2 = urlparse(outputs.output_uris.o2)
+    f3 = urlparse(outputs.output_uris.o3)
+    f1qs = parse_qs(f1.query)
+    f2qs = parse_qs(f2.query)
+    f3qs = parse_qs(f3.query)
 
-    assert str(f1.path) == "/path/to/folder/output_1"
-    assert str(f2.path) == "/path/to/folder/output_2"
-    assert str(f3.path) == "/path/to/folder/output_3"
+    assert f1.path == "/path/to/folder/output_1"
+    assert f2.path == "/path/to/folder/output_2"
+    assert f3.path == "/path/to/folder/output_3"
     assert f1.scheme == "ampds"
     assert f2.scheme == "ampds"
     assert f3.scheme == "ampds"
-    assert f1.netloc == "dataset1"
-    assert f2.netloc == "dataset1"
-    assert f3.netloc == "dataset1"
-    assert f1.query.params["namespace"] == "namespace1"
-    assert f2.query.params["namespace"] == "namespace1"
-    assert f3.query.params["namespace"] == "namespace1"
-    assert f1.query.params["partition"] == "2022-02-23"
-    assert f2.query.params["partition"] == "2022-02-23"
-    assert f3.query.params["partition"] == "2022-02-23"
-    commit_id = f1.query.params["commit_id"]
-    assert f2.query.params["commit_id"] == commit_id
-    assert f3.query.params["commit_id"] == commit_id
+    assert f1.netloc == "datASet1"
+    assert f2.netloc == "datASet1"
+    assert f3.netloc == "datASet1"
+    assert f1qs["namespace"] == ["namespace1"]
+    assert f2qs["namespace"] == ["namespace1"]
+    assert f3qs["namespace"] == ["namespace1"]
+    assert f1qs["partition"] == ["2022-02-23"]
+    assert f2qs["partition"] == ["2022-02-23"]
+    assert f3qs["partition"] == ["2022-02-23"]
+    assert len(f1qs["commit_id"]) == 1
+    commit_id = f1qs["commit_id"][0]
+    assert f2qs["commit_id"] == [commit_id]
+    assert f3qs["commit_id"] == [commit_id]
 
     assert outputs.a.a == 10
     assert outputs.a.b == "s"
@@ -300,7 +305,7 @@ def test_publish_outputs_as_dataset_with_datasets(
 
     commit1 = dataset_read_commit_service.get_commit(
         DatasetReadSpecifications(
-            name="dataset1",
+            name="datASet1",
             namespace="namespace1",
             partition="2022-02-23",
             path_in_dataset="",
@@ -310,28 +315,30 @@ def test_publish_outputs_as_dataset_with_datasets(
     )
     assert commit1 is not None
     assert commit1.id == commit_id
-    assert commit1.dataset_name == "dataset1"
+    assert commit1.dataset_name == "datASet1"
     assert commit1.dataset_namespace == "namespace1"
     assert commit1.partition == "2022-02-23"
     assert commit1.parent_commits == tuple()
-    assert re.match("^mock://dataset1/namespace1/2022-02-23/[^/]+$", commit1.uri)
+    assert re.match("^mock://mockloc/datASet1/namespace1/2022-02-23/[^/]+$", commit1.uri)
 
     # case 2, use the dataset published above as input, publish another dataset
     # output commit should have a single parent, the commit of the first dataset.
     input_uri_1 = (
-        "ampds://dataset1/path/to/folder/output_1?partition=2022-02-23&namespace=namespace1"
+        "ampds://datASet1/path/to/folder/output_1?partition=2022-02-23&namespace=namespace1"
     )
     expected_resolved_pattern_1 = (
-        "^mock://dataset1/namespace1/2022-02-23/[^/]+/path/to/folder/output_1$"
+        "^mock://mockloc/datASet1/namespace1/2022-02-23/[^/]+/path/to/folder/output_1$"
     )
     input_uri_2 = (
-        "ampds://dataset1/path/to/folder/output_2?partition=2022-02-23&namespace=namespace1"
+        "ampds://datASet1/path/to/folder/output_2?partition=2022-02-23&namespace=namespace1"
     )
     expected_resolved_pattern_2 = (
-        "^mock://dataset1/namespace1/2022-02-23/[^/]+/path/to/folder/output_2$"
+        "^mock://mockloc/datASet1/namespace1/2022-02-23/[^/]+/path/to/folder/output_2$"
     )
     output_base_uri = "ampds://dataset2?partition=2022-02-23&namespace=namespace1"
-    expected_resolved_output_base_uri_pattern = "^mock://dataset2/namespace1/2022-02-23/[^/]+$"
+    expected_resolved_output_base_uri_pattern = (
+        "^mock://mockloc/dataset2/namespace1/2022-02-23/[^/]+$"
+    )
 
     pl = get_verification_pipeline_1(
         expected_input_uri_1_pattern=expected_resolved_pattern_1,
@@ -351,28 +358,32 @@ def test_publish_outputs_as_dataset_with_datasets(
     runner = pipeline_runner_factory(pl)
     outputs = runner(inputs)
 
-    f1 = furl(outputs.output_uris.o1)
-    f2 = furl(outputs.output_uris.o2)
-    f3 = furl(outputs.output_uris.o3)
+    f1 = urlparse(outputs.output_uris.o1)
+    f2 = urlparse(outputs.output_uris.o2)
+    f3 = urlparse(outputs.output_uris.o3)
+    f1qs = parse_qs(f1.query)
+    f2qs = parse_qs(f2.query)
+    f3qs = parse_qs(f3.query)
 
-    assert str(f1.path) == "/output_1"
-    assert str(f2.path) == "/output_2"
-    assert str(f3.path) == "/output_3"
+    assert f1.path == "/output_1"
+    assert f2.path == "/output_2"
+    assert f3.path == "/output_3"
     assert f1.scheme == "ampds"
     assert f2.scheme == "ampds"
     assert f3.scheme == "ampds"
     assert f1.netloc == "dataset2"
     assert f2.netloc == "dataset2"
     assert f3.netloc == "dataset2"
-    assert f1.query.params["namespace"] == "namespace1"
-    assert f2.query.params["namespace"] == "namespace1"
-    assert f3.query.params["namespace"] == "namespace1"
-    assert f1.query.params["partition"] == "2022-02-23"
-    assert f2.query.params["partition"] == "2022-02-23"
-    assert f3.query.params["partition"] == "2022-02-23"
-    commit_id = f1.query.params["commit_id"]
-    assert f2.query.params["commit_id"] == commit_id
-    assert f3.query.params["commit_id"] == commit_id
+    assert f1qs["namespace"] == ["namespace1"]
+    assert f2qs["namespace"] == ["namespace1"]
+    assert f3qs["namespace"] == ["namespace1"]
+    assert f1qs["partition"] == ["2022-02-23"]
+    assert f2qs["partition"] == ["2022-02-23"]
+    assert f3qs["partition"] == ["2022-02-23"]
+    assert len(f1qs["commit_id"]) == 1
+    commit_id = f1qs["commit_id"][0]
+    assert f2qs["commit_id"] == [commit_id]
+    assert f3qs["commit_id"] == [commit_id]
 
     assert outputs.a.a == 10
     assert outputs.a.b == "s"
@@ -394,21 +405,23 @@ def test_publish_outputs_as_dataset_with_datasets(
     assert commit2.dataset_namespace == "namespace1"
     assert commit2.partition == "2022-02-23"
     assert commit2.parent_commits == (commit1.as_parent_dataset_commit(),)
-    assert re.match("^mock://dataset2/namespace1/2022-02-23/[^/]+$", commit2.uri)
+    assert re.match("^mock://mockloc/dataset2/namespace1/2022-02-23/[^/]+$", commit2.uri)
 
     # case 3, use the two dataset published above as input, publish another partition of second
     # dataset
     # output commit should have two parents, the commits of the two datasets.
     input_uri_1 = (
-        "ampds://dataset1/path/to/folder/output_1?partition=2022-02-23&namespace=namespace1"
+        "ampds://datASet1/path/to/folder/output_1?partition=2022-02-23&namespace=namespace1"
     )
     expected_resolved_pattern_1 = (
-        "^mock://dataset1/namespace1/2022-02-23/[^/]+/path/to/folder/output_1$"
+        "^mock://mockloc/datASet1/namespace1/2022-02-23/[^/]+/path/to/folder/output_1$"
     )
     input_uri_2 = "ampds://dataset2/output_2?partition=2022-02-23&namespace=namespace1"
-    expected_resolved_pattern_2 = "^mock://dataset2/namespace1/2022-02-23/[^/]+/output_2$"
+    expected_resolved_pattern_2 = "^mock://mockloc/dataset2/namespace1/2022-02-23/[^/]+/output_2$"
     output_base_uri = "ampds://dataset2?partition=2022-02-24&namespace=namespace1"
-    expected_resolved_output_base_uri_pattern = "^mock://dataset2/namespace1/2022-02-24/[^/]+$"
+    expected_resolved_output_base_uri_pattern = (
+        "^mock://mockloc/dataset2/namespace1/2022-02-24/[^/]+$"
+    )
 
     pl = get_verification_pipeline_1(
         expected_input_uri_1_pattern=expected_resolved_pattern_1,
@@ -428,28 +441,32 @@ def test_publish_outputs_as_dataset_with_datasets(
     runner = pipeline_runner_factory(pl)
     outputs = runner(inputs)
 
-    f1 = furl(outputs.output_uris.o1)
-    f2 = furl(outputs.output_uris.o2)
-    f3 = furl(outputs.output_uris.o3)
+    f1 = urlparse(outputs.output_uris.o1)
+    f2 = urlparse(outputs.output_uris.o2)
+    f3 = urlparse(outputs.output_uris.o3)
+    f1qs = parse_qs(f1.query)
+    f2qs = parse_qs(f2.query)
+    f3qs = parse_qs(f3.query)
 
-    assert str(f1.path) == "/output_1"
-    assert str(f2.path) == "/output_2"
-    assert str(f3.path) == "/output_3"
+    assert f1.path == "/output_1"
+    assert f2.path == "/output_2"
+    assert f3.path == "/output_3"
     assert f1.scheme == "ampds"
     assert f2.scheme == "ampds"
     assert f3.scheme == "ampds"
     assert f1.netloc == "dataset2"
     assert f2.netloc == "dataset2"
     assert f3.netloc == "dataset2"
-    assert f1.query.params["namespace"] == "namespace1"
-    assert f2.query.params["namespace"] == "namespace1"
-    assert f3.query.params["namespace"] == "namespace1"
-    assert f1.query.params["partition"] == "2022-02-24"
-    assert f2.query.params["partition"] == "2022-02-24"
-    assert f3.query.params["partition"] == "2022-02-24"
-    commit_id = f1.query.params["commit_id"]
-    assert f2.query.params["commit_id"] == commit_id
-    assert f3.query.params["commit_id"] == commit_id
+    assert f1qs["namespace"] == ["namespace1"]
+    assert f2qs["namespace"] == ["namespace1"]
+    assert f3qs["namespace"] == ["namespace1"]
+    assert f1qs["partition"] == ["2022-02-24"]
+    assert f2qs["partition"] == ["2022-02-24"]
+    assert f3qs["partition"] == ["2022-02-24"]
+    assert len(f1qs["commit_id"]) == 1
+    commit_id = f1qs["commit_id"][0]
+    assert f2qs["commit_id"] == [commit_id]
+    assert f3qs["commit_id"] == [commit_id]
 
     assert outputs.a.a == 10
     assert outputs.a.b == "s"
@@ -479,7 +496,7 @@ def test_publish_outputs_as_dataset_with_datasets(
             commit2.as_parent_dataset_commit(),
         )
     )
-    assert re.match("^mock://dataset2/namespace1/2022-02-24/[^/]+$", commit3.uri)
+    assert re.match("^mock://mockloc/dataset2/namespace1/2022-02-24/[^/]+$", commit3.uri)
 
     # case 4, repeat case 3, trying to publish to the same dataset and partition.
     # should fail, because allow_overwrite is False
@@ -490,28 +507,33 @@ def test_publish_outputs_as_dataset_with_datasets(
     # should succeed, and create a new commit overwriting commit3
     inputs["allow_overwrite"] = True
     outputs = runner(inputs)
-    f1 = furl(outputs.output_uris.o1)
-    f2 = furl(outputs.output_uris.o2)
-    f3 = furl(outputs.output_uris.o3)
 
-    assert str(f1.path) == "/output_1"
-    assert str(f2.path) == "/output_2"
-    assert str(f3.path) == "/output_3"
+    f1 = urlparse(outputs.output_uris.o1)
+    f2 = urlparse(outputs.output_uris.o2)
+    f3 = urlparse(outputs.output_uris.o3)
+    f1qs = parse_qs(f1.query)
+    f2qs = parse_qs(f2.query)
+    f3qs = parse_qs(f3.query)
+
+    assert f1.path == "/output_1"
+    assert f2.path == "/output_2"
+    assert f3.path == "/output_3"
     assert f1.scheme == "ampds"
     assert f2.scheme == "ampds"
     assert f3.scheme == "ampds"
     assert f1.netloc == "dataset2"
     assert f2.netloc == "dataset2"
     assert f3.netloc == "dataset2"
-    assert f1.query.params["namespace"] == "namespace1"
-    assert f2.query.params["namespace"] == "namespace1"
-    assert f3.query.params["namespace"] == "namespace1"
-    assert f1.query.params["partition"] == "2022-02-24"
-    assert f2.query.params["partition"] == "2022-02-24"
-    assert f3.query.params["partition"] == "2022-02-24"
-    commit_id = f1.query.params["commit_id"]
-    assert f2.query.params["commit_id"] == commit_id
-    assert f3.query.params["commit_id"] == commit_id
+    assert f1qs["namespace"] == ["namespace1"]
+    assert f2qs["namespace"] == ["namespace1"]
+    assert f3qs["namespace"] == ["namespace1"]
+    assert f1qs["partition"] == ["2022-02-24"]
+    assert f2qs["partition"] == ["2022-02-24"]
+    assert f3qs["partition"] == ["2022-02-24"]
+    assert len(f1qs["commit_id"]) == 1
+    commit_id = f1qs["commit_id"][0]
+    assert f2qs["commit_id"] == [commit_id]
+    assert f3qs["commit_id"] == [commit_id]
 
     assert outputs.a.a == 10
     assert outputs.a.b == "s"
@@ -536,19 +558,19 @@ def test_publish_outputs_as_dataset_with_datasets(
     assert commit5.parent_commits is not None
     assert set(commit5.parent_commits) == set(commit3.parent_commits)
     assert commit5.uri != commit3.uri
-    assert re.match("^mock://dataset2/namespace1/2022-02-24/[^/]+$", commit5.uri)
+    assert re.match("^mock://mockloc/dataset2/namespace1/2022-02-24/[^/]+$", commit5.uri)
 
     # case 6, input 1 is a dataset, input 2 and output are not
     input_uri_1 = (
-        "ampds://dataset1/path/to/folder/output_1?partition=2022-02-23&namespace=namespace1"
+        "ampds://datASet1/path/to/folder/output_1?partition=2022-02-23&namespace=namespace1"
     )
     expected_resolved_pattern_1 = (
-        "^mock://dataset1/namespace1/2022-02-23/[^/]+/path/to/folder/output_1$"
+        "^mock://mockloc/datASet1/namespace1/2022-02-23/[^/]+/path/to/folder/output_1$"
     )
-    input_uri_2 = "file://path1/to/file2"
-    expected_resolved_pattern_2 = "^file://path1/to/file2$"
-    output_base_uri = "file://path_to_output/under_here"
-    expected_resolved_output_base_uri_pattern = "^file://path_to_output/under_here$"
+    input_uri_2 = "file:///path1/to/file2"
+    expected_resolved_pattern_2 = "^file:///path1/to/file2$"
+    output_base_uri = "file:///path_to_output/under_here"
+    expected_resolved_output_base_uri_pattern = "^file:///path_to_output/under_here$"
 
     pl = get_verification_pipeline_1(
         expected_input_uri_1_pattern=expected_resolved_pattern_1,
@@ -568,9 +590,9 @@ def test_publish_outputs_as_dataset_with_datasets(
     runner = pipeline_runner_factory(pl)
     outputs = runner(inputs)
 
-    assert outputs.output_uris.o1 == str(furl(output_base_uri) / "output_1")
-    assert outputs.output_uris.o2 == str(furl(output_base_uri) / "output_2")
-    assert outputs.output_uris.o3 == str(furl(output_base_uri) / "output_3")
+    assert outputs.output_uris.o1 == extend_uri_path(output_base_uri, "output_1")
+    assert outputs.output_uris.o2 == extend_uri_path(output_base_uri, "output_2")
+    assert outputs.output_uris.o3 == extend_uri_path(output_base_uri, "output_3")
     assert outputs.a.a == 10
     assert outputs.a.b == "s"
     assert outputs.c == 100

@@ -15,7 +15,9 @@ from oneml.services import (
 
 from ._ampds_uri_service import (
     ComposeAmpdsUriFromCommit,
+    ComposeAmpdsUriFromReadSpecifications,
     IComposeAmpdsUriFromCommit,
+    IComposeAmpdsUriFromReadSpecifications,
     IParseAmpdsUriForRead,
     IParseAmpdsUriForWrite,
     ParseAmpdsUriForRead,
@@ -51,6 +53,9 @@ class _PrivateServices:
     DATASET_PUBLISH = ServiceId[IDatasetPublishService]("dataset-publish")
     PARSE_AMPDS_URI_FOR_READ = ServiceId[IParseAmpdsUriForRead]("parse-ampds-uri-for-read")
     PARSE_AMPDS_URI_FOR_WRITE = ServiceId[IParseAmpdsUriForWrite]("parse-ampds-uri-for-write")
+    COMPOSE_AMPDS_URI_FROM_READ_SPECIFICATIONS = ServiceId[IComposeAmpdsUriFromReadSpecifications](
+        "compose-ampds-uri-from-read-specifications"
+    )
     COMPOSE_AMPDS_URI_FROM_COMMIT = ServiceId[IComposeAmpdsUriFromCommit](
         "compose-ampds-uri-from-commit"
     )
@@ -119,6 +124,12 @@ class OnemlHabitatsDatasetsDiContainer:
     @service_provider(_PrivateServices.PARSE_AMPDS_URI_FOR_WRITE)
     def parse_ampds_uri_for_write_service(self) -> ParseAmpdsUriForWrite:
         return ParseAmpdsUriForWrite()
+
+    @service_provider(_PrivateServices.COMPOSE_AMPDS_URI_FROM_READ_SPECIFICATIONS)
+    def compose_ampds_uri_from_read_specifications_service(
+        self,
+    ) -> ComposeAmpdsUriFromReadSpecifications:
+        return ComposeAmpdsUriFromReadSpecifications()
 
     @service_provider(_PrivateServices.COMPOSE_AMPDS_URI_FROM_COMMIT)
     def compose_ampds_uri_from_commit_service(self) -> ComposeAmpdsUriFromCommit:
