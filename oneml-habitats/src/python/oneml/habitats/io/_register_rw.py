@@ -24,6 +24,7 @@ class OnemlHabitatsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
         self._register_dill()
         self._register_numpy()
         self._register_pandas()
+        self._register_manifest()
 
     def _register_numpy(self) -> None:
         def numpy_filter(t: type) -> bool:
