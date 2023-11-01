@@ -74,8 +74,8 @@ class OnemlHabitatsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
             return issubclass(t, Manifest)
 
         self._readers_registry.register(
-            "file", type_filter, OnemlHabitatsIoRwServices.JSON_BLOB_READER
+            "abfss", type_filter, OnemlHabitatsIoRwServices.JSON_BLOB_READER
         )
         self._writers_registry.register(
-            "file", type_filter, OnemlHabitatsIoRwServices.JSON_BLOB_WRITER
+            "abfss", type_filter, OnemlHabitatsIoRwServices.JSON_BLOB_WRITER
         )
