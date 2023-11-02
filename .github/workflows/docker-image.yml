@@ -18,6 +18,14 @@ jobs:
       run: |
           echo installing azurecli
           curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+          az login \
+            -t 72f988bf-86f1-41af-91ab-2d7cd011db47 \
+            --identity -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+
+          az account show
+
+          az acr login --name immunodata
+
+          az acr show -n immunodata
           echo done
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag immunodata.azurecr.io/oneml-test:$(date +%s)
