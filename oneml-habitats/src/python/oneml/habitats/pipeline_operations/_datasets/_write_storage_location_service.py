@@ -32,6 +32,6 @@ class DatasetWriteStorageLocationService(IDatasetWriteStorageLocationService):
         uri = (
             f"abfss://{blob_store_base_location.container_name}@"
             f"{blob_store_base_location.account_name}.dfs.core.windows.net/"
-            f"{blob_store_base_location.base_path}/{dataset.name}{dataset.partition}{uuid}"
+            f"{blob_store_base_location.base_path}/{dataset.name}/{dataset.partition}/{uuid}"
         )
         return uri

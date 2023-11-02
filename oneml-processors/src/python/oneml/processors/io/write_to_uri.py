@@ -130,7 +130,7 @@ class ComputeNodeBasedOutputUriProcessor:
     def process(self) -> WriteToUriProcessorOutput:
         session_id = self._context_provider.get_context(OnemlSessionContexts.PIPELINE).id
         node_id = self._context_provider.get_context(OnemlSessionContexts.NODE).key
-        uri = str(furl(self._output_base_uri) / f"{session_id}/{node_id}")
+        uri = str(furl(self._output_base_uri) / session_id / node_id)
         return WriteToUriProcessorOutput(uri=uri)
 
 
