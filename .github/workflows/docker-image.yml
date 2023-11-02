@@ -14,5 +14,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Run a multi-line script
+        run: |
+          echo installing azurecli
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          echo done
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag immunodata.azurecr.io/oneml-test:$(date +%s)
