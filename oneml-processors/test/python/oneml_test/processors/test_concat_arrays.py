@@ -12,10 +12,10 @@ from oneml.processors.dag import (
     InProcessorParam,
     IProcess,
     Namespace,
+    OnemlProcessorsDagServices,
     OutProcessorParam,
     ProcessorProps,
 )
-from oneml.processors.services import OnemlProcessorsServices
 from oneml.processors.utils import frozendict
 
 
@@ -138,7 +138,7 @@ def complex_pipeline(simple_pipeline: DAG) -> DAG:
 
 
 def _run_session(app: OnemlApp, dag: DAG) -> None:
-    submitter = app.get_service(OnemlProcessorsServices.DAG_SUBMITTER)
+    submitter = app.get_service(OnemlProcessorsDagServices.DAG_SUBMITTER)
     app.run(lambda: submitter.submit_dag(dag))
 
 

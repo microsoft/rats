@@ -3,6 +3,7 @@ from typing import Any, TypedDict
 AOutput = TypedDict("AOutput", {"z1": float, "z2": float})
 BOutput = TypedDict("BOutput", {"z": float})
 COutput = TypedDict("COutput", {"z": float})
+DOutput = TypedDict("DOutput", {"z1": float, "z2": float})
 
 
 class A:
@@ -21,5 +22,6 @@ class C:
 
 
 class D:
-    def process(self, x1: Any, x2: Any) -> None:
+    def process(self, x1: Any, x2: Any) -> DOutput:
         print(f"x1={x1}, x2={x2}")
+        return {"z1": x1, "z2": x2}

@@ -1,3 +1,4 @@
+from ._app_plugin import OnemlProcessorsDagPlugin, OnemlProcessorsDagServices
 from ._client import DagSubmitter, INodeExecutableFactory, NodeExecutableFactory, P2Pipeline
 from ._dag import DAG, ComputeReqs, DagDependency, DagNode, Namespace, ProcessorProps
 from ._processor import Annotations, InMethod, InProcessorParam, IProcess, OutProcessorParam
@@ -23,4 +24,6 @@ __all__ = [
     "dag_to_svg",
     "display_dag",
     "find_downstream_nodes",
+    "OnemlProcessorsDagPlugin",
+    "OnemlProcessorsDagServices",
 ]

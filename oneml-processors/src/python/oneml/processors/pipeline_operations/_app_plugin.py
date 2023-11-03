@@ -1,22 +1,24 @@
 import logging
+from typing import Mapping
 
 from oneml.app import AppPlugin
+from oneml.processors.io import OnemlProcessorsIoServices
 from oneml.processors.ux import UPipeline
 from oneml.services import (
     IManageServices,
     IProvideServices,
     ServiceId,
     scoped_service_ids,
+    service_group,
     service_provider,
 )
 
-from ..services import OnemlProcessorsServices
 from ._collection_to_dict import CollectionToDict, DictToCollection
 from ._duplicate_pipeline import DuplicatePipeline
 from ._expose_given_outputs import ExposeGivenOutputs
 from ._expose_pipeline_as_output import ExposePipelineAsOutput
 from ._load_inputs_save_outputs import LoadInputsSaveOutputs
-from ._pipeline_provider import ITransformPipeline
+from ._pipeline_provider import ExecutablePipeline, IProvidePipeline, ITransformPipeline
 from ._write_manifest import AddOutputManifest
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,15 @@ class _PrivateServices:
     WRITE_MANIFEST = ServiceId[ITransformPipeline[UPipeline, UPipeline]]("write-manifest")
     COLLECTION_TO_DICT = ServiceId[CollectionToDict]("collection-to-dict")
     DICT_TO_COLLECTION = ServiceId[DictToCollection]("dict-to-collection")
+    EXECUTABLE_PIPELINE_PROVIDER_IDS = ServiceId[
+        Mapping[str, ServiceId[IProvidePipeline[ExecutablePipeline]]]
+    ]("executable-pipeline-providers")
+    PIPELINE_PROVIDER_IDS = ServiceId[Mapping[str, ServiceId[IProvidePipeline[UPipeline]]]](
+        "pipeline-providers"
+    )
+    TRANSFORMER_PIPELINE_PROVIDER_IDS = ServiceId[
+        Mapping[str, ServiceId[ITransformPipeline[UPipeline, UPipeline]]]
+    ]("transformer-pipelines-providers")
 
 
 class OnemlProcessorsPipelineOperationsDiContainer:
@@ -61,10 +72,10 @@ class OnemlProcessorsPipelineOperationsDiContainer:
     def load_inputs_save_outputs(self) -> LoadInputsSaveOutputs:
         return LoadInputsSaveOutputs(
             read_from_uri=self._app.get_service(
-                OnemlProcessorsServices.READ_FROM_URI_PIPELINE_BUILDER
+                OnemlProcessorsIoServices.READ_FROM_URI_PIPELINE_BUILDER
             ),
             write_to_node_based_uri=self._app.get_service(
-                OnemlProcessorsServices.WRITE_TO_NODE_BASED_URI_PIPELINE_BUILDER
+                OnemlProcessorsIoServices.WRITE_TO_NODE_BASED_URI_PIPELINE_BUILDER
             ),
         )
 
@@ -72,7 +83,7 @@ class OnemlProcessorsPipelineOperationsDiContainer:
     def write_manifest(self) -> AddOutputManifest:
         return AddOutputManifest(
             write_to_relative_path=self._app.get_service(
-                OnemlProcessorsServices.WRITE_TO_RELATIVE_PATH_PIPELINE_BUILDER
+                OnemlProcessorsIoServices.WRITE_TO_RELATIVE_PATH_PIPELINE_BUILDER
             )
         )
 
@@ -83,6 +94,16 @@ class OnemlProcessorsPipelineOperationsDiContainer:
     @service_provider(_PrivateServices.DICT_TO_COLLECTION)
     def dict_to_collection(self) -> DictToCollection:
         return DictToCollection()
+
+    @service_group(_PrivateServices.TRANSFORMER_PIPELINE_PROVIDER_IDS)
+    def pipeline_operations_transformer_pipeline_providers(
+        self,
+    ) -> Mapping[str, ServiceId[ITransformPipeline[UPipeline, UPipeline]]]:
+        return {
+            "expose_pipeline_as_output": _PrivateServices.EXPOSE_PIPELINE_AS_OUTPUT,
+            "load_inputs_save_outputs": _PrivateServices.LOAD_INPUTS_SAVE_OUTPUTS,
+            "write_manifest": _PrivateServices.WRITE_MANIFEST,
+        }
 
 
 class OnemlProcessorsPipelineOperationsPlugin(AppPlugin):
@@ -99,3 +120,6 @@ class OnemlProcessorsPipelineOperationsServices:
     WRITE_MANIFEST = _PrivateServices.WRITE_MANIFEST
     COLLECTION_TO_DICT = _PrivateServices.COLLECTION_TO_DICT
     DICT_TO_COLLECTION = _PrivateServices.DICT_TO_COLLECTION
+    EXECUTABLE_PIPELINE_PROVIDER_IDS = _PrivateServices.EXECUTABLE_PIPELINE_PROVIDER_IDS
+    PIPELINE_PROVIDER_IDS = _PrivateServices.PIPELINE_PROVIDER_IDS
+    TRANSFORMER_PIPELINE_PROVIDER_IDS = _PrivateServices.TRANSFORMER_PIPELINE_PROVIDER_IDS

@@ -8,11 +8,14 @@ import pytest
 from furl import furl
 
 from oneml.app import OnemlApp
-from oneml.processors import OnemlProcessorsServices
 from oneml.processors.dag import IProcess
-from oneml.processors.io import IReadFromUriPipelineBuilder, IWriteToUriPipelineBuilder
+from oneml.processors.io import (
+    IReadFromUriPipelineBuilder,
+    IWriteToUriPipelineBuilder,
+    OnemlProcessorsIoServices,
+)
 from oneml.processors.pipeline_operations import ITransformPipeline
-from oneml.processors.ux import Inputs, Outputs, PipelineRunnerFactory, UPipeline, UPipelineBuilder
+from oneml.processors.ux import PipelineRunnerFactory, UPipeline, UPipelineBuilder
 
 
 class _OperateOutputs(NamedTuple):
@@ -139,12 +142,12 @@ def tmp_path(tmpdir_factory: Any) -> Iterator[Path]:
 
 @pytest.fixture(scope="module")
 def write_to_uri_pipeline_builder(app: OnemlApp) -> IWriteToUriPipelineBuilder:
-    return app.get_service(OnemlProcessorsServices.WRITE_TO_URI_PIPELINE_BUILDER)
+    return app.get_service(OnemlProcessorsIoServices.WRITE_TO_URI_PIPELINE_BUILDER)
 
 
 @pytest.fixture(scope="module")
 def read_from_uri_pipeline_builder(app: OnemlApp) -> IReadFromUriPipelineBuilder:
-    return app.get_service(OnemlProcessorsServices.READ_FROM_URI_PIPELINE_BUILDER)
+    return app.get_service(OnemlProcessorsIoServices.READ_FROM_URI_PIPELINE_BUILDER)
 
 
 @pytest.fixture(scope="module")

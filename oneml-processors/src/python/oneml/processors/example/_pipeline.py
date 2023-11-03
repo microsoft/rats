@@ -1,12 +1,13 @@
 from oneml.processors.dag._client import DagSubmitter
+from oneml.processors.pipeline_operations import IProvidePipeline
 from oneml.processors.ux import (
     CombinedPipeline,
     InPort,
     Inputs,
     NoInputs,
-    NoOutputs,
     OutPort,
     Outputs,
+    Pipeline,
     Task,
 )
 from oneml.services import IExecutable, ServiceId, scoped_service_ids
@@ -40,19 +41,22 @@ class OutC(Outputs):
     z: OutPort[float]
 
 
-class DiamondPipeline:
-    _dag_submitter: DagSubmitter
+class OutD(Outputs):
+    z1: OutPort[float]
+    z2: OutPort[float]
 
-    def __init__(self, dag_submitter: DagSubmitter) -> None:
-        self._dag_submitter = dag_submitter
 
-    def execute(self) -> None:
+DiamondPipeline = Pipeline[NoInputs, OutD]
+
+
+class DiamondPipelineProvider(IProvidePipeline[DiamondPipeline]):
+    def __call__(self) -> DiamondPipeline:
         a = Task[NoInputs, OutA](A, "A")
         b = Task[InB, OutB](B, "B")
         c = Task[InC, OutC](C, "C")
-        d = Task[InD, NoOutputs](D, "D")
+        d = Task[InD, OutD](D, "D")
 
-        diamond = CombinedPipeline[NoInputs, NoOutputs](
+        return CombinedPipeline(
             pipelines=[a, b, c, d],
             dependencies=(
                 b.inputs.x << a.outputs.z1,
@@ -63,9 +67,22 @@ class DiamondPipeline:
             name="diamond",
         )
 
-        self._dag_submitter.submit_dag(diamond._dag)
+
+class DiamondExecutable:
+    _dag_submitter: DagSubmitter
+    _diamond_provider: IProvidePipeline[DiamondPipeline]
+
+    def __init__(
+        self, dag_submitter: DagSubmitter, diamond_provider: IProvidePipeline[DiamondPipeline]
+    ) -> None:
+        self._dag_submitter = dag_submitter
+        self._diamond_provider = diamond_provider
+
+    def execute(self) -> None:
+        self._dag_submitter.submit_dag(self._diamond_provider()._dag)
 
 
 @scoped_service_ids
 class DiamondExampleServices:
-    DIAMOND = ServiceId[IExecutable]("diamond")
+    DIAMOND_EXECUTABLE = ServiceId[IExecutable]("diamond-executable")
+    DIAMOND_PIPELINE_PROVIDER = ServiceId[IProvidePipeline[DiamondPipeline]]("diamond-provider")

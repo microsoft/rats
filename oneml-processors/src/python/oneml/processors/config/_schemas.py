@@ -5,7 +5,8 @@ from hydra_zen import ZenStore, hydrated_dataclass, just
 from hydra_zen.typing import ZenConvert as zc
 from omegaconf import MISSING
 
-from oneml.services import ServiceId
+from oneml.processors.pipeline_operations import IProvidePipeline
+from oneml.services import IProvideServices, ServiceId
 
 from ..ml import EstimatorConf
 from ..ux import (
@@ -14,6 +15,7 @@ from ..ux import (
     EntryDependencyOpConf,
     PipelineDependencyOpConf,
     TaskConf,
+    UPipeline,
 )
 
 
@@ -22,16 +24,25 @@ class ServiceIdConf:
     name: str = MISSING
 
 
-@dataclass
-class TaskParametersConf:
-    config: dict[str, Any] | None = None
-    service_ids: dict[str, ServiceIdConf] | None = None
+def get_pipeline(
+    service_id: ServiceId[IProvidePipeline[UPipeline]], app: IProvideServices
+) -> UPipeline:
+    pipeline_provider: IProvidePipeline[Any] = app.get_service(service_id)
+    return pipeline_provider()
+
+
+@hydrated_dataclass(get_pipeline)
+class GetPipelineFromApp:
+    service_id: ServiceIdConf = MISSING
+    app: Any = "${app}"
 
 
 @dataclass
 class PipelineConfig:
-    task_parameters: dict[str, TaskParametersConf] = field(default_factory=dict)
+    configs: dict[str, Any] = field(default_factory=dict)
+    service_ids: dict[str, ServiceIdConf] = field(default_factory=dict)
     pipeline: Any = None
+    app: Any = MISSING
 
 
 def register_configs(store: ZenStore) -> None:
@@ -41,6 +52,6 @@ def register_configs(store: ZenStore) -> None:
     store(EntryDependencyOpConf(), name="entry", group="dependency")
     store(CollectionDependencyOpConf(), name="collection", group="dependency")
     store(PipelineDependencyOpConf(), name="pipeline", group="dependency")
+    store(GetPipelineFromApp(), name="get_app_service")
     store(ServiceIdConf(), name="service_id")
-    store(TaskParametersConf, name="task_parameters")
     store(just(PipelineConfig(), zen_convert=zc(dataclass=True)), name="pipeline_config")

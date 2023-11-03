@@ -6,31 +6,30 @@ from typing import Any, Iterator, Mapping, Protocol, cast
 from hydra_zen import instantiate
 from omegaconf import DictConfig
 
-from oneml.processors.schemas.configs import TaskParametersConf
 from oneml.services import ServiceId
 
-from ._hydra import PipelineConfigService
+from ._hydra_clients import PipelineConfigService
 
 CONF_PATH = Path("src/resources/conf")
 
 
-class ConfigsForTaskService(Protocol):
+class IGetConfig(Protocol):
     @abstractmethod
-    def get_config(self, task: str) -> Mapping[str, Any] | None:
+    def get_config(self, name: str) -> Mapping[str, Any] | None:
         ...
 
 
-class ServiceIdsForTaskService(Protocol):
+class IGetServiceId(Protocol):
     @abstractmethod
-    def get_service_ids(self, task: str) -> Mapping[str, ServiceId[Any]] | None:
+    def get_service_ids(self, name: str) -> Mapping[str, ServiceId[Any]] | None:
         ...
 
 
-class ParametersForTaskService(ConfigsForTaskService, ServiceIdsForTaskService):
+class IGetConfigAndServiceId(IGetConfig, IGetServiceId):
     def get_config_and_service_ids(
-        self, task: str
+        self, name: str
     ) -> tuple[Mapping[str, Any] | None, Mapping[str, ServiceId[Any]] | None]:
-        return self.get_config(task), self.get_service_ids(task)
+        return self.get_config(name), self.get_service_ids(name)
 
 
 class InstantiateConfMapping(Mapping[str, Any]):
@@ -70,28 +69,18 @@ class InstantiateConfMapping(Mapping[str, Any]):
         self._cfg = cast(DictConfig, state)
 
 
-class ParametersForTaskHydraService(ParametersForTaskService):
+class HydraPipelineConfigService(IGetConfigAndServiceId):
     _pipeline_config_provider: PipelineConfigService
 
     def __init__(self, pipeline_config_provider: PipelineConfigService) -> None:
         self._pipeline_config_provider = pipeline_config_provider
 
-    def _get_task_cfg(self, task: str) -> TaskParametersConf | None:
+    def get_config(self, name: str) -> Mapping[str, Any] | None:
         pipeline_config = self._pipeline_config_provider()
-        return pipeline_config.task_parameters.get(task)
+        cfg = pipeline_config.configs.get(name)
+        return None if cfg is None else InstantiateConfMapping(DictConfig(cfg))
 
-    def get_config(self, task: str) -> Mapping[str, Any] | None:
-        task_cfg = self._get_task_cfg(task)
-        return (
-            None
-            if task_cfg is None or task_cfg.config is None
-            else InstantiateConfMapping(DictConfig(task_cfg.config))
-        )
-
-    def get_service_ids(self, task: str) -> Mapping[str, ServiceId[Any]] | None:
-        task_cfg = self._get_task_cfg(task)
-        return (
-            None
-            if task_cfg is None or task_cfg.service_ids is None
-            else InstantiateConfMapping(DictConfig(task_cfg.service_ids))
-        )
+    def get_service_ids(self, name: str) -> Mapping[str, ServiceId[Any]] | None:
+        pipeline_config = self._pipeline_config_provider()
+        cfg = pipeline_config.service_ids.get(name)
+        return None if cfg is None else InstantiateConfMapping(DictConfig(cfg))

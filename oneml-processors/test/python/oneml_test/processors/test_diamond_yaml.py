@@ -4,6 +4,8 @@ from typing import Any, TypedDict
 from hydra import compose, initialize_config_dir
 from hydra_zen import instantiate
 
+from oneml.app import OnemlApp
+from oneml.processors.config import PipelineConfig
 from oneml.processors.ux import CombinedPipeline
 
 CONF_PATH = Path("src/resources/pipelines")
@@ -40,3 +42,14 @@ def test_user_configs(register_resolvers_and_configs: None) -> None:
         cfg = compose(config_name="pipeline_config", overrides=["+example=diamond"])
         p = instantiate(cfg.pipeline)
         assert isinstance(p, CombinedPipeline)
+
+
+def test_user_configs_with_providers(register_resolvers_and_configs: None, app: OnemlApp) -> None:
+    with initialize_config_dir(
+        config_dir=str(CONF_PATH.absolute()), job_name="pytest", version_base=None
+    ):
+        cfg = compose(config_name="pipeline_config", overrides=["+example=two_diamonds"])
+        instantiated_cfg: PipelineConfig = instantiate(cfg, app=app)
+        assert instantiated_cfg.pipeline.name == "two_diamonds"
+        assert set(instantiated_cfg.pipeline.inputs) == set()
+        assert set(instantiated_cfg.pipeline.outputs) == set()

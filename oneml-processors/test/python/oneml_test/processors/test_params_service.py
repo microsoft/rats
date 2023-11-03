@@ -6,13 +6,13 @@ import pytest
 from hydra_zen import ZenStore
 
 from oneml.app import OnemlApp
-from oneml.processors.dag import DagNode, IProcess
-from oneml.processors.services import (
+from oneml.processors.config import (
     HydraContext,
-    OnemlProcessorsContexts,
-    OnemlProcessorsServices,
-    ParametersForTaskService,
+    IGetConfigAndServiceId,
+    OnemlProcessorsConfigContexts,
+    OnemlProcessorsConfigServices,
 )
+from oneml.processors.dag import DagNode, IProcess
 from oneml.processors.ux import (
     CombinedPipeline,
     InPort,
@@ -68,9 +68,9 @@ class _AOutputs(Outputs):
 
 
 class PipelineProvider:
-    _params_for_task: ParametersForTaskService
+    _params_for_task: IGetConfigAndServiceId
 
-    def __init__(self, params_for_task: ParametersForTaskService) -> None:
+    def __init__(self, params_for_task: IGetConfigAndServiceId) -> None:
         self._params_for_task = params_for_task
 
     def __call__(self) -> UPipeline:
@@ -112,27 +112,27 @@ def register_configs() -> None:
 
 
 @pytest.fixture(scope="module")
-def parameters_for_task_service(app: OnemlApp, register_configs: None) -> ParametersForTaskService:
-    return app.get_service(OnemlProcessorsServices.PARAMETERS_FOR_TASK_SERVICE)
+def parameters_for_task_service(app: OnemlApp, register_configs: None) -> IGetConfigAndServiceId:
+    return app.get_service(OnemlProcessorsConfigServices.CONFIG_AND_SERVICEID_GETTER)
 
 
 @pytest.fixture(scope="module")
-def pipeline_provider(parameters_for_task_service: ParametersForTaskService) -> PipelineProvider:
+def pipeline_provider(parameters_for_task_service: IGetConfigAndServiceId) -> PipelineProvider:
     return PipelineProvider(parameters_for_task_service)
 
 
 def get_hydra_context(data_num: int) -> HydraContext:
     overrides = (
-        "+test@task_parameters.a.config=a_conf",
-        "+test@task_parameters.data.config=data_conf",
-        "task_parameters.data.config.num=" + str(data_num),
+        "+test@configs.a=a_conf",
+        "+test@configs.data=data_conf",
+        "configs.data.num=" + str(data_num),
     )
     return HydraContext(overrides=overrides)
 
 
 def get_pipeline(app: OnemlApp, pipeline_provider: PipelineProvider, data_num: int) -> UPipeline:
     context = get_hydra_context(data_num)
-    with app.open_context(OnemlProcessorsContexts.HYDRA, context):
+    with app.open_context(OnemlProcessorsConfigContexts.HYDRA, context):
         pipeline = pipeline_provider()
     return pipeline
 

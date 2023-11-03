@@ -8,21 +8,14 @@ from typing_extensions import Self, TypeVar
 
 from ..dag import DAG, DagNode, InProcessorParam, OutProcessorParam
 from ..utils import NamedCollection, SupportsAsDict, orderedset
-from ._ops import (
-    CollectionDependencyOp,
-    Dependency,
-    DependencyOp,
-    EntryDependencyOp,
-    PipelineDependencyOp,
-)
+from ._ops import CollectionDependencyOp, Dependency, EntryDependencyOp, PipelineDependencyOp
 from ._verification import verify_pipeline_integrity
 
-T = TypeVar("T")
+T = TypeVar("T", covariant=True)
 PP = TypeVar("PP", bound=InProcessorParam | OutProcessorParam, covariant=True)
 PM = TypeVar("PM", bound="PipelineParam[Any, Any]", covariant=True)
 PE = TypeVar("PE", bound="ParamEntry[Any]", covariant=True)
 PC = TypeVar("PC", bound="ParamCollection[Any]", covariant=True)
-PCi = TypeVar("PCi", bound="ParamCollection[Any]")
 
 
 @dataclass(frozen=True, repr=False)

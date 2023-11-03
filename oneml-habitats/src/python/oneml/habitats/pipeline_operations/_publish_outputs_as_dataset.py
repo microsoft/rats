@@ -1,7 +1,5 @@
 from typing import Sequence
 
-from pyparsing import col
-
 from oneml.habitats.pipeline_operations._datasets import IDatasetPrepareAndPublishService
 from oneml.processors.pipeline_operations import CollectionToDict, DictToCollection
 from oneml.processors.utils import frozendict

@@ -1,20 +1,9 @@
-from typing import Any, Mapping, NamedTuple, Sequence, TypeAlias, Union
+from typing import Any, Mapping, NamedTuple
 
 from furl import furl
 
 from oneml.processors.dag import IProcess
-
-JsonFormattable: TypeAlias = Union[
-    Mapping[str, "JsonFormattable"],
-    str,
-    int,
-    float,
-    Sequence["JsonFormattable"],
-]
-
-
-class Manifest(dict[str, JsonFormattable]):
-    ...
+from oneml.processors.io import Manifest
 
 
 class BuildManifestProcessorOutput(NamedTuple):

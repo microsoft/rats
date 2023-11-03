@@ -12,9 +12,8 @@ from immunodata.immunocli.next import ImmunocliContainer
 from oneml.app import AppPlugin, OnemlAppServices
 from oneml.habitats.immunocli import OnemlHabitatsImmunocliServices
 from oneml.io import IReadAndWriteData, IReadData, IWriteData, OnemlIoServices
-from oneml.processors.io import PluginRegisterReadersAndWriters
+from oneml.processors.io import OnemlProcessorsIoServices, PluginRegisterReadersAndWriters
 from oneml.processors.io.read_from_uri import DataType
-from oneml.processors.services import OnemlProcessorsServices
 from oneml.services import (
     IManageServices,
     IProvideServices,
@@ -163,10 +162,10 @@ class OnemlHabitatsIoDiContainer:
     @service_provider(_PrivateServices.PLUGIN_REGISTER_READERS_AND_WRITERS)
     def plugin_register_readers_and_writers(self) -> OnemlHabitatsRegisterReadersAndWriters:
         return OnemlHabitatsRegisterReadersAndWriters(
-            readers_registry=self._app.get_service(OnemlProcessorsServices.REGISTER_TYPE_READER),
-            writers_registry=self._app.get_service(OnemlProcessorsServices.REGISTER_TYPE_WRITER),
+            readers_registry=self._app.get_service(OnemlProcessorsIoServices.REGISTER_TYPE_READER),
+            writers_registry=self._app.get_service(OnemlProcessorsIoServices.REGISTER_TYPE_WRITER),
             oneml_processors_plugin=self._app.get_service(
-                OnemlProcessorsServices.PLUGIN_REGISTER_READERS_AND_WRITERS
+                OnemlProcessorsIoServices.PLUGIN_REGISTER_READERS_AND_WRITERS
             ),
         )
 

@@ -1,3 +1,4 @@
+from ._app_plugin import OnemlProcessorsUxPlugin, OnemlProcessorsUxServices
 from ._builder import (
     CombinedConf,
     CombinedPipeline,
@@ -86,4 +87,6 @@ __all__ = [
     "PipelineRunnerFactory",
     "find_non_clashing_name",
     "ensure_non_clashing_pipeline_names",
+    "OnemlProcessorsUxPlugin",
+    "OnemlProcessorsUxServices",
 ]
