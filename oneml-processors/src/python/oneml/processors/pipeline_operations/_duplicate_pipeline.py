@@ -1,7 +1,11 @@
+from dataclasses import dataclass, field
 from functools import reduce
 from typing import Sequence
 
-from oneml.processors.ux import UPipeline, UPipelineBuilder
+from omegaconf import MISSING
+from pyparsing import Any
+
+from oneml.processors.ux import PipelineConf, UPipeline, UPipelineBuilder
 
 
 class DuplicatePipeline:
@@ -15,8 +19,8 @@ class DuplicatePipeline:
     broadcasted to all copies.
     """
 
+    @staticmethod
     def __call__(
-        self,
         pipeline: UPipeline,
         copy_names: Sequence[str],
         broadcast_inputs: Sequence[str] = (),
@@ -45,3 +49,13 @@ class DuplicatePipeline:
                 for entry_name, entry in pipeline_copy.outputs._asdict().items()
             },
         )
+
+
+@dataclass
+class DuplicatePipelineConf(PipelineConf):
+    _target_: str = (
+        "oneml.processors.pipeline_operations._duplicate_pipeline.DuplicatePipeline.__call__"
+    )
+    pipeline: Any = MISSING
+    copy_names: list[str] = MISSING
+    broadcast_inputs: list[str] = field(default_factory=list)

@@ -9,6 +9,7 @@ from oneml.processors.pipeline_operations import IProvidePipeline
 from oneml.services import IProvideServices, ServiceId
 
 from ..ml import EstimatorConf
+from ..pipeline_operations import DuplicatePipelineConf
 from ..ux import (
     CollectionDependencyOpConf,
     CombinedConf,
@@ -49,6 +50,7 @@ def register_configs(store: ZenStore) -> None:
     store(TaskConf(), name="base", group="task")
     store(CombinedConf(), name="base", group="combined")
     store(EstimatorConf(), name="base", group="estimator")
+    store(DuplicatePipelineConf(), name="base", group="duplicate")
     store(EntryDependencyOpConf(), name="entry", group="dependency")
     store(CollectionDependencyOpConf(), name="collection", group="dependency")
     store(PipelineDependencyOpConf(), name="pipeline", group="dependency")

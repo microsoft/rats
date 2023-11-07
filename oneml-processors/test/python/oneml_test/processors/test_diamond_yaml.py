@@ -13,6 +13,7 @@ CONF_PATH = Path("src/resources/pipelines")
 AOutput = TypedDict("AOutput", {"Z1": float, "Z2": float})
 BOutput = TypedDict("BOutput", {"Z": float})
 COutput = TypedDict("COutput", {"Z": float})
+DOutput = AOutput
 
 
 class A:
@@ -31,8 +32,8 @@ class C:
 
 
 class D:
-    def process(self, X1: Any, X2: Any) -> None:
-        pass
+    def process(self, X1: Any, X2: Any) -> DOutput:
+        return {"Z1": 5.0, "Z2": 6.0}
 
 
 def test_user_configs(register_resolvers_and_configs: None) -> None:
@@ -52,4 +53,4 @@ def test_user_configs_with_providers(register_resolvers_and_configs: None, app: 
         instantiated_cfg: PipelineConfig = instantiate(cfg, app=app)
         assert instantiated_cfg.pipeline.name == "two_diamonds"
         assert set(instantiated_cfg.pipeline.inputs) == set()
-        assert set(instantiated_cfg.pipeline.outputs) == set()
+        assert set(instantiated_cfg.pipeline.outputs) == set(("Z1", "Z2"))
