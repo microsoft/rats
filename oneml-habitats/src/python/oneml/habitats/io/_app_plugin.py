@@ -13,7 +13,6 @@ from oneml.app import AppPlugin, OnemlAppServices
 from oneml.habitats.immunocli import OnemlHabitatsImmunocliServices
 from oneml.io import IReadAndWriteData, IReadData, IWriteData, OnemlIoServices
 from oneml.processors.io import OnemlProcessorsIoServices, PluginRegisterReadersAndWriters
-from oneml.processors.io.read_from_uri import DataType
 from oneml.services import (
     IManageServices,
     IProvideServices,
@@ -24,7 +23,7 @@ from oneml.services import (
     service_provider,
 )
 
-from ._blob import BlobReadUsingLocalCache, BlobWriteUsingLocalCache
+from ._blob import BlobReadUsingLocalCacheFactory, BlobWriteUsingLocalCacheFactory
 from ._numpy import NumpyLocalRW
 from ._pandas import PandasLocalRW
 from ._register_rw import OnemlHabitatsRegisterReadersAndWriters
@@ -39,6 +38,12 @@ logger = logging.getLogger(__name__)
 class _PrivateServices:
     BLOB_CLIENT_FACTORY = ServiceId[IBlobClientFactory]("blob-client-factory")
     BLOB_CACHE_PATH = ServiceId[Path]("blob-cache-path")
+    BLOB_READ_USING_LOCAL_CACHE_FACTORY = ServiceId[BlobReadUsingLocalCacheFactory](
+        "blob-read-using-local-cache-factory"
+    )
+    BLOB_WRITE_USING_LOCAL_CACHE_FACTORY = ServiceId[BlobWriteUsingLocalCacheFactory](
+        "blob-write-using-local-cache-factory"
+    )
     PLUGIN_REGISTER_READERS_AND_WRITERS = ServiceId[PluginRegisterReadersAndWriters](
         "plugin-register-readers-and-writers",
     )
@@ -61,72 +66,72 @@ class OnemlHabitatsIoDiContainer:
 
     @service_provider(OnemlHabitatsIoRwServices.NUMPY_BLOB_READER)
     def numpy_blob_reader(self) -> IReadData[npt.ArrayLike]:
-        return self._blob_reader_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_READ_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlHabitatsIoRwServices.NUMPY_LOCAL_READER)
         )
 
     @service_provider(OnemlHabitatsIoRwServices.NUMPY_BLOB_WRITER)
     def numpy_blob_writer(self) -> IWriteData[npt.ArrayLike]:
-        return self._blob_writer_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_WRITE_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlHabitatsIoRwServices.NUMPY_LOCAL_WRITER)
         )
 
     @service_provider(OnemlHabitatsIoRwServices.PANDAS_BLOB_READER)
     def pandas_blob_reader(self) -> IReadData[pd.DataFrame]:
-        return self._blob_reader_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_READ_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlHabitatsIoRwServices.PANDAS_LOCAL_READER)
         )
 
     @service_provider(OnemlHabitatsIoRwServices.PANDAS_BLOB_WRITER)
     def pandas_blob_writer(self) -> IWriteData[pd.DataFrame]:
-        return self._blob_writer_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_WRITE_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlHabitatsIoRwServices.PANDAS_LOCAL_WRITER)
         )
 
     @service_provider(OnemlHabitatsIoRwServices.DILL_BLOB_READER)
     def dill_blob_reader(self) -> IReadData[Any]:
-        return self._blob_reader_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_READ_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlIoServices.DILL_LOCAL_READER)
         )
 
     @service_provider(OnemlHabitatsIoRwServices.DILL_BLOB_WRITER)
     def dill_blob_writer(self) -> IWriteData[Any]:
-        return self._blob_writer_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_WRITE_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlIoServices.DILL_LOCAL_WRITER)
         )
 
     @service_provider(OnemlHabitatsIoRwServices.JSON_BLOB_READER)
     def json_blob_reader(self) -> IReadData[Any]:
-        return self._blob_reader_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_READ_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlIoServices.JSON_LOCAL_READER)
         )
 
     @service_provider(OnemlHabitatsIoRwServices.JSON_BLOB_WRITER)
     def json_blob_writer(self) -> IWriteData[Any]:
-        return self._blob_writer_using_local_cache(
+        return self._app.get_service(_PrivateServices.BLOB_WRITE_USING_LOCAL_CACHE_FACTORY)(
             self._app.get_service(OnemlIoServices.JSON_LOCAL_WRITER)
         )
 
-    def _blob_reader_using_local_cache(
-        self, local_reader: IReadData[DataType]
-    ) -> IReadData[DataType]:
+    @service_provider(_PrivateServices.BLOB_READ_USING_LOCAL_CACHE_FACTORY)
+    def blob_read_using_local_cache_factory(
+        self,
+    ) -> BlobReadUsingLocalCacheFactory:
         blob_client_factory = self._app.get_service(_PrivateServices.BLOB_CLIENT_FACTORY)
         local_cache_path = self._app.get_service(_PrivateServices.BLOB_CACHE_PATH)
-        return BlobReadUsingLocalCache(
+        return BlobReadUsingLocalCacheFactory(
             blob_client_factory=blob_client_factory,
             local_cache_path=local_cache_path,
-            local_reader=local_reader,
         )
 
-    def _blob_writer_using_local_cache(
-        self, local_writer: IWriteData[DataType]
-    ) -> IWriteData[DataType]:
+    @service_provider(_PrivateServices.BLOB_WRITE_USING_LOCAL_CACHE_FACTORY)
+    def blob_write_using_local_cache_factory(
+        self,
+    ) -> BlobWriteUsingLocalCacheFactory:
         blob_client_factory = self._app.get_service(_PrivateServices.BLOB_CLIENT_FACTORY)
         local_cache_path = self._app.get_service(_PrivateServices.BLOB_CACHE_PATH)
-        return BlobWriteUsingLocalCache(
+        return BlobWriteUsingLocalCacheFactory(
             blob_client_factory=blob_client_factory,
             local_cache_path=local_cache_path,
-            local_writer=local_writer,
         )
 
     @service_provider(_PrivateServices.BLOB_CLIENT_FACTORY)
@@ -179,6 +184,9 @@ class OnemlHabitatsIoPlugin(AppPlugin):
 class OnemlHabitatsIoServices:
     PLUGIN_REGISTER_READERS_AND_WRITERS = _PrivateServices.PLUGIN_REGISTER_READERS_AND_WRITERS
     TMP_PATH = _PrivateServices.TMP_PATH
+    BLOB_READ_USING_LOCAL_CACHE_FACTORY = _PrivateServices.BLOB_READ_USING_LOCAL_CACHE_FACTORY
+    BLOB_WRITE_USING_LOCAL_CACHE_FACTORY = _PrivateServices.BLOB_WRITE_USING_LOCAL_CACHE_FACTORY
+
     NUMPY_LOCAL_READER = OnemlHabitatsIoRwServices.NUMPY_LOCAL_READER
     NUMPY_LOCAL_WRITER = OnemlHabitatsIoRwServices.NUMPY_LOCAL_WRITER
 
