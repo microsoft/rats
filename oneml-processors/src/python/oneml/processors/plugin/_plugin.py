@@ -5,6 +5,7 @@ from ..config import OnemlProcessorsConfigPlugin
 from ..dag import OnemlProcessorsDagPlugin
 from ..io import OnemlProcessorsIoPlugin
 from ..pipeline_operations import OnemlProcessorsPipelineOperationsPlugin
+from ..registry import OnemlProcessorsRegistryPlugin
 from ..training import OnemlProcessorsTrainingPlugin
 from ..ux import OnemlProcessorsUxPlugin
 
@@ -17,3 +18,4 @@ class OnemlProcessorsPlugin(AppPlugin):
         OnemlProcessorsPipelineOperationsPlugin().load_plugin(app)
         OnemlProcessorsTrainingPlugin().load_plugin(app)
         OnemlProcessorsConfigPlugin().load_plugin(app)
+        OnemlProcessorsRegistryPlugin().load_plugin(app)

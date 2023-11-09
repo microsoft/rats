@@ -1,5 +1,5 @@
 from oneml.processors.dag._client import DagSubmitter
-from oneml.processors.pipeline_operations import IProvidePipeline
+from oneml.processors.registry import IProvidePipeline
 from oneml.processors.ux import (
     CombinedPipeline,
     InPort,

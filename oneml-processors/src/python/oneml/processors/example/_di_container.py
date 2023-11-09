@@ -1,12 +1,14 @@
 import logging
-from typing import Mapping
+from typing import Mapping, cast
 
 from oneml.processors.dag import OnemlProcessorsDagServices
-from oneml.processors.pipeline_operations import (
-    ExecutablePipeline,
+from oneml.processors.registry import (
     IProvidePipeline,
-    OnemlProcessorsPipelineOperationsServices,
+    IProvidePipelineCollection,
+    OnemlProcessorsRegistryServiceGroups,
+    ServiceMapping,
 )
+from oneml.processors.ux import UPipeline
 from oneml.services import IProvideServices, ServiceId, service_group, service_provider
 
 from ._pipeline import DiamondExampleServices, DiamondExecutable, DiamondPipelineProvider
@@ -33,9 +35,17 @@ class DiamondExampleDiContainer:
             ),
         )
 
-    @service_group(OnemlProcessorsPipelineOperationsServices.PIPELINE_PROVIDER_IDS)  # type: ignore[arg-type]
-    @service_group(OnemlProcessorsPipelineOperationsServices.EXECUTABLE_PIPELINE_PROVIDER_IDS)
+    @service_group(OnemlProcessorsRegistryServiceGroups.PIPELINE_PROVIDERS)
     def diamond_pipeline_providers_group(
         self,
-    ) -> Mapping[str, ServiceId[IProvidePipeline[ExecutablePipeline]]]:
-        return {"diamond": DiamondExampleServices.DIAMOND_PIPELINE_PROVIDER}  # type: ignore[dict-item]
+    ) -> IProvidePipelineCollection:
+        diamond = cast(
+            ServiceId[IProvidePipeline[UPipeline]],
+            DiamondExampleServices.DIAMOND_PIPELINE_PROVIDER,
+        )
+        return ServiceMapping(
+            services_provider=self._app,
+            service_ids_map=dict(
+                diamond=diamond,
+            ),
+        )

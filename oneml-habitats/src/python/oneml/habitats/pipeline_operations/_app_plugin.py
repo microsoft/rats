@@ -1,10 +1,8 @@
 import logging
 
 from oneml.app import AppPlugin
-from oneml.processors.pipeline_operations import (
-    ITransformPipeline,
-    OnemlProcessorsPipelineOperationsServices,
-)
+from oneml.processors.pipeline_operations import OnemlProcessorsPipelineOperationsServices
+from oneml.processors.registry import ITransformPipeline
 from oneml.processors.ux import UPipeline
 from oneml.services import (
     IManageServices,

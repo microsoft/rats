@@ -21,6 +21,7 @@ from oneml.services import (
     service_group,
     service_provider,
 )
+
 from ._oneml_app_services import OnemlAppServices
 from ._session_services import OnemlSessionExecutables
 
@@ -73,9 +74,10 @@ class OnemlIo2DiContainer:
     @service_group(OnemlIo2Groups.IO_PLUGIN)
     def local_json_plugin(self) -> LocalJsonIoPlugin:
         context_client = self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
+        writer = self._app.get_service(OnemlIo2Services.LOCAL_JSON_WRITER)
         return LocalJsonIoPlugin(
             source=self._app.get_service(OnemlIo2Services.PIPELINE_DATA),
-            writer=self._app.get_service(OnemlIo2Services.LOCAL_JSON_WRITER),  # type: ignore
+            writer=writer,
             node_ctx=context_client.get_context_provider(OnemlSessionContexts.NODE),
             storage=self._app.get_service(OnemlIo2Services.LOCAL_JSON_SETTINGS),
             port_opener=context_client.get_context_opener(OnemlSessionContexts.PORT),

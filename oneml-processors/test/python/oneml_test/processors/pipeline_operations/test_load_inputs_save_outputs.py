@@ -14,7 +14,7 @@ from oneml.processors.io import (
     IWriteToUriPipelineBuilder,
     OnemlProcessorsIoServices,
 )
-from oneml.processors.pipeline_operations import ITransformPipeline
+from oneml.processors.registry import ITransformPipeline
 from oneml.processors.ux import PipelineRunnerFactory, UPipeline, UPipelineBuilder
 
 

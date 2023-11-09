@@ -2,6 +2,7 @@ import logging
 from pathlib import Path
 
 from oneml.app import AppPlugin, OnemlAppServices
+from oneml.processors.registry import OnemlProcessorsRegistryServices
 from oneml.services import (
     ContextId,
     IManageServices,
@@ -13,12 +14,7 @@ from oneml.services import (
 )
 
 from ._config_getters import HydraPipelineConfigService, IGetConfigAndServiceId
-from ._hydra_clients import (
-    HydraContext,
-    HydraPipelineConfigServiceProvider,
-    PipelineConfigService,
-    RegisterPipelineProvidersToHydra,
-)
+from ._hydra_clients import HydraContext, HydraPipelineConfigServiceProvider, PipelineConfigService
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +23,6 @@ logger = logging.getLogger(__name__)
 class _PrivateServices:
     PIPELINE_CONFIG_SERVICE = ServiceId[PipelineConfigService]("pipeline-config-service")
     CONFIG_AND_SERVICEID_GETTER = ServiceId[IGetConfigAndServiceId]("config-and-service-id-getter")
-    REGISTER_PIPELINE_PROVIDERS_TO_HYDRA = ServiceId[RegisterPipelineProvidersToHydra](
-        "register-pipeline-providers-to-hydra"
-    )
 
 
 class OnemlProcessorsConfigDiContainer:
@@ -46,12 +39,11 @@ class OnemlProcessorsConfigDiContainer:
         context_client = self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
         hydra_pipeline_config_service_provider = HydraPipelineConfigServiceProvider(
             config_dir=self._parameters_config_dir(),
-            app=self._app,
             context_provider=context_client.get_context_provider(
                 OnemlProcessorsConfigContexts.HYDRA
             ),
-            pipeline_providers_registrar=self._app.get_service(
-                OnemlProcessorsConfigServices.REGISTER_PIPELINE_PROVIDERS_TO_HYDRA
+            pipeline_providers=self._app.get_service(
+                OnemlProcessorsRegistryServices.PIPELINE_PROVIDERS
             ),
         )
         return hydra_pipeline_config_service_provider()
@@ -63,10 +55,6 @@ class OnemlProcessorsConfigDiContainer:
         )
         return HydraPipelineConfigService(pipeline_config_provider)
 
-    @service_provider(_PrivateServices.REGISTER_PIPELINE_PROVIDERS_TO_HYDRA)
-    def pipeline_providers_to_hydra_registrar(self) -> RegisterPipelineProvidersToHydra:
-        return RegisterPipelineProvidersToHydra(app=self._app)
-
 
 class OnemlProcessorsConfigPlugin(AppPlugin):
     def load_plugin(self, app: IManageServices) -> None:
@@ -77,7 +65,6 @@ class OnemlProcessorsConfigPlugin(AppPlugin):
 class OnemlProcessorsConfigServices:
     PIPELINE_CONFIG_SERVICE = _PrivateServices.PIPELINE_CONFIG_SERVICE
     CONFIG_AND_SERVICEID_GETTER = _PrivateServices.CONFIG_AND_SERVICEID_GETTER
-    REGISTER_PIPELINE_PROVIDERS_TO_HYDRA = _PrivateServices.REGISTER_PIPELINE_PROVIDERS_TO_HYDRA
 
 
 @scoped_context_ids

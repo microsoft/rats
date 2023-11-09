@@ -8,11 +8,11 @@ from oneml.processors.pipeline_operations import (
     DictToCollection,
     DuplicatePipeline,
     ExposeGivenOutputs,
-    ITransformPipeline,
     OnemlProcessorsPipelineOperationsServices,
 )
 from oneml.processors.pipeline_operations._app_plugin import _PrivateServices
-from oneml.processors.ux import Inputs, Outputs, UPipeline, UPipelineBuilder
+from oneml.processors.registry import ITransformPipeline
+from oneml.processors.ux import UPipeline, UPipelineBuilder
 
 
 @pytest.fixture(scope="package")

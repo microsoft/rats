@@ -1,4 +1,5 @@
-from typing import Protocol, TypeVar, runtime_checkable
+from telnetlib import IP
+from typing import Mapping, Protocol, TypeVar, runtime_checkable
 
 from oneml.processors.ux import NoInputs, Outputs, Pipeline, UPipeline
 
@@ -18,3 +19,6 @@ class IProvidePipeline(Protocol[Tco_Pipeline]):
 class ITransformPipeline(Protocol[Tconra_Pipeline, Tco_Pipeline]):
     def __call__(self, pipeline: Tconra_Pipeline) -> Tco_Pipeline:
         ...
+
+
+IProvidePipelineCollection = Mapping[str, IProvidePipeline[UPipeline]]
