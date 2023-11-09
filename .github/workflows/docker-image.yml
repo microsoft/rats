@@ -27,6 +27,6 @@ jobs:
           echo "done showing account info"
           az acr login --name immunodata
           echo "done logging into acr"
-          az acr show -n immunodata
+          az acr show -n immunodata -g immunodata.acr
           echo "done showing acr stuff"
           echo done
