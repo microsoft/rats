@@ -29,4 +29,6 @@ jobs:
           echo "done logging into acr"
           az acr show -n immunodata -g immunodata.acr
           echo "done showing acr stuff"
+          echo "ALL OUR ENV VARIABLES!"
+          printenv
           echo done
