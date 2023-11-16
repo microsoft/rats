@@ -1,4 +1,3 @@
-from ._di_container import DiamondExampleDiContainer
-from ._pipeline import DiamondExampleServices
+from ._app_plugin import DiamondExampleServices, OnemlProcessorsExamplePlugin
 
-__all__ = ["DiamondExampleDiContainer", "DiamondExampleServices"]
+__all__ = ["OnemlProcessorsExamplePlugin", "DiamondExampleServices"]

@@ -10,7 +10,6 @@ from oneml.processors.ux import (
     Pipeline,
     Task,
 )
-from oneml.services import IExecutable, ServiceId, scoped_service_ids
 
 from ._processors import A, B, C, D
 
@@ -80,9 +79,3 @@ class DiamondExecutable:
 
     def execute(self) -> None:
         self._dag_submitter.submit_dag(self._diamond_provider()._dag)
-
-
-@scoped_service_ids
-class DiamondExampleServices:
-    DIAMOND_EXECUTABLE = ServiceId[IExecutable]("diamond-executable")
-    DIAMOND_PIPELINE_PROVIDER = ServiceId[IProvidePipeline[DiamondPipeline]]("diamond-provider")

@@ -7,7 +7,7 @@ import pytest
 
 from oneml.app import OnemlApp
 from oneml.processors.config import OnemlProcessorsConfigServices, PipelineConfigService
-from oneml.processors.example import DiamondExampleDiContainer
+from oneml.processors.example._app_plugin import DiamondExampleDiContainer
 from oneml.processors.training import IPersistFittedEvalPipeline, OnemlProcessorsTrainingServices
 from oneml.processors.ux import OnemlProcessorsUxServices, PipelineRunnerFactory
 
