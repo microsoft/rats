@@ -28,7 +28,7 @@ class DatasetBlobStoreBaseLocationService(IDatasetBlobStoreBaseLocationService):
                 raise ValueError("Cannot use production namespace from Jupyter notebook")
             return BlobStoreBaseLocation(
                 account_name="ampdatasets01",
-                container_name="oneml_datasets",
+                container_name="oneml-datasets",
                 base_path="",
             )
         else:
@@ -41,6 +41,6 @@ class DatasetBlobStoreBaseLocationService(IDatasetBlobStoreBaseLocationService):
             else:
                 return BlobStoreBaseLocation(
                     account_name="ampdatasetsdev01",
-                    container_name="oneml_datasets",
+                    container_name="oneml-datasets",
                     base_path="",
                 )

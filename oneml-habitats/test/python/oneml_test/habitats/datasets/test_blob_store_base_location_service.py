@@ -13,14 +13,14 @@ def test_get_blob_store_base_location() -> None:
     location = service.get_blob_store_base_location("production")
     assert isinstance(location, BlobStoreBaseLocation)
     assert location.account_name == "ampdatasets01"
-    assert location.container_name == "oneml_datasets"
+    assert location.container_name == "oneml-datasets"
     assert location.base_path == ""
 
     # Test non-production namespace
     location = service.get_blob_store_base_location("dev")
     assert isinstance(location, BlobStoreBaseLocation)
     assert location.account_name == "ampdatasetsdev01"
-    assert location.container_name == "oneml_datasets"
+    assert location.container_name == "oneml-datasets"
     assert location.base_path == ""
 
 
