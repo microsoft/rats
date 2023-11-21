@@ -45,7 +45,7 @@ def get_relative_path(base_uri: str, target_uri: str) -> str:
     # Check if the base and target URIs are identical up to the path component
     if parsed_base_uri_without_path != parsed_target_uri_without_path:
         raise ValueError(f"target URI {target_uri} is not a child of base URI {base_uri}")
-    if os.path.commonpath([base_path, target_path]) != base_path:
+    if os.path.commonpath([base_path, target_path]) != os.path.commonpath([base_path]):
         raise ValueError(f"target URI {target_uri} is not a child of base URI {base_uri}")
 
     return os.path.relpath(target_path, base_path)

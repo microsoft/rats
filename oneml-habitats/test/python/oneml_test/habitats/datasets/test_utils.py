@@ -65,6 +65,15 @@ def test_extend_url_path(url: str, relpath: str, expected: str) -> None:
             "ampds://DSname/path/to/resource?partition=2020-10-11",
             "resource",
         ),
+        (
+            "abfss://oneml-datasets@ampdatasetsdev01.dfs.core.windows.net/runner_report."
+            "CovidPrototypeModelLockExperimentConfig.json/2023-11-20/"
+            "d22ee703-5579-4741-8634-056f4a492ae5/",
+            "abfss://oneml-datasets@ampdatasetsdev01.dfs.core.windows.net/runner_report."
+            "CovidPrototypeModelLockExperimentConfig.json/2023-11-20/"
+            "d22ee703-5579-4741-8634-056f4a492ae5/manifest.json",
+            "manifest.json",
+        ),
     ],
 )
 def test_get_relative_path(base_uri: str, target_uri: str, expected: str) -> None:
