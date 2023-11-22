@@ -10,12 +10,12 @@ and build your own meta-pipelines.
     - [Left and right shift operations](#left-and-right-shift-operations)
     - [Merge `InPort`](#merge-InPort)
     - [Merge `OutPort`](#merge-OutPort)
-  - [`Inputs` & `Outputs`](#inputs--outputs)
+  - [`Inputs` & `Outputs`](#inport--outport)
     - [Left and right shift operations](#left-and-right-shift-operations-1)
     - [Merge operations](#merge-operations)
     - [Subtract operations](#subtract-operations)
   - [`Pipeline`](#pipeline)
-    - [Left and right shift operations](#left-and-right-shift-operations-3)
+    - [Left and right shift operations](#left-and-right-shift-operations-2)
     - [Rename inputs and outputs](#rename-inputs-and-outputs)
     - [Decorate pipelines](#decorate-pipelines)
 - [Pipeline Definition](#pipelines-definition)
@@ -44,8 +44,8 @@ lr_eval.inputs.scale << stz_train.outputs.scale
 or
 
 ```python
-standardization.outputs.Z.train >> logistic_regression.in_collections.X.train
-logistic_regression.in_collections.X.eval << standardization.outputs.Z.eval
+standardization.outputs.Z.train >> logistic_regression.inputs.X.train
+logistic_regression.inputs.X.eval << standardization.outputs.Z.eval
 ```
 
 These operators return the matching dependencies wrapped in a
@@ -172,8 +172,8 @@ logistic_regression.inputs.X << standardization.outputs.Z
 which is equivalent to:
 
 ```python
-logistic_regression.in_collections.X.train << standardization.outputs.Z.train
-logistic_regression.in_collections.X.eval << standardization.outputs.Z.eval
+logistic_regression.inputs.X.train << standardization.outputs.Z.train
+logistic_regression.inputs.X.eval << standardization.outputs.Z.eval
 ```
 
 > :bulb: **Info:**
@@ -207,7 +207,7 @@ For example,
 ```python
 stz_train = stz_train.rename_inputs({"X": "X.train"})
 stz_eval = stz_eval.rename_inputs({"X": "X.eval"})
-X = stz_train.in_collections.X | stz_eval.in_collections.X
+X = stz_train.inputs.X | stz_eval.inputs.X
 X.train  # OutPort object
 X.eval  # OutPort object
 ```
@@ -284,7 +284,7 @@ notation:
 standardization = standardization.rename_inputs({"X.train": "X_train", "X.eval": "X_eval"})
 standardization.inputs.X_train  # InPort objects
 standardization.inputs.X_eval
-# standardization.in_collections.X.train  # raises error
+# standardization.inputs.X.train  # raises error
 ```
 
 If the new name of an entry already exists, or repeats, a merge operation will be performed.
@@ -343,9 +343,6 @@ A `Pipeline` is a (frozen) dataclass with the following attributes:
     distinguiss pipelines when combining.
 - `inputs` (`oneml.processors.Inputs`): exposure of `Inputs` of a pipeline.
 - `outputs` (`oneml.processors.Outputs`): exposure of `Outputs` of a pipeline.
-- `in_collections` (`oneml.processors.InCollections`): exposure of `InCollections` of a pipeline.
-- `outputs` (`oneml.processors.OutCollections`): exposure of `OutCollections` of a
-    pipeline.
 
 `Pipeline`s should not be instantiated directly.
 Instead, `Pipeline`s should be created via `Task`s, combining other `Pipeline`s, or other
@@ -396,7 +393,7 @@ class Estimator(Pipeline):
             outputs=outputs,
             dependencies=(tuple(dependencies),),
         )
-        super().__init__(name, p._dag, p.inputs, p.outputs, p.in_collections, p.outputs)
+        super().__init__(name, p._dag, p.inputs, p.outputs)
 ```
 
 A few clarifications:

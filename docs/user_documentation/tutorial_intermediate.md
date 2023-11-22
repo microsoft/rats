@@ -348,10 +348,10 @@ and two outputs entries, respectively.
 The individual entries are accessible via:
 
 ```python
-standardization.in_collections.X.train  # InPort objects
-standardization.in_collections.X.eval
-standardization.out_collections.Z.train  # OutPort objects
-standardization.out_collections.Z.eval
+standardization.inputs.X.train  # InPort objects
+standardization.inputs.X.eval
+standardization.outputs.Z.train  # OutPort objects
+standardization.outputs.Z.eval
 ```
 
 The usefulness of collections is that we can group parameters together and create dependencies.
@@ -410,16 +410,16 @@ The inputs and outputs automatically formed after combining `lr_train` and `lr_e
 ```python
 logistic_regression.outputs.probs  # OutPort object
 
-logistic_regression.in_collections.X  # Inputs objects
-logistic_regression.in_collections.Y
-logistic_regression.out_collections.Z  # Outputs object
+logistic_regression.inputs.X  # Inputs objects
+logistic_regression.inputs.Y
+logistic_regression.outputs.Z  # Outputs object
 
-logistic_regression.in_collections.X.train  # InPort objects
-logistic_regression.in_collections.X.eval
-logistic_regression.in_collections.Y.train
-logistic_regression.in_collections.Y.eval
-logistic_regression.out_collections.Z.train  # OutPort objects
-logistic_regression.out_collections.Z.eval
+logistic_regression.inputs.X.train  # InPort objects
+logistic_regression.inputs.X.eval
+logistic_regression.inputs.Y.train
+logistic_regression.inputs.Y.eval
+logistic_regression.outputs.Z.train  # OutPort objects
+logistic_regression.outputs.Z.eval
 ```
 
 Finally, we can combine `standardization` and `logistic_regression` together:
