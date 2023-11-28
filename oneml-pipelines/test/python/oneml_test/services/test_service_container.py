@@ -2,7 +2,7 @@ from typing import NamedTuple
 
 from oneml.services import ContextualServiceContainer, ServiceContainer, ServiceFactory
 
-from ._examples import ExampleServiceGroups, ExampleServices, make_cat
+from ._examples import ExampleServiceGroups, ExampleServices, make_cat, make_russian_blue
 
 
 class TestServiceContainer:
@@ -30,6 +30,15 @@ class TestServiceContainer:
         for cp in cats:
             c = cp()
             assert c.speak() == "meow"  # type: ignore
+
+    def test_service_inheritance(self) -> None:
+        factory = ServiceFactory()
+        factory.add_service(ExampleServices.CAT_1, make_cat)
+        factory.add_service(ExampleServices.RUSSIAN_BLUE_1, make_russian_blue)
+        factory.add_service(ExampleServices.CAT_2, make_russian_blue)
+        # the following should fail mypy - the service id guarantees that the service is a
+        # RussianBlueService, but the factory creates a CatService
+        factory.add_service(ExampleServices.RUSSIAN_BLUE_2, make_cat)  # type: ignore[misc]
 
 
 class ExampleContext(NamedTuple):
