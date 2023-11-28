@@ -438,6 +438,31 @@ class Pipeline(Generic[TInputs, TOutputs]):
             outputs=self.outputs._rename(names),
         )
 
+    def drop_inputs(self, *names: str) -> Pipeline[Inputs, TOutputs]:
+        required = []
+        for name in names:
+            if self.inputs[name].required:
+                required.append(name)
+        if len(required) > 0:
+            raise ValueError(f"Cannot drop required inputs: {required}.")
+
+        return Pipeline(
+            name=self.name,
+            dag=self._dag,
+            config=self._config,
+            inputs=self.inputs - names,
+            outputs=self.outputs,
+        )
+
+    def drop_outputs(self, *names: str) -> Pipeline[TInputs, Outputs]:
+        return Pipeline(
+            name=self.name,
+            dag=self._dag,
+            config=self._config,
+            inputs=self.inputs,
+            outputs=self.outputs - names,
+        )
+
     @property
     def name(self) -> str:
         return self._name

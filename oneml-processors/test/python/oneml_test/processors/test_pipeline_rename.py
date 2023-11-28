@@ -1,9 +1,9 @@
 from abc import abstractmethod
-from typing import Any, TypedDict
+from typing import TypedDict
 
 import pytest
 
-from oneml.processors.ux import Pipeline, PipelineBuilder, UPipeline, UTask
+from oneml.processors.ux import PipelineBuilder, UPipeline, UTask
 
 StzTrainOut = TypedDict("StzTrainOut", {"mean": float, "scale": float, "Z": float})
 StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
