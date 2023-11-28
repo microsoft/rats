@@ -27,7 +27,7 @@ jobs:
           echo "done showing account info"
           az acr login --name oneml
           echo "done logging into acr"
-          az acr show -n oneml -g oneml.acr
+          az acr show -n oneml -g oneml-github-test
           echo "done showing acr stuff"
           echo "pulling docker"
           docker pull oneml.azurecr.io/immunodata-app-builder:2022-09-08.16-03-16
