@@ -156,7 +156,8 @@ class CombinedPipeline(Pipeline[TInputs, TOutputs]):
         if inputs is not None:  # verifies all pipeline inputs have been specified
             pls_in: tuple[InParameter[Any], ...] = ()
             for pl in pipelines:
-                pls_in += reduce(lambda x, y: x + tuple(y), pl.inputs._asdict().values(), pls_in)
+                required = (x for x in pl.inputs._asdict().values() if x.required)
+                pls_in += reduce(lambda x, y: x + tuple(y), required, pls_in)
             missing = set(pls_in) - set(flat_input) - set(shared_input)
             if missing:
                 msg = f"Not all inputs have been specified as inputs or dependencies: {missing}"

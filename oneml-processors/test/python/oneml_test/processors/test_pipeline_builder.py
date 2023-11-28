@@ -19,7 +19,7 @@ class Standardize(IProcess):
         self._shift = shift
         self._scale = scale
 
-    def process(self, X: float) -> StandardizeOutput:
+    def process(self, X: float, optional: bool = False) -> StandardizeOutput:
         Z = (X - self._shift) / self._scale
         return StandardizeOutput({"Z": Z, "shift": self._shift, "scale": self._scale})
 
@@ -41,12 +41,12 @@ class Scatter:
 
 @pytest.fixture
 def train_stz() -> UPipeline:
-    return UPipelineBuilder.task(Standardize, config=frozendict(shift=10.0, scale=2.0))
+    return UPipelineBuilder.task(Standardize, "train", frozendict(shift=10.0, scale=2.0))
 
 
 @pytest.fixture
 def eval_stz() -> UPipeline:
-    return UPipelineBuilder.task(Standardize)
+    return UPipelineBuilder.task(Standardize, "eval")
 
 
 @pytest.fixture
@@ -60,13 +60,37 @@ def scatter() -> UPipeline:
 
 
 def test_predefined_standardize(train_stz: UPipeline) -> None:
-    assert set(train_stz.inputs) == set(("X",))
+    assert set(train_stz.inputs) == set(("X", "optional"))
     assert set(train_stz.outputs) == set(("Z", "scale", "shift"))
 
 
 def test_eval_stz(eval_stz: UPipeline) -> None:
-    assert set(eval_stz.inputs) == set(("shift", "scale", "X"))
+    assert set(eval_stz.inputs) == set(("shift", "scale", "X", "optional"))
     assert set(eval_stz.outputs) == set(("Z", "shift", "scale"))
+
+
+def test_combined_stz(train_stz: UPipeline, eval_stz: UPipeline) -> None:
+    combined = UPipelineBuilder.combine(
+        pipelines=[train_stz, eval_stz],
+        name="combined",
+        dependencies=(train_stz.outputs.Z >> eval_stz.inputs.X,),
+    )
+
+    assert set(combined.inputs) == {"X", "scale", "shift", "optional"}
+    assert set(combined.outputs) == {"Z", "scale", "shift"}
+
+    combined2 = UPipelineBuilder.combine(
+        pipelines=[train_stz, eval_stz],
+        name="combined",
+        dependencies=(train_stz.outputs.Z >> eval_stz.inputs.X,),
+        inputs={
+            "X": train_stz.inputs.X,
+            "scale": eval_stz.inputs.scale,
+            "shift": eval_stz.inputs.shift,
+        },
+    )
+    assert set(combined2.inputs) == {"X", "scale", "shift"}
+    assert set(combined2.outputs) == {"Z", "scale", "shift"}
 
 
 def test_scatter(scatter: UPipeline) -> None:
