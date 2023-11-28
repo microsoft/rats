@@ -1,0 +1,35 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run a multi-line script
+      run: |
+          echo installing azurecli
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+          az login \
+            --identity \
+            -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+
+          az account show
+          echo "done showing account info"
+          az acr login --name oneml
+          echo "done logging into acr"
+          az acr show -n oneml -g oneml.acr
+          echo "done showing acr stuff"
+          echo "pulling docker"
+          docker pull oneml.azurecr.io/immunodata-app-builder:2022-09-08.16-03-16
+          echo "done pulling docker"
+          docker run oneml.azurecr.io/immunodata-app-builder:2022-09-08.16-03-16 immunocli-next
