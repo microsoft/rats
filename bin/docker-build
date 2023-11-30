@@ -14,6 +14,8 @@ fi
 
 echo "Building Docker Image for ${COMPONENT}"
 
+mkdir -p .tmp
+
 TOKEN=$(az account get-access-token --query accessToken --output tsv)
 echo "export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=${TOKEN}" > .tmp/docker-build.env
 
