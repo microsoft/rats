@@ -23,3 +23,7 @@ jobs:
           az acr login --name immunodata
           az acr show -n oneml -g oneml-github-test
           bin/docker-build oneml-pipelines
+
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest flake8
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest mypy
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest pytest
