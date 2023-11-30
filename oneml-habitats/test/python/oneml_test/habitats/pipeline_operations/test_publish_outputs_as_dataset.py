@@ -187,6 +187,43 @@ def get_verification_pipeline_1(
     return pl
 
 
+def get_pipeline_with_no_input_uris(
+    expected_input_uri_1_pattern: str,
+    expected_input_uri_2_pattern: str,
+    expected_output_base_uri_pattern: str,
+) -> UPipeline:
+    task = UPipelineBuilder.task(
+        VerificationProcessor1,
+        config=frozendict(
+            expected_input_uri_1_pattern=expected_input_uri_1_pattern,
+            expected_input_uri_2_pattern=expected_input_uri_2_pattern,
+            expected_output_base_uri_pattern=expected_output_base_uri_pattern,
+        ),
+    )
+    pl = task.rename_inputs(
+        dict(
+            input_uri_1="n1",
+            input_uri_2="n2",
+            x_a="x.a",
+            x_b="x.b",
+        )
+    ).rename_outputs(
+        dict(
+            output_uri_1="output_uris.o1",
+            output_uri_2="output_uris.o2",
+            output_uri_3="output_uris.o3",
+            a_a="a.a",
+            a_b="a.b",
+        )
+    )
+    assert set(pl.inputs) == {"output_base_uri", "y", "n1", "n2", "x"}
+    assert set(pl.inputs.x) == {"a", "b"}
+    assert set(pl.outputs) == {"c", "output_uris", "a"}
+    assert set(pl.outputs.output_uris) == {"o1", "o2", "o3"}
+    assert set(pl.outputs.a) == {"a", "b"}
+    return pl
+
+
 def test_publish_outputs_as_datasets_pipeline_interface(
     publish_outputs_as_dataset: PublishOutputsAsDataset,
 ) -> None:
@@ -199,6 +236,21 @@ def test_publish_outputs_as_datasets_pipeline_interface(
     pl = publish_outputs_as_dataset(pl)
     assert set(pl.inputs) == {"output_base_uri", "y", "allow_overwrite", "input_uris", "x"}
     assert set(pl.inputs.input_uris) == {"i1", "i2"}
+    assert set(pl.inputs.x) == {"a", "b"}
+    assert set(pl.outputs) == {"c", "output_uris", "a"}
+
+
+def test_publish_outputs_as_datasets_pipeline_interface_with_no_input_uris(
+    publish_outputs_as_dataset: PublishOutputsAsDataset,
+) -> None:
+    # we're not going to run the verification processor, so we don't care about the patterns
+    pl = get_pipeline_with_no_input_uris(
+        expected_input_uri_1_pattern="",
+        expected_input_uri_2_pattern="",
+        expected_output_base_uri_pattern="",
+    )
+    pl = publish_outputs_as_dataset(pl)
+    assert set(pl.inputs) == {"output_base_uri", "y", "allow_overwrite", "n1", "n2", "x"}
     assert set(pl.inputs.x) == {"a", "b"}
     assert set(pl.outputs) == {"c", "output_uris", "a"}
 
