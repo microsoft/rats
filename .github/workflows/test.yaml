@@ -5,28 +5,27 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-
 jobs:
-
-  build:
-
+  test-oneml-pipelines:
+    name: "test: oneml-pipelines"
     runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
-
     steps:
     - uses: actions/checkout@v3
-    - name: Run a multi-line script
+    - name: "authenticate"
       run: |
           az login \
-            --identity \
-            -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+          --identity \
+          -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
 
           az acr login --name immunodata
-          az acr show -n oneml -g oneml-github-test
-          bin/docker-build oneml-pipelines
-
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest flake8
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest mypy
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest pytest
+    - name: "docker build"
+      run: |
+        bin/docker-build oneml-pipelines
+    - name: "run checks"
+      run: |
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run flake8
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run mypy
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run pytest
           docker run \
             -w /opt/build/oneml-pipelines \
             -v $PWD:/opt/build:ro \
