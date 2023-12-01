@@ -11,7 +11,8 @@ jobs:
     runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
     steps:
     - uses: actions/checkout@v4
-      fetch-tags: true
+    - name: "fetch tags"
+      run: git fetch origin --tags
     - name: "authenticate"
       run: |
           az login \
