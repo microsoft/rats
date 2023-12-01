@@ -27,3 +27,8 @@ jobs:
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest flake8
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest mypy
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest pytest
+          docker run \
+            -w /opt/build/oneml-pipelines \
+            -v $PWD:/opt/build:ro \
+            immunodata.azurecr.io/oneml/oneml-pipelines:latest \
+            poetry version

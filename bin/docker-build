@@ -22,4 +22,4 @@ echo "export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=${TOKEN}" > .tmp/do
 docker build \
   -t immunodata.azurecr.io/oneml/${COMPONENT}:latest \
   --secret id=build-envs,src=.tmp/docker-build.env \
-  -f ${COMPONENT}/Dockerfile.dev .
+  -f ${COMPONENT}/Dockerfile.build .
