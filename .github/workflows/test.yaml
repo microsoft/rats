@@ -1,5 +1,4 @@
 name: Docker Image CI
-
 on:
   push:
     branches: [ "main" ]
@@ -8,24 +7,37 @@ on:
 jobs:
   test-oneml-pipelines:
     name: "test: oneml-pipelines"
-    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
+    runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        fetch-tags: true
-    - name: "authenticate"
-      run: |
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: "authenticate"
+        run: |
+          # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
           -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
-
+          # auth to acr resources we use
           az acr login --name immunodata
-    - name: "docker build"
-      run: |
-        bin/docker-build oneml-pipelines
-    - name: "run checks"
-      run: |
+          # generate an access token that we use for the run
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D")
+          # Prevents the token from being output in logs
+          echo "::add-mask::$TOKEN"
+          echo "writing access token to $GITHUB_OUTPUT"
+          echo access-token=$TOKEN >> $GITHUB_OUTPUT
+      - name: "docker-build"
+        run: |
+          TOKEN="${{ steps.authenticate.outputs.access-token }}"
+          echo "export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=${TOKEN}" > .tmp/docker-build.env
+
+          docker build \
+            -t immunodata.azurecr.io/oneml/oneml-pipelines:latest \
+            --secret id=build-envs,src=.tmp/docker-build.env \
+            -f oneml-pipelines/Dockerfile.build .
+      - name: "run checks"
+        run: |
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run flake8
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run mypy
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run pytest
