@@ -1,6 +1,6 @@
 from ._app_plugin import OnemlProcessorsIoPlugin, OnemlProcessorsIoServices
+from ._manifest import Manifest
 from ._plugin_register_rw import PluginRegisterReadersAndWriters
-from ._register_rw import Manifest
 from .read_from_uri import IReadFromUriPipelineBuilder, ReadFromUriPipelineBuilder
 from .type_rw_mappers import (
     IGetReadServicesForType,

@@ -1,21 +1,8 @@
-from typing import Mapping, Sequence, TypeAlias, Union
-
 from oneml.io import OnemlIoServices
 
+from ._manifest import Manifest
 from ._plugin_register_rw import PluginRegisterReadersAndWriters
 from .type_rw_mappers import IRegisterReadServiceForType, IRegisterWriteServiceForType
-
-JsonFormattable: TypeAlias = Union[
-    Mapping[str, "JsonFormattable"],
-    str,
-    int,
-    float,
-    Sequence["JsonFormattable"],
-]
-
-
-class Manifest(dict[str, JsonFormattable]):
-    ...
 
 
 class OnemlProcessorsRegisterReadersAndWriters(PluginRegisterReadersAndWriters):
