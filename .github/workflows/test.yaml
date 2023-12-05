@@ -13,7 +13,7 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-      - name: "authenticate"
+      - id: "authenticate"
         run: |
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
