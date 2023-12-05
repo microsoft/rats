@@ -30,8 +30,10 @@ jobs:
       - name: "docker-build"
         run: |
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
+          # create a secrets file for docker to use
+          mkdir -p .tmp
           echo "export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=${TOKEN}" > .tmp/docker-build.env
-
+          # run the docker build by mounting our secrets
           docker build \
             -t immunodata.azurecr.io/oneml/oneml-pipelines:latest \
             --secret id=build-envs,src=.tmp/docker-build.env \
