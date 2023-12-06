@@ -2,7 +2,7 @@ from typing import NamedTuple
 
 from oneml.services import ContextualServiceContainer, ServiceContainer, ServiceFactory
 
-from ._examples import CatService, ExampleServiceGroups, ExampleServices, make_cat
+from ._examples import ExampleServiceGroups, ExampleServices, make_cat
 
 
 class TestServiceContainer:
@@ -18,7 +18,7 @@ class TestServiceContainer:
         # Just calling this for completeness right now
         container.get_service_ids()
 
-        cat: CatService = container.get_service(ExampleServices.CAT_1)
+        cat = container.get_service(ExampleServices.CAT_1)
         for x in range(10):
             # calls to get_service() are all cached
             assert cat is container.get_service(ExampleServices.CAT_1)
@@ -29,7 +29,7 @@ class TestServiceContainer:
         cats = container.get_service_group_providers(ExampleServiceGroups.CAT)
         for cp in cats:
             c = cp()
-            assert c.speak() == "meow"
+            assert c.speak() == "meow"  # type: ignore
 
 
 class ExampleContext(NamedTuple):
