@@ -52,10 +52,10 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
       - name: "run checks"
         run: |
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run flake8
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run mypy
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry run pytest
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:latest poetry build -f wheel
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run flake8
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run mypy
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run pytest
+          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry build -f wheel
       - name: 'upload-artifacts'
         uses: actions/upload-artifact@v3
         with:
