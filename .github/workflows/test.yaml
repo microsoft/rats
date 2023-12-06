@@ -56,7 +56,7 @@ jobs:
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run mypy
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run pytest
           docker run \
-            -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.authenticate.outputs.access-token }} \
+            -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.package-info.outputs.package-version }} \
             immunodata.azurecr.io/oneml/oneml-pipelines:local \
             poetry build -f wheel
       - name: 'upload-artifacts'
