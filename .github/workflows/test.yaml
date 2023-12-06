@@ -52,11 +52,13 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
       - name: "run checks"
         run: |
+          mkdir -p wheels
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run flake8
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run mypy
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run pytest
           docker run \
             -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.package-info.outputs.package-version }} \
+            -v $PWD/wheels:/opt/oneml/oneml-pipelines/dist \
             immunodata.azurecr.io/oneml/oneml-pipelines:local \
             poetry build -f wheel
       - name: 'upload-artifacts'
