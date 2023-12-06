@@ -55,7 +55,10 @@ jobs:
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run flake8
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run mypy
           docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run pytest
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry build -f wheel
+          docker run \
+            -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.authenticate.outputs.access-token }} \
+            immunodata.azurecr.io/oneml/oneml-pipelines:local \
+            poetry build -f wheel
       - name: 'upload-artifacts'
         uses: actions/upload-artifact@v3
         with:
