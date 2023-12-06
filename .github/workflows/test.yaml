@@ -17,6 +17,8 @@ jobs:
         name: "authenticate"
         run: |
           # authenticate as the managed identity we assigned to the 1es runner
+          echo "current user is $USER"
+          echo "current home is $HOME"
           az login \
           --identity \
           -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
