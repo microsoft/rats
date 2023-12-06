@@ -44,11 +44,11 @@ jobs:
         name: "package-info"
         run: |
           # use poetry to find out the version of our package
-          VERSION=docker run \
+          VERSION=$(docker run \
             -w /opt/build/oneml-pipelines \
             -v $PWD:/opt/build:ro \
             immunodata.azurecr.io/oneml/oneml-pipelines:local \
-            poetry version --short
+            poetry version --short)
           echo package-version=$VERSION >> $GITHUB_OUTPUT
       - name: "run checks"
         run: |
