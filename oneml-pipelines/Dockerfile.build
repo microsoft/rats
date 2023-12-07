@@ -36,7 +36,6 @@ COPY $APP_NAME/poetry.lock $APP_PATH/poetry.lock
 # Then install all dependencies
 RUN --mount=type=secret,id=build-envs \
     . /run/secrets/build-envs \
-    && echo 2 \
     && export POETRY_DYNAMIC_VERSIONING_BYPASS=0.0.0 \
     && poetry config virtualenvs.in-project true \
     && poetry run pip install -U pip \

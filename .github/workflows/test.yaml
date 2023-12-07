@@ -1,13 +1,17 @@
-name: Docker Image CI
+name: CI Checks
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 jobs:
-  test-oneml-pipelines:
-    name: "test: oneml-pipelines"
+  test-components:
+    strategy:
+      matrix:
+        component:
+          - oneml-pipelines
     runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
+    name: "test: ${{ matrix.component }}"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -17,9 +21,6 @@ jobs:
         name: "authenticate"
         run: |
           # authenticate as the managed identity we assigned to the 1es runner
-          echo "current user is $USER"
-          echo "current home is $HOME"
-          pipx install poetry
           az login \
           --identity \
           -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
@@ -40,32 +41,37 @@ jobs:
           echo "export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=${TOKEN}" > .tmp/docker-build.env
           # run the docker build by mounting our secrets
           docker build \
-            -t immunodata.azurecr.io/oneml/oneml-pipelines:local \
+            -t immunodata.azurecr.io/oneml/${{ matrix.component }}:local \
             --secret id=build-envs,src=.tmp/docker-build.env \
-            -f oneml-pipelines/Dockerfile.build .
+            -f ${{ matrix.component }}/Dockerfile.build .
       - id: "package-info"
         name: "package-info"
         run: |
           # use poetry to find out the version of our package
           VERSION=$(docker run \
-            -w /opt/build/oneml-pipelines \
+            -w /opt/build/${{ matrix.component }} \
             -v $PWD:/opt/build:ro \
-            immunodata.azurecr.io/oneml/oneml-pipelines:local \
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local \
             poetry version --short)
+          PKG_NAME=$(echo "${{ matrix.component }}" | tr '-' '_')
+          PKG_NAME=$(echo "${{ matrix.component }}" | tr '-' '_')
+          PKG_WHEEL="$PKG_NAME-$VERSION-py3-none-any.whl"
           echo package-version=$VERSION >> $GITHUB_OUTPUT
+          echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
+          echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
       - name: "run checks"
         run: |
           mkdir -p wheels
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run flake8
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run mypy
-          docker run immunodata.azurecr.io/oneml/oneml-pipelines:local poetry run pytest
+          docker run immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
+          docker run immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run mypy
+          docker run immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run pytest
           docker run \
             -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.package-info.outputs.package-version }} \
-            -v $PWD/wheels:/opt/oneml/oneml-pipelines/dist \
-            immunodata.azurecr.io/oneml/oneml-pipelines:local \
+            -v $PWD/wheels:/opt/oneml/${{ matrix.component }}/dist \
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local \
             poetry build -f wheel
       - name: 'upload-artifacts'
         uses: actions/upload-artifact@v3
         with:
-          name: "oneml-pipelines.wheel"
-          path: "wheels/*.whl"
+          name: "wheels"
+          path: "wheels/${{ steps.package-info.outputs.package-wheel }}"
