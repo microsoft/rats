@@ -10,6 +10,7 @@ jobs:
       matrix:
         component:
           - oneml-pipelines
+          - oneml-processors
     runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
     name: "test: ${{ matrix.component }}"
     steps:
