@@ -81,7 +81,7 @@ jobs:
       - name: publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: .tmp/${{ matrix.component }}/reports/*.xml
+          files: .tmp/${{ matrix.component }}/reports/pytest-junit.xml
           check_name: "Test Results: ${{ matrix.component }}"
       - name: 'upload-artifacts'
         uses: actions/upload-artifact@v3
