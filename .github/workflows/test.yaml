@@ -64,14 +64,25 @@ jobs:
       - name: "run checks"
         run: |
           mkdir -p wheels
-          docker run immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
-          docker run immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run mypy
-          docker run immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run pytest
+          docker run \
+            -v $PWD/.tmp:/opt/oneml/.tmp \
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
+          docker run \
+            -v $PWD/.tmp:/opt/oneml/.tmp \
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run mypy
+          docker run \
+            -v $PWD/.tmp:/opt/oneml/.tmp \
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run pytest
           docker run \
             -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.package-info.outputs.package-version }} \
             -v $PWD/wheels:/opt/oneml/${{ matrix.component }}/dist \
             immunodata.azurecr.io/oneml/${{ matrix.component }}:local \
             poetry build -f wheel
+      - name: publish test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: .tmp/${{ matrix.component }}/reports/*.xml
+          check_name: "Test Results: ${{ matrix.component }}"
       - name: 'upload-artifacts'
         uses: actions/upload-artifact@v3
         with:
