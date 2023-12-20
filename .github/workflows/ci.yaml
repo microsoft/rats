@@ -61,23 +61,28 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
           echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
-      - name: "run checks"
+      - name: flake8
         run: |
-          mkdir -p wheels
           docker run \
             -v $PWD/.tmp:/opt/oneml/.tmp \
             immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
+      - name: mypy
+        run: |
           docker run \
             -v $PWD/.tmp:/opt/oneml/.tmp \
             immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run mypy
+      - name: pytest
+        run: |
           docker run \
             -v $PWD/.tmp:/opt/oneml/.tmp \
             immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run pytest
+      - name: "build-wheels"
+        run: |
+          mkdir -p wheels
           docker run \
             -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.package-info.outputs.package-version }} \
             -v $PWD/wheels:/opt/oneml/${{ matrix.component }}/dist \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local \
-            poetry build -f wheel
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry build -f wheel
       - name: publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
