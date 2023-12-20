@@ -8,7 +8,7 @@
 
 **/*.egg-info
 */build/
-*/dist/*.whl
+*/dist/
 .DS_Store
 
 # ignore personal workspace files
