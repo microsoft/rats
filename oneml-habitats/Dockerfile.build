@@ -24,7 +24,7 @@ WORKDIR $APP_PATH
 
 COPY oneml-devtools $PROJECT_PATH/oneml-devtools
 COPY oneml-pipelines $PROJECT_PATH/oneml-pipelines
-COPY oneml-pipelines $PROJECT_PATH/oneml-processors
+COPY oneml-processors $PROJECT_PATH/oneml-processors
 COPY $APP_NAME/pyproject.toml $APP_PATH/pyproject.toml
 
 # Create src dirs of local packages, the bare minimum needed to install local packages
