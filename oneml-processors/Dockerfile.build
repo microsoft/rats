@@ -1,0 +1,36 @@
+# syntax = docker/dockerfile:1.5.2
+ARG REGISTRY=immunodata.azurecr.io
+FROM ${REGISTRY}/ubuntu-22.04-python-3:2023-07-17.14-36-59
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN apt-get update && \
+    apt-get install -yqq git-core --no-install-recommends && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /tmp/*
+
+ARG PROJECT_NAME="oneml"
+ARG APP_NAME="oneml-processors"
+
+ARG PROJECT_PATH="/opt/oneml"
+ARG APP_PATH="$PROJECT_PATH/$APP_NAME"
+
+RUN git config --global --add safe.directory "/opt/build"
+RUN mkdir -p $PROJECT_PATH/.tmp
+RUN mkdir -p $APP_PATH/.tmp
+
+WORKDIR $APP_PATH
+
+COPY oneml-devtools $PROJECT_PATH/oneml-devtools
+COPY oneml-pipelines $PROJECT_PATH/oneml-pipelines
+COPY $APP_NAME $APP_PATH
+
+# Then install all dependencies
+RUN --mount=type=secret,id=build-envs \
+    . /run/secrets/build-envs \
+    && export POETRY_DYNAMIC_VERSIONING_BYPASS=0.0.0 \
+    && poetry config virtualenvs.in-project true \
+    && poetry run pip install -U pip \
+    && poetry install \
+    && rm -rf /root/.cache

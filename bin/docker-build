@@ -1,0 +1,25 @@
+#!/usr/bin/bash
+
+COMPONENT=$1
+# component is required
+if [ -z "${COMPONENT}" ]; then
+  echo "Component Input is Needed"
+  exit 1
+fi
+# folder needs to exist
+if [ ! -d "${COMPONENT}" ]; then
+  echo "Invalid Component Input"
+  exit 1
+fi
+
+echo "Building Docker Image for ${COMPONENT}"
+
+mkdir -p .tmp
+
+TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D")
+echo "export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=${TOKEN}" > .tmp/docker-build.env
+
+docker build \
+  -t immunodata.azurecr.io/oneml/${COMPONENT}:latest \
+  --secret id=build-envs,src=.tmp/docker-build.env \
+  -f ${COMPONENT}/Dockerfile.build .
