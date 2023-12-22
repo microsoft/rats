@@ -11,7 +11,7 @@ packages = [
 [[tool.poetry.source]]
 name = "immunomics-artifacts"
 url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
-default = true
+priority = "default"
 
 [tool.poetry-dynamic-versioning]
 enable = true
