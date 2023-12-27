@@ -100,7 +100,12 @@ jobs:
     runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
     name: "push-artifacts"
     steps:
+      - name: download-wheels
+        uses: actions/download-artifact@v3
+        with:
+          name: wheels
       - name: wheels
         run: |
           echo "foo bar"
           echo "${{ github.ref }}"
+          ls -lah
