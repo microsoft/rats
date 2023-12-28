@@ -2,5 +2,6 @@
 
 COMPONENT=$1
 
-cd $COMPONENT && poetry run flake8
-cd $COMPONENT && poetry run mypy
+cd $COMPONENT
+poetry run flake8
+poetry run mypy
