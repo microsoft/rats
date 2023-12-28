@@ -1,6 +1,13 @@
 repos:
   - repo: local
     hooks:
+      - id: mypy-pipelines
+        name: Run mypy in pipelines package
+        entry: "bash -c 'cd oneml-pipelines && poetry run mypy'"
+        language: system
+        pass_filenames: false
+        files: ^oneml-pipelines/src/python/
+        types: [ python ]
       - id: flake8-habitats
         name: Run flake8 in habitats package
         entry: "bash -c 'cd oneml-habitats && poetry run flake8'"
