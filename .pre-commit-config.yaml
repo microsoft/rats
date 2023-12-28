@@ -1,31 +1,24 @@
 repos:
   - repo: local
     hooks:
-      - id: mypy-pipelines
-        name: Run mypy in pipelines package
-        entry: "bash -c 'cd oneml-pipelines && poetry run mypy'"
-        language: system
-        pass_filenames: false
-        files: ^oneml-pipelines/src/python/
-        types: [ python ]
-      - id: flake8-habitats
-        name: Run flake8 in habitats package
-        entry: "bash -c 'cd oneml-habitats && poetry run flake8'"
-        language: system
+      - id: oneml-habitats
+        name: Run hooks in habitats package
+        entry: "bin/commit-hooks oneml-habitats"
+        language: script
         pass_filenames: false
         files: ^oneml-habitats/src/python/
         types: [ python ]
-      - id: flake8-pipelines
-        name: Run flake8 in pipelines package
-        entry: "bash -c 'cd oneml-pipelines && poetry run flake8'"
-        language: system
+      - id: oneml-pipelines
+        name: Run hooks in pipelines package
+        entry: "bin/commit-hooks oneml-pipelines"
+        language: script
         pass_filenames: false
         files: ^oneml-pipelines/src/python/
         types: [ python ]
-      - id: flake8-processors
-        name: Run flake8 in processors package
-        entry: "bash -c 'cd oneml-processors && poetry run flake8'"
-        language: system
+      - id: oneml-processors
+        name: Run hooks in processors package
+        entry: "bin/commit-hooks oneml-processors"
+        language: script
         pass_filenames: false
         files: ^oneml-processors/src/python/
         types: [ python ]
