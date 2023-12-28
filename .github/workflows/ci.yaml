@@ -124,9 +124,9 @@ jobs:
         run: |
           echo "foo bar"
           echo "${{ github.ref }}"
-          ls -lah
+          ls -lah dist/
       - name: publish-wheels
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ steps.authenticate.outputs.access-token }}
-          repository-url: https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple
+          repository-url: https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
