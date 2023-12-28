@@ -1,8 +1,8 @@
 import logging
 import os
+import sys
 from typing import Tuple
 
-import sys
 from oneml.adocli._cli import RawCliRequest
 from oneml.adocli._di_container import AdocliDiContainer
 from oneml.logging import PackageLogLevel

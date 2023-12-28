@@ -95,9 +95,7 @@ def _verify_pipeline_out_collections(out_collections: OutCollections, dag: DAG) 
             _verify_output_entry(f"{col_name}.{out_name}", out_entry, dag)
 
 
-def verify_pipeline_integrity(
-    pipeline: UPipeline
-) -> None:
+def verify_pipeline_integrity(pipeline: UPipeline) -> None:
     _verify_dag_integrity(pipeline._dag)
     _verify_pipeline_name(pipeline.name, pipeline._dag)
     _verify_pipeline_inputs(pipeline.inputs, pipeline._dag)

@@ -1,0 +1,29 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-yaml
+      - id: end-of-file-fixer
+  - repo: local
+    hooks:
+      - id: oneml-habitats
+        name: Run hooks in habitats package
+        entry: "bin/commit-hooks oneml-habitats"
+        language: script
+        pass_filenames: false
+        files: ^oneml-habitats/src/python/
+        types: [ python ]
+      - id: oneml-pipelines
+        name: Run hooks in pipelines package
+        entry: "bin/commit-hooks oneml-pipelines"
+        language: script
+        pass_filenames: false
+        files: ^oneml-pipelines/src/python/
+        types: [ python ]
+      - id: oneml-processors
+        name: Run hooks in processors package
+        entry: "bin/commit-hooks oneml-processors"
+        language: script
+        pass_filenames: false
+        files: ^oneml-processors/src/python/
+        types: [ python ]
