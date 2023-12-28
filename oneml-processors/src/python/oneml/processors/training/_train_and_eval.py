@@ -18,7 +18,6 @@ from omegaconf import MISSING
 from ..dag._utils import DAG, find_downstream_nodes
 from ..utils import frozendict, orderedset
 from ..ux import (
-    UPipeline,
     DependencyOp,
     InCollections,
     InEntry,

@@ -1,9 +1,4 @@
-from ._client import (
-    PackageLogLevel,
-    IUpdateLogLevels,
-    IApplyLogConfigs,
-    LoggingClient,
-)
+from ._client import IApplyLogConfigs, IUpdateLogLevels, LoggingClient, PackageLogLevel
 
 __all__ = [
     "PackageLogLevel",

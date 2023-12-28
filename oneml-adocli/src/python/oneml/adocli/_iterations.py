@@ -4,9 +4,13 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import List, Tuple
 
-from azure.devops.v6_0.work import WorkClient, TeamContext, TeamSettingsIteration
-from azure.devops.v6_0.work_item_tracking import WorkItemTrackingClient, WorkItemRelation, \
-    JsonPatchOperation, WorkItem
+from azure.devops.v6_0.work import TeamContext, TeamSettingsIteration, WorkClient
+from azure.devops.v6_0.work_item_tracking import (
+    JsonPatchOperation,
+    WorkItem,
+    WorkItemRelation,
+    WorkItemTrackingClient,
+)
 
 from ._work_items import AdoWorkItem
 

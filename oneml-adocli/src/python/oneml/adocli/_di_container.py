@@ -1,7 +1,7 @@
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import TypeVar, Generic, Callable
+from typing import Callable, Generic, TypeVar
 
 from azure.devops.connection import Connection
 from azure.devops.v6_0.core import CoreClient
@@ -9,10 +9,11 @@ from azure.devops.v6_0.work import WorkClient
 from azure.devops.v6_0.work_item_tracking import WorkItemTrackingClient
 from msrest.authentication import BasicAuthentication
 
+from oneml.logging import LoggingClient
+
 from ._app import AdocliApp, MoveOnCallTicketsCommand
 from ._authentication import AdoOauthToken
 from ._cli import RawCliRequest
-from oneml.logging import LoggingClient
 from ._iterations import IterationsClient
 
 logger = logging.getLogger(__name__)
