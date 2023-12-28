@@ -122,11 +122,6 @@ jobs:
         with:
           name: wheels
           path: dist/
-      - name: wheels
-        run: |
-          echo "foo bar"
-          echo "${{ github.ref }}"
-          ls -lah dist/
       - name: publish-wheels
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
