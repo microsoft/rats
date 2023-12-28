@@ -95,7 +95,7 @@ jobs:
           name: "wheels"
           path: "wheels/${{ steps.package-info.outputs.package-wheel }}"
   push-artifacts:
-    if: github.ref != 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
     needs: test-components
     runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
     name: "push-artifacts"
