@@ -3,6 +3,7 @@ name = "oneml-habitats"
 # Handled by `poetry-dynamic-versioning` plugin below.
 version = "0.0.0"
 description = "oneml plugin component for running pipelines in habitats"
+readme = "README.md"
 authors = []
 packages = [
     {include = "oneml", from = "src/python"},
