@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "main"
+  - package-ecosystem: "pip"
+    directory: "/oneml-habitats/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+  - package-ecosystem: "pip"
+    directory: "/oneml-pipelines/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+  - package-ecosystem: "pip"
+    directory: "/oneml-processors/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
