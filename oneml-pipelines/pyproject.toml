@@ -48,6 +48,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 pyupgrade = "*"
+ruff = "*"
 types-urllib3 = "*"
 
 [tool.poetry.scripts]
