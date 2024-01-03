@@ -36,19 +36,17 @@ class TestExecutablesContainer:
         assert self._triggers.get(after(ExampleServices.DOG_1)) == 2
 
 
-"""
-Idea:
-- ExecutablesContainer opens contexts
-- we never have to open contexts ourselves
-- but we also don't have the need to make our own contexts
-- only executable contexts exist, they have a uuid and the service id of the exe
-- only way to create a context is to make an executable (just a service id)
-- people don't think about contexts, they think of executables
-- now that contexts and executables have a 1:1 mapping, we can reuse it for before/after events
-- when a context opens, we execute the before() executables that have been added
-- when a context closes, we execute the after() executables that have been added
-- each of those executables also open their own context because they are executed the same way
-- I think we should be able to validate the executable dag and build one dynamically
+# Idea:
+# - ExecutablesContainer opens contexts
+# - we never have to open contexts ourselves
+# - but we also don't have the need to make our own contexts
+# - only executable contexts exist, they have a uuid and the service id of the exe
+# - only way to create a context is to make an executable (just a service id)
+# - people don't think about contexts, they think of executables
+# - now that contexts and executables have a 1:1 mapping, we can reuse it for before/after events
+# - when a context opens, we execute the before() executables that have been added
+# - when a context closes, we execute the after() executables that have been added
+# - each of those executables also open their own context because they are executed the same way
+# - I think we should be able to validate the executable dag and build one dynamically
 
-let's see if we can implement this with strict TDD. I've never done this before.
-"""
+# let's see if we can implement this with strict TDD. I've never done this before.
