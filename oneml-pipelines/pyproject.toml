@@ -102,6 +102,7 @@ module = [
 ignore_missing_imports = true
 
 [tool.ruff]
+cache-dir = "../.tmp/oneml-pipelines/.ruff_cache"
 # Exclude a variety of commonly ignored directories.
 exclude = [
     ".bzr",
@@ -140,8 +141,8 @@ target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
-select = ["B950", "D", "E4", "E7", "E9", "F"]
-ignore = ["D417", "E203", "E501"]
+select = ["B", "D", "E4", "E7", "E9", "F"]
+ignore = ["B019", "B026", "D100", "D101", "D102", "D103", "D104", "D107", "D417", "E203", "E501"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
