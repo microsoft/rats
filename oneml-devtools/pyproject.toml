@@ -111,7 +111,7 @@ target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
-select = ["B", "D", "E", "F", "I", "UP"]
+select = ["B", "D", "E", "F", "I", "Q", "W", "NPY", "PD", "PTH", "RUF", "UP"]
 ignore = ["B026", "D100", "D101", "D102", "D103", "D104", "D105", "D107", "D417", "E203", "E501"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -123,6 +123,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["oneml", "oneml_test"]
 
 [tool.ruff.format]
 quote-style = "double"  # Like Black, use double quotes for strings.
