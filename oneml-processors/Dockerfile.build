@@ -4,9 +4,9 @@ FROM ${REGISTRY}/ubuntu-22.04-python-3:2023-07-17.14-36-59
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
-RUN apt-get update && \
-    apt-get install -yqq git-core --no-install-recommends && \
-    apt-get clean && \
+RUN apt-get -qq update && \
+    apt-get -qq install git-core --no-install-recommends && \
+    apt-get -qq clean && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /tmp/*
 
