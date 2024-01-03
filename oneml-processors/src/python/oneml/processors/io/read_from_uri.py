@@ -14,7 +14,7 @@ from .type_rw_mappers import IGetReadServicesForType
 DataType = TypeVar("DataType")
 
 
-class ReadFromUriProcessorOutput(TypedDict, Generic[DataType]):
+class ReadFromUriProcessorOutput(TypedDict):
     data: DataType
 
 
@@ -33,7 +33,7 @@ class ReadFromUriProcessor(Generic[DataType]):
         self._read_service_ids = read_service_ids
         self._uri = RWDataUri(uri)
 
-    def process(self) -> ReadFromUriProcessorOutput[DataType]:
+    def process(self) -> ReadFromUriProcessorOutput:
         scheme = furl(self._uri.uri).scheme
         read_service_id = self._read_service_ids.get(scheme, None)
         if read_service_id is None:
