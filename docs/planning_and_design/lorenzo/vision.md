@@ -5,20 +5,20 @@
 
 ## Providers
 
-Providers are objects that return another object; they are callable and take no arguments from 
-the user. Providers are valuable without input 
-arguments because they allow authors to give users access to cababilities without exposing any 
-of the details of how to initialize any of the class instances. The DI Container is a registry 
+Providers are objects that return another object; they are callable and take no arguments from
+the user. Providers are valuable without input
+arguments because they allow authors to give users access to cababilities without exposing any
+of the details of how to initialize any of the class instances. The DI Container is a registry
 to give users a simple way to access/call providers; and interact with the desired capabilities.
-DI 
-Containers and Providers belong to portion of the software architecture responsible for 
-accessing capabilities. The capabilities are represented by objects – the ones that are 
+DI
+Containers and Providers belong to portion of the software architecture responsible for
+accessing capabilities. The capabilities are represented by objects – the ones that are
 returned by providers.
 
 !!! example "Example Database Client"
-    A database client might allow users to run SQL queries against a database. This object 
-    needs to be initialized with valid credentials, but we don't want to require users to know 
-    how to configure these credentials, so we create a provider that returns a database client. 
+    A database client might allow users to run SQL queries against a database. This object
+    needs to be initialized with valid credentials, but we don't want to require users to know
+    how to configure these credentials, so we create a provider that returns a database client.
     The provider is responsible for initializing the database client with the right credentials;
     and we can register this provider into a DI Container in order for users to access the database
     client in the same way they access any other capability.
@@ -52,36 +52,36 @@ returned by providers.
 
 ## Executables
 
-Executables are objects that perform an operation. Instead of returning capabilities, like 
+Executables are objects that perform an operation. Instead of returning capabilities, like
 providers, executables leverage capabilities in order to expose the same 0-argument interface as
-providers, but without a return value. A user of an executable does not need to know the 
-details of creating a spark cluster in order to request a cluster be created. In many cases, 
-the values needed to create a spark cluster, and the UI for defining these values, is not 
-interesting to the user. I think executables are most valuable as a very high level abstraction 
+providers, but without a return value. A user of an executable does not need to know the
+details of creating a spark cluster in order to request a cluster be created. In many cases,
+the values needed to create a spark cluster, and the UI for defining these values, is not
+interesting to the user. I think executables are most valuable as a very high level abstraction
 for the core responsibilities of the system.
 
 !!! example "Example Executables"
-    The package, `immunodata.spark_examples`, provides an executable for `create_cluster()`, 
-    `list_clusters()`, and a `delete_cluster()`. Unfortunately, we don't know, at this point, 
-    which parameters of a cluster are interesting to the user; but I am certain that there is 
-    at least one person interested in each and every permutation of required and optional 
+    The package, `immunodata.spark_examples`, provides an executable for `create_cluster()`,
+    `list_clusters()`, and a `delete_cluster()`. Unfortunately, we don't know, at this point,
+    which parameters of a cluster are interesting to the user; but I am certain that there is
+    at least one person interested in each and every permutation of required and optional
     cluster arguments; some will want to provide a user email to track along with the cluster
-    usage; some will ask you to populate that field based on the user's current azure cli 
-    profile. Making this assumption avoids us going through the futile excercise of trying to 
-    group sets of cluster arguments into things our flawed notion of a persona might find 
+    usage; some will ask you to populate that field based on the user's current azure cli
+    profile. Making this assumption avoids us going through the futile excercise of trying to
+    group sets of cluster arguments into things our flawed notion of a persona might find
     interesting, we can call those details private, and puntable, and stick with the simpler, more
     obvious use case; our users want to create spark clusters.
 
-    The executables above form the shortest elevator pitch for your software. The next layer of 
-    abstraction below us will start to define how the user requests a cluster, and how they can 
-    customize their experience. This might be a web panel, a desktop client, or a cli, but 
+    The executables above form the shortest elevator pitch for your software. The next layer of
+    abstraction below us will start to define how the user requests a cluster, and how they can
+    customize their experience. This might be a web panel, a desktop client, or a cli, but
     those details are not part of our elevator pitch.
 
 ### CLI Commands
 
-A lot of the CLI Commands we develop represent an operation we wanted to expose to the user 
+A lot of the CLI Commands we develop represent an operation we wanted to expose to the user
 through a terminal. It's relatively easy to create a new command, define the required arguments,
-and access the user's input through a request object. We defined a persona that wanted to 
+and access the user's input through a request object. We defined a persona that wanted to
 author terminal commands, and developed a library for doing just that.
 
 !!! example "Example CLI Command"
@@ -98,14 +98,14 @@ author terminal commands, and developed a library for doing just that.
     ```
 
 After using this library successfully for a while, we defined a new persona. Sometimes, users
-want to be able to call CLI Commands from other parts of code; but our API is very tightly 
-coupled to the terminal. Users can use a subprocess to execute desired CLI Commands, but that 
-would never be the ideal API we would have developed if this persona was our first customer. 
-Besides the awkwardness of using a subprocess, we also have conflicting demands about the 
-arguments the two personas requested. One simple shortcut is to make the CLI Command expose 
-arguments for everything, and make them all optional. But this is also not the API we would 
-develop if the requests weren't related. So instead of making everything optional, let's take 
-the opposite extreme and turn these CLI Commands into Executables, by removing all their input 
+want to be able to call CLI Commands from other parts of code; but our API is very tightly
+coupled to the terminal. Users can use a subprocess to execute desired CLI Commands, but that
+would never be the ideal API we would have developed if this persona was our first customer.
+Besides the awkwardness of using a subprocess, we also have conflicting demands about the
+arguments the two personas requested. One simple shortcut is to make the CLI Command expose
+arguments for everything, and make them all optional. But this is also not the API we would
+develop if the requests weren't related. So instead of making everything optional, let's take
+the opposite extreme and turn these CLI Commands into Executables, by removing all their input
 arguments, and eliminating the decision of where the values might come from.
 
 !!! example "Example CLI Command as Executable"
@@ -120,8 +120,8 @@ arguments, and eliminating the decision of where the values might come from.
             print(f"creating cluster named: {self._request.cluster_name})")
     ```
 
-    At this level of abstraction, we don't want to worry about how the configuration values for 
-    the cluster is built. We only want to define the values we need for the creation of the 
+    At this level of abstraction, we don't want to worry about how the configuration values for
+    the cluster is built. We only want to define the values we need for the creation of the
     cluster.
 
     ```python
@@ -136,16 +136,16 @@ arguments, and eliminating the decision of where the values might come from.
 cit = Context[ClusterRequest]("cli-command.create-cluster")
 
 class SomeUseCases:
-    
+
     def __init__(self, ctx: ContextClient) -> None:
         self._ctx = ctx
-    
+
     @executable(ExeId("create-cluster"), context=cit)
     def create_cluster(self) -> None:
         values = self._ctx.get_context(cit)
         print(f"creating cluster named: {values.name})")
 
-        
+
 with r.open(cit, ClusterRequest(
         name="example-cluster",
         cpu_cores=4,
@@ -167,7 +167,7 @@ class PersonaA:
             memory=50,
         )):
             self.exe.execute()
-        
+
         CreateClusterExecutable(...).execute()
 
 

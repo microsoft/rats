@@ -66,7 +66,7 @@ g = get_graph_from_delayed_func(std_lr)
 ## Impact
 
 A successful design and implementation would simplify the definition of OneML computation graphs.
-It would improve readability, testability and sharability of code defining computation graphs.  
+It would improve readability, testability and sharability of code defining computation graphs.
 
 There would be a distinct gain if the implementation manages to handle static typing for
 `delayed_func`, which might require writing a mypy plugin. Consider type checking of edges, i.e.

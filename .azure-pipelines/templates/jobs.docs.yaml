@@ -87,7 +87,7 @@ jobs:
 
         az aks get-credentials --resource-group $RESOURCE_GROUP --name $KUBERNETES_CLUSTER
         kubelogin convert-kubeconfig -l azurecli
-   
+
         # run tekton
         tkn pipeline start \
             --namespace ci-builds \
@@ -103,7 +103,7 @@ jobs:
             -p "driver-component=${{ parameters.driverComponent }}" \
             -p "version=$BUILD_VERSION" \
             -p "helm-flags=$HELM_FLAGS"
-        
+
         # ensure the job is actually done (Succeeded or Failed or Cancelled), then
         # ensure devops task return code matches whether the tekton task succeeded or failed
         # the `tkn task start` command above will exit with a `0` even when the task fails

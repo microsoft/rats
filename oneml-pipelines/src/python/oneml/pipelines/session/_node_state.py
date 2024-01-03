@@ -16,7 +16,7 @@ class PipelineNodeState(Enum):
     NONE = auto()
     """
     Nodes that have just been inserted into the dag have no state.
-    
+
     TODO: might be able to remove this soon since it's confusing.
     """
 

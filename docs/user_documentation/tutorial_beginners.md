@@ -58,7 +58,7 @@ class A:
 
 class BOutput(NamedTuple):
     Z: float
-    
+
 class B:
     def process(self, X: Any) -> BOutput:
         ...

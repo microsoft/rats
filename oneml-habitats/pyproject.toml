@@ -26,7 +26,7 @@ metadata = false
 
 [tool.poetry.dependencies]
 furl = "^2.1.3"
-immunodata-core = "*" 
+immunodata-core = "*"
 immunodata-cli = "*"
 immunodata-devops = "*"
 immunodata-datasets = "*"

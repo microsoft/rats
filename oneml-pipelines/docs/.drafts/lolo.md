@@ -12,7 +12,7 @@
 
 ## .drafts
 All sites have a `.drafts` folder that does not get auto indexed and incorporated into the default
-site navigation. The expectation is that a file is owned by a single individual and all 
+site navigation. The expectation is that a file is owned by a single individual and all
 collaboration related to the contents of that file by other individuals is done via pull requests.
 
 - I own a `lolo.md` file.
@@ -45,25 +45,25 @@ class OnemlIoPlugin(Protocol):
         """"""
 ```
 
-It's often requested that we add arguments like `node` because we don't want to use the context 
-client everywhere. But this pattern makes us decide on the appropriate arguments to forward to 
-io plugins. The plugin system is supposed to decouple us from the implementation details of 
+It's often requested that we add arguments like `node` because we don't want to use the context
+client everywhere. But this pattern makes us decide on the appropriate arguments to forward to
+io plugins. The plugin system is supposed to decouple us from the implementation details of
 plugins, but this pattern above decides what plugins should need before plugins are written.
 
-My gut feeling is that we tend to like the above pattern because it reads well. Intuitively, an 
-event that fires when a node completes should forward the node datastructure. But this is a trap! We 
-need to focus on the target audience and design the API for them. We are providing an API for 
-IO focused plugins, and we are creating a new lifecycle event for when nodes complete, because 
-we think that will be useful to IO Plugin Authors. We do not want to depend on the 
-implementation details of IO Plugins, so we should not be able to tell what they need. An IO 
-Plugin that clears local tmp files after each node, does not need to import and depend on 
+My gut feeling is that we tend to like the above pattern because it reads well. Intuitively, an
+event that fires when a node completes should forward the node datastructure. But this is a trap! We
+need to focus on the target audience and design the API for them. We are providing an API for
+IO focused plugins, and we are creating a new lifecycle event for when nodes complete, because
+we think that will be useful to IO Plugin Authors. We do not want to depend on the
+implementation details of IO Plugins, so we should not be able to tell what they need. An IO
+Plugin that clears local tmp files after each node, does not need to import and depend on
 `PipelineNode`.
 
-IO Plugins that require information, can depend on that information's owner to provide a way to 
-retrieve it. Often, I use `ContextProvider` functions, but this is no different than using a 
-dataset client. At this level of the architecture, we want to make close to no assumptions 
-about the behaviors being added to OneML with any kind of plugin. Especially this early in the 
-life of the project, when we want to be able to explore the problem space in many directions 
+IO Plugins that require information, can depend on that information's owner to provide a way to
+retrieve it. Often, I use `ContextProvider` functions, but this is no different than using a
+dataset client. At this level of the architecture, we want to make close to no assumptions
+about the behaviors being added to OneML with any kind of plugin. Especially this early in the
+life of the project, when we want to be able to explore the problem space in many directions
 and as quickly as possible.
 
 ```python
@@ -76,37 +76,37 @@ class ExampleIoPlugins(OnemlIoPlugin):
     def on_node_completion(self) -> None:
         # If we want to track all node completions with a dataset commit, we might want to do this:
         self._dataset_client.commit(pipeline, node)
-        
-        # Something about node data being written to a standard location and using a plugin to 
+
+        # Something about node data being written to a standard location and using a plugin to
         # commit it. I don't need to know the node in this case.
         self._local_storage.commit()
 
-        # A plugin that makes a tmp storage location available to nodes can clear it without 
+        # A plugin that makes a tmp storage location available to nodes can clear it without
         # knowing the node that completed.
         self._tmp_storage.clear()
 
-        # Same with a plugin that maybe gives nodes a way to access secrets without exposing 
+        # Same with a plugin that maybe gives nodes a way to access secrets without exposing
         # them to other nodes.
         self._secret_manager.clear()
 ```
 
 
 
-```python 
+```python
 """
 
 """
 DI Containers are specific to the `main` layer of the application, which should only be used for
 wiring together library capabilities. This means we should never depend on a specific DI Container,
-which we've already removed the need for, by making them all fully private. However, we need to 
-avoid the Service IDs for the same reason. The DI Container is deciding to fulfill a dependency 
-with certain Service IDs, and the DI Container will decide to change IDs in order to change 
+which we've already removed the need for, by making them all fully private. However, we need to
+avoid the Service IDs for the same reason. The DI Container is deciding to fulfill a dependency
+with certain Service IDs, and the DI Container will decide to change IDs in order to change
 behavior, which leaves libraries unable to expect a specific Service ID to have been used at all.
 
 But we are allowed to reference a few service concepts from library code. A ServiceProvider is just
-a callable, without any specific details. I think these are safe to use, but I would try to 
-only use them within creational classes. A Factory or Builder class is useful to include within a 
-library because it wraps the concept of creating object from the library, but we can implement 
+a callable, without any specific details. I think these are safe to use, but I would try to
+only use them within creational classes. A Factory or Builder class is useful to include within a
+library because it wraps the concept of creating object from the library, but we can implement
 it without details about wiring (I think).
 
 These seem safe to use in libraries:
@@ -116,8 +116,8 @@ These seem safe to use in libraries:
 - ContextGroupProvider
 
 I'm a little less certain about a dependency on the ServiceId type, but I haven't needed it yet.
-My gut instinct is that we just need to avoid referencing instances of ServiceId (our enums). I 
-think a good way to separate all the fragile classes is to put these all in one module and 
+My gut instinct is that we just need to avoid referencing instances of ServiceId (our enums). I
+think a good way to separate all the fragile classes is to put these all in one module and
 never import this module from the related libraries.
 
 ```python
@@ -143,8 +143,8 @@ class FooDiContainer:
         return Dog()
 ```
 
-In the above example, Pipeline, Cat, and Dog are in library modules; everything else is wiring 
-and belongs in the `main()` layer. We should never depend on items from `main()` because it's 
+In the above example, Pipeline, Cat, and Dog are in library modules; everything else is wiring
+and belongs in the `main()` layer. We should never depend on items from `main()` because it's
 the outer most layer in our architecture.
 """
 
@@ -332,10 +332,10 @@ Thoughts:
 
 """
 I think it might be useful to think of the execution of pipelines in a similar way to how we think
-about kubernetes jobs. We submit a pipeline to run, and can get the details of it with another 
-call. Our `execute_pipeline()` call is blocking, but it doesn't have to be. For this change we 
-would just have to change the parameter to be unique and get the name of the pipeline from a 
-different argument. We can use a request data structure so that we can get a "pod" name 
+about kubernetes jobs. We submit a pipeline to run, and can get the details of it with another
+call. Our `execute_pipeline()` call is blocking, but it doesn't have to be. For this change we
+would just have to change the parameter to be unique and get the name of the pipeline from a
+different argument. We can use a request data structure so that we can get a "pod" name
 separately from the name used to find a provider in the registry.
 
 - switch session registry to query the service containers directly
@@ -395,7 +395,7 @@ Thoughts:
   - the dag can receive a unique key (the session)
   - the dag can still be derived by a static config, but that is an implementation detail
 - does the definnition of the pipeline go into frames? I think so
-  - this would allow us to portpone the decision of if we support running multiple pipelines in 
+  - this would allow us to portpone the decision of if we support running multiple pipelines in
   one session
   - we can also postpone deciding how or if we support dynamic pipelines
   - but it blurs our definition of a pipeline
@@ -413,10 +413,10 @@ Thoughts:
 """
 Thoughts:
 The session is responsible for defining what it means for a pipeline to run. In the session above,
-we're just saying that `run()` will execute frames until the state of the pipeline is anything 
-but "RUNNING". I would like to have a context for the frame, because that will allow me to 
-implement a full "pipeline replay" that is 100% deterministic, even when our pipelines involve 
-dataset lookups. If we move the dataset lookups to a "resolution" layer of architecture, 
-I can cache the results and re-run the pipeline with the same dataset resolution. This also 
+we're just saying that `run()` will execute frames until the state of the pipeline is anything
+but "RUNNING". I would like to have a context for the frame, because that will allow me to
+implement a full "pipeline replay" that is 100% deterministic, even when our pipelines involve
+dataset lookups. If we move the dataset lookups to a "resolution" layer of architecture,
+I can cache the results and re-run the pipeline with the same dataset resolution. This also
 means that we can completely skip the slowest part of pipeline orchestration right now.
 """

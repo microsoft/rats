@@ -47,7 +47,7 @@ class Dataset:
 
     def get_slice_iterable(self, iteration_operation: IterationOperation) -> Iterable[Dataset]:
         """Breaks down `self` into an iteration of datasets.
-        
+
         The returned datasets are non-intersecting and their union is this dataset.
 
         Iteration operation TBD.  Should allow:

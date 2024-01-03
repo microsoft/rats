@@ -20,7 +20,7 @@ These tools require users to organize their code in scripts or commands, to seri
 de-serialize their inputs and outputs, to write the edges across operations and finally to run or
 publish archetype pipelines whose parameters can later be specified.
 
-We find that without appropriate design conventions, input / output connecting mechanisms, 
+We find that without appropriate design conventions, input / output connecting mechanisms,
 convenient pipeline design language, composability and compatible functionality, these
 tools require large time and rewritting overhead that make them difficult to use in research
 environments.

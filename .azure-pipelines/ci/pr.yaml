@@ -116,4 +116,3 @@ stages:
       isDevBuild: true
       project: "oneml"
       namespace: ci-pr-builds
-

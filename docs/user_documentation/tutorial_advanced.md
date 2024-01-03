@@ -141,7 +141,7 @@ operations between them are identical.
 Similar to entry assignments, you can create dependencies using the left and right shift operators.
 
 ```python
-stz_eval.inputs << stz_train.outputs  
+stz_eval.inputs << stz_train.outputs
 ```
 
 which is equivalent to:
@@ -344,7 +344,7 @@ reports = PipelineBuilder.combine(
     name="reports",
     dependencies=(
         one_pipeline.outputs.probs >> r1.inputs.probs,
-        two_pipeline.outputs.probs >> r2.inputs.probs, 
+        two_pipeline.outputs.probs >> r2.inputs.probs,
     )
 )
 ```
