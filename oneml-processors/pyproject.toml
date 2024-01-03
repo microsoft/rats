@@ -86,41 +86,25 @@ module = [
 ignore_missing_imports = true
 
 [tool.ruff]
-cache-dir = "../.tmp/oneml-processors/.ruff_cache"
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-]  # Exclude a variety of commonly ignored directories.
+cache-dir = "../.tmp/oneml-habitats/.ruff_cache"
+include = ["src/python", "test/python", "pyproject.toml"]
 line-length = 99
 indent-width = 4
 target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# B026: Star-arg unpacking after a keyword argument is strongly discouraged
+# D100: Missing docstring in public module
+# D101: Missing docstring in public class
+# D102: Missing docstring in public method
+# D103: Missing docstring in public function
+# D104: Missing docstring in public package
+# D105: Missing docstring in magic method
+# D107: Missing docstring in __init__
+# D417: Missing argument descriptions in Docstrings
+# E203: Whitespace before ':'
+# E501: Line too long ({width} > {limit})
 select = ["B", "D", "E", "F", "I", "Q", "W", "NPY", "PD", "PTH", "RUF", "UP"]
 ignore = ["B026", "D100", "D101", "D102", "D103", "D104", "D105", "D107", "D417", "E203", "E501"]
 
@@ -130,6 +114,9 @@ unfixable = []
 
  # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.per-file-ignores]
+"test/*" = ["F401"]  # unused-import
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
