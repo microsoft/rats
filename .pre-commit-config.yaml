@@ -12,18 +12,18 @@ repos:
         language: script
         pass_filenames: false
         files: ^oneml-habitats/src/python/
-        types: [ python ]
+        types: [python]
       - id: oneml-pipelines
         name: Run hooks in pipelines package
         entry: "bin/commit-hooks oneml-pipelines"
         language: script
         pass_filenames: false
         files: ^oneml-pipelines/src/python/
-        types: [ python ]
+        types: [python]
       - id: oneml-processors
         name: Run hooks in processors package
         entry: "bin/commit-hooks oneml-processors"
         language: script
         pass_filenames: false
         files: ^oneml-processors/src/python/
-        types: [ python ]
+        types: [python]
