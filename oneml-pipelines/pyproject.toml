@@ -47,6 +47,7 @@ mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
+pyupgrade = "*"
 types-urllib3 = "*"
 
 [tool.poetry.scripts]
