@@ -15,7 +15,7 @@ DataType = TypeVar("DataType")
 
 
 class ReadFromUriProcessorOutput(TypedDict):
-    data: DataType
+    data: DataType  # type: ignore[valid-type]
 
 
 class ReadFromUriProcessor(Generic[DataType]):
