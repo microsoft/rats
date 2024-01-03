@@ -1,0 +1,11 @@
+name: CI Checks
+on:
+  pull_request_target:
+    branches: [ "main" ]
+jobs:
+  ci-workflow:
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
+    with:
+      publish-wheels: false
+      sha: ${{ github.event.pull_request.head.sha }}

@@ -1,0 +1,13 @@
+name: CI Checks
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+jobs:
+  ci-workflow:
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
+    with:
+      publish-wheels: true
+      sha: ${{ github.sha }}
