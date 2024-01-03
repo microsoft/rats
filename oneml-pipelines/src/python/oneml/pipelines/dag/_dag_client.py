@@ -19,11 +19,11 @@ class IAddPipelineNodes(Protocol):
 class IGetPipelineNodes(Protocol):
     @abstractmethod
     def get_nodes(self) -> FrozenSet[PipelineNode]:
-        """ """
+        ...
 
 
 class IManagePipelineNodes(IAddPipelineNodes, IGetPipelineNodes, Protocol):
-    """ """
+    ...
 
 
 class IAddPipelineDependencies(Protocol):

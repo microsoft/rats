@@ -28,9 +28,7 @@ class MultiPipelineNodeExecutable(Protocol):
 
 
 class ICallableMultiExecutable(Protocol):
-    """
-    Represents a callable object that we expect to treat as the execute method.
-    """
+    """Represents a callable object that we expect to treat as the execute method."""
 
     @abstractmethod
     def __call__(self, node: PipelineNode) -> None:

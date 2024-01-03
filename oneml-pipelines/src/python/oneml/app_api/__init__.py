@@ -1,5 +1,4 @@
-"""
-This package exposes classes to create and use the app plugin system.
+"""This package exposes classes to create and use the app plugin system.
 
 This package does not hold any actual plugins, just the concepts!
 """

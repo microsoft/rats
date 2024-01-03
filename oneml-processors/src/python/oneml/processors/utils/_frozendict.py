@@ -99,7 +99,7 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
         try:  # https://stackoverflow.com/a/16237698
             return self._d[key]
         except KeyError:
-            raise AttributeError(key)
+            raise AttributeError(key) from None
 
     def __contains__(self, __o: object) -> bool:
         return __o in self._d

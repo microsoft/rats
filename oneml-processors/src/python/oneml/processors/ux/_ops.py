@@ -31,7 +31,6 @@ if TYPE_CHECKING:
         OutCollections,
         OutEntry,
         OutParameter,
-        Pipeline,
         UPipeline,
     )
 

@@ -14,7 +14,7 @@ class OnemlHabitatsCliDiContainer:
     def __init__(self, app: ILocateDiContainers) -> None:
         self._app = app
 
-    @lru_cache
+    @lru_cache  # noqa: B019
     def oneml_app(self) -> OnemlApp:
         oneml_app = OnemlApp.default()
         oneml_app.add_service(

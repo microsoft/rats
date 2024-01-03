@@ -1,9 +1,8 @@
-"""
-    A TrainAndEval is a pipeline that fits using train data and evaluates on that same train data
-    and on a separate evaluation data.
-    A TrainAndEval pipeline takes collection inputs with `train` `eval` entries, and outputs
-    collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
-    entries.
+"""A TrainAndEval is a pipeline that fits using train data and evaluates on separate data.
+
+A TrainAndEval pipeline takes collection inputs with `train` `eval` entries, and outputs
+collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
+entries.
 
 """
 from __future__ import annotations
@@ -41,9 +40,8 @@ from ..ux._utils import (
 
 
 class ITrainAndEval(UPipeline):
-    """
-    A TrainAndEval is a pipeline that fits using train data and evaluates on that same train data
-    and on a separate eval data.
+    """TrainAndEval is a pipeline that fits using train data and evaluates on same & separate data.
+
     A TrainAndEval pipeline takes collection inputs with `train` `eval` entries, and outputs
     collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
     entries.
@@ -287,6 +285,7 @@ class TrainAndEvalBuilders:
           collections.
         * dependencies: A sequence of dependencies mapping the fitted parameters from train_pl
           outputs to eval_pl inputs.
+
         Returns:
           A pipeline that meets the TrainAndEval pattern.
           * Inputs to `train_pl` and `eval_pl`, except those indicated in `dependencies`
@@ -306,9 +305,14 @@ class TrainAndEvalBuilders:
             returning standardized array `Z`.
           ```python
           w = TrainAndEvalBuilders(
-                  "standardize", train, eval,
-                  (train.outputs.mean >> eval.inputs.offset,
-                   train.outputs.std >> eval.inputs.scale,))
+              "standardize",
+              train,
+              eval,
+              (
+                  train.outputs.mean >> eval.inputs.offset,
+                  train.outputs.std >> eval.inputs.scale,
+              ),
+          )
           ```
           Would create `w` as a worfkflow with the following input and outputs:
           * Inputs: `X` (`X.train`, `X.eval`).

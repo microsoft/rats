@@ -18,19 +18,19 @@ class PipelineDataId(NamedTuple, Generic[T_DataType]):
 class IPublishNodePortData(Protocol[Tcontra_DataType]):
     @abstractmethod
     def publish_node_port(self, data: Tcontra_DataType) -> None:
-        """ """
+        ...
 
 
 class ILoadNodeData(Protocol):
     @abstractmethod
     def load_port(self, port: PipelinePort[T_DataType]) -> T_DataType:
-        """ """
+        ...
 
 
 class IPublishNodeData(Protocol):
     @abstractmethod
     def publish_port(self, port: PipelinePort[T_DataType], data: T_DataType) -> None:
-        """ """
+        ...
 
 
 class IManageNodeData(
@@ -38,13 +38,13 @@ class IManageNodeData(
     IPublishNodeData,
     Protocol,
 ):
-    """ """
+    ...
 
 
 class ILoadPipelineData(Protocol):
     @abstractmethod
     def load(self, node: PipelineNode, port: PipelinePort[T_DataType]) -> T_DataType:
-        """ """
+        ...
 
 
 class IPublishPipelineData(Protocol):
@@ -55,7 +55,7 @@ class IPublishPipelineData(Protocol):
         port: PipelinePort[T_DataType],
         data: T_DataType,
     ) -> None:
-        """ """
+        ...
 
 
 class IManagePipelineData(
@@ -63,7 +63,7 @@ class IManagePipelineData(
     IPublishPipelineData,
     Protocol,
 ):
-    """ """
+    ...
 
 
 T2_DataType = TypeVar("T2_DataType")

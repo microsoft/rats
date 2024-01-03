@@ -15,10 +15,10 @@ class ServiceId(NamedTuple, Generic[T_ServiceType]):
 class ServiceProvider(Protocol[Tco_ServiceType]):
     @abstractmethod
     def __call__(self) -> Tco_ServiceType:
-        """"""
+        ...
 
 
 class ServiceGroupProvider(Protocol[Tco_ServiceType]):
     @abstractmethod
     def __call__(self) -> Iterable[Tco_ServiceType]:
-        """"""
+        ...

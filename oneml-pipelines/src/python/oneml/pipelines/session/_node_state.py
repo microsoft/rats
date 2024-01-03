@@ -55,21 +55,21 @@ class PipelineNodeState(Enum):
 class ILocatePipelineNodeState(Protocol):
     @abstractmethod
     def get_node_state(self, node: PipelineNode) -> PipelineNodeState:
-        """ """
+        ...
 
     @abstractmethod
     def get_nodes_by_state(self, state: PipelineNodeState) -> Tuple[PipelineNode, ...]:
-        """ """
+        ...
 
 
 class ISetPipelineNodeState(Protocol):
     @abstractmethod
     def set_node_state(self, node: PipelineNode, state: PipelineNodeState) -> None:
-        """ """
+        ...
 
 
 class IManagePipelineNodeState(ILocatePipelineNodeState, ISetPipelineNodeState, Protocol):
-    """ """
+    ...
 
 
 class PipelineNodeStateClient(IManagePipelineNodeState):

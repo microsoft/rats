@@ -11,9 +11,7 @@ AppPluginEntryPoint: TypeAlias = ServiceProvider[AppPlugin]
 
 
 class AppEntryPointPluginRelay(AppPlugin):
-    """
-    Oneml plugin that loads other plugins from python entry points.
-    """
+    """Oneml plugin that loads other plugins from python entry points."""
 
     _group: str
 
@@ -25,7 +23,7 @@ class AppEntryPointPluginRelay(AppPlugin):
             try:
                 instance = entry()
                 instance.load_plugin(app)
-            except ValueError as e:
+            except ValueError:
                 # TODO: we want to catch when the entrypoint has required args
                 # This is something we failed to create an interface for
                 # Proper behavior might be to try all plugins, collect all failed,

@@ -6,8 +6,7 @@ T = TypeVar("T")
 
 
 def scoped_pipeline_ids(cls: Type[T]) -> Type[T]:
-    """
-    Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
+    """Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
 
     The scoped ServiceId instances have a prefix to eliminate the chance of conflicts across
     packages.
@@ -29,10 +28,10 @@ def scoped_pipeline_ids(cls: Type[T]) -> Type[T]:
 
 def pipeline(service_id: ServiceId[IExecutable]) -> Callable[..., Callable[..., None]]:
     def decorator(func: Callable[..., None]) -> Callable[..., None]:
-        setattr(func, "__executable__", True)
+        func.__executable__ = True  # type: ignore[attr-defined]
         current = getattr(func, "__executable_ids__", [])
         current.append(service_id)
-        setattr(func, "__executable_ids__", current)
+        func.__executable_ids__ = current  # type: ignore[attr-defined]
 
         return func
 

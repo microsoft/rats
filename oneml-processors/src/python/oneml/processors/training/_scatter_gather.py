@@ -11,7 +11,8 @@ class ScatterGatherBuilders:
     def build(
         cls, name: str, scatter: UPipeline, process_batch: UPipeline, gather: UPipeline
     ) -> UPipeline:
-        """
+        """Builds a pipeline that follows a scatter-process-gather pattern.
+
         Args:
             name: name for the built pipeline.
             scatter: a pipeline that takes inputs and splits them into batches.

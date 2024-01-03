@@ -18,8 +18,7 @@ class ContextId(NamedTuple, Generic[T_ContextType]):
 
 
 class ContextProvider(Protocol[Tco_ContextType]):
-    """
-    Callback that returns a single context object.
+    """Callback that returns a single context object.
 
     This allows us to pass a pre-configured context into a service so the service does not need to
     specify context ids and simply asks for the value.
@@ -27,15 +26,15 @@ class ContextProvider(Protocol[Tco_ContextType]):
 
     @abstractmethod
     def __call__(self) -> Tco_ContextType:
-        """"""
+        ...
 
 
 class ContextOpener(Protocol[Tcontra_ContextType]):
-    """"""
+    ...
 
     @abstractmethod
     def __call__(self, context: Tcontra_ContextType) -> ContextManager[None]:
-        """"""
+        ...
 
 
 class IOpenContexts(Protocol):
@@ -51,7 +50,7 @@ class IOpenContexts(Protocol):
         context_id: ContextId[T_ContextType],
         value: T_ContextType,
     ) -> ContextManager[None]:
-        """"""
+        ...
 
 
 class IGetContexts(Protocol):
@@ -63,7 +62,7 @@ class IGetContexts(Protocol):
 
     @abstractmethod
     def get_context(self, context_id: ContextId[T_ContextType]) -> T_ContextType:
-        """"""
+        ...
 
 
 class IManageContexts(IOpenContexts, IGetContexts, Protocol):

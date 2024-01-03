@@ -21,17 +21,6 @@ class CollectionToDictBuilder:
         entries: Set[str],
         element_type: type,
     ) -> UPipeline:
-        """Convert a collection input into a dictionary output.
-
-        Builds a pipeline that takes a single collection input and outputs a single simple output.
-        The output will be a dictionary, where every entry in the input collection becomes an entry
-        in the output dictionary.
-
-        Args:
-            collection_name: name of the input collection and output simple.
-            entries: name of the entries in the input collection and output dictionary.
-            element_type: type of each element in the input collection.
-        """
         ...
 
     @overload
@@ -42,17 +31,6 @@ class CollectionToDictBuilder:
         *,
         entries_to_types: Mapping[str, type],
     ) -> UPipeline:
-        """Convert a collection input into a dictionary output.
-
-        Builds a pipeline that takes a single collection input and outputs a single simple output.
-        The output will be a dictionary, where every entry in the input collection becomes an entry
-        in the output dictionary.
-
-        Args:
-            collection_name: name of the input collection and output simple.
-            entries_to_types: name of the entries in the input collection and output dictionary,
-                each mapped to its type.
-        """
         ...
 
     @classmethod
@@ -64,6 +42,19 @@ class CollectionToDictBuilder:
         element_type: type | None = None,
         entries_to_types: Mapping[str, type] | None = None,
     ) -> UPipeline:
+        """Convert a collection input into a dictionary output.
+
+        Builds a pipeline that takes a single collection input and outputs a single simple output.
+        The output will be a dictionary, where every entry in the input collection becomes an entry
+        in the output dictionary.
+
+        Args:
+            collection_name: name of the input collection and output simple.
+            entries: name of the entries in the input collection and output dictionary.
+            element_type: type of each element in the input collection.
+            entries_to_types: name of the entries in the input collection and output dictionary,
+                each mapped to its type.
+        """
         if entries_to_types is None:
             assert entries is not None
             assert element_type is not None

@@ -1,5 +1,7 @@
-"""An estimator is a pipeline that takes training data and eval data, trains some model using only
-the training data, and then applies that model to the holdout data.
+"""An estimator is a pipeline that takes training data and eval data.
+
+An estimator trains some model using only the training data, and then applies that model to the
+holdout data.
 
 We define a standard to the inputs and outputs of an estimator.  This allows other software
 components to assume this standard and operate on any estimator.

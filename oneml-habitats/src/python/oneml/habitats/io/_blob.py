@@ -18,7 +18,7 @@ class BlobRWBase:
     def __init__(self, blob_client_factory: IBlobClientFactory) -> None:
         self._blob_client_factory = blob_client_factory
 
-    @lru_cache
+    @lru_cache  # noqa: B019
     def _parse_uri(self, data_uri: RWDataUri) -> tuple[str, str, str]:
         # abfss://CONTAINER_NAME@ACCOUNT.dfs.core.windows.net/BASE_PATH/
         split_uri = furl(data_uri.uri)
@@ -62,7 +62,7 @@ class BlobRWUsingLocalCacheBase(BlobRWBase):
         super().__init__(blob_client_factory=blob_client_factory)
         self._local_cache_path = local_cache_path
 
-    @lru_cache
+    @lru_cache  # noqa: B019
     def _get_cache_path(self, data_uri: RWDataUri) -> Path:
         storage_account, container, path = self._parse_uri(data_uri)
         return self._local_cache_path / storage_account / container / path

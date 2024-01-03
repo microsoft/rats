@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence, Set
-from functools import cache, reduce
+from functools import reduce
 from itertools import chain
 from typing import AbstractSet, Any, Hashable, Iterable, Iterator, SupportsIndex, TypeVar, overload
 
@@ -72,7 +72,6 @@ class orderedset(Hashable, Set[_T_co], Sequence[_T_co]):
     def __sub__(self: Self, other: Iterable[_T_co]) -> Self:
         return self.__class__(k for k in self._d if k not in other)
 
-    @cache
     def as_tuple(self) -> tuple[_T_co, ...]:
         return tuple(self)
 

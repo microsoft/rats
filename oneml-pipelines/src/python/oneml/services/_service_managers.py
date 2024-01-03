@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class IProvideServices(Protocol):
     @abstractmethod
     def get_service_ids(self) -> FrozenSet[ServiceId[Any]]:
-        """"""
+        ...
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
         return self.get_service_provider(service_id)()
@@ -20,7 +20,7 @@ class IProvideServices(Protocol):
         self,
         service_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[T_ServiceType]:
-        """"""
+        ...
 
     def get_service_group(self, group_id: ServiceId[T_ServiceType]) -> Iterable[T_ServiceType]:
         logger.debug(f"Searching for group: {group_id}")
@@ -33,14 +33,14 @@ class IProvideServices(Protocol):
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
-        """"""
+        ...
 
     @abstractmethod
     def get_service_group_providers(
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
-        """"""
+        ...
 
 
 class IDefineServices(Protocol):
@@ -70,7 +70,7 @@ class IDefineServices(Protocol):
         service_id: ServiceId[T_ServiceType],
         provider: ServiceProvider[T_ServiceType],
     ) -> None:
-        """"""
+        ...
 
     def add_groups(
         self,
@@ -85,7 +85,7 @@ class IDefineServices(Protocol):
         group_id: ServiceId[T_ServiceType],
         provider: ServiceProvider[T_ServiceType],
     ) -> None:
-        """"""
+        ...
 
 
 class IManageServices(IProvideServices, IDefineServices, Protocol):

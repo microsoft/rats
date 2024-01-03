@@ -11,7 +11,7 @@ class IGetTypedServices(Protocol[Tco_ServiceType]):
 
     @abstractmethod
     def get_service_provider(self, service_name: str) -> ServiceProvider[Tco_ServiceType]:
-        """"""
+        ...
 
     def get_service_group(self, group_name: str) -> Iterable[Tco_ServiceType]:
         for group in self.get_service_group_providers(group_name):
@@ -22,7 +22,7 @@ class IGetTypedServices(Protocol[Tco_ServiceType]):
         self,
         group_name: str,
     ) -> Iterable[ServiceProvider[Tco_ServiceType]]:
-        """"""
+        ...
 
 
 class TypedServiceContainer(IGetTypedServices[T_ServiceType]):

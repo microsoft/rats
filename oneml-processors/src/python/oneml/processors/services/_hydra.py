@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from functools import cache
-from typing import NamedTuple, Protocol, Sequence
+from typing import NamedTuple, Protocol
 
 from hydra import compose, initialize_config_dir
 from hydra.utils import instantiate
@@ -30,7 +30,7 @@ class HydraPipelineConfigService(PipelineConfigService):
         self._config_dir = config_dir
         self._context_provider = context_provider
 
-    @cache
+    @cache  # noqa: B019
     def _get_config_for_context(self, context: HydraContext) -> PipelineConfig:
         overrides = context.overrides
         with initialize_config_dir(config_dir=self._config_dir, version_base=None):
@@ -57,7 +57,7 @@ class HydraPipelineConfigServiceProvider:
         schemas.register_configs(self._store)
         self._store.add_to_hydra_store()
 
-    @cache
+    @cache  # noqa: B019
     def __call__(self) -> HydraPipelineConfigService:
         self._register_resolvers_and_configs()
         return HydraPipelineConfigService(

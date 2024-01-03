@@ -9,19 +9,19 @@ from oneml.services import ContextProvider, IExecutable
 class ILocatePipelineNodeExecutables(Protocol):
     @abstractmethod
     def get_executable(self, node: PipelineNode) -> IExecutable:
-        """ """
+        ...
 
 
 class ISetPipelineNodeExecutables(Protocol):
     @abstractmethod
     def set_executable(self, node: PipelineNode, executable: IExecutable) -> None:
-        """ """
+        ...
 
 
 class IExecutePipelineNodes(Protocol):
     @abstractmethod
     def execute_node(self, node: PipelineNode) -> None:
-        """ """
+        ...
 
 
 class IManagePipelineNodeExecutables(

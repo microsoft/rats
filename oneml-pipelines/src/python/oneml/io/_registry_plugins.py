@@ -12,6 +12,6 @@ class IoRegistryPluginsExe(IExecutable):
         self._group = group
 
     def execute(self) -> None:
-        logger.debug(f"initializing io plugins")
+        logger.debug("initializing io plugins")
         for plugin in self._group():
             plugin.execute()

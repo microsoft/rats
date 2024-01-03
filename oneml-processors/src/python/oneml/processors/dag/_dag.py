@@ -54,7 +54,7 @@ class ProcessorProps:
     services: Mapping[str, ServiceId[Any]] = frozendict()
     input_annotation: InitVar[Mapping[str, type] | None] = None
     return_annotation: InitVar[Mapping[str, type] | None] = None
-    compute_reqs: ComputeReqs = ComputeReqs()
+    compute_reqs: ComputeReqs | None = None
 
     inputs: frozendict[str, InProcessorParam] = field(init=False)
     outputs: frozendict[str, OutProcessorParam] = field(init=False)
@@ -124,7 +124,7 @@ class DagNode:
     name: str
     namespace: Namespace
 
-    def __init__(self, name: str, namespace: str | Namespace = Namespace()) -> None:
+    def __init__(self, name: str, namespace: str | Namespace = "") -> None:
         object.__setattr__(self, "name", name)
         object.__setattr__(
             self,

@@ -7,7 +7,7 @@ from ._services import ServiceId
 class IExecutable(Protocol):
     @abstractmethod
     def execute(self) -> None:
-        """"""
+        ...
 
 
 T_ExecutableType = TypeVar("T_ExecutableType", bound=IExecutable)
@@ -23,7 +23,7 @@ def after(executable_id: ServiceId[T_ExecutableType]) -> ServiceId[IExecutable]:
 
 class NoOpExecutable(IExecutable):
     def execute(self) -> None:
-        """"""
+        ...
 
 
 class _CallableExecutable(IExecutable):
