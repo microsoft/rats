@@ -2,8 +2,25 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
+      - id: check-ast
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
       - id: check-yaml
+      - id: debug-statements
+      - id: detect-private-key
       - id: end-of-file-fixer
+      - id: fix-encoding-pragma
+      - id: forbid-submodules
+      - id: name-tests-test
+      - id: pretty-format-json
+      - id: trailing-whitespace
   - repo: local
     hooks:
       - id: oneml-habitats
