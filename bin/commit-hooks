@@ -3,14 +3,6 @@
 COMPONENT=$1
 
 cd $COMPONENT
-echo "running pyupgrade"
-poetry run pyupgrade --py310-plus
-echo "running isort"
-poetry run isort .
-echo "running black"
-poetry run black .
-echo "running flake8"
-poetry run flake8
 echo "running ruff linter"
 poetry run ruff check src/python --fix
 echo "running ruff formatter"
