@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Literal, Mapping, Tuple
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Any, Literal
 
 import pydot
 
@@ -35,7 +36,7 @@ class DotBuilder:
         return f"{io}_{sanitized}"
 
     def _format_arguments(self, io: Literal["i", "o"], arguments: Iterable[str]) -> str:
-        return "|".join((f"<{self._get_io_tag(io, arg)}> {arg}" for arg in sorted(arguments)))
+        return "|".join(f"<{self._get_io_tag(io, arg)}> {arg}" for arg in sorted(arguments))
 
     def _format_i_arguments(self, arguments: Iterable[str]) -> str:
         return self._format_arguments("i", arguments)
@@ -89,7 +90,7 @@ class DotBuilder:
 
     def _get_io_entries(
         self, io: ParamCollection[PE], io_collections: IOCollections[ParamCollection[PE]]
-    ) -> Iterable[Tuple[str, PE]]:
+    ) -> Iterable[tuple[str, PE]]:
         for entry_name, entry in io._asdict().items():
             yield entry_name, entry
         for collection_name, entry_collection in io_collections._asdict().items():

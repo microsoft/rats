@@ -37,16 +37,12 @@ dev = []
 
 [tool.poetry.group.dev.dependencies]
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
-black = "*"
 coverage = "*"
-flake8 = "*"
-flake8-formatter-junit-xml = "*"
-flake8-isort = "*"
-isort = "*"
 mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
+ruff = "*"
 types-urllib3 = "*"
 
 [tool.poetry.scripts]
@@ -57,15 +53,6 @@ types-urllib3 = "*"
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length = 99
-
-[tool.isort]
-line_length = 99
-profile = "black"
-src_paths = "src/python"
-known_first_party = ["oneml"]
 
 [tool.mypy]
 packages = ["oneml", "oneml_test"]
@@ -98,6 +85,55 @@ module = [
     "furl.*",
 ]
 ignore_missing_imports = true
+
+[tool.ruff]
+cache-dir = "../.tmp/oneml-habitats/.ruff_cache"
+include = ["src/python", "test/python", "pyproject.toml"]
+line-length = 99
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# B026: Star-arg unpacking after a keyword argument is strongly discouraged
+# D100: Missing docstring in public module
+# D101: Missing docstring in public class
+# D102: Missing docstring in public method
+# D103: Missing docstring in public function
+# D104: Missing docstring in public package
+# D105: Missing docstring in magic method
+# D107: Missing docstring in __init__
+# D417: Missing argument descriptions in Docstrings
+# E203: Whitespace before ':'
+# E501: Line too long ({width} > {limit})
+select = ["B", "D", "E", "F", "I", "Q", "W", "NPY", "PD", "PTH", "RUF", "UP"]
+ignore = ["B026", "D100", "D101", "D102", "D103", "D104", "D105", "D107", "D417", "E203", "E501"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+ # Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.per-file-ignores]
+"test/*" = ["F401"]  # unused-import
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["oneml", "oneml_test"]
+
+[tool.ruff.format]
+quote-style = "double"  # Like Black, use double quotes for strings.
+indent-style = "space"  # Like Black, indent with spaces, rather than tabs.
+skip-magic-trailing-comma = false  # Like Black, respect magic trailing commas.
+line-ending = "auto"  # Like Black, automatically detect the appropriate line ending.
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+docstring-code-format = true
 
 [tool.coverage.run]
 data_file = "../.tmp/oneml-pipelines/.coverage"

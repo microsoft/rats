@@ -8,9 +8,13 @@ from oneml.processors.ux import CombinedPipeline
 
 CONF_PATH = Path("src/resources/pipelines")
 
-AOutput = TypedDict("AOutput", {"Z1": float, "Z2": float})
-BOutput = TypedDict("BOutput", {"Z": float})
-COutput = TypedDict("COutput", {"Z": float})
+class AOutput(TypedDict):
+    Z1: float
+    Z2: float
+class BOutput(TypedDict):
+    Z: float
+class COutput(TypedDict):
+    Z: float
 
 
 class A:

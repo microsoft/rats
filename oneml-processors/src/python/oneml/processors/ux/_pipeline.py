@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from itertools import chain
-from typing import Any, Generic, Iterable, Mapping, NoReturn, cast, final, overload
+from typing import Any, Generic, NoReturn, cast, final, overload
 
 from typing_extensions import Self, TypeVar
 
@@ -41,7 +42,7 @@ class PipelineParam(Generic[PP, T], ABC):
         return other == self.param.name if isinstance(other, str) else other == self.param
 
     def __repr__(self) -> str:
-        return f"({repr(self.node)}) {repr(self.param)}"
+        return f"({self.node!r}) {self.param!r}"
 
     def decorate(self, name: str) -> Self:
         return self.__class__(self.node.decorate(name), self.param)
@@ -109,7 +110,7 @@ class InEntry(ParamEntry[InParameter[T]]):
 
     @property
     def required(self) -> bool:
-        return any((p.required for p in self))
+        return any(p.required for p in self)
 
     @property
     def optional(self) -> bool:

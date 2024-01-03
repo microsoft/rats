@@ -31,9 +31,11 @@ from .mock_data import Array, Model
 
 # PROCESSORS (aka they do stuff; aka almost transformers)
 
-StandardizeTrainOutput = TypedDict(
-    "StandardizeTrainOutput", {"mean": Array, "scale": Array, "Z": Array}
-)
+
+class StandardizeTrainOutput(TypedDict):
+    mean: Array
+    scale: Array
+    Z: Array
 
 
 class StandardizeTrain:
@@ -44,7 +46,8 @@ class StandardizeTrain:
         return StandardizeTrainOutput({"mean": mean, "scale": scale, "Z": Z})
 
 
-StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"Z": Array})
+class StandardizeEvalOutput(TypedDict):
+    Z: Array
 
 
 class StandardizeEval(IProcess):
@@ -57,7 +60,8 @@ class StandardizeEval(IProcess):
         return StandardizeEvalOutput({"Z": Z})
 
 
-ModelTrainOutput = TypedDict("ModelTrainOutput", {"model": Model})
+class ModelTrainOutput(TypedDict):
+    model: Model
 
 
 class ModelTrain(IProcess):
@@ -66,7 +70,9 @@ class ModelTrain(IProcess):
         return ModelTrainOutput({"model": model})
 
 
-ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": Array, "acc": Array})
+class ModelEvalOutput(TypedDict):
+    probs: Array
+    acc: Array
 
 
 class ModelEval(IProcess):

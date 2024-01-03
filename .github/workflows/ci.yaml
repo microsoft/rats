@@ -69,11 +69,11 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
           echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
-      # - name: flake8
-      #   run: |
-      #     docker run \
-      #       -v $PWD/.tmp:/opt/oneml/.tmp \
-      #       immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
+      - name: ruff
+        run: |
+          docker run \
+            -v $PWD/.tmp:/opt/oneml/.tmp \
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run ruff check --output-format=github src/python/
       - name: mypy
         run: |
           docker run \

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.session import PipelineSession
@@ -9,19 +9,19 @@ from oneml.services import ContextProvider, IExecutable
 class ILocatePipelineNodeExecutables(Protocol):
     @abstractmethod
     def get_executable(self, node: PipelineNode) -> IExecutable:
-        """ """
+        ...
 
 
 class ISetPipelineNodeExecutables(Protocol):
     @abstractmethod
     def set_executable(self, node: PipelineNode, executable: IExecutable) -> None:
-        """ """
+        ...
 
 
 class IExecutePipelineNodes(Protocol):
     @abstractmethod
     def execute_node(self, node: PipelineNode) -> None:
-        """ """
+        ...
 
 
 class IManagePipelineNodeExecutables(
@@ -34,7 +34,7 @@ class IManagePipelineNodeExecutables(
 
 
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables):
-    _executables: Dict[Any, Dict[PipelineNode, IExecutable]]
+    _executables: dict[Any, dict[PipelineNode, IExecutable]]
     _namespace: ContextProvider[PipelineSession]
     _node_ctx: ContextProvider[PipelineNode]
 

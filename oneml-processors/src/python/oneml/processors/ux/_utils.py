@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import functools
+from collections.abc import Callable
 from pydoc import locate
-from typing import Any, Callable
+from typing import Any
 
 from ._pipeline import (
     PM,

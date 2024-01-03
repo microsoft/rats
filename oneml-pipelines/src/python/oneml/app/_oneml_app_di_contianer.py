@@ -48,6 +48,4 @@ class OnemlAppDiContainer:
         )
 
 
-"""
-TODO: Document how we can promote a private service as public by adding a second decorator
-"""
+# TODO: Document how we can promote a private service as public by adding a second decorator

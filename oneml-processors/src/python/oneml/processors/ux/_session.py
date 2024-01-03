@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator, Mapping
 from itertools import chain
-from typing import Any, Iterable, Iterator, Mapping
+from typing import Any
 
 from oneml.app import OnemlApp
 from oneml.processors.dag import DagSubmitter, IProcess

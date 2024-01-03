@@ -1,12 +1,12 @@
 from abc import abstractmethod
-from typing import Protocol, Type
+from typing import Protocol
 
 from immunodata.cli import GenericContainer, ILocateDiContainers
 
 
 class ILocateHabitatsCliDiContainer(Protocol):
     @abstractmethod
-    def __call__(self, container_ref: Type[GenericContainer]) -> GenericContainer:
+    def __call__(self, container_ref: type[GenericContainer]) -> GenericContainer:
         pass
 
 
@@ -16,5 +16,5 @@ class LocateHabitatsCliDiContainers(ILocateHabitatsCliDiContainer):
     def __init__(self, locator: ILocateDiContainers) -> None:
         self._locator = locator
 
-    def __call__(self, container_ref: Type[GenericContainer]) -> GenericContainer:
+    def __call__(self, container_ref: type[GenericContainer]) -> GenericContainer:
         return self._locator.find_container(container_ref)

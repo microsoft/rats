@@ -1,8 +1,7 @@
 from ._locate_habitats_cli_di_container import ILocateHabitatsCliDiContainer
-from ._register_rw import OnemlHabitatsRegisterReadersAndWriters
-from ._services import OnemlHabitatsServices
+from ._services import OnemlHabitatsRegisterReadersAndWriters, OnemlHabitatsServices
 
-all__ = [
+__all__ = [
     "ILocateHabitatsCliDiContainer",
     "OnemlHabitatsRegisterReadersAndWriters",
     "OnemlHabitatsServices",

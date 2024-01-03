@@ -24,8 +24,13 @@ from oneml.processors.ux import (
     UPipeline,
 )
 
-LoadDataOut = TypedDict("LoadDataOut", {"data": float})
-AOut = TypedDict("AOut", {"Z": float})
+
+class LoadDataOut(TypedDict):
+    data: float
+
+
+class AOut(TypedDict):
+    Z: float
 
 
 class LoadData(IProcess):
@@ -94,7 +99,7 @@ class ExampleObjConf:
 class AConf:
     name: str = "a"
     num: int = 1
-    example: ExampleObjConf = ExampleObjConf()
+    example: ExampleObjConf = ExampleObjConf()  # noqa: RUF009
 
 
 @dataclass

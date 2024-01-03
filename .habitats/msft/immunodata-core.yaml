@@ -37,7 +37,7 @@ identity:
       client_id: "c89b5a0b-153c-4c79-a9ac-97e442b43aab"
       key_vault_name: "immunodata-msft-adpt"
       key_vault_secret: "immunodata-msft-adpt-secret"
-  # An identity from MSFT that is used to generate secrets for CAM test habitat 
+  # An identity from MSFT that is used to generate secrets for CAM test habitat
   - name: "msft.immunodata-cam-test-habitat"
     identity_config:
       identity_type: "client-secret"
@@ -46,7 +46,7 @@ identity:
       client_id: "521b24ff-6ee9-4ed2-9c37-15b168af23ae"
       key_vault_name: "immunodata-msft-adpt"
       key_vault_secret: "immunodata-msft-cam-test-secret"
-  # An identity from MSFT that is used to generate secrets for development habitat 
+  # An identity from MSFT that is used to generate secrets for development habitat
   - name: "msft.immunodata-habitat-development"
     identity_config:
       identity_type: "client-secret"

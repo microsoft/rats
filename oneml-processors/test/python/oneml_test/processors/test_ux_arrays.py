@@ -29,17 +29,19 @@ class ArrayReader(IProcess):
         return ArrayReaderOutput(array=self._storage[self._url])
 
 
-ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"result": float})
+class ArrayDotProductOutput(TypedDict):
+    result: float
 
 
 class ArrayProduct(IProcess):
     def process(self, left_arr: Array, right_arr: Array) -> ArrayDotProductOutput:
         return ArrayDotProductOutput(
-            result=sum([xi * xj for xi, xj in zip(left_arr.x, right_arr.x)])
+            result=sum([xi * xj for xi, xj in zip(left_arr.x, right_arr.x, strict=False)])
         )
 
 
-SumFloatsOutput = TypedDict("SumFloatsOutput", {"result": float})
+class SumFloatsOutput(TypedDict):
+    result: float
 
 
 class SumFloats(IProcess):

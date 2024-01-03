@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import operator
 from abc import abstractmethod, abstractproperty
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from functools import cached_property
 from itertools import chain
@@ -9,9 +10,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    Iterator,
     Protocol,
-    Sequence,
     SupportsIndex,
     final,
     overload,
@@ -31,7 +30,6 @@ if TYPE_CHECKING:
         OutCollections,
         OutEntry,
         OutParameter,
-        Pipeline,
         UPipeline,
     )
 
@@ -59,7 +57,7 @@ class Dependency(Generic[T]):
     out_param: OutParameter[T]
 
     def __repr__(self) -> str:
-        return f"{repr(self.in_param)} <- {repr(self.out_param)}"
+        return f"{self.in_param!r} <- {self.out_param!r}"
 
     def decorate(self, in_name: str, out_name: str) -> Dependency[T]:
         return self.__class__(self.in_param.decorate(in_name), self.out_param.decorate(out_name))

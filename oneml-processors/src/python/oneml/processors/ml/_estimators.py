@@ -1,5 +1,7 @@
-"""An estimator is a pipeline that takes training data and eval data, trains some model using only
-the training data, and then applies that model to the holdout data.
+"""An estimator is a pipeline that takes training data and eval data.
+
+An estimator trains some model using only the training data, and then applies that model to the
+holdout data.
 
 We define a standard to the inputs and outputs of an estimator.  This allows other software
 components to assume this standard and operate on any estimator.
@@ -20,8 +22,9 @@ Let `e` be an estimator object.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from itertools import chain
-from typing import Any, Generic, Sequence, cast, final
+from typing import Any, Generic, cast, final
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING

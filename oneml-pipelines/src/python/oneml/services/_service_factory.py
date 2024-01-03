@@ -1,4 +1,5 @@
-from typing import Any, Callable, Dict, FrozenSet, Iterable, List
+from collections.abc import Callable, Iterable
+from typing import Any
 
 from ._executables import IExecutable
 from ._service_managers import DuplicateServiceIdError, IManageServices, ServiceIdNotFoundError
@@ -6,21 +7,20 @@ from ._services import ServiceId, ServiceProvider, T_ServiceType
 
 
 class ServiceFactory(IManageServices):
-    """
-    A service factory provides easy access to new instances of services.
+    """A service factory provides easy access to new instances of services.
 
     The expectation is that the factory will not cache multiple calls to `get_service()`. However,
     we make no effort to prevent the user from registering a provider that caches calls internally.
     """
 
-    _providers: Dict[ServiceId[Any], ServiceProvider[Any]]
-    _groups: Dict[ServiceId[Any], List[ServiceProvider[Any]]]
+    _providers: dict[ServiceId[Any], ServiceProvider[Any]]
+    _groups: dict[ServiceId[Any], list[ServiceProvider[Any]]]
 
     def __init__(self) -> None:
         self._providers = {}
         self._groups = {}
 
-    def get_service_ids(self) -> FrozenSet[ServiceId[Any]]:
+    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
         return frozenset(self._providers.keys())
 
     def get_callable_exe(self, exe_id: ServiceId[IExecutable]) -> Callable[[], None]:

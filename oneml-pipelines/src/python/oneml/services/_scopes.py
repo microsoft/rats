@@ -1,5 +1,5 @@
 from types import FunctionType
-from typing import Any, Type, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from ._contexts import ContextId
 from ._services import ServiceId
@@ -7,9 +7,8 @@ from ._services import ServiceId
 T = TypeVar("T")
 
 
-def scoped_service_ids(cls: Type[T]) -> Type[T]:
-    """
-    Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
+def scoped_service_ids(cls: type[T]) -> type[T]:
+    """Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
 
     The scoped ServiceId instances have a prefix to eliminate the chance of conflicts across
     packages.
@@ -42,9 +41,8 @@ def scoped_service_ids(cls: Type[T]) -> Type[T]:
     return cls
 
 
-def scoped_context_ids(cls: Type[T]) -> Type[T]:
-    """
-    Decorator that replaces all ContextId instances in the class with scoped ContextId instances.
+def scoped_context_ids(cls: type[T]) -> type[T]:
+    """Decorator that replaces all ContextId instances in the class with scoped ContextId instances.
 
     The scoped ContextId instances have a prefix to eliminate the chance of conflicts across
     packages.

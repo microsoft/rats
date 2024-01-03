@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from functools import lru_cache
-from typing import Any, Iterable
+from typing import Any
 
 from oneml.pipelines.dag import (
     IAddPipelineDependencies,
@@ -77,7 +78,7 @@ class PipelineBuilderClient(
     def tail_node(self) -> PipelineNode:
         return self.get_namespace_client().tail_node()
 
-    @lru_cache()
+    @lru_cache  # noqa: B019
     def get_namespace_client(self) -> PipelineNamespaceClient:
         # TODO: we can move this out to another service now!
         return PipelineNamespaceClient("/")

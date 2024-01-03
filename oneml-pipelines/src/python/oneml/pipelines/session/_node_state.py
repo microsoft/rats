@@ -4,7 +4,7 @@ import logging
 from abc import abstractmethod
 from enum import Enum, auto
 from threading import RLock
-from typing import Any, Dict, Protocol, Tuple
+from typing import Any, Protocol
 
 from oneml.pipelines.dag import PipelineNode
 from oneml.services import ContextProvider
@@ -16,7 +16,7 @@ class PipelineNodeState(Enum):
     NONE = auto()
     """
     Nodes that have just been inserted into the dag have no state.
-    
+
     TODO: might be able to remove this soon since it's confusing.
     """
 
@@ -55,25 +55,25 @@ class PipelineNodeState(Enum):
 class ILocatePipelineNodeState(Protocol):
     @abstractmethod
     def get_node_state(self, node: PipelineNode) -> PipelineNodeState:
-        """ """
+        ...
 
     @abstractmethod
-    def get_nodes_by_state(self, state: PipelineNodeState) -> Tuple[PipelineNode, ...]:
-        """ """
+    def get_nodes_by_state(self, state: PipelineNodeState) -> tuple[PipelineNode, ...]:
+        ...
 
 
 class ISetPipelineNodeState(Protocol):
     @abstractmethod
     def set_node_state(self, node: PipelineNode, state: PipelineNodeState) -> None:
-        """ """
+        ...
 
 
 class IManagePipelineNodeState(ILocatePipelineNodeState, ISetPipelineNodeState, Protocol):
-    """ """
+    ...
 
 
 class PipelineNodeStateClient(IManagePipelineNodeState):
-    _node_states: Dict[Any, Dict[PipelineNode, PipelineNodeState]]
+    _node_states: dict[Any, dict[PipelineNode, PipelineNodeState]]
     _context: ContextProvider[Any]
 
     def __init__(self, context: ContextProvider[Any]) -> None:
@@ -98,7 +98,7 @@ class PipelineNodeStateClient(IManagePipelineNodeState):
             # TODO: this hack needs to go and I think I can get rid of the NONE state
             return self._node_states[ctx].get(node, PipelineNodeState.NONE)
 
-    def get_nodes_by_state(self, state: PipelineNodeState) -> Tuple[PipelineNode, ...]:
+    def get_nodes_by_state(self, state: PipelineNodeState) -> tuple[PipelineNode, ...]:
         with self._lock:
             nodes = self._node_states.get(self._context(), {}).items()
             matches = []

@@ -6,7 +6,9 @@ import pytest
 from oneml.processors.dag import IProcess
 from oneml.processors.ux import UPipeline, UTask
 
-StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
+
+class StzEvalOut(TypedDict):
+    Z: float
 
 
 class Standardize(IProcess):

@@ -1,12 +1,19 @@
 from abc import abstractmethod
-from typing import Any, TypedDict
+from typing import TypedDict
 
 import pytest
 
-from oneml.processors.ux import Pipeline, PipelineBuilder, UPipeline, UTask
+from oneml.processors.ux import PipelineBuilder, UPipeline, UTask
 
-StzTrainOut = TypedDict("StzTrainOut", {"mean": float, "scale": float, "Z": float})
-StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
+
+class StzTrainOut(TypedDict):
+    mean: float
+    scale: float
+    Z: float
+
+
+class StzEvalOut(TypedDict):
+    Z: float
 
 
 class StandardizeTrain:
@@ -118,7 +125,7 @@ def test_IOCollections_rename_and_merge_with_multiple_entries(stz: UPipeline) ->
     assert stz.in_collections.X.train == pipeline1.in_collections.X0.train0
     assert stz.in_collections.X.eval == pipeline1.in_collections.X0.eval0
     with pytest.raises(AttributeError):
-        pipeline1.in_collections.X
+        pipeline1.in_collections.X  # noqa: B018
 
     # Inputs.InEntry -> InEntry
     pipeline1 = stz.rename_inputs({"X.train": "X0"})

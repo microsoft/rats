@@ -2,8 +2,8 @@ import logging
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Generator
-from contextlib import contextmanager
-from typing import Any, ContextManager, Dict, Generic, List, Protocol, TypeVar
+from contextlib import AbstractContextManager, contextmanager
+from typing import Any, Generic, Protocol, TypeVar
 
 from typing_extensions import NamedTuple
 
@@ -18,8 +18,7 @@ class ContextId(NamedTuple, Generic[T_ContextType]):
 
 
 class ContextProvider(Protocol[Tco_ContextType]):
-    """
-    Callback that returns a single context object.
+    """Callback that returns a single context object.
 
     This allows us to pass a pre-configured context into a service so the service does not need to
     specify context ids and simply asks for the value.
@@ -27,15 +26,15 @@ class ContextProvider(Protocol[Tco_ContextType]):
 
     @abstractmethod
     def __call__(self) -> Tco_ContextType:
-        """"""
+        ...
 
 
 class ContextOpener(Protocol[Tcontra_ContextType]):
-    """"""
+    ...
 
     @abstractmethod
-    def __call__(self, context: Tcontra_ContextType) -> ContextManager[None]:
-        """"""
+    def __call__(self, context: Tcontra_ContextType) -> AbstractContextManager[None]:
+        ...
 
 
 class IOpenContexts(Protocol):
@@ -50,8 +49,8 @@ class IOpenContexts(Protocol):
         self,
         context_id: ContextId[T_ContextType],
         value: T_ContextType,
-    ) -> ContextManager[None]:
-        """"""
+    ) -> AbstractContextManager[None]:
+        ...
 
 
 class IGetContexts(Protocol):
@@ -63,7 +62,7 @@ class IGetContexts(Protocol):
 
     @abstractmethod
     def get_context(self, context_id: ContextId[T_ContextType]) -> T_ContextType:
-        """"""
+        ...
 
 
 class IManageContexts(IOpenContexts, IGetContexts, Protocol):
@@ -71,7 +70,7 @@ class IManageContexts(IOpenContexts, IGetContexts, Protocol):
 
 
 class ContextClient(IManageContexts):
-    _contexts: Dict[ContextId[Any], List[Any]]
+    _contexts: dict[ContextId[Any], list[Any]]
 
     def __init__(self) -> None:
         self._contexts = defaultdict(list)

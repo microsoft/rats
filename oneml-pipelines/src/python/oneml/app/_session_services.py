@@ -10,7 +10,8 @@ from oneml.services import ServiceId, scoped_service_ids
 
 @scoped_service_ids
 class OnemlSessionServices:
-    """
+    """Oneml session services.
+
     This services class should stay private! Anything we want to expose should be exposed through
     the OnemlAppServices class so that users have a single thing to import.
     """
@@ -23,7 +24,8 @@ class OnemlSessionServices:
 
 @scoped_service_ids
 class OnemlSessionExecutables:
-    """
+    """Oneml session executables.
+
     Sessions are made up of executions of frames; some of which, execute nodes. The services
     below allow us to attach hooks using `before()` and `after()`.
 

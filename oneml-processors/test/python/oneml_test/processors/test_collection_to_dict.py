@@ -16,8 +16,8 @@ def test_collection_to_dict_uniform_types() -> None:
     assert set(to_dict.outputs) == set(("c",))
     assert set(to_dict.out_collections) == set()
     assert len(to_dict._dag.nodes) == 1
-    node = list(to_dict._dag.nodes.values())[0]
-    node.outputs["c"].annotation.__annotations__ == dict(v1=int, v2=int)
+    node = next(iter(to_dict._dag.nodes.values()))
+    assert node.outputs["c"].annotation.__annotations__ == dict(v1=int, v2=int)
 
 
 def test_collection_to_dict_different_types() -> None:
@@ -28,11 +28,13 @@ def test_collection_to_dict_different_types() -> None:
     assert set(to_dict.outputs) == set(("c",))
     assert set(to_dict.out_collections) == set()
     assert len(to_dict._dag.nodes) == 1
-    node = list(to_dict._dag.nodes.values())[0]
-    node.outputs["c"].annotation.__annotations__ == dict(v1=int, v2=str)
+    node = next(iter(to_dict._dag.nodes.values()))
+    assert node.outputs["c"].annotation.__annotations__ == dict(v1=int, v2=str)
 
 
-def test_collection_to_dict_wiring(pipeline_runner_factory: PipelineRunnerFactory) -> None:
+def test_collection_to_dict_wiring(
+    pipeline_runner_factory: PipelineRunnerFactory,
+) -> None:
     to_dict = CollectionToDictBuilder.build("c", entries_to_types=dict(v1=int, v2=str))
     assert set(to_dict.inputs) == set()
     assert set(to_dict.in_collections) == set(("c",))

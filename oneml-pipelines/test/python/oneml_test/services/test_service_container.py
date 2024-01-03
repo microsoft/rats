@@ -19,11 +19,11 @@ class TestServiceContainer:
         container.get_service_ids()
 
         cat = container.get_service(ExampleServices.CAT_1)
-        for x in range(10):
+        for _ in range(10):
             # calls to get_service() are all cached
             assert cat is container.get_service(ExampleServices.CAT_1)
 
-        for x in range(10):
+        for _ in range(10):
             assert cat is container.get_service_provider(ExampleServices.CAT_1)()
 
         cats = container.get_service_group_providers(ExampleServiceGroups.CAT)
@@ -53,11 +53,11 @@ class TestContextualServiceContainer:
         container.get_service_ids()
 
         cat = container.get_service(ExampleServices.CAT_1)
-        for x in range(10):
+        for _x in range(10):
             # calls to get_service() are all cached
             assert cat is container.get_service(ExampleServices.CAT_1)
 
-        for x in range(10):
+        for _x in range(10):
             assert cat is container.get_service_provider(ExampleServices.CAT_1)()
 
         cats = container.get_service_group_providers(ExampleServiceGroups.CAT)

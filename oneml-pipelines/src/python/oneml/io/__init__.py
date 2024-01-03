@@ -69,5 +69,6 @@ __all__ = [
     "OnemlIoServices",
     "IoRegistryPluginsExe",
     "DefaultIoRw",
+    "DillLocalRW",
     "LocalRWBase",
 ]

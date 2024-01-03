@@ -7,8 +7,13 @@ import pytest
 from oneml.processors.dag import IProcess
 from oneml.processors.ux import Dependency, UPipeline, UPipelineBuilder
 
-StzTrainOut = TypedDict("StzTrainOut", {"shift": float, "scale": float, "Z": float})
-StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
+
+class StzTrainOut(TypedDict):
+    shift: float
+    scale: float
+    Z: float
+class StzEvalOut(TypedDict):
+    Z: float
 
 
 class StandardizeTrain:

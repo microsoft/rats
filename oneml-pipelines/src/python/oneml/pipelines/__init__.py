@@ -1,5 +1,4 @@
-"""
-Thoughts on the definition of an app, a pipeline, and a dag
+"""Thoughts on the definition of an app, a pipeline, and a dag.
 
 - an app is just a single executable
 - the pipeline app is an instance of an app that tries to run a pipeline

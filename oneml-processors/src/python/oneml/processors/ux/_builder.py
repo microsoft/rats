@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections import ChainMap
+from collections.abc import Mapping, Sequence
 from functools import reduce
 from itertools import chain
-from typing import Any, Generic, Mapping, Sequence, TypeAlias, TypeVar, cast, final
+from typing import Any, Generic, TypeAlias, TypeVar, cast, final
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
@@ -66,7 +67,7 @@ class Task(Pipeline[TInputs, TOutputs, NoInCollections, NoOutCollections]):
         services: Mapping[str, ServiceId[Any]] | None = None,
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
-        compute_reqs: ComputeReqs = ComputeReqs(),
+        compute_reqs: ComputeReqs | None = None,
     ) -> None:
         if not (
             isinstance(processor_type, type) and callable(getattr(processor_type, "process", None))
@@ -74,8 +75,8 @@ class Task(Pipeline[TInputs, TOutputs, NoInCollections, NoOutCollections]):
             raise ValueError("`processor_type` needs to satisfy the `IProcess` protocol.")
         if name is not None and not isinstance(name, str):
             raise ValueError("`name` needs to be string or None.")
-        if not isinstance(compute_reqs, ComputeReqs):
-            raise ValueError("`compute_reqs` needs to be `ComputeReqs` object.")
+        if compute_reqs is not None and not isinstance(compute_reqs, ComputeReqs):
+            raise ValueError("`compute_reqs` needs to be `None` or `ComputeReqs` object.")
         if return_annotation is not None and not (
             isinstance(return_annotation, Mapping)
             and all(
@@ -310,9 +311,9 @@ class PipelineBuilder(Generic[TInputs, TOutputs, TInCollections, TOutCollections
         services: Mapping[str, ServiceId[Any]] | None = None,
         input_annotation: Mapping[str, type] | None = None,
         return_annotation: Mapping[str, type] | None = None,
-        compute_reqs: ComputeReqs = ComputeReqs(),
+        compute_reqs: ComputeReqs | None = None,
     ) -> Task[TInputs, TOutputs]:
-        """Create a single node pipeline wrapping a Processor.
+        r"""Create a single node pipeline wrapping a Processor.
 
         Args:
             name: Name for the built pipeline.
@@ -355,6 +356,7 @@ class PipelineBuilder(Generic[TInputs, TOutputs, TInCollections, TOutCollections
 
                 StandardizeOutput = TypedDict("StandardizeOutput", {"Z": float})
 
+
                 class Standardize(IProcess):
                     def __init__(self, shift: float, scale: float) -> None:
                         self._shift = shift
@@ -364,15 +366,14 @@ class PipelineBuilder(Generic[TInputs, TOutputs, TInCollections, TOutCollections
                         Z = (X - self._shift) / self._scale
                         return StandardizeOutput({"Z": Z})
 
+
                 predefined_standardize = PipelineBuilder.task(
                     name="standardize",
                     processor_type=Standardize,
                     config=frozendict(shift=10.0, scale=2.0),
                 )
 
-                eval_standardize = PipelineBuilder.task(
-                    name="standardize", processor_type=Standardize
-                )
+                eval_standardize = PipelineBuilder.task(name="standardize", processor_type=Standardize)
 
             `predefined_standardize` and `eval_standardize` are single-node pipelines.
 
@@ -421,13 +422,14 @@ class PipelineBuilder(Generic[TInputs, TOutputs, TInCollections, TOutCollections
 
                 ConcatStringsAsLinesOutput = TypedDict("ConcatStringsAsLinesOutput", {"out": str})
 
+
                 class ConcatStringsAsLines:
                     def process(self, *inp: str) -> ConcatStringsAsLinesOutput:
                         return ConcatStringsAsLinesOutput(out="\n".join(inp))
 
+
                 concat_strings_as_lines = PipelineBuilder.task(
-                    name="concat_strings_as_lines",
-                    processor_type=ConcatStringsAsLines
+                    name="concat_strings_as_lines", processor_type=ConcatStringsAsLines
                 )
 
             `concat_strings_as_lines` is a single node pipeline with one inputs - `inp` and one

@@ -1,7 +1,8 @@
 import logging
 from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from pathlib import Path
-from typing import Any, Iterable, Iterator
+from typing import Any
 
 from furl import furl
 

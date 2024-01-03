@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Callable, Protocol
+from collections.abc import Callable
+from typing import Protocol
 
 
 class App(Protocol):

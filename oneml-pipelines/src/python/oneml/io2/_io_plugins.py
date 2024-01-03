@@ -1,12 +1,12 @@
-from typing import Iterable, Protocol
+from collections.abc import Iterable
+from typing import Protocol
 
 from oneml.pipelines.dag import PipelineNode
 from oneml.services import ContextProvider, IExecutable
 
 
 class OnemlIoPlugin(Protocol):
-    """
-    Plugin class to implement when wanting to enhance the IO capabilitiesa of OneML Pipelines.
+    """Plugin class to implement when wanting to enhance the IO capabilitiesa of OneML Pipelines.
 
     The methods in this class are not abstract because we want to be able to add methods without
     implementors having to implement them immediately. The default implementation of each method
@@ -19,7 +19,7 @@ class OnemlIoPlugin(Protocol):
     """
 
     def on_node_completion(self, node: PipelineNode) -> None:
-        """"""
+        ...
 
 
 class OnemlIoOnNodeCompletion(IExecutable):

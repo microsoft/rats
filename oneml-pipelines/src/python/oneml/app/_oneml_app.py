@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, ContextManager, FrozenSet, Iterable, NamedTuple, cast
+from collections.abc import Callable, Iterable
+from contextlib import AbstractContextManager
+from typing import Any, NamedTuple, cast
 from uuid import uuid4
 
 from oneml.app_api import App
@@ -113,7 +115,7 @@ class OnemlApp(App, IManageServices, IManageContexts):
         with self.open_context(OnemlServiceContexts.EXECUTABLE, ctx):
             self._exe_container.execute_id(exe_id)
 
-    def get_service_ids(self) -> FrozenSet[ServiceId[Any]]:
+    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
         return self._app_factory.get_service_ids()
 
     def get_service_provider(
@@ -155,7 +157,7 @@ class OnemlApp(App, IManageServices, IManageContexts):
         self,
         context_id: ContextId[T_ContextType],
         value: T_ContextType,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         return self._context_client().open_context(context_id, value)
 
     def get_context(self, context_id: ContextId[T_ContextType]) -> T_ContextType:

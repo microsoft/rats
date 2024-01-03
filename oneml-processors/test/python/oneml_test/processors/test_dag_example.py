@@ -12,24 +12,24 @@ from oneml.processors.dag import (
     Namespace,
     OutProcessorParam,
     ProcessorProps,
-    dag_to_svg,
 )
 from oneml.processors.utils import orderedset
 
 
-class Array(object):
+class Array:
     def __repr__(self) -> str:
         return "Array"
 
 
-class Model(object):
+class Model:
     def __repr__(self) -> str:
         return "Model"
 
 
-StandardizeTrainOutput = TypedDict(
-    "StandardizeTrainOutput", {"Z": Array, "mu": Array, "scale": Array}
-)
+class StandardizeTrainOutput(TypedDict):
+    Z: Array
+    mu: Array
+    scale: Array
 
 
 class StandardizeTrain(IProcess):
@@ -37,7 +37,8 @@ class StandardizeTrain(IProcess):
         return StandardizeTrainOutput({"Z": X, "mu": Array(), "scale": Array()})
 
 
-StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"Z": Array})
+class StandardizeEvalOutput(TypedDict):
+    Z: Array
 
 
 class StandardizeEval(IProcess):
@@ -50,7 +51,9 @@ class StandardizeEval(IProcess):
         return StandardizeEvalOutput({"Z": X})
 
 
-ModelTrainOutput = TypedDict("ModelTrainOutput", {"acc": Array, "model": Model})
+class ModelTrainOutput(TypedDict):
+    acc: Array
+    model: Model
 
 
 class ModelTrain(IProcess):
@@ -58,7 +61,8 @@ class ModelTrain(IProcess):
         return ModelTrainOutput({"acc": Array(), "model": Model()})
 
 
-ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": Array})
+class ModelEvalOutput(TypedDict):
+    probs: Array
 
 
 class ModelEval(IProcess):
@@ -66,7 +70,7 @@ class ModelEval(IProcess):
         super().__init__()
         self.model = model
 
-    def process(self, X: Array = Array(), Y: Array = Array()) -> ModelEvalOutput:
+    def process(self, X: Array, Y: Array) -> ModelEvalOutput:
         return {"probs": X}
 
 
@@ -119,10 +123,11 @@ def estimator_from_multiple_nodes_dag() -> None:
     train_dag = DAG(train_nodes, train_dps)
     eval_dag = DAG(eval_nodes, eval_dps)
     new_dag = train_dag + eval_dag
+    assert new_dag
 
-    svg = dag_to_svg(new_dag)
-    with open("dag1.svg", "wb") as f:
-        f.write(svg)
+    # svg = dag_to_svg(new_dag)
+    # with open("dag1.svg", "wb") as f:
+    #     f.write(svg)
 
 
 def concatenate_estimators_dag() -> None:
@@ -149,18 +154,21 @@ def concatenate_estimators_dag() -> None:
     estimatorA = train_dagA + eval_dagA
     estimatorB = train_dagB + eval_dagB
 
-    p = estimatorA.decorate("p")
-    q = estimatorB.decorate("q")
+    assert estimatorA
+    assert estimatorB
 
-    svg = dag_to_svg(p)
-    with open("p.svg", "wb") as f:
-        f.write(svg)
+    # p = estimatorA.decorate("p")
+    # q = estimatorB.decorate("q")
 
-    svg = dag_to_svg(q)
-    with open("q.svg", "wb") as f:
-        f.write(svg)
+    # svg = dag_to_svg(p)
+    # with open("p.svg", "wb") as f:
+    #     f.write(svg)
+
+    # svg = dag_to_svg(q)
+    # with open("q.svg", "wb") as f:
+    #     f.write(svg)
 
 
-if __name__ == "__main__":
+def test_dag_example() -> None:
     estimator_from_multiple_nodes_dag()
     concatenate_estimators_dag()

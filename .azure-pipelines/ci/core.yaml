@@ -131,4 +131,3 @@ stages:
       isDevBuild: false
       project: "oneml"
       namespace: production
-

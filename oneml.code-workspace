@@ -38,12 +38,17 @@
         // settings to apply to all workspace roots
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": "explicit"
         },
         "editor.rulers": [
             99
         ],
         "jupyter.notebookFileRoot": "${workspaceFolder}",
+        "notebook.formatOnSave.enabled": true,
+        "notebook.codeActionsOnSave": {
+            "source.fixAll": true,
+            "source.organizeImports": true
+        },
         "python.languageServer": "Pylance",
         // turn off Pylance native typechecking (leaves MyPy intact as Pylance treats it as a linter)
         "python.analysis.typeCheckingMode": "off",
@@ -54,11 +59,12 @@
         "python.analysis.inlayHints.pytestParameters": true,
         "python.envFile": "${workspaceFolder}/.envrc",
         "[python]": {
-            "editor.defaultFormatter": "ms-python.black-formatter",
             "editor.formatOnSave": true,
             "editor.codeActionsOnSave": {
-                "source.organizeImports": true
+                "source.fixAll": "explicit",
+                "source.organizeImports": "explicit"
             },
+            "editor.defaultFormatter": "charliermarsh.ruff",
         },
         "markdown.validate.enabled": true,
         "diffEditor.diffAlgorithm": "advanced",

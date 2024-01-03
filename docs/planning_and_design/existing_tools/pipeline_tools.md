@@ -75,7 +75,7 @@ standardizes data, or training a model that later is used to make predictions.
 Following these principles, we would like that if we specify an experiment such as
 standardized-logistic-regression (SLR), where we first standardize the data, then we fit a model.
 When we get data to evaluate the model we don't need to specify both procedures, but the pipeline
-specifies a path for the training and evaluation pipelines   appropriately. 
+specifies a path for the training and evaluation pipelines   appropriately.
 
 One way for doing this would be to draw the following graph with cronological dependencies, i.e.,
 the prediction task cannot start until the model has been trained:
@@ -107,7 +107,7 @@ use.
 
 Argo is one of the most popular libraries for pipelines in the ML and software worlds.
 It is open source, runs on Kubernetes and it is widely used.
-They support running 
+They support running
 [1,000s of workflows with 10,000s steps a day](https://argoproj.github.io/argo-workflows/running-at-massive-scale/)
 in well optimized clusters.
 
@@ -116,13 +116,13 @@ distributed, parallel, and asynchronously.
 It seems to be very efficient, defines simple concepts to understand, and it is written in golang.
 Furthermore, it comes with a web service to visualize workflows, inspect logs, schedule tasks, etc.
 
-However, it uses yaml files to configure any workflows or experiment in the cluster. This makes it 
+However, it uses yaml files to configure any workflows or experiment in the cluster. This makes it
 less user friendly than what we would have hoped.
 Luckily, there exists side projects like [Hera](https://github.com/argoproj-labs/hera-workflows),
 that provide a Python SDK to help generate those yaml files and interact with the cluster more
 easily.
 
-It also has a [plugin system](https://argoproj.github.io/argo-workflows/plugin-directory/), 
+It also has a [plugin system](https://argoproj.github.io/argo-workflows/plugin-directory/),
 and we hope that one day we can add a [scheduling mechanism](https://volcano.sh/en/) into it to
 even get more features out of it.
 
@@ -203,7 +203,7 @@ On the other hand, [Katib](https://github.com/kubeflow/katib) seems like a very 
 project supporting Kubernetes native hyperparameter optimization, and something to look out for.
 We hope we will be able to provide Katib integration in the future, as it is compatible with Argo,
 Tekton, and implements a ton of HPO algorithms as well as AutoML functionality.
-To implement the algorithms functionality it relies on well-known ML libraries such as 
+To implement the algorithms functionality it relies on well-known ML libraries such as
 [GOptuna](https://github.com/c-bata/goptuna),
 [Hyperopt](https://github.com/hyperopt/hyperopt), or
 [Chocolate](https://github.com/AIworx-Labs/chocolate).
@@ -216,7 +216,7 @@ To implement the algorithms functionality it relies on well-known ML libraries s
 [Kedro](https://github.com/kedro-org/kedro) is a popular framework to orchestrate workflows
 natively in Python.
 It is developed by Quantum Black (McKinsey), it is open-sourced, and it's aim is to help organize
-ML projects easily, their repo structure, pipelines, documentation and library packaging. 
+ML projects easily, their repo structure, pipelines, documentation and library packaging.
 Pipeliens can run in a single node, possibly with parallel threads, and more recently they released
 plugins to translate their pipelines into Airflow and Argo.
 It seems to us that such plugins can be regarded as a Python SDK to connect with Argo or Airflow.
@@ -262,7 +262,7 @@ capabilities.
 
 ### SnakeMake
 
-![Snakemake logo.](figures/snakemake_logo.png) 
+![Snakemake logo.](figures/snakemake_logo.png)
 
 [Snakemake](https://snakemake.github.io/) follows the GNU Make paradigm: workflows are defined in
 terms of rules that define how to create output files from input files.

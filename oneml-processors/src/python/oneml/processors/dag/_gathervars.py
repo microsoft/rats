@@ -1,14 +1,23 @@
+from collections.abc import Mapping, Sequence
 from enum import Enum
 from inspect import _ParameterKind
-from typing import Any, Mapping, Sequence, TypedDict
+from typing import Any, TypedDict
 
 from ..utils._orderedset import orderedset
 from ._dag import DAG, DagDependency, DagNode, IExpandDag, ProcessorProps
 from ._processor import InMethod, InProcessorParam, IProcess, OutProcessorParam
 
-SequenceOutput = TypedDict("SequenceOutput", {"output": Sequence[Any]})
-MappingOutput = TypedDict("MappingOutput", {"output": Mapping[str, Any]})
-CollectionOutput = TypedDict("CollectionOutput", {"output": object})
+
+class SequenceOutput(TypedDict):
+    output: Sequence[Any]
+
+
+class MappingOutput(TypedDict):
+    output: Mapping[str, Any]
+
+
+class CollectionOutput(TypedDict):
+    output: object
 
 
 class GatherVarKind(Enum):

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator, Mapping
 from functools import reduce
 from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    Iterable,
-    Iterator,
-    Mapping,
     Protocol,
     overload,
     runtime_checkable,
@@ -117,7 +115,7 @@ class namedcollection(Generic[T_co]):
         try:  # https://stackoverflow.com/a/16237698
             return self._d[key]
         except KeyError:
-            raise AttributeError(key)
+            raise AttributeError(key) from None
 
     def __getstate__(self) -> dict[str, Any]:
         # our implementation of __getattr__ messes with pickle
@@ -189,7 +187,7 @@ class namedcollection(Generic[T_co]):
         return self._d.copy()
 
     def _replace(self, **kwargs: T) -> Self:
-        "Return a new instance of the namedcollection replacing specified fields with new values."
+        """Return a new instance of the namedcollection replacing fields with new values."""
         return self.__class__(**(self._d | kwargs))
 
     def _find(self, *values: Any) -> tuple[str, ...]:
@@ -209,7 +207,7 @@ class namedcollection(Generic[T_co]):
         self,
         names: Mapping[str, str],
     ) -> Self:
-        """Rename namedcollection names recursively splitting on dots (cannot rename across levels.)
+        """Rename namedcollection names recursively splitting on dots.
 
         Args:
             names: mapping of {current name: new name}.

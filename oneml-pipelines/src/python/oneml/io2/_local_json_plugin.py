@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Any, Dict, Iterable, Set
+from collections.abc import Iterable
+from typing import Any
 
 from oneml.pipelines.dag import PipelineNode, PipelinePort
 from oneml.pipelines.session import PipelineSession
@@ -14,7 +15,7 @@ from ._pipeline_data import ILoadPipelineData
 class LocalJsonIoSettings:
     _pipeline_ctx: ContextProvider[PipelineSession]
 
-    _registered: Dict[PipelineSession, Dict[PipelineNode, Set[PipelinePort[Any]]]]
+    _registered: dict[PipelineSession, dict[PipelineNode, set[PipelinePort[Any]]]]
 
     def __init__(self, pipeline_ctx: ContextProvider[PipelineSession]) -> None:
         self._pipeline_ctx = pipeline_ctx

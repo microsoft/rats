@@ -20,15 +20,15 @@ class _ExecutableGroupExe(IExecutable):
 class IExecuteServices(Protocol):
     @abstractmethod
     def execute_id(self, exe_id: ServiceId[T_ExecutableType]) -> None:
-        """"""
+        ...
 
     @abstractmethod
     def execute(self, exe_id: ServiceId[T_ExecutableType], exe: IExecutable) -> None:
-        """"""
+        ...
 
     @abstractmethod
     def execute_group(self, exe_id: ServiceId[T_ExecutableType]) -> None:
-        """"""
+        ...
 
 
 class ExecutablesClient(IExecuteServices):

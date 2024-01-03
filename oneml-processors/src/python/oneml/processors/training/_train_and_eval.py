@@ -1,16 +1,16 @@
-"""
-    A TrainAndEval is a pipeline that fits using train data and evaluates on that same train data
-    and on a separate evaluation data.
-    A TrainAndEval pipeline takes collection inputs with `train` `eval` entries, and outputs
-    collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
-    entries.
+"""A TrainAndEval is a pipeline that fits using train data and evaluates on separate data.
+
+A TrainAndEval pipeline takes collection inputs with `train` `eval` entries, and outputs
+collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
+entries.
 
 """
 from __future__ import annotations
 
 from collections import ChainMap, defaultdict
+from collections.abc import Mapping, Sequence
 from itertools import chain
-from typing import Any, Literal, Mapping, Sequence, Tuple
+from typing import Any, Literal
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
@@ -41,9 +41,8 @@ from ..ux._utils import (
 
 
 class ITrainAndEval(UPipeline):
-    """
-    A TrainAndEval is a pipeline that fits using train data and evaluates on that same train data
-    and on a separate eval data.
+    """TrainAndEval is a pipeline that fits using train data and evaluates on same & separate data.
+
     A TrainAndEval pipeline takes collection inputs with `train` `eval` entries, and outputs
     collection outputs with `train` `eval` entries.  It also outputs the fitted models as output
     entries.
@@ -287,6 +286,7 @@ class TrainAndEvalBuilders:
           collections.
         * dependencies: A sequence of dependencies mapping the fitted parameters from train_pl
           outputs to eval_pl inputs.
+
         Returns:
           A pipeline that meets the TrainAndEval pattern.
           * Inputs to `train_pl` and `eval_pl`, except those indicated in `dependencies`
@@ -306,9 +306,14 @@ class TrainAndEvalBuilders:
             returning standardized array `Z`.
           ```python
           w = TrainAndEvalBuilders(
-                  "standardize", train, eval,
-                  (train.outputs.mean >> eval.inputs.offset,
-                   train.outputs.std >> eval.inputs.scale,))
+              "standardize",
+              train,
+              eval,
+              (
+                  train.outputs.mean >> eval.inputs.offset,
+                  train.outputs.std >> eval.inputs.scale,
+              ),
+          )
           ```
           Would create `w` as a worfkflow with the following input and outputs:
           * Inputs: `X` (`X.train`, `X.eval`).
@@ -422,7 +427,7 @@ class TrainAndEvalBuilders:
     def with_multiple_eval_inputs(
         cls,
         pipeline: UPipeline,
-        eval_names: Tuple[str, ...],
+        eval_names: tuple[str, ...],
     ) -> UPipeline:
         """Builds a pipeline accepting multiple eval inputs from a TrainAndEval pipeline."""
         train_pl, eval_pl = cls.split_pipeline(pipeline)
@@ -439,7 +444,7 @@ class TrainAndEvalBuilders:
         # See oneml_test.processors.test_pipeline_userio.test_combine_outputs.
         p = UPipelineBuilder.combine(
             name=pipeline.name,
-            pipelines=[train_pl] + eval_pls,
+            pipelines=[train_pl, *eval_pls],
             dependencies=tuple(
                 train_pl.out_collections.fitted >> eval_pl.in_collections.fitted
                 for eval_pl in eval_pls

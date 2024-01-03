@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from collections.abc import Iterable, Mapping, Sequence, Set
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
-from typing import AbstractSet, Any, Iterable, Mapping, Optional, Protocol, Sequence, final
+from typing import Any, Protocol, final
 
 from oneml.services import ServiceId
 
@@ -50,11 +51,11 @@ class ComputeReqs:
 @dataclass(frozen=True)
 class ProcessorProps:
     processor_type: type[IProcess]
-    config: Mapping[str, Any] = frozendict()
-    services: Mapping[str, ServiceId[Any]] = frozendict()
+    config: Mapping[str, Any] = frozendict()  # noqa: RUF009
+    services: Mapping[str, ServiceId[Any]] = frozendict()  # noqa: RUF009
     input_annotation: InitVar[Mapping[str, type] | None] = None
     return_annotation: InitVar[Mapping[str, type] | None] = None
-    compute_reqs: ComputeReqs = ComputeReqs()
+    compute_reqs: ComputeReqs | None = None
 
     inputs: frozendict[str, InProcessorParam] = field(init=False)
     outputs: frozendict[str, OutProcessorParam] = field(init=False)
@@ -124,7 +125,7 @@ class DagNode:
     name: str
     namespace: Namespace
 
-    def __init__(self, name: str, namespace: str | Namespace = Namespace()) -> None:
+    def __init__(self, name: str, namespace: str | Namespace = "") -> None:
         object.__setattr__(self, "name", name)
         object.__setattr__(
             self,
@@ -155,7 +156,7 @@ class DagNode:
 class DagDependency:
     _node: DagNode
     _in_arg: InProcessorParam
-    _out_arg: Optional[OutProcessorParam]
+    _out_arg: OutProcessorParam | None
 
     @property
     def node(self) -> DagNode:
@@ -177,7 +178,7 @@ class DagDependency:
         self,
         node: DagNode,
         in_arg: InProcessorParam,
-        out_arg: Optional[OutProcessorParam] = None,
+        out_arg: OutProcessorParam | None = None,
     ) -> None:
         self._node = node
         self._in_arg = in_arg
@@ -302,12 +303,12 @@ class DAG:
         return self.__class__(self._nodes - set((node,)), self._dependencies.delete(node))
 
     @cached_property
-    def all_dependencies(self) -> AbstractSet[DagDependency]:
+    def all_dependencies(self) -> Set[DagDependency]:
         """All dependencies gathered from all nodes in the dag."""
         return orderedset(dp for dps in self.dependencies.values() for dp in dps)
 
     @cached_property
-    def external_dependencies(self) -> Mapping[DagNode, AbstractSet[DagDependency]]:
+    def external_dependencies(self) -> Mapping[DagNode, Set[DagDependency]]:
         """Dependencies that point to other nodes not from the dag."""
         return {
             n: orderedset({dp for dp in dps if dp.node not in self._nodes})
@@ -315,7 +316,7 @@ class DAG:
         }
 
     @cached_property
-    def hanging_dependencies(self) -> Mapping[DagNode, AbstractSet[InProcessorParam]]:
+    def hanging_dependencies(self) -> Mapping[DagNode, Set[InProcessorParam]]:
         """Dependencies that do not have an external DagNode assigned."""
         return {
             n: orderedset(

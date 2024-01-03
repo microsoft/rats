@@ -1,4 +1,4 @@
-from typing import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 
 from ..ux._builder import UPipelineBuilder
 from ..ux._pipeline import UPipeline
@@ -11,7 +11,8 @@ class ScatterGatherBuilders:
     def build(
         cls, name: str, scatter: UPipeline, process_batch: UPipeline, gather: UPipeline
     ) -> UPipeline:
-        """
+        """Builds a pipeline that follows a scatter-process-gather pattern.
+
         Args:
             name: name for the built pipeline.
             scatter: a pipeline that takes inputs and splits them into batches.
@@ -67,7 +68,7 @@ class ScatterGatherBuilders:
         }
 
         pl = UPipelineBuilder.combine(
-            [scatter] + list(process_batch_copies.values()) + [gather],
+            [scatter, *list(process_batch_copies.values()), gather],
             name=f"scatter_gather_{process_batch.name}",
             dependencies=(
                 tuple(

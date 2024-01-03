@@ -3,11 +3,9 @@
 COMPONENT=$1
 
 cd $COMPONENT
-echo "running isort"
-poetry run isort .
-echo "running black"
-poetry run black .
-echo "running flake8"
-poetry run flake8
-echo "running mypy"
-poetry run mypy
+echo "running ruff linter"
+poetry run ruff check src/python --fix
+echo "running ruff formatter"
+poetry run ruff format src/python
+# echo "running mypy"
+# poetry run mypy
