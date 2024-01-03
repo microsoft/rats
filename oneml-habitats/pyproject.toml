@@ -46,12 +46,7 @@ dev = []
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 oneml-processors = { path = "../oneml-processors/", develop = true }
-black = "*"
 coverage = "*"
-flake8 = "*"
-flake8-formatter-junit-xml = "*"
-flake8-isort = "*"
-isort = "*"
 mypy = "*"
 pandas-stubs = "*"
 pytest = "*"
@@ -70,15 +65,6 @@ types-urllib3 = "*"
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length = 99
-
-[tool.isort]
-line_length = 99
-profile = "black"
-src_paths = "src/python"
-known_first_party = ["oneml"]
 
 [tool.mypy]
 packages = ["oneml", "oneml_test"]
@@ -118,7 +104,6 @@ follow_imports = "skip"
 
 [tool.ruff]
 cache-dir = "../.tmp/oneml-habitats/.ruff_cache"
-# Exclude a variety of commonly ignored directories.
 exclude = [
     ".bzr",
     ".direnv",
@@ -146,12 +131,9 @@ exclude = [
     "node_modules",
     "site-packages",
     "venv",
-]
-# Same as Black.
+]  # Exclude a variety of commonly ignored directories.
 line-length = 99
 indent-width = 4
-
-# Assume Python 3.10
 target-version = "py310"
 
 [tool.ruff.lint]
@@ -163,24 +145,17 @@ ignore = ["B026", "D100", "D101", "D102", "D103", "D104", "D107", "D417", "E203"
 fixable = ["ALL"]
 unfixable = []
 
-# Allow unused variables when underscore-prefixed.
+ # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.ruff.format]
-# Like Black, use double quotes for strings.
-quote-style = "double"
-
-# Like Black, indent with spaces, rather than tabs.
-indent-style = "space"
-
-# Like Black, respect magic trailing commas.
-skip-magic-trailing-comma = false
-
-# Like Black, automatically detect the appropriate line ending.
-line-ending = "auto"
+quote-style = "double"  # Like Black, use double quotes for strings.
+indent-style = "space"  # Like Black, indent with spaces, rather than tabs.
+skip-magic-trailing-comma = false  # Like Black, respect magic trailing commas.
+line-ending = "auto"  # Like Black, automatically detect the appropriate line ending.
 
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.
