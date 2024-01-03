@@ -53,6 +53,7 @@ pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+setuptools = "*"
 types-urllib3 = "*"
 
 [tool.poetry.plugins."immunocli.plugins"]
