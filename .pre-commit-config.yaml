@@ -16,7 +16,6 @@ repos:
       - id: debug-statements
       - id: detect-private-key
       - id: end-of-file-fixer
-      - id: fix-encoding-pragma
       - id: forbid-submodules
       - id: name-tests-test
       - id: pretty-format-json
