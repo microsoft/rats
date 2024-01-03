@@ -38,7 +38,7 @@
         // settings to apply to all workspace roots
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": true
+            "source.organizeImports": "explicit"
         },
         "editor.rulers": [
             99
@@ -57,7 +57,7 @@
             "editor.defaultFormatter": "ms-python.black-formatter",
             "editor.formatOnSave": true,
             "editor.codeActionsOnSave": {
-                "source.organizeImports": true
+                "source.organizeImports": "explicit"
             },
         },
         "markdown.validate.enabled": true,
