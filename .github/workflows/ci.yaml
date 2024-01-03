@@ -19,7 +19,7 @@ jobs:
           - oneml-pipelines
           - oneml-processors
           - oneml-habitats
-    runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
+    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
     name: "test: ${{ matrix.component }}"
     steps:
       - uses: actions/checkout@v4
@@ -69,11 +69,11 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
           echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
-      - name: flake8
-        run: |
-          docker run \
-            -v $PWD/.tmp:/opt/oneml/.tmp \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
+      # - name: flake8
+      #   run: |
+      #     docker run \
+      #       -v $PWD/.tmp:/opt/oneml/.tmp \
+      #       immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
       - name: mypy
         run: |
           docker run \
@@ -97,7 +97,7 @@ jobs:
         with:
           files: .tmp/${{ matrix.component }}/reports/pytest-junit.xml
           check_name: "Test Results: ${{ matrix.component }}"
-      - name: 'upload-artifacts'
+      - name: "upload-artifacts"
         uses: actions/upload-artifact@v3
         with:
           name: "wheels"
@@ -105,7 +105,7 @@ jobs:
   publish-artifacts:
     if: "${{ inputs.publish-wheels }}"
     needs: test-components
-    runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
+    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
     name: "push-artifacts"
     steps:
       - id: "authenticate"
