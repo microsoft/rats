@@ -68,7 +68,7 @@ jobs:
         run: |
           docker run \
             -v $PWD/.tmp:/opt/oneml/.tmp \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run ruff src/python/
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run ruff check --output-format=github src/python/
       - name: mypy
         run: |
           docker run \
