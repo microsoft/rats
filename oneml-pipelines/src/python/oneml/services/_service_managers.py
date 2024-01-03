@@ -1,6 +1,7 @@
 import logging
 from abc import abstractmethod
-from typing import Any, FrozenSet, Generic, Iterable, Protocol, Tuple
+from collections.abc import Iterable
+from typing import Any, Generic, Protocol
 
 from ._services import ServiceId, ServiceProvider, T_ServiceType
 
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class IProvideServices(Protocol):
     @abstractmethod
-    def get_service_ids(self) -> FrozenSet[ServiceId[Any]]:
+    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
         ...
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
@@ -59,7 +60,7 @@ class IDefineServices(Protocol):
 
     def add_services(
         self,
-        *services: Tuple[ServiceId[T_ServiceType], ServiceProvider[T_ServiceType]],
+        *services: tuple[ServiceId[T_ServiceType], ServiceProvider[T_ServiceType]],
     ) -> None:
         for service_id, service_provider in services:
             self.add_service(service_id, service_provider)
@@ -74,7 +75,7 @@ class IDefineServices(Protocol):
 
     def add_groups(
         self,
-        *services: Tuple[ServiceId[T_ServiceType], ServiceProvider[T_ServiceType]],
+        *services: tuple[ServiceId[T_ServiceType], ServiceProvider[T_ServiceType]],
     ) -> None:
         for group_id, service_provider in services:
             self.add_group(group_id, service_provider)

@@ -17,7 +17,7 @@ class TestExecutablesContainer:
         self._triggers = Triggers()
 
     def test_basics(self) -> None:
-        context_client = ContextClient()
+        ContextClient()
         factory = ServiceFactory()
         factory.add_service(ExampleServices.DOG_1, make_dog)
         factory.add_group(

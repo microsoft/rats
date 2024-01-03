@@ -1,5 +1,6 @@
 # type: ignore
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from ._dag import DAG, DagDependency, DagNode, IExpandDag, IPruneDag, Namespace
 from ._processor import IProcess, Provider

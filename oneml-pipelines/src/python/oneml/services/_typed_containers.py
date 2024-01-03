@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Iterable, Protocol
+from collections.abc import Iterable
+from typing import Protocol
 
 from ._service_managers import IProvideServices
 from ._services import ServiceId, ServiceProvider, T_ServiceType, Tco_ServiceType

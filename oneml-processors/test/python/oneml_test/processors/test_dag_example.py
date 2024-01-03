@@ -12,24 +12,24 @@ from oneml.processors.dag import (
     Namespace,
     OutProcessorParam,
     ProcessorProps,
-    dag_to_svg,
 )
 from oneml.processors.utils import orderedset
 
 
-class Array(object):
+class Array:
     def __repr__(self) -> str:
         return "Array"
 
 
-class Model(object):
+class Model:
     def __repr__(self) -> str:
         return "Model"
 
 
-StandardizeTrainOutput = TypedDict(
-    "StandardizeTrainOutput", {"Z": Array, "mu": Array, "scale": Array}
-)
+class StandardizeTrainOutput(TypedDict):
+    Z: Array
+    mu: Array
+    scale: Array
 
 
 class StandardizeTrain(IProcess):
@@ -37,7 +37,8 @@ class StandardizeTrain(IProcess):
         return StandardizeTrainOutput({"Z": X, "mu": Array(), "scale": Array()})
 
 
-StandardizeEvalOutput = TypedDict("StandardizeEvalOutput", {"Z": Array})
+class StandardizeEvalOutput(TypedDict):
+    Z: Array
 
 
 class StandardizeEval(IProcess):
@@ -50,7 +51,9 @@ class StandardizeEval(IProcess):
         return StandardizeEvalOutput({"Z": X})
 
 
-ModelTrainOutput = TypedDict("ModelTrainOutput", {"acc": Array, "model": Model})
+class ModelTrainOutput(TypedDict):
+    acc: Array
+    model: Model
 
 
 class ModelTrain(IProcess):
@@ -58,7 +61,8 @@ class ModelTrain(IProcess):
         return ModelTrainOutput({"acc": Array(), "model": Model()})
 
 
-ModelEvalOutput = TypedDict("ModelEvalOutput", {"probs": Array})
+class ModelEvalOutput(TypedDict):
+    probs: Array
 
 
 class ModelEval(IProcess):

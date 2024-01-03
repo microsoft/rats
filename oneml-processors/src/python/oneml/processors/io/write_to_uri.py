@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Any, Generic, Mapping, Protocol, TypedDict, TypeVar
+from collections.abc import Mapping
+from typing import Any, Generic, Protocol, TypedDict, TypeVar
 
 from furl import furl
 
@@ -12,7 +13,9 @@ from .type_rw_mappers import IGetWriteServicesForType
 
 DataType = TypeVar("DataType")
 
-WriteToUriProcessorOutput = TypedDict("WriteToUriProcessorOutput", {"uri": str})
+
+class WriteToUriProcessorOutput(TypedDict):
+    uri: str
 
 
 class WriteToUriProcessorBase(Generic[DataType]):

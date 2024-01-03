@@ -8,8 +8,9 @@ entries.
 from __future__ import annotations
 
 from collections import ChainMap, defaultdict
+from collections.abc import Mapping, Sequence
 from itertools import chain
-from typing import Any, Literal, Mapping, Sequence, Tuple
+from typing import Any, Literal
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
@@ -426,7 +427,7 @@ class TrainAndEvalBuilders:
     def with_multiple_eval_inputs(
         cls,
         pipeline: UPipeline,
-        eval_names: Tuple[str, ...],
+        eval_names: tuple[str, ...],
     ) -> UPipeline:
         """Builds a pipeline accepting multiple eval inputs from a TrainAndEval pipeline."""
         train_pl, eval_pl = cls.split_pipeline(pipeline)
@@ -443,7 +444,7 @@ class TrainAndEvalBuilders:
         # See oneml_test.processors.test_pipeline_userio.test_combine_outputs.
         p = UPipelineBuilder.combine(
             name=pipeline.name,
-            pipelines=[train_pl] + eval_pls,
+            pipelines=[train_pl, *eval_pls],
             dependencies=tuple(
                 train_pl.out_collections.fitted >> eval_pl.in_collections.fitted
                 for eval_pl in eval_pls

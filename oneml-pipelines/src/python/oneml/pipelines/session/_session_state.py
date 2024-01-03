@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from enum import Enum, auto
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 
 from oneml.services import ContextProvider
 
@@ -41,7 +41,7 @@ class IManagePipelineSessionState(IGetPipelineSessionState, ISetPipelineSessionS
 
 
 class PipelineSessionStateClient(IManagePipelineSessionState):
-    _state: Dict[Any, PipelineSessionState]
+    _state: dict[Any, PipelineSessionState]
     _context: ContextProvider[Any]
 
     def __init__(self, context: ContextProvider[Any]) -> None:

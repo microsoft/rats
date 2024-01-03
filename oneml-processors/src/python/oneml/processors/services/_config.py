@@ -1,7 +1,8 @@
 from abc import abstractmethod
+from collections.abc import Iterator, Mapping
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Iterator, Mapping, Protocol, cast
+from typing import Any, Protocol, cast
 
 from hydra_zen import instantiate
 from omegaconf import DictConfig

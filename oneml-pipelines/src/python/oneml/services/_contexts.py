@@ -2,8 +2,8 @@ import logging
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Generator
-from contextlib import contextmanager
-from typing import Any, ContextManager, Dict, Generic, List, Protocol, TypeVar
+from contextlib import AbstractContextManager, contextmanager
+from typing import Any, Generic, Protocol, TypeVar
 
 from typing_extensions import NamedTuple
 
@@ -33,7 +33,7 @@ class ContextOpener(Protocol[Tcontra_ContextType]):
     ...
 
     @abstractmethod
-    def __call__(self, context: Tcontra_ContextType) -> ContextManager[None]:
+    def __call__(self, context: Tcontra_ContextType) -> AbstractContextManager[None]:
         ...
 
 
@@ -49,7 +49,7 @@ class IOpenContexts(Protocol):
         self,
         context_id: ContextId[T_ContextType],
         value: T_ContextType,
-    ) -> ContextManager[None]:
+    ) -> AbstractContextManager[None]:
         ...
 
 
@@ -70,7 +70,7 @@ class IManageContexts(IOpenContexts, IGetContexts, Protocol):
 
 
 class ContextClient(IManageContexts):
-    _contexts: Dict[ContextId[Any], List[Any]]
+    _contexts: dict[ContextId[Any], list[Any]]
 
     def __init__(self) -> None:
         self._contexts = defaultdict(list)

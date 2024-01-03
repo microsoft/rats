@@ -1,7 +1,7 @@
 """These tests are copies of the examples in the docstrings of UPipelineBuilder methods."""
 
 from abc import abstractmethod
-from typing import Dict, TypedDict, TypeVar
+from typing import TypedDict, TypeVar
 
 import pytest
 
@@ -11,7 +11,11 @@ from oneml.processors.ux import UPipeline, UPipelineBuilder
 
 Array = TypeVar("Array")
 
-StandardizeOutput = TypedDict("StandardizeOutput", {"Z": float, "shift": int, "scale": int})
+
+class StandardizeOutput(TypedDict):
+    Z: float
+    shift: int
+    scale: int
 
 
 class Standardize(IProcess):
@@ -29,11 +33,11 @@ class Scatter:
         self._K = K
 
     @classmethod
-    def get_return_annotation(cls, K: int) -> Dict[str, type]:
+    def get_return_annotation(cls, K: int) -> dict[str, type]:
         out_names = [f"in1_n{k}" for k in range(K)] + [f"in2_n{k}" for k in range(K)]
         return {out_name: str for out_name in out_names}
 
-    def process(self, in1: str, in2: str) -> Dict[str, str]:
+    def process(self, in1: str, in2: str) -> dict[str, str]:
         return {f"in1_n{k}": f"{in1}_n{k}" for k in range(self._K)} | {
             f"in2_n{k}": f"{in2}_n{k}" for k in range(self._K)
         }
@@ -78,7 +82,8 @@ def test_scatter(scatter: UPipeline) -> None:
 
 @pytest.fixture
 def w1() -> UPipeline:
-    W1Output = TypedDict("W1Output", {"C": str})
+    class W1Output(TypedDict):
+        C: str
 
     class W1:
         @abstractmethod
@@ -90,7 +95,9 @@ def w1() -> UPipeline:
 
 @pytest.fixture
 def w2() -> UPipeline:
-    W2Output = TypedDict("W2Output", {"E": str, "F": str})
+    class W2Output(TypedDict):
+        E: str
+        F: str
 
     class W2:
         @abstractmethod
@@ -102,7 +109,8 @@ def w2() -> UPipeline:
 
 @pytest.fixture
 def w3() -> UPipeline:
-    W3Output = TypedDict("W3Output", {"H": str})
+    class W3Output(TypedDict):
+        H: str
 
     class W3:
         @abstractmethod
@@ -114,7 +122,8 @@ def w3() -> UPipeline:
 
 @pytest.fixture
 def w4() -> UPipeline:
-    W4Output = TypedDict("W4Output", {"E": str})
+    class W4Output(TypedDict):
+        E: str
 
     class W4:
         @abstractmethod
@@ -230,4 +239,4 @@ def test_clashing_outputs_error(w2: UPipeline, w4: UPipeline) -> None:
         pipelines=[w2, w4], name="combined", outputs={"e": w2.outputs.E}
     )
     assert set(mitigated_combined.inputs) == set(("D", "A"))
-    assert set(mitigated_combined.outputs) == set(("e"))
+    assert set(mitigated_combined.outputs) == set("e")

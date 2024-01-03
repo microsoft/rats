@@ -106,9 +106,16 @@ def test_sequence_inputs_to_single_output(report1: UPipeline, report2: UPipeline
         report1.in_collections.acc.report1 | report2.in_collections.acc
 
 
-AOutput = TypedDict("AOutput", {"z": str})
-BOutput = TypedDict("BOutput", {"z": str})
-COutput = TypedDict("COutput", {"z": str})
+class AOutput(TypedDict):
+    z: str
+
+
+class BOutput(TypedDict):
+    z: str
+
+
+class COutput(TypedDict):
+    z: str
 
 
 class AProcessor(IProcess):
@@ -213,7 +220,7 @@ def test_combine_inputs(A: UPipeline, B: UPipeline, C: UPipeline, ABC: UPipeline
     assert set(ABC.inputs) == set(("x",))
     assert ABC.inputs.x == A.inputs.x.decorate("ABC")
     assert set(ABC.outputs) == set(("z_A", "z_B", "z_C"))
-    assert set(ABC.out_collections) == set(("z"))
+    assert set(ABC.out_collections) == set("z")
     assert ABC.outputs.z_A == A.outputs.z.decorate("ABC")
     assert ABC.outputs.z_B == B.outputs.z.decorate("ABC")
     assert ABC.outputs.z_C == C.outputs.z.decorate("ABC")
@@ -283,7 +290,7 @@ def test_combine_outputs(ATrain: UPipeline, AEval: UPipeline, Sink: UPipeline) -
     )
     assert set(ATrain_AEval_S2.outputs) == set()
     assert set(ATrain_AEval_S2.out_collections) == set(("z",))
-    assert set(ATrain_AEval_S2.out_collections.z) == set(("b"))
+    assert set(ATrain_AEval_S2.out_collections.z) == set("b")
 
     ATrain_duplicated: UPipeline = CombinedPipeline(
         name="ATrain_duplicated",

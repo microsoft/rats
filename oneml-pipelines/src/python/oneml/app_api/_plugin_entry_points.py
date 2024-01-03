@@ -1,6 +1,7 @@
 import logging
+from collections.abc import Iterator
 from importlib.metadata import entry_points
-from typing import Iterator, TypeAlias, cast
+from typing import TypeAlias, cast
 
 from oneml.services import IManageServices, ServiceProvider
 

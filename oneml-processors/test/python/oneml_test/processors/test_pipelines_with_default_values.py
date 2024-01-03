@@ -6,7 +6,9 @@ import pytest
 
 from oneml.processors.ux import CombinedPipeline, PipelineRunnerFactory, UPipeline, UTask
 
-Outputs = TypedDict("Outputs", {"d": str})
+
+class Outputs(TypedDict):
+    d: str
 
 
 class Processor1:

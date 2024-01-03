@@ -1,17 +1,13 @@
 """frozendict class and MappingProtocol."""
 from __future__ import annotations
 
+from collections.abc import ItemsView, Iterable, Iterator, Mapping, ValuesView
 from functools import reduce
 from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    ItemsView,
-    Iterable,
-    Iterator,
-    Mapping,
     TypeVar,
-    ValuesView,
     get_args,
     overload,
 )
@@ -114,7 +110,7 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
         return self._hash
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({repr(self._d)})"
+        return f"{self.__class__.__name__}({self._d!r})"
 
     def delete(self: Self, key: _KT) -> Self:
         new_d = self._d.copy()

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator, Mapping
 from functools import reduce
 from typing import (
     TYPE_CHECKING,
     Any,
     Generic,
-    Iterable,
-    Iterator,
-    Mapping,
     Protocol,
     overload,
     runtime_checkable,

@@ -3,7 +3,8 @@ from __future__ import annotations
 import itertools
 import logging
 from abc import abstractmethod
-from typing import Callable, Iterable, Protocol, Union
+from collections.abc import Callable, Iterable
+from typing import Protocol
 
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.dag._dag_client import PipelineDagClient
@@ -12,7 +13,7 @@ from ._node_namespacing import PipelineNamespaceClient
 
 logger = logging.getLogger(__name__)
 
-PipelineMultiplexValuesType = Iterable[Union[str, int]]
+PipelineMultiplexValuesType = Iterable[str | int]
 
 
 class IMultiplexPipelineNodes(Protocol):

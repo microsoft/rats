@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from ._services import ServiceId, T_ServiceType
 

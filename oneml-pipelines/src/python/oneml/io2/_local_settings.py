@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from oneml.pipelines.dag import PipelineNode, PipelinePort
 from oneml.pipelines.session import PipelineSession
@@ -10,7 +10,7 @@ class LocalIoSettings:
     _default_path: ServiceProvider[Path]
     _pipeline_ctx: ContextProvider[PipelineSession]
 
-    _config: Dict[PipelineSession, Path]
+    _config: dict[PipelineSession, Path]
 
     def __init__(
         self,

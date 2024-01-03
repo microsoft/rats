@@ -86,7 +86,7 @@ class OnemlIo2DiContainer:
     def local_io_settings(self) -> LocalIoSettings:
         context_client = self._app.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
 
-        @lru_cache()
+        @lru_cache
         def default() -> Path:
             return Path(mkdtemp(prefix="oneml"))
 

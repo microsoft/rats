@@ -1,5 +1,6 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping, TypedDict
+from typing import Any, TypedDict
 
 import pytest
 
@@ -24,9 +25,12 @@ class Array:
     x: list[float]
 
 
-ArrayReaderOutput = TypedDict("ArrayReaderOutput", {"array": Array})
-ArrayDotProductOutput = TypedDict("ArrayDotProductOutput", {"output": float})
-SumFloatsOutput = TypedDict("SumFloatsOutput", {"output": float})
+class ArrayReaderOutput(TypedDict):
+    array: Array
+class ArrayDotProductOutput(TypedDict):
+    output: float
+class SumFloatsOutput(TypedDict):
+    output: float
 
 
 class ArrayReader(IProcess):
@@ -41,7 +45,7 @@ class ArrayReader(IProcess):
 
 class ArrayDotProduct(IProcess):
     def process(self, left: Array, right: Array) -> ArrayDotProductOutput:
-        return ArrayDotProductOutput(output=sum([xi * xj for xi, xj in zip(left.x, right.x)]))
+        return ArrayDotProductOutput(output=sum([xi * xj for xi, xj in zip(left.x, right.x, strict=False)]))
 
 
 class SumFloats(IProcess):

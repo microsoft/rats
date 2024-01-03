@@ -1,4 +1,5 @@
-from typing import Mapping, TypedDict
+from collections.abc import Mapping
+from typing import TypedDict
 
 import hydra
 import pytest
@@ -50,7 +51,8 @@ def test_task_conf(register_resolvers_and_configs: None) -> None:
         instantiate(TaskConf(processor_type=processor_type, input_annotation=input_annotation))
 
 
-AOutput = TypedDict("AOutput", {"z": int})
+class AOutput(TypedDict):
+    z: int
 
 
 class A:

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 
 from oneml.pipelines.dag import PipelineNode
 from oneml.pipelines.session import PipelineSession
@@ -34,7 +34,7 @@ class IManagePipelineNodeExecutables(
 
 
 class PipelineNodeExecutablesClient(IManagePipelineNodeExecutables):
-    _executables: Dict[Any, Dict[PipelineNode, IExecutable]]
+    _executables: dict[Any, dict[PipelineNode, IExecutable]]
     _namespace: ContextProvider[PipelineSession]
     _node_ctx: ContextProvider[PipelineNode]
 

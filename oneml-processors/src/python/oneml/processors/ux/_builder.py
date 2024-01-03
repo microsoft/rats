@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from collections import ChainMap
+from collections.abc import Mapping, Sequence
 from functools import reduce
 from itertools import chain
-from typing import Any, Generic, Mapping, Sequence, TypeAlias, TypeVar, cast, final
+from typing import Any, Generic, TypeAlias, TypeVar, cast, final
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING

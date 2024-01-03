@@ -1,4 +1,4 @@
-from typing import Any, Dict, TypedDict
+from typing import Any, TypedDict
 
 from oneml.processors import ScatterGatherBuilders
 from oneml.processors.utils import frozendict
@@ -10,17 +10,17 @@ class Scatter:
         self._K = K
 
     @classmethod
-    def get_return_annotation(cls, K: int) -> Dict[str, type]:
+    def get_return_annotation(cls, K: int) -> dict[str, type]:
         out_names = [f"in1_{k}" for k in range(K)] + [f"in2_{k}" for k in range(K)]
         return {out_name: str for out_name in out_names}
 
     @classmethod
-    def get_renames(cls, K: int) -> Dict[str, str]:
+    def get_renames(cls, K: int) -> dict[str, str]:
         return {f"in1_{k}": f"in1.{k}" for k in range(K)} | {
             f"in2_{k}": f"in2.{k}" for k in range(K)
         }
 
-    def process(self, in1: str, in2: str) -> Dict[str, Any]:
+    def process(self, in1: str, in2: str) -> dict[str, Any]:
         return {f"in1_{k}": f"{in1}_{k}" for k in range(self._K)} | {
             f"in2_{k}": f"{in2}_{k}" for k in range(self._K)
         }
@@ -35,7 +35,9 @@ def get_scatter_pipeline(K: int) -> UPipeline:
     ).rename_outputs(Scatter.get_renames(K))
 
 
-BatchProcessOutput = TypedDict("BatchProcessOutput", {"out12": str, "out23": str})
+class BatchProcessOutput(TypedDict):
+    out12: str
+    out23: str
 
 
 class BatchProcess:
@@ -47,7 +49,8 @@ def get_batch_process_pipeline() -> UPipeline:
     return UPipelineBuilder.task(BatchProcess, "batch_process")
 
 
-ConcatStringsAsLinesOutput = TypedDict("ConcatStringsAsLinesOutput", {"out": str})
+class ConcatStringsAsLinesOutput(TypedDict):
+    out: str
 
 
 class ConcatStringsAsLines:

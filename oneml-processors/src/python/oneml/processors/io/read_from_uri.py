@@ -1,7 +1,9 @@
 from abc import abstractmethod
-from typing import Generic, Mapping, Protocol, TypedDict, TypeVar
+from collections.abc import Mapping
+from typing import Generic, Protocol, TypeVar
 
 from furl import furl
+from typing_extensions import TypedDict
 
 from oneml.io import IReadData, RWDataUri
 from oneml.services import IProvideServices, ServiceId
@@ -11,7 +13,9 @@ from .type_rw_mappers import IGetReadServicesForType
 
 DataType = TypeVar("DataType")
 
-ReadFromUriProcessorOutput = TypedDict("ReadFromUriProcessorOutput", {"data": DataType})
+
+class ReadFromUriProcessorOutput(TypedDict, Generic[DataType]):
+    data: DataType
 
 
 class ReadFromUriProcessor(Generic[DataType]):

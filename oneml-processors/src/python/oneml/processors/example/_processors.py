@@ -1,8 +1,17 @@
 from typing import Any, TypedDict
 
-AOutput = TypedDict("AOutput", {"z1": float, "z2": float})
-BOutput = TypedDict("BOutput", {"z": float})
-COutput = TypedDict("COutput", {"z": float})
+
+class AOutput(TypedDict):
+    z1: float
+    z2: float
+
+
+class BOutput(TypedDict):
+    z: float
+
+
+class COutput(TypedDict):
+    z: float
 
 
 class A:

@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Any, Dict, FrozenSet, Iterable, Protocol, Set, Tuple
+from collections.abc import Iterable
+from typing import Any, Protocol
 
 from oneml.services import ContextProvider
 
@@ -18,7 +19,7 @@ class IAddPipelineNodes(Protocol):
 
 class IGetPipelineNodes(Protocol):
     @abstractmethod
-    def get_nodes(self) -> FrozenSet[PipelineNode]:
+    def get_nodes(self) -> frozenset[PipelineNode]:
         ...
 
 
@@ -51,16 +52,16 @@ class IAddPipelineDependencies(Protocol):
 class IGetPipelineDependencies(Protocol):
     @abstractmethod
     def get_nodes_with_dependencies(
-        self, dependencies: Tuple[PipelineNode, ...]
-    ) -> FrozenSet[PipelineNode]:
+        self, dependencies: tuple[PipelineNode, ...]
+    ) -> frozenset[PipelineNode]:
         pass
 
     @abstractmethod
-    def get_node_dependencies(self, node: PipelineNode) -> FrozenSet[PipelineNode]:
+    def get_node_dependencies(self, node: PipelineNode) -> frozenset[PipelineNode]:
         pass
 
     @abstractmethod
-    def get_data_dependencies(self, node: PipelineNode) -> FrozenSet[PipelineDataDependency[Any]]:
+    def get_data_dependencies(self, node: PipelineNode) -> frozenset[PipelineDataDependency[Any]]:
         pass
 
 
@@ -73,9 +74,9 @@ class IManagePipelineDags(IManagePipelineNodes, IManagePipelineDependencies, Pro
 
 
 class PipelineDagClient(IManagePipelineDags):
-    _nodes: Dict[Any, Set[PipelineNode]]
-    _dependencies: Dict[Any, Dict[PipelineNode, Set[PipelineNode]]]
-    _data_dependencies: Dict[Any, Dict[PipelineNode, Set[PipelineDataDependency[Any]]]]
+    _nodes: dict[Any, set[PipelineNode]]
+    _dependencies: dict[Any, dict[PipelineNode, set[PipelineNode]]]
+    _data_dependencies: dict[Any, dict[PipelineNode, set[PipelineDataDependency[Any]]]]
 
     _context: ContextProvider[Any]
 
@@ -112,8 +113,8 @@ class PipelineDagClient(IManagePipelineDags):
         self._dependencies[ctx][node].add(dependency)
 
     def get_nodes_with_dependencies(
-        self, dependencies: Tuple[PipelineNode, ...]
-    ) -> FrozenSet[PipelineNode]:
+        self, dependencies: tuple[PipelineNode, ...]
+    ) -> frozenset[PipelineNode]:
         inbound_edges = set(dependencies)
         result = []
 
@@ -129,15 +130,15 @@ class PipelineDagClient(IManagePipelineDags):
 
         return frozenset(result)
 
-    def get_node_dependencies(self, node: PipelineNode) -> FrozenSet[PipelineNode]:
+    def get_node_dependencies(self, node: PipelineNode) -> frozenset[PipelineNode]:
         ctx = self._context()
         return frozenset(self._dependencies[ctx].get(node, ()))
 
-    def get_data_dependencies(self, node: PipelineNode) -> FrozenSet[PipelineDataDependency[Any]]:
+    def get_data_dependencies(self, node: PipelineNode) -> frozenset[PipelineDataDependency[Any]]:
         ctx = self._context()
         return frozenset(self._data_dependencies[ctx].get(node, ()))
 
-    def get_nodes(self) -> FrozenSet[PipelineNode]:
+    def get_nodes(self) -> frozenset[PipelineNode]:
         return frozenset(self._nodes.get(self._context(), []))
 
 

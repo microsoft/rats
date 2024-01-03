@@ -3,7 +3,9 @@ from typing import Any, TypedDict
 
 from oneml.pipelines.dag import PipelineNode, PipelinePort, T_PipelinePortDataType
 
-LoadFittedParameterOutput = TypedDict("LoadFittedParameterOutput", {"data": Any})
+
+class LoadFittedParameterOutput(TypedDict):
+    data: Any
 
 
 class LoadFittedParameter:

@@ -1,12 +1,9 @@
-from typing import Mapping, Sequence, TypeAlias, TypeVar, Union
+from collections.abc import Mapping, Sequence
+from typing import TypeAlias, TypeVar
 
-JsonFormattable: TypeAlias = Union[
-    Mapping[str, "JsonFormattable"],
-    str,
-    int,
-    float,
-    Sequence["JsonFormattable"],
-]
+JsonFormattable: TypeAlias = (
+    Mapping[str, "JsonFormattable"] | str | int | float | Sequence["JsonFormattable"]
+)
 
 
 T_JsonFormattable = TypeVar("T_JsonFormattable", bound=JsonFormattable)

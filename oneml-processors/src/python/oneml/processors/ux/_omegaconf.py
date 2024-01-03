@@ -4,7 +4,7 @@ from omegaconf import DictConfig, OmegaConf
 
 
 def is_interpolated_string(x: Any) -> bool:
-    # This is only a necessary check – not a sufficient one – that `x` is a valid interpolated
+    # This is only a necessary check -- not a sufficient one -- that `x` is a valid interpolated
     # string. We do not verify that it rigorously satisfies omegaconf's grammar.
     # https://github.com/mit-ll-responsible-ai/hydra-zen/blob/1a27a5e94d4b74e33f386fa77d6b614ff8d9b619/src/hydra_zen/structured_configs/_utils.py#L490
     return isinstance(x, str) and len(x) > 3 and x.startswith("${") and x.endswith("}")

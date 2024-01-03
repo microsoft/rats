@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from collections import defaultdict
-from typing import Any, Callable, Mapping, TypeVar
+from collections.abc import Callable, Mapping
+from typing import Any, TypeVar
 
 from oneml.io import IReadData, IWriteData
 from oneml.services import ServiceId

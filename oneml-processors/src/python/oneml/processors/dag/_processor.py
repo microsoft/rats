@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 import sys
 from abc import ABC
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import Enum
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
-from typing import Any, Callable, Mapping, NamedTuple, Protocol, final, runtime_checkable
+from typing import Any, NamedTuple, Protocol, final, runtime_checkable
 
 logger = logging.getLogger(__name__)
 
@@ -120,11 +121,7 @@ class Annotations:
         Python <3.9.
 
         """
-        if sys.version_info >= (3, 10):
-            output = get_annotations(method, eval_str=True)["return"]
-        else:
-            ra = signature(method).return_annotation
-            output = ra if isinstance(ra, type) else cls._eval_annotation(method.__module__, ra)
+        output = get_annotations(method, eval_str=True)["return"]
         annotations = output.__annotations__ if output else {}
         return {k: OutProcessorParam(k, ann) for k, ann in annotations.items()}
 

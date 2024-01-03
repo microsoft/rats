@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import AbstractSet, Any, Iterable, Mapping
+from collections.abc import Iterable, Mapping, Set
+from typing import Any
 
 from ..utils import orderedset
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
@@ -57,7 +58,7 @@ class TailPipelineClient:
     @staticmethod
     def build(
         *dags: DAG,
-        exclude: AbstractSet[str] = set(),
+        exclude: Set[str] = set(),
     ) -> DAG:
         if len(dags) == 0:
             raise ValueError("Missing `dags` inputs argument.")

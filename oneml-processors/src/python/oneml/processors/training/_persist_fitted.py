@@ -29,7 +29,7 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
 
     def _get_types_of_fitted_params(self, train_pl: UPipeline) -> dict[str, type]:
         return {
-            fitted_name: tuple(entry)[0].param.annotation
+            fitted_name: next(iter(entry)).param.annotation
             for fitted_name, entry in train_pl.out_collections.fitted._asdict().items()
         }
 
@@ -162,7 +162,8 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
         return p
 
 
-ProvideFixedUriProcessorOutputs = TypedDict("ProvideFixedUriProcessorOutputs", {"uri": str})
+class ProvideFixedUriProcessorOutputs(TypedDict):
+    uri: str
 
 
 class ProvideFixedUriProcessor:
@@ -175,9 +176,8 @@ class ProvideFixedUriProcessor:
         return ProvideFixedUriProcessorOutputs(uri=self._uri)
 
 
-CreateFittedEvalPipelineProcessorOutputs = TypedDict(
-    "CreateFittedEvalPipelineProcessorOutputs", {"fitted_eval_pipeline": UPipeline}
-)
+class CreateFittedEvalPipelineProcessorOutputs(TypedDict):
+    fitted_eval_pipeline: UPipeline
 
 
 class CreateFittedEvalPipelineProcessor:

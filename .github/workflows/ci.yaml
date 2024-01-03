@@ -1,11 +1,11 @@
 name: CI Checks
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
   pull_request_target:
-    branches: [ "main" ]
+    branches: ["main"]
 jobs:
   test-components:
     strategy:
@@ -14,7 +14,7 @@ jobs:
           - oneml-pipelines
           - oneml-processors
           - oneml-habitats
-    runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
+    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
     name: "test: ${{ matrix.component }}"
     steps:
       - uses: actions/checkout@v4
@@ -64,11 +64,11 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
           echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
-      - name: flake8
+      - name: ruff
         run: |
           docker run \
             -v $PWD/.tmp:/opt/oneml/.tmp \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run flake8
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run ruff src/python/
       - name: mypy
         run: |
           docker run \
@@ -92,7 +92,7 @@ jobs:
         with:
           files: .tmp/${{ matrix.component }}/reports/pytest-junit.xml
           check_name: "Test Results: ${{ matrix.component }}"
-      - name: 'upload-artifacts'
+      - name: "upload-artifacts"
         uses: actions/upload-artifact@v3
         with:
           name: "wheels"
@@ -100,7 +100,7 @@ jobs:
   push-artifacts:
     if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
     needs: test-components
-    runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
+    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
     name: "push-artifacts"
     steps:
       - id: "authenticate"

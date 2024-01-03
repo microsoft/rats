@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, Generic, Protocol, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
 
 from typing_extensions import NamedTuple
 
@@ -73,7 +73,7 @@ class PipelineData(
     IManagePipelineData,
     IManageNodeData,
 ):
-    _data: Dict[PipelineSession, Dict[PipelineDataId[Any], Any]]
+    _data: dict[PipelineSession, dict[PipelineDataId[Any], Any]]
 
     _namespace: ContextProvider[PipelineSession]
     _node_ctx: ContextProvider[PipelineNode]

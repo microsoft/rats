@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Generic, Iterable, Protocol, TypeVar
+from collections.abc import Iterable
+from typing import Generic, Protocol, TypeVar
 
 from typing_extensions import NamedTuple
 

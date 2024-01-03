@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Sequence, Set
+from collections.abc import Hashable, Iterable, Iterator, Sequence, Set
 from functools import reduce
 from itertools import chain
-from typing import AbstractSet, Any, Hashable, Iterable, Iterator, SupportsIndex, TypeVar, overload
+from typing import Any, SupportsIndex, TypeVar, overload
 
 _T_co = TypeVar("_T_co", covariant=True)
 _S = TypeVar("_S")
@@ -25,7 +25,7 @@ class orderedset(Hashable, Set[_T_co], Sequence[_T_co]):
         self._d = dict.fromkeys(__iterable, None)
 
     @overload
-    def __and__(self: Self, other: AbstractSet[_S]) -> Self:
+    def __and__(self: Self, other: Set[_S]) -> Self:
         ...
 
     @overload

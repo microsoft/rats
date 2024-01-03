@@ -1,11 +1,12 @@
-from typing import Callable, Type, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 from oneml.services import IExecutable, ServiceId
 
 T = TypeVar("T")
 
 
-def scoped_pipeline_ids(cls: Type[T]) -> Type[T]:
+def scoped_pipeline_ids(cls: type[T]) -> type[T]:
     """Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
 
     The scoped ServiceId instances have a prefix to eliminate the chance of conflicts across

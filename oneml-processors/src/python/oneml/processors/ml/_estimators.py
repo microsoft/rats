@@ -22,8 +22,9 @@ Let `e` be an estimator object.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from itertools import chain
-from typing import Any, Generic, Sequence, cast, final
+from typing import Any, Generic, cast, final
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING

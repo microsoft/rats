@@ -1,11 +1,14 @@
-from typing import Sequence, TypedDict
+from collections.abc import Sequence
+from typing import TypedDict
 
 import pytest
 
 from oneml.processors.dag import IProcess
 from oneml.processors.ux import CombinedPipeline, PipelineRunnerFactory, Task, UPipeline
 
-AccOutput = TypedDict("AccOutput", {"acc": float})
+
+class AccOutput(TypedDict):
+    acc: float
 
 
 class Acc(IProcess):

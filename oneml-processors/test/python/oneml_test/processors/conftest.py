@@ -1,7 +1,8 @@
 import logging
 import shutil
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import pytest
 

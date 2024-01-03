@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from abc import abstractmethod
 from collections import defaultdict
-from typing import Any, Iterable, Mapping, Protocol, Sequence
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any, Protocol
 
 from oneml.io import IGetLoaders, IGetPublishers, IManageLoaders, IManagePublishers, PipelineDataId
 from oneml.pipelines.building import PipelineBuilderClient

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any, Dict
+from typing import Any
 
 from oneml.services import IExecutable, ServiceId, executable
 from oneml.services._executables import T_ExecutableType
@@ -7,7 +7,7 @@ from oneml.services._executables import T_ExecutableType
 
 class Triggers:
     # TODO: I think this actually goes in our stdlib under oneml.testing or some such
-    _state: Dict[ServiceId[Any], int]
+    _state: dict[ServiceId[Any], int]
 
     def __init__(self) -> None:
         self._state = defaultdict(int)

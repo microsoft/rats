@@ -1,4 +1,5 @@
-from typing import Any, Mapping, Set, TypedDict, overload
+from collections.abc import Mapping
+from typing import Any, TypedDict, overload
 
 from ..ux import UPipeline, UTask
 
@@ -18,7 +19,7 @@ class CollectionToDictBuilder:
         cls,
         collection_name: str,
         *,
-        entries: Set[str],
+        entries: set[str],
         element_type: type,
     ) -> UPipeline:
         ...
@@ -38,7 +39,7 @@ class CollectionToDictBuilder:
         cls,
         collection_name: str,
         *,
-        entries: Set[str] | None = None,
+        entries: set[str] | None = None,
         element_type: type | None = None,
         entries_to_types: Mapping[str, type] | None = None,
     ) -> UPipeline:

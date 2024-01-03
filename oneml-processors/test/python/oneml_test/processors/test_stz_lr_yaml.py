@@ -13,10 +13,18 @@ class Model:
     pass
 
 
-StzTrainOutput = TypedDict("StzTrainOutput", {"mean": float, "scale": float, "Z": float})
-StzEvalOutput = TypedDict("StzEvalOutput", {"Z": float})
-LRTrainOutput = TypedDict("LRTrainOutput", {"model": Model, "probs": float})
-LREvalOutput = TypedDict("LREvalOutput", {"acc": float, "probs": float})
+class StzTrainOutput(TypedDict):
+    mean: float
+    scale: float
+    Z: float
+class StzEvalOutput(TypedDict):
+    Z: float
+class LRTrainOutput(TypedDict):
+    model: Model
+    probs: float
+class LREvalOutput(TypedDict):
+    acc: float
+    probs: float
 
 
 class StzTrain:
