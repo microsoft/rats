@@ -111,7 +111,7 @@ class ReadFromUriProcessor(Generic[DataType]):
             reader = self._service_provider.get_service(read_service_id)
             return reader.read(RWDataUri(uri))
 
-    def process(self) -> ReadFromUriProcessorOutput[DataType]:
+    def process(self) -> ReadFromUriProcessorOutput:
         return ReadFromUriProcessorOutput(data=self._read(self._uri, self._read_service_ids))
 
 

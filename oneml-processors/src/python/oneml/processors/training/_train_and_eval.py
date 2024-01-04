@@ -8,6 +8,7 @@ entries.
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from functools import reduce
 from itertools import chain
 from typing import Any, Literal

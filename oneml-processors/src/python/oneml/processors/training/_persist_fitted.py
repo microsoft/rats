@@ -30,7 +30,7 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
     def _get_types_of_fitted_params(self, train_pl: UPipeline) -> dict[str, type]:
         return {
             fitted_name: next(iter(entry)).param.annotation
-            for fitted_name, entry in train_pl.out_collections.fitted._asdict().items()
+            for fitted_name, entry in train_pl.outputs.fitted._asdict().items()
         }
 
     def _get_write_fitted_pl(
