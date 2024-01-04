@@ -39,7 +39,7 @@ def report() -> UPipeline:
 def test_gather_inputs_to_single_output(
     pipeline_runner_factory: PipelineRunnerFactory, acc1: UPipeline, acc2: UPipeline
 ) -> None:
-    # OutEntry | OutEntry -> OutEntry
+    # OutPort | OutPort -> OutPort
     p: UPipeline = CombinedPipeline(
         pipelines=[acc1, acc2],
         name="p",
@@ -59,11 +59,10 @@ def test_gather_inputs_to_single_output(
         name="p",
         outputs={"acc.nested": acc1.outputs.acc | acc2.outputs.acc},
     )
-    assert len(p.outputs) == 0
-    assert len(p.out_collections) == 1
-    assert len(p.out_collections.acc) == 1
-    assert len(p.out_collections.acc.nested) == 1
-    assert p.out_collections.acc.nested[0].param.annotation == tuple[float, ...]
+    assert len(p.outputs) == 1
+    assert len(p.outputs.acc) == 1
+    assert len(p.outputs.acc.nested) == 1
+    assert p.outputs.acc.nested[0].param.annotation == tuple[float, ...]
 
     runner = pipeline_runner_factory(p)
     outputs = runner()

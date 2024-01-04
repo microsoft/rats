@@ -1,60 +1,61 @@
 from oneml.processors.dag._client import DagSubmitter
+from oneml.processors.registry import IProvidePipeline
 from oneml.processors.ux import (
     CombinedPipeline,
-    InEntry,
+    InPort,
     Inputs,
-    NoInCollections,
     NoInputs,
-    NoOutCollections,
-    NoOutputs,
-    OutEntry,
+    OutPort,
     Outputs,
+    Pipeline,
     Task,
 )
-from oneml.services import IExecutable, ServiceId, scoped_service_ids
 
 from ._processors import A, B, C, D
 
 
 class InB(Inputs):
-    x: InEntry[float]
+    x: InPort[float]
 
 
 class InC(Inputs):
-    x: InEntry[float]
+    x: InPort[float]
 
 
 class InD(Inputs):
-    x1: InEntry[float]
-    x2: InEntry[float]
+    x1: InPort[float]
+    x2: InPort[float]
 
 
 class OutA(Outputs):
-    z1: OutEntry[float]
-    z2: OutEntry[float]
+    z1: OutPort[float]
+    z2: OutPort[float]
 
 
 class OutB(Outputs):
-    z: OutEntry[float]
+    z: OutPort[float]
 
 
 class OutC(Outputs):
-    z: OutEntry[float]
+    z: OutPort[float]
 
 
-class DiamondPipeline:
-    _dag_submitter: DagSubmitter
+class OutD(Outputs):
+    z1: OutPort[float]
+    z2: OutPort[float]
 
-    def __init__(self, dag_submitter: DagSubmitter) -> None:
-        self._dag_submitter = dag_submitter
 
-    def execute(self) -> None:
+DiamondPipeline = Pipeline[NoInputs, OutD]
+
+
+class DiamondPipelineProvider(IProvidePipeline[DiamondPipeline]):
+    def __call__(self) -> DiamondPipeline:
         a = Task[NoInputs, OutA](A, "A")
         b = Task[InB, OutB](B, "B")
         c = Task[InC, OutC](C, "C")
-        d = Task[InD, NoOutputs](D, "D")
+        d = Task[InD, OutD](D, "D")
 
-        diamond = CombinedPipeline[NoInputs, NoOutputs, NoInCollections, NoOutCollections](
+        return CombinedPipeline(
             pipelines=[a, b, c, d],
             dependencies=(
                 b.inputs.x << a.outputs.z1,
@@ -65,9 +66,16 @@ class DiamondPipeline:
             name="diamond",
         )
 
-        self._dag_submitter.submit_dag(diamond._dag)
 
+class DiamondExecutable:
+    _dag_submitter: DagSubmitter
+    _diamond_provider: IProvidePipeline[DiamondPipeline]
 
-@scoped_service_ids
-class DiamondExampleServices:
-    DIAMOND = ServiceId[IExecutable]("diamond")
+    def __init__(
+        self, dag_submitter: DagSubmitter, diamond_provider: IProvidePipeline[DiamondPipeline]
+    ) -> None:
+        self._dag_submitter = dag_submitter
+        self._diamond_provider = diamond_provider
+
+    def execute(self) -> None:
+        self._dag_submitter.submit_dag(self._diamond_provider()._dag)

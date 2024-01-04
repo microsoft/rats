@@ -1,7 +1,6 @@
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Sequence
 
-from ..ux._builder import UPipelineBuilder
-from ..ux._pipeline import UPipeline
+from ..ux import InPorts, Inputs, OutPorts, Outputs, UPipeline, UPipelineBuilder
 
 
 class ScatterGatherBuilders:
@@ -43,21 +42,22 @@ class ScatterGatherBuilders:
 
         The outputs of the built pipeline will be the outputs of gather.
         """
-        batch_keys = cls._get_batch_keys(
-            scatter.out_collections._asdict(), gather.in_collections._asdict()
-        )
-        if len(scatter.outputs) > 0:
-            raise ValueError("scatter should not have outputs.")
-        if len(process_batch.in_collections) > 0:
+        batch_keys = cls._get_batch_keys(scatter.outputs, gather.inputs)
+        if any(o for o in scatter.outputs._asdict() if o.count(".") == 0):
+            raise ValueError("scatter should not have single outputs.")
+        if any(o for o in process_batch.inputs._asdict() if o.count(".")):
             raise ValueError("process_batch should not have in_collections.")
-        if len(process_batch.out_collections) > 0:
+        if any(o for o in process_batch.outputs._asdict() if o.count(".")):
             raise ValueError("process_batch should not have out_collections.")
-        if len(frozenset(scatter.out_collections) - frozenset(process_batch.inputs)) > 0:
+        if set(o for o in scatter.outputs._asdict() if o.count(".")) & set(
+            o for o in process_batch.inputs._asdict() if o.count(".")
+        ):
             raise ValueError(
                 "All out_collections of scatter should have corresponding-by-name inputs in "
                 "process_batch."
             )
-        if len(frozenset(process_batch.outputs) - frozenset(gather.in_collections)) > 0:
+        input_cols = tuple(g for g in gather.inputs if isinstance(gather.inputs[g], InPorts))
+        if process_batch.outputs - input_cols:
             raise ValueError(
                 "All outputs of process_batch should have corresponding-by-name in_collections in "
                 "gather."
@@ -73,16 +73,16 @@ class ScatterGatherBuilders:
             dependencies=(
                 tuple(
                     (
-                        scatter.out_collections[name][batch_key]
+                        scatter.outputs[name][batch_key]
                         >> process_batch_copies[batch_key].inputs[name]
                     )
-                    for name in scatter.out_collections
+                    for name in scatter.outputs
                     for batch_key in batch_keys
                 )
                 + tuple(
                     (
                         process_batch_copies[batch_key].outputs[name]
-                        >> gather.in_collections[name][batch_key]
+                        >> gather.inputs[name][batch_key]
                     )
                     for name in process_batch.outputs
                     for batch_key in batch_keys
@@ -92,23 +92,23 @@ class ScatterGatherBuilders:
         return pl
 
     @classmethod
-    def _get_batch_keys(
-        cls,
-        scatter_out_collections: Mapping[str, Iterable[str]],
-        gather_in_collections: Mapping[str, Iterable[str]],
-    ) -> Sequence[str]:
-        if len(scatter_out_collections) == 0:
+    def _get_batch_keys(cls, scatter_outputs: Outputs, gather_inputs: Inputs) -> Sequence[str]:
+        scatter_outcol: dict[str, frozenset[str]] = {
+            n: frozenset(scatter_outputs[n])
+            for n in scatter_outputs
+            if isinstance(scatter_outputs[n], OutPorts)
+        }
+        gather_incol: dict[str, frozenset[str]] = {
+            n: frozenset(gather_inputs[n])
+            for n in gather_inputs
+            if isinstance(gather_inputs[n], InPorts)
+        }
+        if not scatter_outcol:
             raise ValueError("scatter must have at least one out_collection.")
-        if len(gather_in_collections) == 0:
+        if not gather_incol:
             raise ValueError("gather must have at least one in_collection.")
-        scatter_batch_key_sets = {
-            col_name: frozenset(v) for col_name, v in scatter_out_collections.items()
-        }
-        gather_batch_key_sets = {
-            col_name: frozenset(v) for col_name, v in gather_in_collections.items()
-        }
-        ref_col_name, ref_batch_keys = scatter_batch_key_sets.popitem()
-        for col_name, batch_keys in scatter_batch_key_sets.items():
+        ref_col_name, ref_batch_keys = scatter_outcol.popitem()
+        for col_name, batch_keys in gather_incol.items():
             if batch_keys != ref_batch_keys:
                 missing = ref_batch_keys - batch_keys
                 extra = batch_keys - ref_batch_keys
@@ -117,7 +117,7 @@ class ScatterGatherBuilders:
                     f"same set of entry names. scatter {col_name} has {missing} missing and "
                     f"{extra} extra when compared with scatter {ref_col_name}."
                 )
-        for col_name, batch_keys in gather_batch_key_sets.items():
+        for col_name, batch_keys in gather_incol.items():
             if batch_keys != ref_batch_keys:
                 missing = ref_batch_keys - batch_keys
                 extra = batch_keys - ref_batch_keys

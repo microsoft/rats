@@ -5,33 +5,16 @@ from abc import abstractmethod, abstractproperty
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from functools import cached_property
-from itertools import chain
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Generic,
-    Protocol,
-    SupportsIndex,
-    final,
-    overload,
-)
+from typing import TYPE_CHECKING, Any, Generic, Protocol, SupportsIndex, final, overload
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
 from typing_extensions import Self, TypeVar
 
+from ..utils import namedcollection
+
 if TYPE_CHECKING:
-    from ._pipeline import (
-        InCollection,
-        InCollections,
-        InEntry,
-        InParameter,
-        OutCollection,
-        OutCollections,
-        OutEntry,
-        OutParameter,
-        UPipeline,
-    )
+    from ._pipeline import InParameter, InPort, InPorts, OutParameter, OutPort, OutPorts, UPipeline
 
 T = TypeVar("T", bound=type | Any)
 
@@ -46,8 +29,7 @@ D = TypeVar("D", bound=_Decoratable)
 
 
 def _maybe_decorate(target: D, decoration: str | None) -> D:
-    decorated = target.decorate(decoration) if decoration else target
-    return decorated
+    return target.decorate(decoration) if decoration else target
 
 
 @final
@@ -110,10 +92,10 @@ class DependencyOp(Sequence[Dependency[T]]):
 
 @final
 class EntryDependencyOp(DependencyOp[T]):
-    in_entry: InEntry[T]
-    out_entry: OutEntry[T]
+    in_entry: InPort[T]
+    out_entry: OutPort[T]
 
-    def __init__(self, in_entry: InEntry[T], out_entry: OutEntry[T]) -> None:
+    def __init__(self, in_entry: InPort[T], out_entry: OutPort[T]) -> None:
         self.in_entry = in_entry
         self.out_entry = out_entry
 
@@ -142,16 +124,8 @@ class EntryDependencyOp(DependencyOp[T]):
                 if voo == self.out_entry:
                     outport_conf = PipelinePortConf(pipeline=pl.name, port=f"outputs.{k2}")
                     continue
-            for k1, vi in pl.in_collections._asdict().items():
-                for k2, vii in vi._asdict().items():
-                    if vii == self.in_entry:
-                        inport_conf = PipelinePortConf(pl.name, port=f"in_collections.{k1}.{k2}")
-                        continue
-            for k1, vo in pl.out_collections._asdict().items():
-                for k2, voo in vo._asdict().items():
-                    if voo == self.out_entry:
-                        outport_conf = PipelinePortConf(pl.name, port=f"out_collections.{k1}.{k2}")
-                        continue
+            # TODO: need to search recursively through in_collections and out_collections
+
         if inport_conf is None or outport_conf is None:
             raise ValueError("Dependencies do not come from any given pipeline.")
 
@@ -160,12 +134,15 @@ class EntryDependencyOp(DependencyOp[T]):
 
 @final
 class CollectionDependencyOp(DependencyOp[T]):
-    in_collection: InCollection[T]
-    out_collection: OutCollection[T]
+    in_collection: InPorts[T]
+    out_collection: OutPorts[T]
 
-    def __init__(self, in_collection: InCollection[T], out_collection: OutCollection[T]) -> None:
+    def __init__(self, in_collection: InPorts[T], out_collection: OutPorts[T]) -> None:
+        xor = set(in_collection) ^ set(out_collection)
+        assert (in_collection - xor)._depth == (out_collection - xor)._depth
         self.in_collection = in_collection
         self.out_collection = out_collection
+        _ = self.dependencies
 
     @cached_property
     def dependencies(self) -> tuple[Dependency[T], ...]:
@@ -185,67 +162,28 @@ class CollectionDependencyOp(DependencyOp[T]):
     def get_dependencyopconf(self, pipelines: Sequence[UPipeline]) -> DependencyOpConf:
         inport_conf: PipelinePortConf | None = None
         outport_conf: PipelinePortConf | None = None
+
+        def rsearch(nc: Any, target: Any, port: str) -> PipelinePortConf | None:
+            if set(nc._asdict().values()) >= set(target._asdict().values()):
+                return PipelinePortConf(pipeline=pl.name, port=port)
+            else:
+                for k in nc:
+                    if isinstance(nc[k], namedcollection):
+                        return rsearch(nc[k], target, f"{port}.{k}")
+            return None
+
         for pl in pipelines:
             if inport_conf and outport_conf:
                 break
-            if pl.inputs == self.in_collection:
-                inport_conf = PipelinePortConf(pipeline=pl.name, port="inputs")
-                continue
-            if pl.outputs == self.out_collection:
-                outport_conf = PipelinePortConf(pipeline=pl.name, port="outputs")
-                continue
-            for k1, vi in pl.in_collections._asdict().items():
-                if vi == self.in_collection:
-                    inport_conf = PipelinePortConf(pipeline=pl.name, port=f"in_collections.{k1}")
-                    continue
-            for k1, vo in pl.out_collections._asdict().items():
-                if vo == self.out_collection:
-                    outport_conf = PipelinePortConf(pipeline=pl.name, port=f"out_collections.{k1}")
-                    continue
+            if inport_conf is None:
+                inport_conf = rsearch(pl.inputs, self.in_collection, "inputs")
+            if outport_conf is None:
+                outport_conf = rsearch(pl.outputs, self.out_collection, "outputs")
+
         if inport_conf is None or outport_conf is None:
             raise ValueError("Dependencies do not come from any given pipeline.")
 
         return CollectionDependencyOpConf(in_collection=inport_conf, out_collection=outport_conf)
-
-
-@final
-class IOCollectionDependencyOp(DependencyOp[Any]):
-    in_collections: InCollections
-    out_collections: OutCollections
-
-    def __init__(self, in_collections: InCollections, out_collections: OutCollections) -> None:
-        self.in_collections = in_collections
-        self.out_collections = out_collections
-
-    @cached_property
-    def dependencies(self) -> tuple[Dependency[Any], ...]:
-        intersecting_keys = set(self.in_collections) & set(self.out_collections)
-        dps = (tuple(self.in_collections[k] << self.out_collections[k]) for k in intersecting_keys)
-        return tuple(chain.from_iterable(dps))
-
-    def decorate(self, in_name: str | None, out_name: str | None) -> DependencyOp[Any]:
-        in_collections = _maybe_decorate(self.in_collections, in_name)
-        out_collections = _maybe_decorate(self.out_collections, out_name)
-        return self.__class__(in_collections, out_collections)
-
-    def get_dependencyopconf(self, pipelines: Sequence[UPipeline]) -> DependencyOpConf:
-        inport_conf: PipelinePortConf | None = None
-        outport_conf: PipelinePortConf | None = None
-        for pl in pipelines:
-            if inport_conf and outport_conf:
-                break
-            if pl.in_collections == self.in_collections:
-                inport_conf = PipelinePortConf(pipeline=pl.name, port="in_collections")
-                continue
-            if pl.out_collections == self.out_collections:
-                outport_conf = PipelinePortConf(pipeline=pl.name, port="out_collections")
-                continue
-        if inport_conf is None or outport_conf is None:
-            raise ValueError("Dependencies do not come from any given pipeline.")
-
-        return IOCollectionDependencyOpConf(
-            in_collections=inport_conf, out_collections=outport_conf
-        )
 
 
 @final
@@ -263,9 +201,7 @@ class PipelineDependencyOp(DependencyOp[Any]):
 
     @cached_property
     def dependencies(self) -> tuple[Dependency[Any], ...]:
-        return tuple(self.in_pipeline.inputs << self.out_pipeline.outputs) + tuple(
-            self.in_pipeline.in_collections << self.out_pipeline.out_collections
-        )
+        return tuple(self.in_pipeline.inputs << self.out_pipeline.outputs)
 
     def decorate(self, in_name: str | None, out_name: str | None) -> DependencyOp[Any]:
         in_pipeline = _maybe_decorate(self.in_pipeline, in_name)
@@ -329,18 +265,6 @@ class CollectionDependencyOpConf(DependencyOpConf):
         return self.__class__(
             self.in_collection.rename_pipeline(in_name),
             self.out_collection.rename_pipeline(out_name),
-        )
-
-
-@hydrated_dataclass(IOCollectionDependencyOp)
-class IOCollectionDependencyOpConf(DependencyOpConf):
-    in_collections: PipelinePortConf = MISSING
-    out_collections: PipelinePortConf = MISSING
-
-    def rename_pipelineports(self, in_name: str, out_name: str) -> DependencyOpConf:
-        return self.__class__(
-            self.in_collections.rename_pipeline(in_name),
-            self.out_collections.rename_pipeline(out_name),
         )
 
 

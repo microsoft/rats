@@ -7,8 +7,8 @@ entries.
 """
 from __future__ import annotations
 
-from collections import ChainMap, defaultdict
-from collections.abc import Mapping, Sequence
+from collections import defaultdict
+from functools import reduce
 from itertools import chain
 from typing import Any, Literal
 
@@ -19,25 +19,17 @@ from ..dag._utils import DAG, find_downstream_nodes
 from ..utils import frozendict, orderedset
 from ..ux import (
     DependencyOp,
-    InCollections,
-    InEntry,
     InParameter,
+    InPort,
     Inputs,
-    OutCollections,
-    OutEntry,
     OutParameter,
+    OutPort,
     Outputs,
     PipelineConf,
     UPipeline,
     UPipelineBuilder,
 )
-from ..ux._utils import (
-    _parse_dependencies_to_list,
-    filter_in_collections,
-    filter_inputs,
-    filter_out_collections,
-    filter_outputs,
-)
+from ..ux._utils import _parse_dependencies_to_list, filter_inputs, filter_outputs
 
 
 class ITrainAndEval(UPipeline):
@@ -110,17 +102,8 @@ class _TrainAndEval(ITrainAndEval):
         pipeline = UPipelineBuilder.combine(
             name=name,
             pipelines=[train_pl, evals_pl],
-            dependencies=tuple(
-                train_pl.outputs[name] >> evals_pl.inputs[name] for name in evals_pl.inputs
-            ),
-            outputs=ChainMap(
-                {name: train_pl.outputs[name] for name in train_pl.outputs},
-                {name: evals_pl.out_collections[name] for name in evals_pl.out_collections},
-                {
-                    f"{name}.train": train_pl.out_collections[name].train
-                    for name in train_pl.out_collections
-                },
-            ),
+            dependencies=(train_pl.outputs >> evals_pl.inputs,),
+            outputs=train_pl.outputs._asdict() | evals_pl.outputs._asdict(),
         )
 
         super().__init__(
@@ -216,17 +199,7 @@ class _TrainAndEvalWhenTrainAlsoEvaluates(ITrainAndEval):
                 train_pl.outputs[source] >> eval_pl.inputs[target]
                 for target, source in eval_inputs_to_train_outputs.items()
             ),
-            outputs=ChainMap(
-                {name: train_pl.outputs[name] for name in train_pl.outputs},
-                {
-                    f"{name}.eval": eval_pl.out_collections[name].eval
-                    for name in eval_pl.out_collections
-                },
-                {
-                    f"{name}.train": train_pl.out_collections[name].train
-                    for name in train_pl.out_collections
-                },
-            ),
+            outputs=train_pl.outputs._asdict() | eval_pl.outputs._asdict(),
         )
 
         super().__init__(
@@ -446,25 +419,12 @@ class TrainAndEvalBuilders:
             name=pipeline.name,
             pipelines=[train_pl, *eval_pls],
             dependencies=tuple(
-                train_pl.out_collections.fitted >> eval_pl.in_collections.fitted
-                for eval_pl in eval_pls
+                train_pl.outputs.fitted >> eval_pl.inputs.fitted for eval_pl in eval_pls
             ),
-            outputs=ChainMap(
-                {name: train_pl.outputs[name] for name in train_pl.outputs},
-                {
-                    f"{col_name}.{entry_name}": train_pl.out_collections[col_name][entry_name]
-                    for col_name in train_pl.out_collections
-                    if col_name != "fitted"
-                    for entry_name in train_pl.out_collections[col_name]
-                },
-                {name: eval_pl.outputs[name] for eval_pl in eval_pls for name in eval_pl.outputs},
-                {
-                    f"{col_name}.{entry_name}": eval_pl.out_collections[col_name][entry_name]
-                    for eval_pl in eval_pls
-                    for col_name in eval_pl.out_collections
-                    for entry_name in eval_pl.out_collections[col_name]
-                },
-            ),
+            outputs={
+                k: v for k, v in train_pl.outputs._asdict().items() if not k.startswith("fitted.")
+            }
+            | reduce(lambda si, xi: si | xi.outputs._asdict(), eval_pls, {}),  # type: ignore
         )
         return p
 
@@ -500,27 +460,14 @@ class TrainAndEvalBuilders:
             if iol == "input":
                 pll = "eval"
                 io: Inputs | Outputs = train_and_eval_pl.inputs
-                ioc: InCollections | OutCollections = train_and_eval_pl.in_collections
             else:
                 pll = "train"
                 io = train_and_eval_pl.outputs
-                ioc = train_and_eval_pl.out_collections
-            if "fitted" in io or "fitted" in ioc:
+            if "fitted" in io:
                 raise ValueError(
                     f"UPipeline already has a `fitted` {iol}.  Please rename it because "
                     f"we need it for the {iol}s of the {pll} pipeline."
                 )
-            train_and_eval_entry_names = frozenset(("train", "eval"))
-            for collection_name, collection in ioc._asdict().items():
-                entry_names = frozenset(collection)
-                intersection = entry_names & train_and_eval_entry_names
-                if intersection:
-                    other_entry_names = entry_names - train_and_eval_entry_names
-                    if other_entry_names:
-                        raise ValueError(
-                            f"{iol} collection {collection_name} has entries {intersection} but "
-                            f"also other entries: {other_entry_names}"
-                        )
 
         validate_io("input")
         validate_io("output")
@@ -531,9 +478,8 @@ class TrainAndEvalBuilders:
                 train_and_eval_pl._dag,
                 (
                     in_param.node
-                    for collection in train_and_eval_pl.in_collections._asdict().values()
-                    for entry_name, entry in collection._asdict().items()
-                    if entry_name == "eval"
+                    for entry_name, entry in train_and_eval_pl.inputs._asdict().items()
+                    if entry_name.endswith(".eval")
                     for in_param in entry
                 ),
             )
@@ -584,47 +530,37 @@ class TrainAndEvalBuilders:
             return param.node in eval_nodes
 
         eval_inputs = filter_inputs(train_and_eval_pl.inputs, is_eval_param)
-        eval_in_collections = InCollections(
-            fitted=Inputs(
-                {entry_name: InEntry(in_params) for entry_name, in_params in fitted_inputs.items()}
-            )
-        ) | filter_in_collections(train_and_eval_pl.in_collections, is_eval_param)
-        eval_outputs = filter_outputs(train_and_eval_pl.outputs, is_eval_param)
-        eval_out_collections = filter_out_collections(
-            train_and_eval_pl.out_collections, is_eval_param
+        eval_inputs |= Inputs(
+            {
+                "fitted." + entry_name: InPort(in_params)
+                for entry_name, in_params in fitted_inputs.items()
+            }
         )
+        eval_outputs = filter_outputs(train_and_eval_pl.outputs, is_eval_param)
 
         eval_pl = UPipeline(
             name=train_and_eval_pl.name,
             dag=eval_dag,
             inputs=eval_inputs,
-            in_collections=eval_in_collections,
             outputs=eval_outputs,
-            out_collections=eval_out_collections,
             config=PipelineConf(),  # TODO: fix config!
         ).decorate("eval")
 
         train_inputs = filter_inputs(train_and_eval_pl.inputs, is_train_param)
-        train_in_collections = filter_in_collections(
-            train_and_eval_pl.in_collections, is_train_param
-        )
 
         train_outputs = filter_outputs(train_and_eval_pl.outputs, is_train_param)
-        train_out_collections = OutCollections(
-            fitted=Outputs(
-                {
-                    entry_name: OutEntry((out_param,))
-                    for entry_name, out_param in fitted_outputs.items()
-                }
-            )
-        ) | filter_out_collections(train_and_eval_pl.out_collections, is_train_param)
+        train_outputs |= Outputs(
+            {
+                "fitted." + entry_name: OutPort((out_param,))
+                for entry_name, out_param in fitted_outputs.items()
+            }
+        )
+
         train_pl = UPipeline(
             name=train_and_eval_pl.name,
             dag=train_dag,
             inputs=train_inputs,
-            in_collections=train_in_collections,
             outputs=train_outputs,
-            out_collections=train_out_collections,
             config=PipelineConf(),  # TODO: fix config!
         ).decorate("train")
 

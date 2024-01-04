@@ -86,8 +86,8 @@ def test_combined_pipeline_with_default_values(
     )
 
     assert set(p.inputs) == set(("b", "c"))
-    assert set(p.out_collections) == set(("d",))
-    assert set(p.out_collections.d) == set(("p1", "p2"))
+    assert set(p.outputs) == set(("d",))
+    assert set(p.outputs.d) == set(("p1", "p2"))
 
     r = pipeline_runner_factory(p)
 

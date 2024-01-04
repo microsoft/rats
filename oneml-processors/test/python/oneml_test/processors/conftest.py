@@ -5,11 +5,11 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-
 from oneml.app import OnemlApp
-from oneml.processors.services import OnemlProcessorsServices, PipelineConfigService
-from oneml.processors.training import IPersistFittedEvalPipeline
-from oneml.processors.ux import PipelineRunnerFactory
+from oneml.processors.config import OnemlProcessorsConfigServices, PipelineConfigService
+from oneml.processors.example._app_plugin import DiamondExampleDiContainer
+from oneml.processors.training import IPersistFittedEvalPipeline, OnemlProcessorsTrainingServices
+from oneml.processors.ux import OnemlProcessorsUxServices, PipelineRunnerFactory
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +37,7 @@ def output_base_uri(
 @pytest.fixture(scope="package")
 def app() -> OnemlApp:
     app = OnemlApp.default()
+    app.parse_service_container(DiamondExampleDiContainer(app))
     return app
 
 
@@ -44,19 +45,19 @@ def app() -> OnemlApp:
 def pipeline_runner_factory(
     app: OnemlApp,
 ) -> PipelineRunnerFactory:
-    return app.get_service(OnemlProcessorsServices.PIPELINE_RUNNER_FACTORY)
+    return app.get_service(OnemlProcessorsUxServices.PIPELINE_RUNNER_FACTORY)
 
 
 @pytest.fixture(scope="package")
 def persist_fitted_eval_pipeline(
     app: OnemlApp,
 ) -> IPersistFittedEvalPipeline:
-    return app.get_service(OnemlProcessorsServices.PERSIST_FITTED_EVAL_PIPELINE)
+    return app.get_service(OnemlProcessorsTrainingServices.PERSIST_FITTED_EVAL_PIPELINE)
 
 
 @pytest.fixture(scope="package")
 def pipeline_config_service(app: OnemlApp) -> PipelineConfigService:
-    return app.get_service(OnemlProcessorsServices.PIPELINE_CONFIG_SERVICE)
+    return app.get_service(OnemlProcessorsConfigServices.PIPELINE_CONFIG_SERVICE)
 
 
 @pytest.fixture(scope="package")

@@ -57,7 +57,7 @@ setuptools = "*"
 types-urllib3 = "*"
 
 [tool.poetry.plugins."immunocli.plugins"]
-"oneml-habitats" = "oneml.habitats.immunocli._plugin:OnemlHabitatsCliPlugin.factory"
+"oneml-habitats" = "oneml.habitats.immunocli:OnemlHabitatsCliPlugin.factory"
 
 [tool.poetry.plugins."oneml.app_plugins"]
 "oneml.habitats-plugin" = "oneml.habitats.plugin:OnemlHabitatsPlugin"

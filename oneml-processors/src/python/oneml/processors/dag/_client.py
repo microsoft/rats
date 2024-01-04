@@ -10,7 +10,7 @@ from oneml.io import IGetLoaders, IGetPublishers, IManageLoaders, IManagePublish
 from oneml.pipelines.building import PipelineBuilderClient
 from oneml.pipelines.dag import PipelineDataDependency, PipelineNode, PipelinePort
 from oneml.pipelines.session import OnemlSessionContexts
-from oneml.processors.utils import orderedset
+from oneml.processors.utils import SupportsAsDict, orderedset
 from oneml.services import IExecutable, IGetContexts, IProvideServices
 
 from ._dag import DAG, DagDependency, DagNode, ProcessorProps
@@ -188,7 +188,7 @@ class SessionExecutableProvider(IExecutable):
         outputs = processor.process(*pos_args, **kw_args)
         if outputs:
             # outputs could be either a dict or a namedtuple
-            if isinstance(outputs, tuple):
+            if isinstance(outputs, SupportsAsDict):
                 outputs = outputs._asdict()
             for key, val in outputs.items():
                 data_id = PipelineDataId(

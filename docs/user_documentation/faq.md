@@ -5,9 +5,10 @@
 ### What is OneML?
 
 OneML is a framework to design and run pipelines for ML Research.
-Users organize their code writing classes which include ML functions and specify inputs and
+Users organize their code writing classes which encode ML functions and declare inputs and
 outputs.
-Users design pipelines linking these functions together and can run them.
+Users construct pipelines connecting these inputs and outputs into a DAG.
+Pipelines can be run locally or in a cluster.
 
 
 ### Why is OneML different from other ML pipelines tools?
@@ -41,5 +42,5 @@ functionality, and where ML concepts are built in to facilitate validity and ana
 
 OneML provides a framework to connect code organized in classes, abstract the complexities from
 running distributedly in multiple nodes, and facilitates organizing data around train and
-evaluation splits, supporting cross-validation, hyperaparameter optimizatino, and other pipeline
+evaluation splits, supporting cross-validation, hyperaparameter optimization, and other pipeline
 wrappers that are commonly used.

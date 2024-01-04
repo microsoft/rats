@@ -14,6 +14,11 @@ class COutput(TypedDict):
     z: float
 
 
+class DOutput(TypedDict):
+    z1: float
+    z2: float
+
+
 class A:
     def process(self) -> AOutput:
         return {"z1": 1.0, "z2": 2.0}
@@ -30,5 +35,6 @@ class C:
 
 
 class D:
-    def process(self, x1: Any, x2: Any) -> None:
+    def process(self, x1: Any, x2: Any) -> DOutput:
         print(f"x1={x1}, x2={x2}")
+        return {"z1": x1, "z2": x2}

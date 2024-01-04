@@ -7,11 +7,8 @@ from typing import Any
 
 from ._pipeline import (
     PM,
-    InCollections,
     InParameter,
     Inputs,
-    IOCollections,
-    OutCollections,
     OutParameter,
     Outputs,
     ParamCollection,
@@ -44,36 +41,6 @@ def filter_inputs(inputs: Inputs, predicate: Callable[[InParameter[Any]], bool])
 
 def filter_outputs(outputs: Outputs, predicate: Callable[[OutParameter[Any]], bool]) -> Outputs:
     return Outputs(filter_param_collection(outputs, predicate))
-
-
-def filter_io_collection(
-    collections: IOCollections[ParamCollection[ParamEntry[PM]]], predicate: Callable[[PM], bool]
-) -> IOCollections[ParamCollection[ParamEntry[PM]]]:
-    return collections.__class__(
-        {
-            collection_name: collection
-            for collection_name, collection in (
-                (
-                    collection_name,
-                    filter_param_collection(collection, predicate),
-                )
-                for collection_name, collection in collections._asdict().items()
-            )
-            if len(collection) > 0
-        }
-    )
-
-
-def filter_in_collections(
-    in_collections: InCollections, predicate: Callable[[InParameter[Any]], bool]
-) -> InCollections:
-    return InCollections(filter_io_collection(in_collections, predicate))
-
-
-def filter_out_collections(
-    out_collections: OutCollections, predicate: Callable[[OutParameter[Any]], bool]
-) -> OutCollections:
-    return OutCollections(filter_io_collection(out_collections, predicate))
 
 
 def _processor_type(f: Callable[..., object]) -> Callable[..., object]:

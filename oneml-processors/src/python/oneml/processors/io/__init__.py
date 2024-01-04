@@ -1,5 +1,7 @@
+from ._app_plugin import OnemlProcessorsIoPlugin, OnemlProcessorsIoServices
+from ._manifest import Manifest
 from ._plugin_register_rw import PluginRegisterReadersAndWriters
-from .read_from_uri import IReadFromUrlPipelineBuilder, ReadFromUrlPipelineBuilder
+from .read_from_uri import IReadFromUriPipelineBuilder, ReadFromUriPipelineBuilder
 from .type_rw_mappers import (
     IGetReadServicesForType,
     IGetWriteServicesForType,
@@ -10,23 +12,30 @@ from .type_rw_mappers import (
 )
 from .write_to_uri import (
     IWriteToNodeBasedUriPipelineBuilder,
+    IWriteToRelativePathPipelineBuilder,
     IWriteToUriPipelineBuilder,
     WriteToNodeBasedUriPipelineBuilder,
+    WriteToRelativePathPipelineBuilder,
     WriteToUriPipelineBuilder,
 )
 
 __all__ = [
+    "Manifest",
+    "OnemlProcessorsIoPlugin",
+    "OnemlProcessorsIoServices",
     "IGetReadServicesForType",
     "IGetWriteServicesForType",
     "IRegisterReadServiceForType",
     "IRegisterWriteServiceForType",
     "TypeToReadServiceMapper",
     "TypeToWriteServiceMapper",
-    "IReadFromUrlPipelineBuilder",
+    "IReadFromUriPipelineBuilder",
     "IWriteToUriPipelineBuilder",
     "IWriteToNodeBasedUriPipelineBuilder",
-    "ReadFromUrlPipelineBuilder",
+    "IWriteToRelativePathPipelineBuilder",
+    "ReadFromUriPipelineBuilder",
     "WriteToUriPipelineBuilder",
     "WriteToNodeBasedUriPipelineBuilder",
+    "WriteToRelativePathPipelineBuilder",
     "PluginRegisterReadersAndWriters",
 ]

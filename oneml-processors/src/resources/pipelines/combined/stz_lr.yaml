@@ -10,7 +10,7 @@ dependencies:
   d0:
     in_collection:
       pipeline: pipelines.lr
-      port: in_collections.X
+      port: inputs.X
     out_collection:
       pipeline: pipelines.stz
-      port: out_collections.Z
+      port: outputs.Z

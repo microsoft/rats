@@ -1,19 +1,21 @@
-import logging
-
 from oneml.app import AppPlugin
 from oneml.services import IManageServices
 
-from ._di_container import OnemlProcessorsDiContainer
-
-logger = logging.getLogger(__name__)
+from ..config import OnemlProcessorsConfigPlugin
+from ..dag import OnemlProcessorsDagPlugin
+from ..io import OnemlProcessorsIoPlugin
+from ..pipeline_operations import OnemlProcessorsPipelineOperationsPlugin
+from ..registry import OnemlProcessorsRegistryPlugin
+from ..training import OnemlProcessorsTrainingPlugin
+from ..ux import OnemlProcessorsUxPlugin
 
 
 class OnemlProcessorsPlugin(AppPlugin):
     def load_plugin(self, app: IManageServices) -> None:
-        app.parse_service_container(OnemlProcessorsDiContainer(app))
-        # if isinstance(app, OnemlApp):
-        #     logger.debug("initializing oneml-processors plugin")
-        #     di_container = OnemlProcessorsDiContainer(app)
-        #     app.parse_service_container(di_container)
-        # else:
-        #     logger.debug("skipping oneml-processors plugin b/c app is not an OnemlApp")
+        OnemlProcessorsIoPlugin().load_plugin(app)
+        OnemlProcessorsDagPlugin().load_plugin(app)
+        OnemlProcessorsUxPlugin().load_plugin(app)
+        OnemlProcessorsPipelineOperationsPlugin().load_plugin(app)
+        OnemlProcessorsTrainingPlugin().load_plugin(app)
+        OnemlProcessorsConfigPlugin().load_plugin(app)
+        OnemlProcessorsRegistryPlugin().load_plugin(app)

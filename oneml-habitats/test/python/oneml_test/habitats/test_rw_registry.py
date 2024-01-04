@@ -4,6 +4,7 @@ import pandas as pd
 from oneml.habitats.io import OnemlHabitatsIoServices
 from oneml.io import OnemlIoServices
 from oneml.processors.io import IGetReadServicesForType, IGetWriteServicesForType
+from oneml.processors.pipeline_operations import Manifest
 
 
 def test_registered_rw_str(
@@ -60,4 +61,23 @@ def test_registered_rw_pd(
         "memory": OnemlIoServices.INMEMORY_WRITER,
         "file": OnemlHabitatsIoServices.PANDAS_LOCAL_WRITER,
         "abfss": OnemlHabitatsIoServices.PANDAS_BLOB_WRITER,
+    }
+
+
+def test_registered_rw_manifest(
+    get_read_services_for_type: IGetReadServicesForType,
+    get_write_services_for_type: IGetWriteServicesForType,
+) -> None:
+    read_services = get_read_services_for_type.get_read_service_ids(Manifest)
+    assert read_services == {
+        "memory": OnemlIoServices.INMEMORY_READER,
+        "file": OnemlIoServices.JSON_LOCAL_READER,
+        "abfss": OnemlHabitatsIoServices.JSON_BLOB_READER,
+    }
+
+    write_services = get_write_services_for_type.get_write_service_ids(Manifest)
+    assert write_services == {
+        "memory": OnemlIoServices.INMEMORY_WRITER,
+        "file": OnemlIoServices.JSON_LOCAL_WRITER,
+        "abfss": OnemlHabitatsIoServices.JSON_BLOB_WRITER,
     }

@@ -1,4 +1,36 @@
+import pytest
+
 from oneml.processors.utils import namedcollection
+
+
+def test_namedcollection_init() -> None:
+    n1 = namedcollection({"foo": 1, "bar": 2, "hey": 3})
+    assert n1.foo == 1 and n1.bar == 2 and n1.hey == 3
+
+    n2 = namedcollection(foo=1, bar=2, hey=3)
+    assert n2.foo == 1 and n2.bar == 2 and n2.hey == 3
+
+    n3 = namedcollection((("foo", 1), ("bar", 2), ("hey", 3)))
+    assert n3.foo == 1 and n3.bar == 2 and n3.hey == 3
+
+    n4 = namedcollection([("foo", 1), ("bar", 2), ("hey", 3)], boo=4)
+    assert n4.foo == 1 and n4.bar == 2 and n4.hey == 3 and n4.boo == 4
+
+    n5 = namedcollection([("foo.foo", 1), ("foo.bar", 2), ("bar.bar", 2), ("hey", 3)], boo=4)
+    assert n5.foo.foo == 1 and n5.foo.bar == 2 and n5.bar.bar == 2 and n5.hey == 3 and n5.boo == 4  # type: ignore[union-attr]
+
+    n6 = namedcollection({"foo": 1, "bar": 2, "hey": n1}, boo=4)
+    assert n6.foo == 1 and n6.bar == 2 and n6.hey == n1 and n6.boo == 4
+    assert n6.hey.foo == 1 and n6.hey.bar == 2 and n6.hey.hey == 3  # type: ignore[attr-defined]
+
+    n7 = namedcollection({"foo.foo": 1, "foo.bar": 2, "bar.bar": 2, "hey": 3}, boo=4)
+    assert n7.foo.foo == 1 and n7.bar.bar == 2 and n7.hey == 3 and n7.boo == 4  # type: ignore[union-attr]
+
+    n8 = namedcollection({"foo": n1, "foo.tee": 2})
+    assert n8.foo.foo == 1 and n8.foo.bar == 2 and n8.foo.hey == 3 and n8.foo.tee == 2  # type: ignore[attr-defined]
+
+    n9 = namedcollection({"foo.tee": 2, "foo": n1})
+    assert n9.foo.foo == 1 and n9.foo.bar == 2 and n9.foo.hey == 3 and n9.foo.tee == 2  # type: ignore[attr-defined]
 
 
 def test_namedcollection_eq() -> None:
@@ -36,16 +68,72 @@ def test_namedcollection_contains() -> None:
     assert "yee" not in n
 
 
-def test_namedcollection_to_dict() -> None:
+def test_namecollection_getitem() -> None:
+    n3 = namedcollection({"foo": 1, "bar": 2, "hey": 3})
+    n2 = namedcollection({"foo": 1, "bar": n3, "hey": 3})
+    n1 = namedcollection({"foo": 1, "bee": n2, "bur": 3})
+
+    assert n1["foo"] == 1
+    assert n1["bee"] == n2
+    assert n1["bee.foo"] == 1
+    assert n1["bee.bar"] == n3
+    assert n1["bee.hey"] == 3
+    assert n1["bur"] == 3
+    assert n1["bee.bar.foo"] == 1
+    assert n1["bee.bar.bar"] == 2
+    assert n1["bee.bar.hey"] == 3
+
+
+def test_namedcollection_asdict() -> None:
     t = {"foo": 1, "bar": 2, "hey": 3}
-    n = namedcollection(t)
-    assert n._asdict() == t
+    n3 = namedcollection(t)
+    n2 = namedcollection({"foo": 1, "bar": n3, "hey": 3})
+    n1 = namedcollection({"foo": 1, "bee": n2, "bur": 3})
+
+    assert n3._asdict() == t
+
+    assert n1._asdict() == {
+        "foo": 1,
+        "bee.foo": 1,
+        "bee.bar.foo": 1,
+        "bee.bar.bar": 2,
+        "bee.bar.hey": 3,
+        "bee.hey": 3,
+        "bur": 3,
+    }
+    for k, v in n1._asdict().items():
+        assert n1[k] == v
+
+    assert namedcollection(n1._asdict()) == n1
+    assert namedcollection(n2._asdict()) == n2
+    assert namedcollection(n3._asdict()) == n3
 
 
 def test_namedcollection_repr() -> None:
-    t = {"foo": 1, "bar": 2, "hey": 3}
-    n = namedcollection(t)
-    assert repr(n) == "namedcollection(foo=1, bar=2, hey=3)"
+    n1 = namedcollection({"foo": 1, "bar": 2, "hey": 3})
+    assert repr(n1) == "namedcollection(foo=1, bar=2, hey=3)"
+
+    n2 = namedcollection({"foo": 1, "bar": n1, "hey": 3})
+    assert repr(n2) == "namedcollection(foo=1, bar.foo=1, bar.bar=2, bar.hey=3, hey=3)"
+
+
+def test_namedcollection_replace() -> None:
+    n1 = namedcollection({"foo": 1, "bar": 2, "hey": 3})
+    n2 = n1._replace(foo=4)
+    assert n2 == namedcollection({"foo": 4, "bar": 2, "hey": 3})
+
+    n3 = n1._replace({"foo": 4}, bar=5)
+    assert n3 == namedcollection({"foo": 4, "bar": 5, "hey": 3})
+
+    with pytest.raises(TypeError):
+        n1._replace({"foo": 4}, {"bar": 5})  # type: ignore[call-arg]
+
+    n4 = namedcollection({"foo": 1, "bar.bar": 2, "bar.foo": 4, "hey": 3})
+    n5 = n4._replace({"bar.foo": 5, "bar.bar": 6})
+    assert n5 == namedcollection({"foo": 1, "bar.bar": 6, "bar.foo": 5, "hey": 3})
+
+    n6 = n4._replace({"bar.bee": 5})  # add new value
+    assert n6 == namedcollection({"foo": 1, "bar.bar": 2, "bar.foo": 4, "bar.bee": 5, "hey": 3})
 
 
 def test_namedcollection_union() -> None:
@@ -63,31 +151,29 @@ def test_namedcollection_union() -> None:
     )
 
 
-def test_nameset_or() -> None:
+def test_namedcollection_or() -> None:
     n1 = namedcollection({"foo": 1, "bar": 2, "hey": 3})
     n2 = namedcollection({"foo": 1, "bee": 2, "bur": 3})
     n3 = n1 | n2
     assert n3 == namedcollection({"foo": 1, "bar": 2, "hey": 3, "bee": 2, "bur": 3})
 
 
-def test_recursive_nameset_or() -> None:
+def test_recursive_namedcollection_or() -> None:
     n1 = namedcollection({"foo": 1, "bar": 2, "hey": namedcollection({"bla": 1, "blu": 2})})
     n2 = namedcollection(
         {"foo": 1, "bee": 2, "bur": 3, "hey": namedcollection({"blo": 3, "blu": 2})}
     )
     n3 = n1 | n2
-    assert n3 == namedcollection(
-        {
-            "foo": 1,
-            "bar": 2,
-            "hey": namedcollection({"bla": 1, "blu": 2, "blo": 3}),
-            "bee": 2,
-            "bur": 3,
-        }
+    n4 = namedcollection(
+        {"foo": 1, "bar": 2, "hey.bla": 1, "hey.blu": 2, "hey.blo": 3, "bee": 2, "bur": 3}
     )
+    assert n3 == n4
+
+    n5 = n3 | {"foo": 1, "bee": 2, "bur": 3, "hey.blo": 3, "hey.blu": 2}
+    assert n5 == n4
 
 
-def test_recursive_nameset_sub() -> None:
+def test_namedcollection_sub() -> None:
     n1 = namedcollection({"foo": 1, "boo": 2, "bar": 3, "hey": 4})
     n2 = namedcollection({"foo": 1, "bee": 2, "bur": 3, "hey": 4})
     n3 = namedcollection({"foo": 1, "boo": 2, "bar": n2, "hey": 4, "bee": 2, "bur": 3})
@@ -177,3 +263,14 @@ def test_namedcollection_find() -> None:
 
     assert n3._find(1, 2) == ("foo", "bar.foo", "boo", "bar.bee", "bee")
     assert n4._find(5) == ("bar",)
+
+
+def test_namedcollection_depth() -> None:
+    n1 = namedcollection({"foo": 1, "boo": 2, "bar": 3, "hey": 3})
+    assert n1._depth == 0
+
+    n2 = namedcollection({"foo.foo": 1, "foo.bar": 2, "bar.bar": 2, "hey": 3}, boo=4)
+    assert n2._depth == 1
+
+    n3 = namedcollection({"foo.foo.foo": 1, "foo.bar": 2, "bar.bar": 2, "hey": 3}, boo=4)
+    assert n3._depth == 2

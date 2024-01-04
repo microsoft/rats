@@ -27,6 +27,14 @@ class CatService:
         return "meow"
 
 
+class RussianBlueService(CatService):
+    def speak(self) -> str:
+        return "meow"
+
+    def also_speak(self) -> str:
+        return "purr"
+
+
 class DogExecutable(IExecutable):
     def execute(self) -> None:
         print("woof")
@@ -35,6 +43,8 @@ class DogExecutable(IExecutable):
 class ExampleServices:
     CAT_1 = ServiceId[CatService]("cat.1")
     CAT_2 = ServiceId[CatService]("cat.2")
+    RUSSIAN_BLUE_1 = ServiceId[RussianBlueService]("russian-blue.1")
+    RUSSIAN_BLUE_2 = ServiceId[RussianBlueService]("russian-blue.2")
     DOG_1 = ServiceId[DogExecutable]("dog.1")
     DOG_2 = ServiceId[DogExecutable]("dog.2")
 
@@ -46,6 +56,10 @@ class ExampleServiceGroups:
 
 def make_cat() -> CatService:
     return CatService()
+
+
+def make_russian_blue() -> RussianBlueService:
+    return RussianBlueService()
 
 
 def make_dog() -> DogExecutable:
