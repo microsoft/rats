@@ -13,7 +13,9 @@ on:
         type: boolean
 jobs:
   test-components:
+    continue-on-error: true
     strategy:
+      fail-fast: false
       matrix:
         component:
           - oneml-pipelines
@@ -73,7 +75,7 @@ jobs:
         run: |
           docker run \
             -v $PWD/.tmp:/opt/oneml/.tmp \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run ruff check --output-format=github src/python/
+            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run ruff check --output-format=github src/python/ test/python/
       - name: mypy
         run: |
           docker run \

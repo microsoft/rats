@@ -6,16 +6,19 @@ updates:
       interval: "weekly"
     target-branch: "main"
   - package-ecosystem: "pip"
+    token: ${{secrets.IMMUNOMICS}}
     directory: "/oneml-habitats/"
     schedule:
       interval: "daily"
     target-branch: "main"
   - package-ecosystem: "pip"
+    token: ${{secrets.IMMUNOMICS}}
     directory: "/oneml-pipelines/"
     schedule:
       interval: "daily"
     target-branch: "main"
   - package-ecosystem: "pip"
+    token: ${{secrets.IMMUNOMICS}}
     directory: "/oneml-processors/"
     schedule:
       interval: "daily"
