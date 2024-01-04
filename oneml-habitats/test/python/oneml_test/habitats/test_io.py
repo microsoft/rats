@@ -3,7 +3,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from oneml.habitats.io import NumpyLocalRW, PandasLocalRW
+from oneml.habitats.io._numpy import NumpyLocalRW
+from oneml.habitats.io._pandas import PandasLocalRW
 from oneml.io import RWDataUri
 
 

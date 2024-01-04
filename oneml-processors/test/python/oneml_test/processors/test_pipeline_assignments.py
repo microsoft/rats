@@ -56,42 +56,42 @@ def test_single_UPipelineparams_assignments(train_stz: UPipeline, eval_stz: UPip
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
     with pytest.raises(TypeError):
-        eval_stz.inputs.shift >> train_stz.outputs.shift  # type: ignore
+        eval_stz.inputs.shift >> train_stz.outputs.shift  # type: ignore[operator]
 
     # Tests InParameter << OutParameter assignament
-    dp = eval_stz.in_collections.X.eval << train_stz.out_collections.Z.train
+    dp = eval_stz.inputs.X.eval << train_stz.outputs.Z.train
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
     with pytest.raises(TypeError):
-        eval_stz.in_collections.X.eval >> train_stz.out_collections.Z.train  # type: ignore
+        eval_stz.inputs.X.eval >> train_stz.outputs.Z.train  # type: ignore[operator]
 
     # Tests Outputs >> Inputs assignments
     dp = train_stz.outputs.scale >> eval_stz.inputs.scale
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
     with pytest.raises(TypeError):
-        train_stz.outputs.scale << eval_stz.inputs.scale  # type: ignore
+        train_stz.outputs.scale << eval_stz.inputs.scale  # type: ignore[operator]
 
     # Tests OutParameter >> InParameter assignments
-    dp = train_stz.out_collections.Z.train >> eval_stz.in_collections.X.eval
+    dp = train_stz.outputs.Z.train >> eval_stz.inputs.X.eval
     assert len(dp) == 1 and isinstance(dp[0], Dependency)
 
     with pytest.raises(TypeError):
-        train_stz.out_collections.Z.train << eval_stz.in_collections.X.eval  # type: ignore
+        train_stz.outputs.Z.train << eval_stz.inputs.X.eval  # type: ignore[operator]
 
 
 def test_mixed_UPipelineparams_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
-    with pytest.raises(ValueError):  # not supported
-        eval_stz.in_collections.X << train_stz.outputs.shift  # type: ignore
+    with pytest.raises(TypeError):  # not supported
+        eval_stz.inputs.X << train_stz.outputs.shift
 
-    with pytest.raises(ValueError):  # not supported
-        train_stz.outputs.shift >> eval_stz.in_collections.X  # type: ignore
+    with pytest.raises(TypeError):  # not supported
+        train_stz.outputs.shift >> eval_stz.inputs.X
 
-    with pytest.raises(ValueError):  # not supported
-        eval_stz.inputs.shift << train_stz.out_collections.Z  # type: ignore
+    with pytest.raises(TypeError):  # not supported
+        eval_stz.inputs.shift << train_stz.outputs.Z
 
-    with pytest.raises(ValueError):  # not supported
-        train_stz.out_collections.Z >> eval_stz.inputs.shift  # type: ignore
+    with pytest.raises(TypeError):  # not supported
+        train_stz.outputs.Z >> eval_stz.inputs.shift
 
 
 def test_collection_UPipelineparams_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
@@ -113,38 +113,38 @@ def test_collection_UPipelineparams_assignments(train_stz: UPipeline, eval_stz: 
     )
 
     # Tests Inputs << Outputs assignments
-    dps = stz2.in_collections.X << stz1.out_collections.Z  # many to many
+    dps = stz2.inputs.X << stz1.outputs.Z
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
     with pytest.raises(TypeError):
-        stz2.in_collections.X >> stz1.out_collections.Z  # type: ignore
+        stz2.inputs.X >> stz1.outputs.Z  # type: ignore[operator]
 
     # Tests InParameter << OutParameter assignments
-    dp1 = stz2.in_collections.X.train << stz1.out_collections.Z.train
-    dp2 = stz2.in_collections.X.eval << stz1.out_collections.Z.eval
+    dp1 = stz2.inputs.X.train << stz1.outputs.Z.train
+    dp2 = stz2.inputs.X.eval << stz1.outputs.Z.eval
     assert len(dp1) == 1 and isinstance(dp1[0], Dependency)
     assert len(dp2) == 1 and isinstance(dp2[0], Dependency)
 
     with pytest.raises(TypeError):
-        stz2.in_collections.X.train >> stz1.out_collections.Z.train  # type: ignore
-        stz2.in_collections.X.eval >> stz1.out_collections.Z.eval  # type: ignore
+        stz2.inputs.X.train >> stz1.outputs.Z.train  # type: ignore[operator]
+        stz2.inputs.X.eval >> stz1.outputs.Z.eval  # type: ignore[operator]
 
     # Tests Outputs >> Inputs assignments
-    dps = stz1.out_collections.Z >> stz2.in_collections.X  # many to many
+    dps = stz1.outputs.Z >> stz2.inputs.X
     assert len(dps) == 2 and all(isinstance(dp, Dependency) for dp in dps)
 
     with pytest.raises(TypeError):
-        stz1.out_collections.Z << stz2.in_collections.X  # type: ignore
+        stz1.outputs.Z << stz2.inputs.X  # type: ignore[operator]
 
     # Tests OutParameter >> InParameter assignments
-    dp1 = stz1.out_collections.Z.train >> stz2.in_collections.X.train
-    dp2 = stz1.out_collections.Z.eval >> stz2.in_collections.X.eval
+    dp1 = stz1.outputs.Z.train >> stz2.inputs.X.train
+    dp2 = stz1.outputs.Z.eval >> stz2.inputs.X.eval
     assert len(dp1) == 1 and isinstance(dp1[0], Dependency)
     assert len(dp2) == 1 and isinstance(dp2[0], Dependency)
 
     with pytest.raises(TypeError):
-        stz1.out_collections.Z.train << stz1.in_collections.X.train  # type: ignore
-        stz1.out_collections.Z.eval << stz1.in_collections.X.eval  # type: ignore
+        stz1.outputs.Z.train << stz1.inputs.X.train  # type: ignore[operator]
+        stz1.outputs.Z.eval << stz1.inputs.X.eval  # type: ignore[operator]
 
 
 def test_IOCollections_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:
@@ -161,7 +161,7 @@ def test_IOCollections_assignments(train_stz: UPipeline, eval_stz: UPipeline) ->
     assert dependencies == set(dps)
 
     with pytest.raises(TypeError):
-        train_stz.outputs << eval_stz.inputs  # type: ignore
+        train_stz.outputs << eval_stz.inputs  # type: ignore[operator]
 
     # Test OutCollections >> InCollections
     dps = train_stz.outputs >> eval_stz.inputs
@@ -169,7 +169,7 @@ def test_IOCollections_assignments(train_stz: UPipeline, eval_stz: UPipeline) ->
     assert dependencies == set(dps)
 
     with pytest.raises(TypeError):
-        train_stz.inputs >> eval_stz.outputs  # type: ignore
+        train_stz.inputs >> eval_stz.outputs  # type: ignore[operator]
 
 
 def test_UPipeline_assignments(train_stz: UPipeline, eval_stz: UPipeline) -> None:

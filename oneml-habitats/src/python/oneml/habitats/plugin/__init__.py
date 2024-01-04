@@ -1,4 +1,4 @@
-from ._plugin import OnemlHabitatsPlugin
+from ._app_plugin import OnemlHabitatsPlugin
 
 __all__ = [
     "OnemlHabitatsPlugin",

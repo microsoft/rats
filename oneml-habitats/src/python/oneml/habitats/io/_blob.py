@@ -130,3 +130,43 @@ class BlobWriteUsingLocalCache(BlobRWUsingLocalCacheBase, IWriteData[Tcontra_Dat
         cache_path = self._get_cache_path(data_uri)
         self._local_writer.write(RWDataUri(cache_path.as_uri()), payload)
         self._upload(cache_path, data_uri)
+
+
+class BlobReadUsingLocalCacheFactory:
+    _blob_client_factory: IBlobClientFactory
+    _local_cache_path: Path
+
+    def __init__(
+        self,
+        blob_client_factory: IBlobClientFactory,
+        local_cache_path: Path,
+    ):
+        self._blob_client_factory = blob_client_factory
+        self._local_cache_path = local_cache_path
+
+    def __call__(self, local_reader: IReadData[Tco_DataType]) -> IReadData[Tco_DataType]:
+        return BlobReadUsingLocalCache(
+            blob_client_factory=self._blob_client_factory,
+            local_cache_path=self._local_cache_path,
+            local_reader=local_reader,
+        )
+
+
+class BlobWriteUsingLocalCacheFactory:
+    _blob_client_factory: IBlobClientFactory
+    _local_cache_path: Path
+
+    def __init__(
+        self,
+        blob_client_factory: IBlobClientFactory,
+        local_cache_path: Path,
+    ):
+        self._blob_client_factory = blob_client_factory
+        self._local_cache_path = local_cache_path
+
+    def __call__(self, local_writer: IWriteData[Tcontra_DataType]) -> IWriteData[Tcontra_DataType]:
+        return BlobWriteUsingLocalCache(
+            blob_client_factory=self._blob_client_factory,
+            local_cache_path=self._local_cache_path,
+            local_writer=local_writer,
+        )

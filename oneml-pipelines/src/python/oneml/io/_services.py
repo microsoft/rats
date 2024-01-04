@@ -26,3 +26,6 @@ class OnemlIoServices:
     DILL_LOCAL_READER = ServiceId[IReadData[object]]("dill-local-rw")
     DILL_LOCAL_WRITER = ServiceId[IWriteData[object]]("dill-local-rw")
     DILL_LOCAL_RW = ServiceId[IReadAndWriteData[object]]("dill-local-rw")
+    JSON_LOCAL_READER = ServiceId[IReadData[object]]("json-local-rw")
+    JSON_LOCAL_WRITER = ServiceId[IWriteData[object]]("json-local-rw")
+    JSON_LOCAL_RW = ServiceId[IReadAndWriteData[object]]("json-local-rw")

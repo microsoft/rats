@@ -1,12 +1,6 @@
-from ._blob import BlobReadUsingLocalCache, BlobWriteUsingLocalCache
-from ._numpy import NumpyLocalRW
-from ._pandas import PandasLocalRW
-from ._services import OnemlHabitatsIoServices
+from ._app_plugin import OnemlHabitatsIoPlugin, OnemlHabitatsIoServices
 
 __all__ = [
     "OnemlHabitatsIoServices",
-    "NumpyLocalRW",
-    "PandasLocalRW",
-    "BlobReadUsingLocalCache",
-    "BlobWriteUsingLocalCache",
+    "OnemlHabitatsIoPlugin",
 ]

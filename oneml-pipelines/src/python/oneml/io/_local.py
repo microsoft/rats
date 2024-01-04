@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 from typing import TypeVar
@@ -41,3 +42,18 @@ class DillLocalRW(LocalRWBase, IReadAndWriteData[object]):
         path = self._get_path(data_uri)
         with path.open("rb") as f:
             return dill.load(f)
+
+
+class JsonLocalRW(LocalRWBase, IReadAndWriteData[object]):
+    def write(self, data_uri: RWDataUri, payload: object) -> None:
+        logger.debug(f"{self.__class__.__name__}: writing to {data_uri}")
+        path = self._get_path(data_uri)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("w") as f:
+            json.dump(payload, f)
+
+    def read(self, data_uri: RWDataUri) -> object:
+        logger.debug(f"{self.__class__.__name__}: reading from {data_uri}")
+        path = self._get_path(data_uri)
+        with path.open("r") as f:
+            return json.load(f)
