@@ -136,9 +136,9 @@ class namedcollection(Generic[T_co]):
             assert isinstance(k, str)
             k0, k1 = k.split(".", maxsplit=1) if "." in k else (k, "")
             if k1:
-                d[k0] = self.__class__({k1: v}) if k0 not in d else d[k0] | self.__class__({k1: v})  # type: ignore
+                d[k0] = self.__class__({k1: v}) if k0 not in d else d[k0] | self.__class__({k1: v})  # type: ignore[operator]
             else:
-                d[k0] = v if k0 not in d else d[k0] | v
+                d[k0] = v if k0 not in d else d[k0] | v  # type: ignore[operator]
         return d
 
     def __eq__(self, __o: Any) -> bool:
@@ -156,7 +156,7 @@ class namedcollection(Generic[T_co]):
     def __getitem__(self, key: str) -> Self | T_co:
         """Access attributes via bracket notation supporting keys with dots."""
         k0, k1 = key.split(".", maxsplit=1) if "." in key else (key, "")
-        return self._d[k0] if not k1 else self._d[k0][k1]  # type: ignore[index]
+        return self._d[k0] if not k1 else self._d[k0][k1]  # type: ignore[operator]
 
     def __getattr__(self, key: str) -> Self | T_co:
         try:  # https://stackoverflow.com/a/16237698

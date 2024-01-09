@@ -52,9 +52,11 @@
             "source.organizeImports": true
         },
         "python.languageServer": "Pylance",
-        // turn off Pylance native typechecking (leaves MyPy intact as Pylance treats it as a linter)
-        "python.analysis.typeCheckingMode": "off",
+        "python.analysis.typeCheckingMode": "basic",
         "python.analysis.autoImportCompletions": true,
+        "python.analysis.extraPaths": [
+            "${workspaceFolder}/src/python"
+        ],
         "python.autoComplete.extraPaths": [
             "${workspaceFolder}/src/python"
         ],
@@ -69,8 +71,5 @@
             "**/outputs": true,
             "**/__pycache__": true
         },
-        "python.analysis.extraPaths": [
-            "${workspaceFolder}/src/python"
-        ],
     }
 }
