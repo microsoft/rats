@@ -157,7 +157,7 @@ def pipeline_to_dot(pipeline: UPipeline, include_optional: bool = True) -> pydot
     return builder.get_dot()
 
 
-def dag_to_svg(dag: DAG, **kwds: Any) -> bytes:
+def dag_to_svg(dag: DAG, **kwds: Any) -> str:
     dot = dag_to_dot(dag, **kwds)
     return dot.create(format="svg")
 

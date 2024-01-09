@@ -255,7 +255,7 @@ class namedcollection(Generic[T_co]):
             New namedcollection with replaced (or added) values.
 
         """
-        return self.__class__((self._asdict() | d), **kwargs)
+        return self.__class__((self._asdict() | d), **kwargs)  # type: ignore
 
     def _find(self, *values: Any) -> tuple[str, ...]:
         """Find locations of values in namedcollection and nested namesets."""
