@@ -1,4 +1,5 @@
-from typing import Iterable, Iterator, Mapping, TypeVar
+from collections.abc import Iterable, Iterator, Mapping
+from typing import TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -11,7 +12,7 @@ class ImmutableNoOverlapChainMap(Mapping[K, V]):
         self._key_to_map = self._build_key_to_map(maps)
 
     @classmethod
-    def _build_key_to_map(self, maps: Iterable[Mapping[K, V]]) -> Mapping[K, Mapping[K, V]]:
+    def _build_key_to_map(cls, maps: Iterable[Mapping[K, V]]) -> Mapping[K, Mapping[K, V]]:
         key_to_map = dict[K, Mapping[K, V]]()
         duplicates = set()
         for m in maps:

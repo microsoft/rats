@@ -1,12 +1,9 @@
-from typing import Mapping, Sequence, TypeAlias, Union
+from collections.abc import Mapping, Sequence
+from typing import TypeAlias
 
-JsonFormattable: TypeAlias = Union[
-    Mapping[str, "JsonFormattable"],
-    str,
-    int,
-    float,
-    Sequence["JsonFormattable"],
-]
+JsonFormattable: TypeAlias = (
+    Mapping[str, "JsonFormattable"] | str | int | float | Sequence["JsonFormattable"]
+)
 
 
 class Manifest(dict[str, JsonFormattable]):

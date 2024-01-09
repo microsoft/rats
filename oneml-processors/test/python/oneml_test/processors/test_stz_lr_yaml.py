@@ -17,11 +17,17 @@ class StzTrainOutput(TypedDict):
     mean: float
     scale: float
     Z: float
+
+
 class StzEvalOutput(TypedDict):
     Z: float
+
+
 class LRTrainOutput(TypedDict):
     model: Model
     probs: float
+
+
 class LREvalOutput(TypedDict):
     acc: float
     probs: float

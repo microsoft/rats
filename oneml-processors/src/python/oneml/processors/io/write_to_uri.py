@@ -3,6 +3,7 @@ from collections.abc import Mapping
 from typing import Any, Generic, Protocol, TypedDict, TypeVar
 
 from furl import furl
+
 from oneml.io import IWriteData, RWDataUri
 from oneml.pipelines.session import OnemlSessionContexts
 from oneml.processors.ux import UPipeline, UPipelineBuilder
@@ -34,6 +35,8 @@ class WriteToUriProcessor(Generic[DataType]):
 
     def process(self, data: DataType) -> WriteToUriProcessorOutput:
         scheme = furl(self._uri).scheme
+        if scheme is None:
+            raise ValueError(f"Invalid uri: {self._uri}")
         write_service_id = self._write_service_ids.get(scheme, None)
         if write_service_id is None:
             raise ValueError(f"Unsupported scheme: {scheme}")

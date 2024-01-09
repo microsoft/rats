@@ -1,4 +1,5 @@
-from typing import Any, Mapping, Sequence, TypedDict, TypeVar, overload
+from collections.abc import Mapping, Sequence
+from typing import Any, TypedDict, TypeVar, overload
 
 from ..ux import InPort, InPorts, OutPort, OutPorts, Outputs, Pipeline, UPipeline, UTask
 from ._collection_to_dict_processors import DictToOutputs, InputsToDict

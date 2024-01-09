@@ -72,17 +72,19 @@ class LoadInputsSaveOutputs:
 
     def _add_load_and_save(self, pipeline: UPipeline) -> UPipeline:
         pipelines: tuple[UPipeline, ...] = (pipeline,)
-        dependencies = tuple()  # type: ignore[var-annotated]
+        dependencies = tuple()
         if "inputs_to_load" in pipeline.inputs:
             load_pipeline = self._get_load_pipeline(pipeline)
-            pipelines = pipelines + (load_pipeline,)
-            dependencies = dependencies + (
+            pipelines = (*pipelines, load_pipeline)
+            dependencies = (
+                *dependencies,
                 load_pipeline.outputs.inputs >> pipeline.inputs.inputs_to_load,
             )
         if "outputs_to_save" in pipeline.outputs:
             save_pipeline = self._get_save_pipeline(pipeline)
-            pipelines = pipelines + (save_pipeline,)
-            dependencies = dependencies + (
+            pipelines = (*pipelines, save_pipeline)
+            dependencies = (
+                *dependencies,
                 pipeline.outputs.outputs_to_save >> save_pipeline.inputs.outputs,
             )
         if len(pipelines) == 1:

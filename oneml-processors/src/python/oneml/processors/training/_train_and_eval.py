@@ -425,7 +425,7 @@ class TrainAndEvalBuilders:
             outputs={
                 k: v for k, v in train_pl.outputs._asdict().items() if not k.startswith("fitted.")
             }
-            | reduce(lambda si, xi: si | xi.outputs._asdict(), eval_pls, {}),  # type: ignore
+            | reduce(lambda si, xi: si | xi.outputs._asdict(), eval_pls, {}),
         )
         return p
 
@@ -467,7 +467,7 @@ class TrainAndEvalBuilders:
             if "fitted" in io:
                 raise ValueError(
                     f"UPipeline already has a `fitted` {iol}.  Please rename it because "
-                    f"we need it for the {iol}s of the {pll} pipeline."
+                    + f"we need it for the {iol}s of the {pll} pipeline."
                 )
 
         validate_io("input")

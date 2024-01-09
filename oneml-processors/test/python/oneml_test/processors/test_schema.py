@@ -46,7 +46,7 @@ def test_task_conf(register_resolvers_and_configs: None) -> None:
     # tests that instantiating a class with no var keyword argument fails if given input_annotation
     processor_type = "oneml_test.processors.test_ux_arrays.SumArrays"
     input_annotation = {"floats": "float"}
-    with pytest.raises(hydra.errors.InstantiationException):
+    with pytest.raises(hydra.errors.InstantiationException):  # pyright: ignore
         # ValueError('`input_annotation` provided; processor does not have keyword vars.')
         instantiate(TaskConf(processor_type=processor_type, input_annotation=input_annotation))
 

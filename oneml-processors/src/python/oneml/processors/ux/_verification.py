@@ -6,7 +6,7 @@ from ..utils import namedcollection, orderedset
 
 if TYPE_CHECKING:
     from ..dag import DAG
-    from ._pipeline import InPort, InPorts, Inputs, OutPort, OutPorts, Outputs, UPipeline
+    from ._pipeline import InPort, InPorts, Inputs, OutPort, Outputs, UPipeline
 
 
 def _verify_dag_integrity(dag: DAG) -> None:

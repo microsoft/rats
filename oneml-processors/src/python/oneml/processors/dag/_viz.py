@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class DotBuilder:
-    _g: pydot.Dot  # type: ignore[no-any-unimported]
+    _g: pydot.Dot
     _node_name_mapping: dict[str, str]
     _include_optional: bool
 
@@ -141,17 +141,17 @@ class DotBuilder:
         self._add_inputs(pipeline.inputs)
         self._add_outputs(pipeline.outputs)
 
-    def get_dot(self) -> pydot.Dot:  # type: ignore[no-any-unimported]
+    def get_dot(self) -> pydot.Dot:
         return self._g
 
 
-def dag_to_dot(dag: DAG, include_optional: bool = True) -> pydot.Dot:  # type: ignore[no-any-unimported]
+def dag_to_dot(dag: DAG, include_optional: bool = True) -> pydot.Dot:
     builder = DotBuilder(include_optional=include_optional)
     builder._add_pipeline(dag)
     return builder.get_dot()
 
 
-def pipeline_to_dot(pipeline: UPipeline, include_optional: bool = True) -> pydot.Dot:  # type: ignore[no-any-unimported]
+def pipeline_to_dot(pipeline: UPipeline, include_optional: bool = True) -> pydot.Dot:
     builder = DotBuilder(include_optional=include_optional)
     builder.add_pipeline(pipeline)
     return builder.get_dot()

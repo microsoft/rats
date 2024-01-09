@@ -1,4 +1,5 @@
-from typing import Iterator, Mapping, TypeVar
+from collections.abc import Iterator, Mapping
+from typing import TypeVar
 
 from oneml.services import IProvideServices, ServiceId
 

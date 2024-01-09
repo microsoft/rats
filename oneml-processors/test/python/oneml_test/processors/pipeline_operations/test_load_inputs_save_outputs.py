@@ -1,7 +1,8 @@
 import json
 import shutil
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Any, Iterator, NamedTuple, cast
+from typing import Any, NamedTuple, cast
 from uuid import uuid4
 
 import pytest
@@ -353,7 +354,7 @@ def test_load_inputs_save_outputs_with_inputs_and_outputs_and_uris(
     pipeline = load_inputs_save_outputs(internal_pipeline_with_inputs_and_outputs_and_uris)
     output_path = get_output_path(tmp_path)
     expected_inputs = {"b", "output_base_uri"}
-    inputs = {
+    inputs: dict[str, Any] = {
         "b": 3,
         "output_base_uri": output_path.as_uri(),
         "input_uris.a": (input_path / "a").as_uri(),

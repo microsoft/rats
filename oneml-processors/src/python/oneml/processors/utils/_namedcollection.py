@@ -123,7 +123,7 @@ class namedcollection(Generic[T_co]):
         else:
             d = self._mapping_to_nested_collection(dict(*args))
 
-        self._d = dict(d, **kwargs)  # type: ignore
+        self._d = dict(d, **kwargs)
         self._hash = None
         if not all(isinstance(k, str) for k in self._d):
             raise ValueError("Input keys need to be `str` types.")
@@ -136,9 +136,9 @@ class namedcollection(Generic[T_co]):
             assert isinstance(k, str)
             k0, k1 = k.split(".", maxsplit=1) if "." in k else (k, "")
             if k1:
-                d[k0] = self.__class__({k1: v}) if k0 not in d else d[k0] | self.__class__({k1: v})  # type: ignore[operator]
+                d[k0] = self.__class__({k1: v}) if k0 not in d else d[k0] | self.__class__({k1: v})  # type: ignore
             else:
-                d[k0] = v if k0 not in d else d[k0] | v  # type: ignore[operator]
+                d[k0] = v if k0 not in d else d[k0] | v
         return d
 
     def __eq__(self, __o: Any) -> bool:
@@ -232,7 +232,7 @@ class namedcollection(Generic[T_co]):
             if isinstance(v, namedcollection):
                 d.update({f"{k}.{k1}": v1 for k1, v1 in v._asdict().items()})
             else:
-                d[k] = v  # type: ignore[assignment]
+                d[k] = v
         return d
 
     def _replace(self, d: Mapping[str, T] = {}, **kwargs: T) -> Self:

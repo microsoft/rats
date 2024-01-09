@@ -510,7 +510,7 @@ outputs = {
 Only `standardization.outputs.Z` is specified in the dependencies list and excluded.
 Furthremore, pecifying `Z` output could also have been done more verbosely:
 ```python
-{   
+{
     ...,
     "Z.train": logistic_regression.outputs.Z.train,
     "Z.eval": logistic_regression.outputs.Z.eval
@@ -644,7 +644,7 @@ Modularity and reusability are two core design principles that we promote when b
 The following mechanism can be used to make a pipeline provider available.
 Note that this mechanism leverages the OnemlApp concepts explained in `oneml-pipelines`. TODO: need link.
 
-First declare your pipeline provider service. 
+First declare your pipeline provider service.
 Second, add your service to the `OnemlProcessorsRegistryServiceGroups.PIPELINE_PROVIDERS` group.
 
 For example in `example/_app_plugin.py`:
@@ -698,7 +698,7 @@ Every users will be now able to call the pipeline provider by referring to the i
 service id, or even call all pipeline providers after making it available to the service group
 (which is used in YAML pipelines for example).
 
-The `oneml.processors.registry.IProvidePipeline` interface to create a pipeline provider is 
+The `oneml.processors.registry.IProvidePipeline` interface to create a pipeline provider is
 defined as follows
 ```python
 from typing import Protocol, TypeVar

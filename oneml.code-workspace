@@ -38,8 +38,10 @@
         // settings to apply to all workspace roots
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
-            "source.organizeImports": "explicit"
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit",
         },
+        "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.rulers": [
             99
         ],
@@ -58,16 +60,6 @@
         ],
         "python.analysis.inlayHints.pytestParameters": true,
         "python.envFile": "${workspaceFolder}/.envrc",
-        "[python]": {
-            "editor.formatOnSave": true,
-            "editor.codeActionsOnSave": {
-                "source.fixAll": "explicit",
-                "source.organizeImports": "explicit"
-            },
-            "editor.defaultFormatter": "charliermarsh.ruff",
-        },
-        "mypy-type-checker.reportingScope": "file",
-        "mypy-type-checker.preferDaemon": true,
         "debug.toolBarLocation": "commandCenter",
         "markdown.validate.enabled": true,
         "diffEditor.diffAlgorithm": "advanced",
@@ -79,6 +71,6 @@
         },
         "python.analysis.extraPaths": [
             "${workspaceFolder}/src/python"
-        ]
+        ],
     }
 }

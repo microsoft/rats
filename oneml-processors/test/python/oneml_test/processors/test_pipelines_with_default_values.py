@@ -17,7 +17,7 @@ class Processor1:
         self._b = b
 
     def process(self, c: str) -> Outputs:
-        return dict(d=f"{self._a},{self._b},{c}")
+        return Outputs(d=f"{self._a},{self._b},{c}")
 
 
 class Processor2:
@@ -25,7 +25,7 @@ class Processor2:
         self._b = b
 
     def process(self) -> Outputs:
-        return dict(d=self._b)
+        return Outputs(d=self._b)
 
 
 class Processor3:
@@ -33,7 +33,7 @@ class Processor3:
         self._b = b
 
     def process(self) -> Outputs:
-        return dict(d=self._b)
+        return Outputs(d=self._b)
 
 
 def test_task_with_default_values(pipeline_runner_factory: PipelineRunnerFactory) -> None:

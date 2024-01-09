@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence, Set
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
-from typing import Any, Protocol, final
+from typing import Any, final
 
 from oneml.services import ServiceId
 
@@ -354,13 +354,3 @@ class DAG:
             frontier |= set(dp.node for dp in self.dependencies[past_node])
 
         return self.__class__(nodes, dependencies)
-
-
-class IExpandDag(Protocol):
-    def expand(self) -> DAG:
-        pass
-
-
-class IPruneDag(Protocol):
-    def prune(self) -> DAG:
-        pass

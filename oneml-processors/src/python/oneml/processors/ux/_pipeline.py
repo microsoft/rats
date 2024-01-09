@@ -204,10 +204,12 @@ class AnInput(InPorts[Any], ABC):
         ...
 
     @overload
+    @abstractmethod
     def __getitem__(self, key: str) -> AnInput:
         ...
 
     @overload
+    @abstractmethod
     def __getitem__(self, key: int) -> InParameter[Any]:
         ...
 
@@ -252,13 +254,16 @@ class AnOutput(OutPorts[Any], ABC):
         ...
 
     @overload
+    @abstractmethod
     def __getitem__(self, key: str) -> AnOutput:
         ...
 
     @overload
+    @abstractmethod
     def __getitem__(self, key: int) -> OutParameter[Any]:
         ...
 
+    @overload
     @abstractmethod
     def __getitem__(self, key: str | int) -> AnOutput | OutParameter[Any]:
         ...
@@ -373,7 +378,7 @@ class Pipeline(Generic[TInputs, TOutputs]):
             if len(spurious_params) > 1:
                 raise ValueError(
                     "When `other` is given, the following params should not be given: "
-                    f"{spurious_params}."
+                    + f"{spurious_params}."
                 )
             name = other._name
             inputs = other._inputs

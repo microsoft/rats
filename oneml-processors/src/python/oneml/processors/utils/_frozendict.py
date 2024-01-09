@@ -122,7 +122,7 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
         new_d.update(kwargs)
         return new_d.items()
 
-    def set(self: Self, key: _KT, value: _VT) -> Self:
+    def set(self: Self, key: _KT, value: object) -> Self:
         new_d = self._d.copy()
         new_d[key] = value
         return self.__class__(new_d)

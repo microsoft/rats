@@ -45,6 +45,10 @@ V = TypeVar("V")
 class Dict(dict[K, V]):
     getitem_counter: int
 
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.getitem_counter = 0
+
     def __getitem__(self, k: K) -> V:
         self.getitem_counter += 1
         return super().__getitem__(k)

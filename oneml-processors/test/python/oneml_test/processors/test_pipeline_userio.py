@@ -1,8 +1,9 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import TypedDict, cast
+from typing import TypedDict
 
 import pytest
+
 from oneml.processors.dag import IProcess
 from oneml.processors.ux import CombinedPipeline, UPipeline, UTask
 
@@ -20,12 +21,12 @@ class ReportGenerator(IProcess):
 
 @pytest.fixture
 def report1() -> UPipeline:
-    return cast(UPipeline, UTask(ReportGenerator, "report1").rename_inputs({"acc": "acc.report1"}))
+    return UTask(ReportGenerator, "report1").rename_inputs({"acc": "acc.report1"})
 
 
 @pytest.fixture
 def report2() -> UPipeline:
-    return cast(UPipeline, UTask(ReportGenerator, "report2").rename_inputs({"acc": "acc.report2"}))
+    return UTask(ReportGenerator, "report2").rename_inputs({"acc": "acc.report2"})
 
 
 def test_sequence_inputs_to_single_output(report1: UPipeline, report2: UPipeline) -> None:
