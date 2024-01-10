@@ -54,13 +54,13 @@ class ScatterGatherBuilders:
         ):
             raise ValueError(
                 "All out_collections of scatter should have corresponding-by-name inputs in "
-                "process_batch."
+                + "process_batch."
             )
         input_cols = tuple(g for g in gather.inputs if isinstance(gather.inputs[g], InPorts))
         if process_batch.outputs - input_cols:
             raise ValueError(
                 "All outputs of process_batch should have corresponding-by-name in_collections in "
-                "gather."
+                + "gather."
             )
 
         process_batch_copies = {
@@ -114,8 +114,8 @@ class ScatterGatherBuilders:
                 extra = batch_keys - ref_batch_keys
                 raise ValueError(
                     "All out_collections of scatter and in_collections of gather must have the "
-                    f"same set of entry names. scatter {col_name} has {missing} missing and "
-                    f"{extra} extra when compared with scatter {ref_col_name}."
+                    + f"same set of entry names. scatter {col_name} has {missing} missing and "
+                    + f"{extra} extra when compared with scatter {ref_col_name}."
                 )
         for col_name, batch_keys in gather_incol.items():
             if batch_keys != ref_batch_keys:
@@ -123,7 +123,7 @@ class ScatterGatherBuilders:
                 extra = batch_keys - ref_batch_keys
                 raise ValueError(
                     "All out_collections of scatter and in_collections of gather must have the "
-                    f"same set of entry names. gather {col_name} has {missing} missing and "
-                    f"{extra} extra when compared with scatter {ref_col_name}."
+                    + f"same set of entry names. gather {col_name} has {missing} missing and "
+                    + f"{extra} extra when compared with scatter {ref_col_name}."
                 )
         return sorted(ref_batch_keys)

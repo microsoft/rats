@@ -12,8 +12,8 @@ def test_collection_to_dict_uniform_types(collection_to_dict: CollectionToDict) 
     assert set(to_dict.inputs.col) == {"v1", "v2"}
     assert set(to_dict.outputs) == {"dct"}
     assert len(to_dict._dag.nodes) == 1
-    node = list(to_dict._dag.nodes.values())[0]
-    node.outputs["dct"].annotation.__annotations__ == dict(v1=int, v2=int)
+    node = next(iter(to_dict._dag.nodes.values()))
+    assert node.outputs["dct"].annotation.__annotations__ == dict(v1=int, v2=int)
 
 
 def test_collection_to_dict_different_types(collection_to_dict: CollectionToDict) -> None:
@@ -22,8 +22,8 @@ def test_collection_to_dict_different_types(collection_to_dict: CollectionToDict
     assert set(to_dict.inputs.col) == {"v1", "v2"}
     assert set(to_dict.outputs) == {"dct"}
     assert len(to_dict._dag.nodes) == 1
-    node = list(to_dict._dag.nodes.values())[0]
-    node.outputs["dct"].annotation.__annotations__ == dict(v1=int, v2=str)
+    node = next(iter(to_dict._dag.nodes.values()))
+    assert node.outputs["dct"].annotation.__annotations__ == dict(v1=int, v2=str)
 
 
 def test_collection_to_dict_wiring(
@@ -53,9 +53,9 @@ def test_dict_to_collection_uniform_types(dict_to_collection: DictToCollection) 
     assert set(from_dict.outputs) == {"col"}
     assert set(from_dict.outputs.col) == {"v1", "v2"}
     assert len(from_dict.outputs.col.v1) == 1
-    assert list(from_dict.outputs.col.v1)[0].param.annotation == int
+    assert next(iter(from_dict.outputs.col.v1)).param.annotation == int
     assert len(from_dict.outputs.col.v2) == 1
-    assert list(from_dict.outputs.col.v2)[0].param.annotation == int
+    assert next(iter(from_dict.outputs.col.v2)).param.annotation == int
 
 
 def test_dict_to_collection_different_types(dict_to_collection: DictToCollection) -> None:
@@ -64,9 +64,9 @@ def test_dict_to_collection_different_types(dict_to_collection: DictToCollection
     assert set(from_dict.outputs) == {"col"}
     assert set(from_dict.outputs.col) == {"v1", "v2"}
     assert len(from_dict.outputs.col.v1) == 1
-    assert list(from_dict.outputs.col.v1)[0].param.annotation == int
+    assert next(iter(from_dict.outputs.col.v1)).param.annotation == int
     assert len(from_dict.outputs.col.v2) == 1
-    assert list(from_dict.outputs.col.v2)[0].param.annotation == str
+    assert next(iter(from_dict.outputs.col.v2)).param.annotation == str
 
 
 def test_dict_to_collection_wiring(

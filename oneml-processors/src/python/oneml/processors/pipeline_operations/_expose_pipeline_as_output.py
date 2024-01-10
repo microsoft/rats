@@ -16,7 +16,7 @@ class ExposePipelineAsOutput:
         if "pipeline" in pipeline.outputs:
             raise ValueError(
                 "pipeline already has an output called `pipeline`. Rename before calling "
-                "ExposePipelineAsOutput."
+                + "ExposePipelineAsOutput."
             )
         expose_pipeline_pl = self._expose_given_outputs(outputs={"pipeline": pipeline})
         expose_pipeline_pl, pipeline = ensure_non_clashing_pipeline_names(

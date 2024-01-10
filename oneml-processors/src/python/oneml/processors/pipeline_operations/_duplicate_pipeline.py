@@ -1,6 +1,6 @@
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import reduce
-from typing import Sequence
 
 from omegaconf import MISSING
 from pyparsing import Any

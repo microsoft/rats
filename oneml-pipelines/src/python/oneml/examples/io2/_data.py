@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing_extensions import NamedTuple
 
 
 class SimpleMessage(NamedTuple):

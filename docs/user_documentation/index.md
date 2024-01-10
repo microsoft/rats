@@ -17,7 +17,7 @@ encoded in the *pipeline*.
 - **Port**: Input or output of a *node*. *Output ports* are connected into *input ports* forming
 a dependency, where the output of a *processor* is given as input to the receiving *processor*.
 
-- **Dependency:** Directed edge from a *node's* output port to another *node's* input port. 
+- **Dependency:** Directed edge from a *node's* output port to another *node's* input port.
 The output of one *processor* feeds into the input of the next *processor*.
 During orchestration, outputs are passed as inputs to the depending nodes.
 

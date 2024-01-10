@@ -7,5 +7,5 @@ echo "running ruff linter"
 poetry run ruff check src/python --fix
 echo "running ruff formatter"
 poetry run ruff format src/python
-# echo "running mypy"
-# poetry run mypy
+# echo "running pyright"
+# poetry run pyright

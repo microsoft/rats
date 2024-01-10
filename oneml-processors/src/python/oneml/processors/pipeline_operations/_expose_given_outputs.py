@@ -1,4 +1,5 @@
-from typing import Any, Mapping, TypeVar
+from collections.abc import Mapping
+from typing import Any, TypeVar
 
 from oneml.processors.utils import frozendict, namedcollection
 from oneml.processors.ux import Task, UPipeline

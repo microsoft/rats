@@ -1,13 +1,14 @@
 import logging
-import os
 from abc import abstractmethod
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Generic, Protocol, TypeVar
 from urllib.parse import urlparse, urlunparse
 
+from typing_extensions import TypedDict
+
 from oneml.io import IReadData, RWDataUri
 from oneml.services import IProvideServices, ServiceId
-from typing_extensions import TypedDict
 
 from ..ux import UPipeline, UPipelineBuilder
 from ._manifest import JsonFormattable, Manifest
@@ -29,9 +30,9 @@ def _is_relative_path(url: str | None) -> bool:
     parsed = urlparse(url)
     if parsed.hostname:
         return False
-    if os.path.isabs(parsed.path):
+    if Path(parsed.path).is_absolute():
         return False
-    if os.path.isabs(url):
+    if Path(url).is_absolute():
         return False
     return True
 
@@ -69,22 +70,22 @@ class ReadFromUriProcessor(Generic[DataType]):
             manifest_uri = urlunparse(parsed_uri._replace(fragment=""))
             logger.debug(
                 f"Assuming {manifest_uri} points to a manifest json file, that {fragment} is a "
-                "key within it, and the the value is either a uri or a relative path to the "
-                "manifest uri."
+                + "key within it, and the the value is either a uri or a relative path to the "
+                + "manifest uri."
             )
             # recusrively read the manifest:
             path_from_manifest = self._read(manifest_uri, self._read_manifest_service_ids)
             # find the value associated with the fragment key:
             try:
                 for key in fragment.split("."):
-                    path_from_manifest = path_from_manifest[key]  # type: ignore[index,call-overload]
+                    path_from_manifest = path_from_manifest[key]  # type: ignore[index]
                     logger.debug(f"Found key {key}.")
             except KeyError:
-                raise ValueError(f"Fragment: {fragment} is not a key in the manifest.")
+                raise ValueError(f"Fragment: {fragment} is not a key in the manifest.") from None
             if not isinstance(path_from_manifest, str):
                 raise ValueError(
                     f"Fragment: {fragment} is a key in the manifest, but the associated value is "
-                    "not a string."
+                    + "not a string."
                 )
             logger.debug(f"Found path in manifest: {path_from_manifest}")
             # if path is an absolute uri, we'll use it as is, otherwise we'll construct the
@@ -92,9 +93,9 @@ class ReadFromUriProcessor(Generic[DataType]):
             if _is_relative_path(path_from_manifest):
                 logger.debug(f"Path is relative, joining with manifest uri: {manifest_uri}")
                 # find the directory of the manifest uri:
-                manifest_dir = os.path.dirname(parsed_uri.path)
+                manifest_dir = Path(parsed_uri.path).parent
                 # join the manifest dir with the relative path:
-                path = os.path.join(manifest_dir, path_from_manifest)
+                path = str(manifest_dir / path_from_manifest)
                 parsed_uri = parsed_uri._replace(path=path)._replace(fragment="")
                 uri = urlunparse(parsed_uri)
                 logger.debug(f"Constructed uri: {uri}")

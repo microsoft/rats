@@ -26,7 +26,7 @@ class IGetServiceId(Protocol):
         ...
 
 
-class IGetConfigAndServiceId(IGetConfig, IGetServiceId):
+class IGetConfigAndServiceId(IGetConfig, IGetServiceId, Protocol):
     def get_config_and_service_ids(
         self, name: str
     ) -> tuple[Mapping[str, Any] | None, Mapping[str, ServiceId[Any]] | None]:

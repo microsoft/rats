@@ -123,7 +123,7 @@ class namedcollection(Generic[T_co]):
         else:
             d = self._mapping_to_nested_collection(dict(*args))
 
-        self._d = dict(d, **kwargs)  # type: ignore
+        self._d = dict(d, **kwargs)
         self._hash = None
         if not all(isinstance(k, str) for k in self._d):
             raise ValueError("Input keys need to be `str` types.")
@@ -156,7 +156,7 @@ class namedcollection(Generic[T_co]):
     def __getitem__(self, key: str) -> Self | T_co:
         """Access attributes via bracket notation supporting keys with dots."""
         k0, k1 = key.split(".", maxsplit=1) if "." in key else (key, "")
-        return self._d[k0] if not k1 else self._d[k0][k1]  # type: ignore[index]
+        return self._d[k0] if not k1 else self._d[k0][k1]  # type: ignore[operator]
 
     def __getattr__(self, key: str) -> Self | T_co:
         try:  # https://stackoverflow.com/a/16237698
@@ -232,7 +232,7 @@ class namedcollection(Generic[T_co]):
             if isinstance(v, namedcollection):
                 d.update({f"{k}.{k1}": v1 for k1, v1 in v._asdict().items()})
             else:
-                d[k] = v  # type: ignore[assignment]
+                d[k] = v
         return d
 
     def _replace(self, d: Mapping[str, T] = {}, **kwargs: T) -> Self:
@@ -255,7 +255,7 @@ class namedcollection(Generic[T_co]):
             New namedcollection with replaced (or added) values.
 
         """
-        return self.__class__((self._asdict() | d), **kwargs)
+        return self.__class__((self._asdict() | d), **kwargs)  # type: ignore
 
     def _find(self, *values: Any) -> tuple[str, ...]:
         """Find locations of values in namedcollection and nested namesets."""

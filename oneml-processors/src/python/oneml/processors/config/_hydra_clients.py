@@ -1,10 +1,11 @@
 from abc import abstractmethod
 from functools import cache
-from typing import NamedTuple, Protocol
+from typing import Protocol
 
 from hydra import compose, initialize_config_dir
 from hydra.utils import instantiate
 from hydra_zen import ZenStore
+from typing_extensions import NamedTuple
 
 from oneml.processors.registry import IProvidePipelineCollection
 from oneml.services import ContextProvider
@@ -38,7 +39,7 @@ class HydraPipelineConfigService(PipelineConfigService):
         self._context_provider = context_provider
         self._pipeline_providers = pipeline_providers
 
-    @cache
+    @cache  # noqa: B019
     def _get_config_from_context(self, context: HydraContext) -> PipelineConfig:
         overrides = context.overrides
         with initialize_config_dir(config_dir=self._config_dir, version_base=None):
@@ -81,7 +82,7 @@ class HydraPipelineConfigServiceProvider:
             )
         store.add_to_hydra_store()
 
-    @cache
+    @cache  # noqa: B019
     def __call__(self) -> HydraPipelineConfigService:
         register_resolvers()
         self._register_configs()

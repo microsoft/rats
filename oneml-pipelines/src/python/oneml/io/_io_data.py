@@ -19,8 +19,8 @@ class PipelineDataId(NamedTuple, Generic[Tco_DataType]):
         return f"{self.pipeline.id}/{self.node.key}/{self.port.key}"
 
 
-class IFormatUri(Protocol[T_DataType]):
-    def __call__(self, data_id: PipelineDataId[T_DataType]) -> RWDataUri:
+class IFormatUri(Protocol[Tcontra_DataType]):
+    def __call__(self, data_id: PipelineDataId[Tcontra_DataType]) -> RWDataUri:
         ...
 
 
@@ -42,9 +42,11 @@ class IGetLoaders(Protocol[T_DataType]):
         ...
 
 
-class IGetPublishers(Protocol[T_DataType]):
+class IGetPublishers(Protocol[Tcontra_DataType]):
     @abstractmethod
-    def get(self, data_id: PipelineDataId[T_DataType]) -> IPublishPipelineData[T_DataType]:
+    def get(
+        self, data_id: PipelineDataId[Tcontra_DataType]
+    ) -> IPublishPipelineData[Tcontra_DataType]:
         ...
 
 

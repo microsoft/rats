@@ -1,6 +1,5 @@
-from typing import NamedTuple
-
 import pytest
+from typing_extensions import NamedTuple
 
 from oneml.services import ContextClient, ContextId
 

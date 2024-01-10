@@ -59,8 +59,8 @@ def test_orderedset_union() -> None:
 
 
 def test_orderedset_or() -> None:
-    o1 = orderedset(("foo", "boo", "bar", "hey", "foo"))
-    o2 = orderedset(("foo", "bee", "bur", "hey"))
+    o1 = orderedset(["foo", "boo", "bar", "hey", "foo"])
+    o2 = orderedset(["foo", "bee", "bur", "hey"])
     o3 = o1 | o2
     assert o3 == orderedset(("foo", "boo", "bar", "hey", "bee", "bur"))
 
@@ -81,8 +81,8 @@ def test_orderedset_and() -> None:
 
 
 def test_orderedset_sub() -> None:
-    o1 = orderedset(("foo", "boo", "bar", "hey"))
-    o2 = orderedset(("foo", "bee", "bur", "hey"))
+    o1 = orderedset(["foo", "boo", "bar", "hey"])
+    o2 = orderedset(["foo", "bee", "bur", "hey"])
     o3 = o1 - o2
     assert o3 == orderedset(("boo", "bar"))
 

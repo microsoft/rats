@@ -14,7 +14,7 @@ class orderedset(Hashable, Set[_T_co], Sequence[_T_co]):
     _d: dict[_T_co, None]
 
     @overload
-    def __init__(self) -> None:
+    def __init__(self, /) -> None:
         ...
 
     @overload

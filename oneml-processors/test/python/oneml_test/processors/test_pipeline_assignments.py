@@ -12,6 +12,8 @@ class StzTrainOut(TypedDict):
     shift: float
     scale: float
     Z: float
+
+
 class StzEvalOut(TypedDict):
     Z: float
 

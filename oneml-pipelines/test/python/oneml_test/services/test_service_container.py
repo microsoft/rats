@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing_extensions import NamedTuple
 
 from oneml.services import ContextualServiceContainer, ServiceContainer, ServiceFactory
 

@@ -1,5 +1,5 @@
 from typing import Protocol
-from urllib.parse import parse_qs, urlencode, urlparse, urlsplit, urlunparse
+from urllib.parse import parse_qs, urlencode, urlsplit, urlunparse
 
 from immunodata.datasets import DatasetCommit
 

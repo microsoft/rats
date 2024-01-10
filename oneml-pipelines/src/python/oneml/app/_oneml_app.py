@@ -3,8 +3,10 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Iterable
 from contextlib import AbstractContextManager
-from typing import Any, NamedTuple, cast
+from typing import Any, cast
 from uuid import uuid4
+
+from typing_extensions import NamedTuple
 
 from oneml.app_api import App
 from oneml.pipelines.session import OnemlSessionContexts, PipelineSession
@@ -125,19 +127,22 @@ class OnemlApp(App, IManageServices, IManageContexts):
         return self._app_container.get_service_provider(service_id)
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
-        return self._app_container.get_service(service_id)
+        # pyright issue: https://github.com/microsoft/pyright/issues/6953
+        return self._app_container.get_service(service_id)  # pyright: ignore
 
     def get_service_group_provider(
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
-        return self._app_container.get_service_group_provider(group_id)
+        # pyright issue: https://github.com/microsoft/pyright/issues/6953
+        return self._app_container.get_service_group_provider(group_id)  # pyright: ignore
 
     def get_service_group_providers(
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
-        return self._app_container.get_service_group_providers(group_id)
+        # pyright issue: https://github.com/microsoft/pyright/issues/6953
+        return self._app_container.get_service_group_providers(group_id)  # pyright: ignore
 
     def add_service(
         self,

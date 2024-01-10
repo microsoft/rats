@@ -58,8 +58,8 @@ class TypeToReadServiceMapper(IRegisterReadServiceForType, IGetReadServicesForTy
     def register(
         self,
         scheme: str,
-        type_filter: Callable[[type[DataType]], bool],
-        service_id: ServiceId[IReadData[DataType]],
+        type_filter: Callable[[type[Any]], bool],
+        service_id: ServiceId[IReadData[Any]],
     ) -> None:
         self._per_schema_filters[scheme].append((type_filter, service_id))
 
@@ -93,8 +93,8 @@ class TypeToWriteServiceMapper(IRegisterWriteServiceForType, IGetWriteServicesFo
     def register(
         self,
         scheme: str,
-        type_filter: Callable[[type[DataType]], bool],
-        service_id: ServiceId[IWriteData[DataType]],
+        type_filter: Callable[[type[Any]], bool],
+        service_id: ServiceId[IWriteData[Any]],
     ) -> None:
         self._per_schema_filters[scheme].append((type_filter, service_id))
 

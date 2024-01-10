@@ -1,4 +1,6 @@
-from typing import Any, NamedTuple
+from typing import Any
+
+from typing_extensions import NamedTuple
 
 from oneml.pipelines.dag import PipelineNode, PipelinePort
 from oneml.services import ContextId, scoped_context_ids

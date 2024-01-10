@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import TypedDict
 
 import pytest
+
 from oneml.processors.ux import PipelineBuilder, UPipeline, UTask
 
 
@@ -122,7 +123,7 @@ def test_IOCollections_rename_and_merge_with_multiple_entries(stz: UPipeline) ->
     assert stz.inputs.X.train == pipeline1.inputs.X0.train0
     assert stz.inputs.X.eval == pipeline1.inputs.X0.eval0
     with pytest.raises(AttributeError):
-        pipeline1.inputs.X
+        _ = pipeline1.inputs.X
 
     # Inputs.InPort -> InPort
     pipeline1 = stz.rename_inputs({"X.train": "X0"})

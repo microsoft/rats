@@ -21,7 +21,7 @@ T = TypeVar("T", bound=type | Any)
 
 class _Decoratable(Protocol):
     @abstractmethod
-    def decorate(self: Self, decoration: str) -> Self:
+    def decorate(self, name: str) -> Self:
         ...
 
 

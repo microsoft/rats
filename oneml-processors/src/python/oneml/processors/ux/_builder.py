@@ -7,6 +7,7 @@ from typing import Any, Generic, TypeAlias, TypeVar, cast, final
 
 from hydra_zen import hydrated_dataclass
 from omegaconf import MISSING
+
 from oneml.services import ServiceId
 
 from ..dag import DAG, ComputeReqs, DagDependency, DagNode, IProcess, ProcessorProps
@@ -243,7 +244,7 @@ def _gathering_tasks(entries: dict[str, OutPort[Any]]) -> dict[str, Pipeline[Arg
             Task(
                 Gather2Tuple,
                 name="Gather_" + en,
-                return_annotation={"output": tuple[entry[0].param.annotation, ...]},  # type: ignore[name-defined]
+                return_annotation={"output": tuple[entry[0].param.annotation, ...]},
             ).rename_outputs({"output": en}),
         )
         for en, entry in entries.items()

@@ -1,9 +1,7 @@
 import logging
-from typing import Mapping
 
 from oneml.app import AppPlugin
 from oneml.processors.utils import ImmutableNoOverlapChainMap
-from oneml.processors.ux import UPipeline
 from oneml.services import (
     IManageServices,
     IProvideServices,
@@ -12,7 +10,7 @@ from oneml.services import (
     service_provider,
 )
 
-from ._pipeline_provider import IProvidePipeline, IProvidePipelineCollection
+from ._pipeline_provider import IProvidePipelineCollection
 
 logger = logging.getLogger(__name__)
 

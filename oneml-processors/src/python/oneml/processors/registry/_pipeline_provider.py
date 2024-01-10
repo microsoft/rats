@@ -1,5 +1,5 @@
-from telnetlib import IP
-from typing import Mapping, Protocol, TypeVar, runtime_checkable
+from collections.abc import Mapping
+from typing import Protocol, TypeVar, runtime_checkable
 
 from oneml.processors.ux import NoInputs, Outputs, Pipeline, UPipeline
 

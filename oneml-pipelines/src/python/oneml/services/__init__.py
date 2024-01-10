@@ -21,7 +21,7 @@ from ._service_managers import (
     ServiceIdNotFoundError,
     ServiceProvider,
 )
-from ._services import ServiceGroupProvider, ServiceId, T_ServiceType
+from ._services import ServiceGroupProvider, ServiceId, T_ServiceType, Tco_ServiceType
 from ._typed_containers import TypedServiceContainer
 
 __all__ = [
@@ -63,6 +63,7 @@ __all__ = [
     "ServiceProvider",
     "ServiceGroupProvider",
     "T_ServiceType",
+    "Tco_ServiceType",
     # _typed_containers
     "TypedServiceContainer",
 ]
