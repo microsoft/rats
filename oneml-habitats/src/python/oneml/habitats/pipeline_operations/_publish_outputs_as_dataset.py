@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from oneml.habitats.pipeline_operations._datasets import IDatasetPrepareAndPublishService
 from oneml.processors.pipeline_operations import CollectionToDict, DictToCollection

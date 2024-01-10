@@ -32,7 +32,7 @@ class Io2ExampleDiContainer:
     def user_input_exe(self) -> UserInput:
         return UserInput(
             prompt_ctx=lambda: SimpleMessage(
-                "Welcome to a fake LLM experience. How can I pretend to " "help?",
+                "Welcome to a fake LLM experience. How can I pretend to " + "help?",
             ),
             pipeline_data=self._app.get_service(OnemlIo2Services.PIPELINE_DATA),
         )
@@ -41,7 +41,7 @@ class Io2ExampleDiContainer:
     def fake_agent_exe(self) -> FakeAgent:
         return FakeAgent(
             prompt_ctx=lambda: SimpleMessage(
-                "Welcome to a fake LLM experience. How can I pretend to " "help?",
+                "Welcome to a fake LLM experience. How can I pretend to " + "help?",
             ),
             pipeline_data=self._app.get_service(OnemlIo2Services.PIPELINE_DATA),
         )

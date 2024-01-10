@@ -1,6 +1,7 @@
 import os.path
 from abc import abstractmethod
-from typing import Mapping, NamedTuple, Protocol
+from collections.abc import Mapping
+from typing import NamedTuple, Protocol
 from urllib.parse import urlparse
 
 from immunodata.datasets import ParentDatasetCommit
@@ -142,7 +143,8 @@ class DatasetPrepareAndPublishService:
             }
             output_uris: Mapping[str, str] = {
                 name: extend_uri_path(
-                    dataset_uri, os.path.join(output_base_path_within_dataset or "", relative_path)
+                    dataset_uri,
+                    os.path.join(output_base_path_within_dataset or "", relative_path),  # noqa: PTH118
                 )
                 for name, relative_path in relative_output_paths.items()
             }
@@ -150,7 +152,7 @@ class DatasetPrepareAndPublishService:
             if output_base_path_within_dataset is not None:
                 raise ValueError(
                     "output_base_path_within_dataset must be None if "
-                    "dataset_publish_specifications is None"
+                    + "dataset_publish_specifications is None"
                 )
             output_uris = resolved_output_uris
         return DatasetPublishOutput(output_uris=output_uris)

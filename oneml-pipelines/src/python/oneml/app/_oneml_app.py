@@ -3,8 +3,10 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Iterable
 from contextlib import AbstractContextManager
-from typing import Any, NamedTuple, cast
+from typing import Any, cast
 from uuid import uuid4
+
+from typing_extensions import NamedTuple
 
 from oneml.app_api import App
 from oneml.pipelines.session import OnemlSessionContexts, PipelineSession
@@ -22,6 +24,7 @@ from oneml.services import (
     T_ContextType,
     T_ExecutableType,
     T_ServiceType,
+    Tco_ServiceType,
     TypedServiceContainer,
     executable,
     scoped_context_ids,
@@ -134,9 +137,8 @@ class OnemlApp(App, IManageServices, IManageContexts):
         return self._app_container.get_service_group_provider(group_id)
 
     def get_service_group_providers(
-        self,
-        group_id: ServiceId[T_ServiceType],
-    ) -> Iterable[ServiceProvider[T_ServiceType]]:
+        self, group_id: ServiceId[Tco_ServiceType]
+    ) -> Iterable[ServiceProvider[Tco_ServiceType]]:
         return self._app_container.get_service_group_providers(group_id)
 
     def add_service(

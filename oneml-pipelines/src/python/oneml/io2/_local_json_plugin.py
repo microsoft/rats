@@ -29,7 +29,7 @@ class LocalJsonIoSettings:
     ) -> None:
         self._registered[self._pipeline_ctx()][node].add(port)
 
-    def get_ports(self, node: PipelineNode) -> Iterable[PipelinePort[T_JsonFormattable]]:
+    def get_ports(self, node: PipelineNode) -> Iterable[PipelinePort[JsonFormattable]]:
         return tuple(self._registered[self._pipeline_ctx()].get(node, ()))
 
 

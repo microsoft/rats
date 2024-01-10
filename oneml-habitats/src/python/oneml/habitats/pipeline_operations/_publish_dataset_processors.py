@@ -1,4 +1,4 @@
-from typing import Mapping
+from collections.abc import Mapping
 
 from oneml.processors.dag import IProcess
 from oneml.processors.utils import frozendict

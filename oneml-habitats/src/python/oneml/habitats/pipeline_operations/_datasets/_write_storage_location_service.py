@@ -29,7 +29,7 @@ class DatasetWriteStorageLocationService(IDatasetWriteStorageLocationService):
             )
         )
         uuid = str(uuid4())
-        path = os.path.join(
+        path = os.path.join(  # noqa: PTH118
             blob_store_base_location.base_path,
             dataset.name,
             dataset.partition,

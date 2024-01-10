@@ -27,7 +27,7 @@ def extend_uri_path(uri: str, relpath: str) -> str:
 
 
 def get_relative_path(base_uri: str, target_uri: str) -> str:
-    """Return the relative path of target_uri from base_uri"""
+    """Return the relative path of target_uri from base_uri."""
     parsed_base_uri = urlparse(base_uri)
     parsed_target_uri = urlparse(target_uri)
 
