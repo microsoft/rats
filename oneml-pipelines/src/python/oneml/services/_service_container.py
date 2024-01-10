@@ -19,7 +19,8 @@ class ServiceContainer(IProvideServices):
     def get_service_provider(
         self, service_id: ServiceId[T_ServiceType]
     ) -> ServiceProvider[T_ServiceType]:
-        return lambda: self.get_service(service_id)
+        # pyright issue: https://github.com/microsoft/pyright/issues/6953
+        return lambda: self.get_service(service_id)  # pyright: ignore
 
     @lru_cache  # noqa: B019
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
@@ -62,19 +63,22 @@ class ContextualServiceContainer(IProvideServices, Generic[T_ContextType]):
         return lambda: self.get_service(service_id)
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
-        return self._get_cached(service_id, self._context_provider())
+        # pyright issue: https://github.com/microsoft/pyright/issues/6953
+        return self._get_cached(service_id, self._context_provider())  # pyright: ignore
 
     def get_service_group_provider(
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
-        return self._get_group_provider_cached(group_id, self._context_provider())
+        # pyright issue: https://github.com/microsoft/pyright/issues/6953
+        return self._get_group_provider_cached(group_id, self._context_provider())  # pyright: ignore
 
     def get_service_group_providers(
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
-        return self._get_group_providers_cached(group_id, self._context_provider())
+        # pyright issue: https://github.com/microsoft/pyright/issues/6953
+        return self._get_group_providers_cached(group_id, self._context_provider())  # pyright: ignore
 
     @lru_cache  # noqa: B019
     def _get_cached(
