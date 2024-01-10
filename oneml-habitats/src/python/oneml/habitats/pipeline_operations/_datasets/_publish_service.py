@@ -30,8 +30,8 @@ class DatasetPublishService:
             if commit is not None:
                 raise ValueError(
                     f"Dataset {dataset.name} in namespace {dataset.namespace} was already "
-                    f"published for partition {dataset.partition}.  To overwrite, set "
-                    f"allow_overwrite=True."
+                    + f"published for partition {dataset.partition}.  To overwrite, set "
+                    + "allow_overwrite=True."
                 )
 
     def publish(self, dataset: DatasetPublishSpecifications) -> DatasetCommit:

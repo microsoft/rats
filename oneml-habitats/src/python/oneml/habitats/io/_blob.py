@@ -38,6 +38,7 @@ class BlobRWBase:
             raise ValueError(f"Expected empty fragment, got {split_uri.fragment}")
 
         container = split_uri.username
+        assert isinstance(container, str)
         storage_account = split_uri.host[: -len(".dfs.core.windows.net")]
         path = "/".join(split_uri.path.segments)
         return storage_account, container, path

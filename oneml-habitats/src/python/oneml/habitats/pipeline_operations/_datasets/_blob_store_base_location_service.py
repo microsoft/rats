@@ -22,12 +22,12 @@ class DatasetBlobStoreBaseLocationService(IDatasetBlobStoreBaseLocationService):
         if account_name is None and container_name is not None:
             raise ValueError(
                 "If you set ONEML_HABITATS_DATASETS_BLOB_STORE_CONTAINER, you must also set "
-                "ONEML_HABITATS_DATASETS_BLOB_STORE_ACCOUNT"
+                + "ONEML_HABITATS_DATASETS_BLOB_STORE_ACCOUNT"
             )
         if account_name is not None and container_name is None:
             raise ValueError(
                 "If you set ONEML_HABITATS_DATASETS_BLOB_STORE_ACCOUNT, you must also set "
-                "ONEML_HABITATS_DATASETS_BLOB_STORE_CONTAINER"
+                + "ONEML_HABITATS_DATASETS_BLOB_STORE_CONTAINER"
             )
         if account_name is not None and container_name is not None:
             return BlobStoreBaseLocation(

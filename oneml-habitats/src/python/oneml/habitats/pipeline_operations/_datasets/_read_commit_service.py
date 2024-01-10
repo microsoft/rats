@@ -33,7 +33,7 @@ class DatasetReadCommitService(IDatasetReadCommitService):
                 if not partitions:
                     raise ValueError(
                         f"All partitions of dataset {dataset.name} in namespace "
-                        f"{dataset.namespace} are after requested snapshot {dataset.snapshot}."
+                        + f"{dataset.namespace} are after requested snapshot {dataset.snapshot}."
                     )
             if dataset.partition is not None:
                 partition = dataset.partition
@@ -41,7 +41,7 @@ class DatasetReadCommitService(IDatasetReadCommitService):
                 if not partitions:
                     raise ValueError(
                         f"Partition {dataset.partition} not found in dataset {dataset.name} in "
-                        f"namespace {dataset.namespace}."
+                        + f"namespace {dataset.namespace}."
                     )
             partition = max(partitions)
             commit = self._dataset_client.get_commit(
@@ -50,7 +50,7 @@ class DatasetReadCommitService(IDatasetReadCommitService):
             if commit is None:
                 raise ValueError(
                     f"Couldnt find a commit for a partition reported to exist: {partition} for "
-                    f"dataset {dataset.name} in namespace {dataset.namespace}."
+                    + f"dataset {dataset.name} in namespace {dataset.namespace}."
                 )
         else:
             commits = self._dataset_client.get_partitions(
@@ -64,7 +64,7 @@ class DatasetReadCommitService(IDatasetReadCommitService):
             if not commits:
                 raise ValueError(
                     f"Commit {dataset.commit_id} not found in dataset {dataset.name} in namespace "
-                    f"{dataset.namespace}"
+                    + f"{dataset.namespace}"
                 )
             commit = commits[0]
         return commit
