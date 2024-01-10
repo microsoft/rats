@@ -4,7 +4,7 @@ from typing import Any, Generic
 
 from ._contexts import ContextProvider, T_ContextType
 from ._service_managers import IProvideServices
-from ._services import ServiceId, ServiceProvider, T_ServiceType, Tco_ServiceType
+from ._services import ServiceId, ServiceProvider, T_ServiceType
 
 
 class ServiceContainer(IProvideServices):
@@ -35,8 +35,8 @@ class ServiceContainer(IProvideServices):
     @lru_cache  # noqa: B019
     def get_service_group_providers(
         self,
-        group_id: ServiceId[Tco_ServiceType],
-    ) -> Iterable[ServiceProvider[Tco_ServiceType]]:
+        group_id: ServiceId[T_ServiceType],
+    ) -> Iterable[ServiceProvider[T_ServiceType]]:
         return self._factory.get_service_group_providers(group_id)
 
 

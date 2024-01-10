@@ -24,7 +24,6 @@ from oneml.services import (
     T_ContextType,
     T_ExecutableType,
     T_ServiceType,
-    Tco_ServiceType,
     TypedServiceContainer,
     executable,
     scoped_context_ids,
@@ -137,8 +136,9 @@ class OnemlApp(App, IManageServices, IManageContexts):
         return self._app_container.get_service_group_provider(group_id)
 
     def get_service_group_providers(
-        self, group_id: ServiceId[Tco_ServiceType]
-    ) -> Iterable[ServiceProvider[Tco_ServiceType]]:
+        self,
+        group_id: ServiceId[T_ServiceType],
+    ) -> Iterable[ServiceProvider[T_ServiceType]]:
         return self._app_container.get_service_group_providers(group_id)
 
     def add_service(
