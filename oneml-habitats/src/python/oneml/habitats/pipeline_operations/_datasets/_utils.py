@@ -10,7 +10,7 @@ def extend_uri_path(uri: str, relpath: str) -> str:
     if not current_path.startswith("/"):
         current_path = "/" + current_path
     relpath = relpath.lstrip("/")
-    new_path = os.path.join(parsed_uri.path, relpath)
+    new_path = os.path.join(parsed_uri.path, relpath)  # noqa: PTH118
     if not parsed_uri.netloc:
         new_path = "//" + new_path
     extended_uri = urlunparse(
