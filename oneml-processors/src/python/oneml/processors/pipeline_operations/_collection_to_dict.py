@@ -26,16 +26,6 @@ class CollectionToDict:
         entries: Sequence[str],
         element_type: type[T],
     ) -> CollectionToDictPL[T]:
-        """Convert a collection input into a dictionary output.
-
-        Builds a pipeline that takes a single collection input and outputs a single simple output.
-        The output will be a dictionary, where every entry in the input collection becomes an entry
-        in the output dictionary.
-
-        Args:
-            entries: name of the entries in the input collection and output dictionary.
-            element_type: type of each element in the input collection.
-        """
         ...
 
     @overload
@@ -44,17 +34,6 @@ class CollectionToDict:
         *,
         entries_to_types: Mapping[str, type],
     ) -> CollectionToDictPL[Any]:
-        """Convert a collection input into a dictionary output.
-
-        Builds a pipeline that takes a single collection input and outputs a single simple output.
-        The output will be a dictionary, where every entry in the input collection becomes an entry
-        in the output dictionary.
-
-        Args:
-            collection_name: name of the input collection and output simple.
-            entries_to_types: name of the entries in the input collection and output dictionary,
-                each mapped to its type.
-        """
         ...
 
     def __call__(
@@ -64,6 +43,18 @@ class CollectionToDict:
         element_type: type | None = None,
         entries_to_types: Mapping[str, type] | None = None,
     ) -> UPipeline:
+        """Convert a collection input into a dictionary output.
+
+        Builds a pipeline that takes a single collection input and outputs a single simple output.
+        The output will be a dictionary, where every entry in the input collection becomes an entry
+        in the output dictionary.
+
+        Args:
+            entries: name of the entries in the input collection and output dictionary.
+            element_type: type of each element in the input collection.
+            entries_to_types: name of the entries in the input collection and output dictionary,
+                each mapped to its type.
+        """
         if entries_to_types is None:
             assert entries is not None
             assert element_type is not None
@@ -103,18 +94,6 @@ class DictToCollection:
         entries: Sequence[str],
         element_type: type[T],
     ) -> DictToCollectionPL[T]:
-        """Convert a dictionary input into a collection output.
-
-        Builds a pipeline that takes a single simple input and outputs a single collection output.
-        The input is assumed to be a dictionary with a predefined set of entries, as specified by
-        the `entries` argument. The output will be a collection, where every entry in the input
-        dictionary becomes an entry in the output collection.
-
-        Args:
-            collection_name: name of the input simple and output collection.
-            entries: name of the entries in the input dictionary and output collection.
-            element_type: type of each element in the input dictionary and output collection.
-        """
         ...
 
     @overload
@@ -123,18 +102,6 @@ class DictToCollection:
         *,
         entries_to_types: Mapping[str, type],
     ) -> DictToCollectionPL[Any]:
-        """Convert a dictionary input into a collection output.
-
-        Builds a pipeline that takes a single simple input and outputs a single collection output.
-        The input is assumed to be a dictionary with a predefined set of entries, as specified by
-        the `entries_to_types` argument. The output will be a collection, where every entry in the
-        input dictionary becomes an entry in the output collection.
-
-        Args:
-            collection_name: name of the input simple and output collection.
-            entries_to_types: name of the entries in the input dictionary and output collection,
-                each mapped to its type.
-        """
         ...
 
     def __call__(
@@ -144,6 +111,19 @@ class DictToCollection:
         element_type: type | None = None,
         entries_to_types: Mapping[str, type] | None = None,
     ) -> UPipeline:
+        """Convert a dictionary input into a collection output.
+
+        Builds a pipeline that takes a single simple input and outputs a single collection output.
+        The input is assumed to be a dictionary with a predefined set of entries, as specified by
+        the `entries_to_types` argument. The output will be a collection, where every entry in the
+        input dictionary becomes an entry in the output collection.
+
+        Args:
+            entries: name of the entries in the input dictionary and output collection.
+            element_type: type of each element in the input dictionary and output collection.
+            entries_to_types: name of the entries in the input dictionary and output collection,
+                each mapped to its type.
+        """
         if entries_to_types is None:
             assert entries is not None
             assert element_type is not None

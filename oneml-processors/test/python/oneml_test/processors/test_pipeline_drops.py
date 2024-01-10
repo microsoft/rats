@@ -5,8 +5,15 @@ import pytest
 
 from oneml.processors.ux import PipelineBuilder, UPipeline, UTask
 
-StzTrainOut = TypedDict("StzTrainOut", {"mean": float, "scale": float, "Z": float})
-StzEvalOut = TypedDict("StzEvalOut", {"Z": float})
+
+class StzTrainOut(TypedDict):
+    mean: float
+    scale: float
+    Z: float
+
+
+class StzEvalOut(TypedDict):
+    Z: float
 
 
 class StandardizeTrain:

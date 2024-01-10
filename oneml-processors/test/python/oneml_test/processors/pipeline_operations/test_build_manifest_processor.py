@@ -51,6 +51,6 @@ def test_build_manifest_processor_unexpected_arguments() -> None:
             _output1="http://example.com/foo",
             unexpected_arg="baz",
         )
-        assert False, "Expected ValueError"
+        raise AssertionError("Expected ValueError")
     except ValueError as e:
         assert str(e) == "Unexpected arguments: {'unexpected_arg'}"

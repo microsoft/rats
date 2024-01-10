@@ -320,7 +320,7 @@ def test_load_inputs_save_outputs_with_manifest(
 
     manifest_uri = cast(str, out.output_uris.manifest)
     assert manifest_uri == (output_path / "manifest.json").as_uri()
-    with open(str(output_path / "manifest.json")) as f:
+    with (output_path / "manifest.json").open() as f:
         manifest = json.load(f)
     assert set(manifest) == {"entry_uris"}
     assert set(manifest["entry_uris"]) == {"sum", "statement"}

@@ -27,8 +27,12 @@ class Array:
 
 class ArrayReaderOutput(TypedDict):
     array: Array
+
+
 class ArrayDotProductOutput(TypedDict):
     output: float
+
+
 class SumFloatsOutput(TypedDict):
     output: float
 
@@ -45,7 +49,9 @@ class ArrayReader(IProcess):
 
 class ArrayDotProduct(IProcess):
     def process(self, left: Array, right: Array) -> ArrayDotProductOutput:
-        return ArrayDotProductOutput(output=sum([xi * xj for xi, xj in zip(left.x, right.x, strict=False)]))
+        return ArrayDotProductOutput(
+            output=sum([xi * xj for xi, xj in zip(left.x, right.x, strict=False)])
+        )
 
 
 class SumFloats(IProcess):

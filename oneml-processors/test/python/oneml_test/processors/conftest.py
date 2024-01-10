@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
 from oneml.app import OnemlApp
 from oneml.processors.config import OnemlProcessorsConfigServices, PipelineConfigService
 from oneml.processors.example._app_plugin import DiamondExampleDiContainer

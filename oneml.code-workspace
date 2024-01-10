@@ -71,5 +71,14 @@
             "**/outputs": true,
             "**/__pycache__": true
         },
+    },
+    "extensions": {
+        "recommendations": [
+            "ms-python.python",
+            "ms-python.vscode-pylance",
+            "ms-python.debugpy",
+            "charliermarsh.ruff",
+            "eamodio.gitlens",
+        ]
     }
 }

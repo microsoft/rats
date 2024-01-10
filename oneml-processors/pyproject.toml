@@ -103,7 +103,7 @@ reportIncompatibleMethodOverride = false
 
 [tool.ruff]
 cache-dir = "../.tmp/oneml-habitats/.ruff_cache"
-include = ["src/python", "test/python", "pyproject.toml"]
+include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
 line-length = 99
 indent-width = 4
 target-version = "py310"
