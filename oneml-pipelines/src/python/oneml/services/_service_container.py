@@ -13,9 +13,6 @@ class ServiceContainer(IProvideServices):
     def __init__(self, factory: IProvideServices) -> None:
         self._factory = factory
 
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        return self._factory.get_service_ids()
-
     def get_service_provider(
         self, service_id: ServiceId[T_ServiceType]
     ) -> ServiceProvider[T_ServiceType]:
@@ -52,10 +49,6 @@ class ContextualServiceContainer(IProvideServices, Generic[T_ContextType]):
     ) -> None:
         self._container = container
         self._context_provider = context_provider
-
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        # TODO: I don't like this method being in the interface
-        return self._container.get_service_ids()
 
     def get_service_provider(
         self, service_id: ServiceId[T_ServiceType]

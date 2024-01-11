@@ -20,9 +20,6 @@ class ServiceFactory(IManageServices):
         self._providers = {}
         self._groups = {}
 
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        return frozenset(self._providers.keys())
-
     def get_callable_exe(self, exe_id: ServiceId[IExecutable]) -> Callable[[], None]:
         service = self.get_service_provider(exe_id)
         return lambda: service().execute()

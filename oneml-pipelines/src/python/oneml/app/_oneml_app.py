@@ -117,9 +117,6 @@ class OnemlApp(App, IManageServices, IManageContexts):
         with self.open_context(OnemlServiceContexts.EXECUTABLE, ctx):
             self._exe_container.execute_id(exe_id)
 
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        return self._app_factory.get_service_ids()
-
     def get_service_provider(
         self,
         service_id: ServiceId[T_ServiceType],

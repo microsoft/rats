@@ -9,9 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class IProvideServices(Protocol):
-    @abstractmethod
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        ...
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
         return self.get_service_provider(service_id)()

@@ -24,8 +24,6 @@ class TestServiceFactory:
         )
 
     def test_basics(self) -> None:
-        assert len(self._empty_factory.get_service_ids()) == 0
-
         cat = self._factory.get_service(ExampleServices.CAT_1)
         assert cat.speak() == "meow"
 

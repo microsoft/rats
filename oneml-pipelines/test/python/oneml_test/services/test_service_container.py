@@ -15,9 +15,6 @@ class TestServiceContainer:
         )
         container = ServiceContainer(factory)
 
-        # Just calling this for completeness right now
-        container.get_service_ids()
-
         cat = container.get_service(ExampleServices.CAT_1)
         for _ in range(10):
             # calls to get_service() are all cached
@@ -57,9 +54,6 @@ class TestContextualServiceContainer:
             container=factory,
             context_provider=lambda: ExampleContext("123"),
         )
-
-        # Just calling this for completeness right now
-        container.get_service_ids()
 
         cat = container.get_service(ExampleServices.CAT_1)
         for _x in range(10):
