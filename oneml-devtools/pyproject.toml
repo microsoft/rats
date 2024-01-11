@@ -25,12 +25,8 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
-immunodata-cli = "^0.50.0"
-immunodata-core = "^0.50.0"
-immunodata-datasets = "^0.50.0"
-immunodata-devops = "^0.50.0"
-immunodata-docslib = "^0.50.0"
-immunodata-workflows = "^0.50.0"
+click = "*"
+oneml-pipelines = "*"
 
 [tool.poetry.extras]
 dev = []
@@ -42,10 +38,14 @@ pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+oneml-pipelines = {path = "../oneml-pipelines", develop = true}
 # to release packages to hflabs
 twine = "*"
+# pycharm requires setuptools :(
+setuptools = "*"
 
 [tool.poetry.scripts]
+oneml-devtools = "oneml.devtools.__main__:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
