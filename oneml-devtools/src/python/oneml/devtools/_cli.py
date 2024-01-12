@@ -1,3 +1,11 @@
+import sys
+
+import os
+
+import subprocess
+
+from pathlib import Path
+
 from typing import Iterable
 
 import click
@@ -23,15 +31,56 @@ class OnemlDevtoolsCli(IExecutable):
 
 class OnemlDevtoolsCommands(ClickCommandRegistry):
     @command
-    @click.argument("name")
-    @click.option("--path")
-    def hello(self, name: str, path: str) -> None:
-        """say hello"""
-        print(f"hello, {name} from {path}")
+    @click.argument(
+        "component_path",
+        type=click.Path(
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            writable=False,
+            readable=True,
+            resolve_path=False,
+            allow_dash=False,
+        ),
+    )
+    def build_wheel(self, component_path: str) -> None:
+        """build the python wheel for one of the components in this project"""
+        # currently assuming this runs from the devtools directory
+        # and we expect to only build components in this repo
+        component_path = Path(component_path)
+        pyproject_path = component_path / "pyproject.toml"
+
+        if not component_path.is_dir() or not pyproject_path.is_file():
+            raise ValueError(f"component {component_path} does not exist")
+
+        try:
+            subprocess.run(["poetry", "build", "-f", "wheel"], cwd=component_path, check=True)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
 
     @command
-    @click.argument("name")
-    @click.option("--reason", help="why you are saying goodbye?")
-    def bye(self, name: str, reason: str) -> None:
-        """say goodbye"""
-        print(f"goodbye, {name} ({reason})")
+    @click.argument("component_path")
+    def test(self, component_path: str) -> None:
+        """build the python wheel for one of the components in this project"""
+        # currently assuming this runs from the devtools directory
+        # and we expect to only build components in this repo
+        component_path = Path(component_path)
+        pyproject_path = component_path / "pyproject.toml"
+
+        if not component_path.is_dir() or not pyproject_path.is_file():
+            raise ValueError(f"component {component_path} does not exist")
+
+        try:
+            subprocess.run(["poetry", "run", "pytest"], cwd=component_path, check=True)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    @command
+    @click.argument("job_name")
+    def run_ci_job(self, job_name: str) -> None:
+        pass
+
+    @command
+    def ping(self) -> None:
+        """no-op used for testing"""
+        print("pong")
