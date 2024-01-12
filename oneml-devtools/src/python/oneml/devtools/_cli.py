@@ -31,18 +31,7 @@ class OnemlDevtoolsCli(IExecutable):
 
 class OnemlDevtoolsCommands(ClickCommandRegistry):
     @command
-    @click.argument(
-        "component_path",
-        type=click.Path(
-            exists=True,
-            file_okay=False,
-            dir_okay=True,
-            writable=False,
-            readable=True,
-            resolve_path=False,
-            allow_dash=False,
-        ),
-    )
+    @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def build_wheel(self, component_path: str) -> None:
         """build the python wheel for one of the components in this project"""
         # currently assuming this runs from the devtools directory
@@ -59,7 +48,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
             sys.exit(e.returncode)
 
     @command
-    @click.argument("component_path")
+    @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def test(self, component_path: str) -> None:
         """build the python wheel for one of the components in this project"""
         # currently assuming this runs from the devtools directory
