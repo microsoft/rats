@@ -1,6 +1,9 @@
+from typing import Any
+
 from ._cli import OnemlDevtoolsCli, OnemlDevtoolsCommands
 from ._container import DecoratedServiceProvider
-from oneml.services import ServiceContainer, ServiceId, service_group, service_provider
+from oneml.services import ServiceContainer, ServiceId, T_ServiceType, service_group, \
+    service_provider
 
 
 class OnemlDevtoolsAppServices:
@@ -12,6 +15,9 @@ class OnemlDevtoolsAppServiceGroups:
 
 
 class OnemlDevtoolsAppContainer(DecoratedServiceProvider):
+
+    def get_service_ids(self) -> Any:
+        raise RuntimeError("deprecated method added for backwards compatibility")
 
     @service_provider(OnemlDevtoolsAppServices.CLI)
     def cli(self) -> OnemlDevtoolsCli:
