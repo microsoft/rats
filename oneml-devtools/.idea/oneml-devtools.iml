@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/python" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/test/python" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
+      <excludeFolder url="file://$MODULE_DIR$/dist" />
     </content>
     <orderEntry type="jdk" jdkName="Poetry (oneml-devtools)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
