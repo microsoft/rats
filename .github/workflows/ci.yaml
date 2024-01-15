@@ -99,7 +99,7 @@ jobs:
           files: .tmp/${{ matrix.component }}/reports/pytest-junit.xml
           check_name: "Test Results: ${{ matrix.component }}"
       - name: "upload-artifacts"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: "wheels"
           path: "wheels/${{ steps.package-info.outputs.package-wheel }}"
