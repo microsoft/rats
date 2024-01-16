@@ -99,9 +99,9 @@ jobs:
           files: .tmp/${{ matrix.component }}/reports/pytest-junit.xml
           check_name: "Test Results: ${{ matrix.component }}"
       - name: "upload-artifacts"
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: "wheels"
+          name: "wheels.${{ matrix.component }}"
           path: "wheels/${{ steps.package-info.outputs.package-wheel }}"
   publish-artifacts:
     if: "${{ inputs.publish-wheels }}"
@@ -125,10 +125,11 @@ jobs:
           echo "writing access token to $GITHUB_OUTPUT"
           echo access-token=$TOKEN >> $GITHUB_OUTPUT
       - name: download-wheels
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: wheels
           path: dist/
+          pattern: "my-artifact-*"
+          merge-multiple: true
       - name: publish-wheels
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
