@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Iterable
 from contextlib import AbstractContextManager
-from typing import Any, cast
+from typing import cast
 from uuid import uuid4
 
 from typing_extensions import NamedTuple

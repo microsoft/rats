@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from functools import lru_cache
-from typing import Any, Generic
+from typing import Generic
 
 from ._contexts import ContextProvider, T_ContextType
 from ._service_managers import IProvideServices
