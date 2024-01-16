@@ -128,7 +128,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist/
-          pattern: "my-artifact-*"
+          pattern: "wheels.*"
           merge-multiple: true
       - name: publish-wheels
         uses: pypa/gh-action-pypi-publish@release/v1
