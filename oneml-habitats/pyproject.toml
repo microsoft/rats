@@ -39,9 +39,6 @@ python = ">=3.8.10,<3.11"
 pandas-stubs = "*"
 pyarrow = "^12.0.1"
 
-[tool.poetry.extras]
-dev = []
-
 [tool.poetry.group.dev.dependencies]
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
@@ -55,6 +52,9 @@ pytest-nunit = "*"
 ruff = "*"
 setuptools = "*"
 types-urllib3 = "*"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
 
 [tool.poetry.plugins."immunocli.plugins"]
 "oneml-habitats" = "oneml.habitats.immunocli:OnemlHabitatsCliPlugin.factory"

@@ -44,6 +44,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
 
         try:
             subprocess.run([
+                "poetry", "run",
                 "mkdocs", "build",
                 "--site-dir", str(site_dir_path.resolve()),
             ], cwd=component_path, check=True)

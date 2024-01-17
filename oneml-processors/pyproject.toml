@@ -32,9 +32,6 @@ pydot = "^1.4.2"
 python = ">=3.8.10,<3.11"
 furl = "^2.1.3"
 
-[tool.poetry.extras]
-dev = []
-
 [tool.poetry.group.dev.dependencies]
 oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
@@ -44,6 +41,9 @@ pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
 
 [tool.poetry.plugins."oneml.app_plugins"]
 "oneml.processors-plugin" = "oneml.processors.plugin:OnemlProcessorsPlugin"

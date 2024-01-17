@@ -29,9 +29,6 @@ colorlog = "*"
 oneml-pipelines = { version = "*" }
 python = ">=3.8.10,<3.11"
 
-[tool.poetry.extras]
-dev = []
-
 [tool.poetry.group.dev.dependencies]
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 coverage = "*"
@@ -40,6 +37,9 @@ pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
 
 [tool.poetry.scripts]
 adocli = 'oneml.adocli._main:entrypoint'

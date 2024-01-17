@@ -45,6 +45,9 @@ pytest-nunit = "*"
 ruff = "*"
 types-urllib3 = "*"
 
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
+
 [tool.poetry.scripts]
 
 [tool.poetry.plugins."oneml.app_plugins"]
