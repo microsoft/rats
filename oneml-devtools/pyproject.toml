@@ -10,6 +10,7 @@ packages = [
 
 [[tool.poetry.source]]
 name = "immunomics-artifacts"
+# https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
 url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
 priority = "default"
 
@@ -43,6 +44,9 @@ oneml-pipelines = {path = "../oneml-pipelines", develop = true}
 twine = "*"
 # pycharm requires setuptools :(
 setuptools = "*"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
 
 [tool.poetry.scripts]
 oneml-devtools = "oneml.devtools.__main__:run"

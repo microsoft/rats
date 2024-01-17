@@ -30,12 +30,30 @@ class OnemlDevtoolsCli(IExecutable):
 
 
 class OnemlDevtoolsCommands(ClickCommandRegistry):
+
+    @command
+    @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
+    def build_docs(self, component_path: str) -> None:
+        """build the documentation site for one of the components in this project"""
+        component_path = Path(component_path)
+        pyproject_path = component_path / "pyproject.toml"
+        site_dir_path = component_path / "dist/site"
+
+        if not component_path.is_dir() or not pyproject_path.is_file():
+            raise ValueError(f"component {component_path} does not exist")
+
+        try:
+            subprocess.run([
+                "mkdocs", "build",
+                "--site-dir", str(site_dir_path.resolve()),
+            ], cwd=component_path, check=True)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
     @command
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def build_wheel(self, component_path: str) -> None:
         """build the python wheel for one of the components in this project"""
-        # currently assuming this runs from the devtools directory
-        # and we expect to only build components in this repo
         component_path = Path(component_path)
         pyproject_path = component_path / "pyproject.toml"
 
@@ -49,10 +67,30 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
 
     @command
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
+    @click.argument("repository_name", type=str)
+    def publish_wheel(self, component_path: str, repository_name: str) -> None:
+        """publish the python wheel for one of the components in this project"""
+        component_path = Path(component_path)
+        pyproject_path = component_path / "pyproject.toml"
+
+        if not component_path.is_dir() or not pyproject_path.is_file():
+            raise ValueError(f"component {component_path} does not exist")
+
+        try:
+            subprocess.run([
+                "poetry", "publish",
+                "--repository", repository_name,
+                "--no-interaction",
+                # temporarily skip existing during testing
+                "--skip-existing",
+            ], cwd=component_path, check=True)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    @command
+    @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def test(self, component_path: str) -> None:
         """build the python wheel for one of the components in this project"""
-        # currently assuming this runs from the devtools directory
-        # and we expect to only build components in this repo
         component_path = Path(component_path)
         pyproject_path = component_path / "pyproject.toml"
 
@@ -63,11 +101,6 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
             subprocess.run(["poetry", "run", "pytest"], cwd=component_path, check=True)
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
-
-    @command
-    @click.argument("job_name")
-    def run_ci_job(self, job_name: str) -> None:
-        pass
 
     @command
     def ping(self) -> None:

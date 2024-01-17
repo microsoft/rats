@@ -11,6 +11,14 @@ def command(f: Callable[[...], None]) -> Callable[[...], None]:
 
 
 class ClickCommandRegistry(Protocol):
+    """
+    Interface for classes that want to add `click` commands ro a `click.Group`.
+
+    The default implementation of `register` loops through all the methods in the class, looking
+    for ones with the `__oneml_is_command__` property, and adds them to the `click.Group`. The
+    method name is used as the command name, and the docstring is used as the help text on the
+    terminal.
+    """
 
     def register(self, group: click.Group) -> None:
         """
@@ -21,8 +29,18 @@ class ClickCommandRegistry(Protocol):
         The method name is used as the command name, and the docstring is used as the
         help text on the terminal.
         """
-        def cb(_name, *args, **kwargs):
-            func = getattr(self, _name)
+        def cb(_method_name, *args, **kwargs):
+            """
+            Callback handed to `click.Command`, calls the method with matching name on this class.
+
+            When the command is decorated with `@click.params` and `@click.option`, `click` will
+            call this callback with the parameters in the order they were defined. This callback
+            then calls the method with the same name on this class, passing the parameters in
+            reverse order. This is because the method is defined with the parameters in the
+            reverse order to the decorator, so we need to reverse them again to get the correct
+            order.
+            """
+            func = getattr(self, _method_name)
             func(*args, **kwargs)
 
         methods = [attr for attr in dir(self) if not attr.startswith("_")]
