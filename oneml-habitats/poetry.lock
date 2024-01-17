@@ -1481,28 +1481,8 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
-name = "oneml-devtools"
-version = "0.10.3.dev44"
-description = ""
-optional = false
-python-versions = ">=3.8.10,<3.11"
-files = []
-develop = true
-
-[package.dependencies]
-click = "*"
-oneml-pipelines = "*"
-
-[package.extras]
-dev = []
-
-[package.source]
-type = "directory"
-url = "../oneml-devtools"
-
-[[package]]
 name = "oneml-pipelines"
-version = "0.10.3.dev44"
+version = "0.10.3.dev45"
 description = ""
 optional = false
 python-versions = ">=3.8.10,<3.11"
@@ -1524,7 +1504,7 @@ url = "../oneml-pipelines"
 
 [[package]]
 name = "oneml-processors"
-version = "0.10.3.dev44"
+version = "0.10.3.dev45"
 description = ""
 optional = false
 python-versions = ">=3.8.10,<3.11"
@@ -2684,4 +2664,4 @@ reference = "immunomics-artifacts"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "4d633269de2b962c18d1b03f1f52cb17cb9dcf129dbc37a89dcee5797a0925cd"
+content-hash = "bd0769a4e1844be85c2e18b6d59c97b992109fca33b7f0e259cfed1166b08be5"

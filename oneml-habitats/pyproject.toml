@@ -40,7 +40,6 @@ pandas-stubs = "*"
 pyarrow = "^12.0.1"
 
 [tool.poetry.group.dev.dependencies]
-oneml-devtools = { path = "../oneml-devtools/", develop = true }
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 oneml-processors = { path = "../oneml-processors/", develop = true }
 coverage = "*"

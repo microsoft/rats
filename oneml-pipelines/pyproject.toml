@@ -36,7 +36,6 @@ furl = "^2.1.3"
 dev = []
 
 [tool.poetry.group.dev.dependencies]
-oneml-devtools = { path = "../oneml-devtools/", develop = true }
 coverage = "*"
 pyright = "*"
 pytest = "*"

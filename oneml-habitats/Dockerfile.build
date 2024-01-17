@@ -22,7 +22,6 @@ RUN mkdir -p $APP_PATH/.tmp
 
 WORKDIR $APP_PATH
 
-COPY oneml-devtools $PROJECT_PATH/oneml-devtools
 COPY oneml-pipelines $PROJECT_PATH/oneml-pipelines
 COPY oneml-processors $PROJECT_PATH/oneml-processors
 COPY $APP_NAME $APP_PATH

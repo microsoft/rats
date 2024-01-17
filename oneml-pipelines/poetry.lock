@@ -664,26 +664,6 @@ url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pyp
 reference = "immunomics-artifacts"
 
 [[package]]
-name = "oneml-devtools"
-version = "0.10.3.dev44"
-description = ""
-optional = false
-python-versions = ">=3.8.10,<3.11"
-files = []
-develop = true
-
-[package.dependencies]
-click = "*"
-oneml-pipelines = "*"
-
-[package.extras]
-dev = []
-
-[package.source]
-type = "directory"
-url = "../oneml-devtools"
-
-[[package]]
 name = "orderedmultidict"
 version = "1.0.1"
 description = "Ordered Multivalue Dictionary"
@@ -1292,4 +1272,4 @@ dev = []
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "623a3b141c1c56aba5f0a11aaa4ea71c996452ecc1e071f1573d40f9384547f3"
+content-hash = "93ae6b4b726d4445702a244c317125aa0f8d04b296de6749c526597aca4be7fc"
