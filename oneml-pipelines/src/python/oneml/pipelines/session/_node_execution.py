@@ -2,8 +2,9 @@ from abc import abstractmethod
 from typing import Any, Protocol
 
 from oneml.pipelines.dag import PipelineNode
-from oneml.pipelines.session import PipelineSession
 from oneml.services import ContextProvider, IExecutable
+
+from ._contexts import PipelineSession
 
 
 class ILocatePipelineNodeExecutables(Protocol):
