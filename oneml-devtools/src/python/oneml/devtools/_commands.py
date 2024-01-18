@@ -33,6 +33,22 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
 
     @command
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
+    def install(self, component_path: str) -> None:
+        """build the documentation site for one of the components in this project"""
+        component_path = Path(component_path)
+        pyproject_path = component_path / "pyproject.toml"
+        site_dir_path = component_path / "dist/site"
+
+        if not component_path.is_dir() or not pyproject_path.is_file():
+            raise ValueError(f"component {component_path} does not exist")
+
+        try:
+            subprocess.run(["poetry", "install"], cwd=component_path, check=True)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    @command
+    @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def build_docs(self, component_path: str) -> None:
         """build the documentation site for one of the components in this project"""
         component_path = Path(component_path)

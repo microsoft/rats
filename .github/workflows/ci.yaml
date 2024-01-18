@@ -135,3 +135,44 @@ jobs:
         with:
           password: ${{ steps.authenticate.outputs.access-token }}
           repository-url: https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
+  build-docs:
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - oneml-pipelines
+          - oneml-processors
+          - oneml-habitats
+    runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
+    name: "docs: ${{ matrix.component }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+      - id: "authenticate"
+        name: "authenticate"
+        run: |
+          # authenticate as the managed identity we assigned to the 1es runner
+          az login \
+          --identity \
+          -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+          # auth to acr resources we use
+          az acr login --name immunodata
+          # generate an access token that we use for the run
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D")
+          # Prevents the token from being output in logs
+          echo "::add-mask::$TOKEN"
+          echo "writing access token to $GITHUB_OUTPUT"
+          echo access-token=$TOKEN >> $GITHUB_OUTPUT
+      - name: "install-devtools"
+        run: |
+          TOKEN="${{ steps.authenticate.outputs.access-token }}"
+          poetry config http-basic.immunomics-artifacts "__token__" "$TOKEN"
+          pipx install \
+            -e -i https://$TOKEN@pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple \
+            oneml-devtools/
+      - name: "poetry-install"
+        run: |
+          oneml-devtools install oneml-pipelines/
