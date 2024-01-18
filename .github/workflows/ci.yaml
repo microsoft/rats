@@ -167,7 +167,7 @@ jobs:
           echo "::add-mask::$TOKEN"
           echo "writing access token to $GITHUB_OUTPUT"
           echo access-token=$TOKEN >> $GITHUB_OUTPUT
-      - name: "install"
+      - name: "install-devtools"
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
@@ -176,4 +176,11 @@ jobs:
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple \
             oneml-devtools/
+      - name: "poetry-install"
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
           oneml-devtools install ${{ matrix.component }}/
+      - name: "build-docs"
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          oneml-devtools build-docs ${{ matrix.component }}/
