@@ -169,6 +169,7 @@ jobs:
       - name: "install-devtools"
         run: |
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
+          pipx install poetry
           poetry config http-basic.immunomics-artifacts "__token__" "$TOKEN"
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple \
