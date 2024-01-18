@@ -154,6 +154,7 @@ jobs:
       - id: "authenticate"
         name: "authenticate"
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
@@ -168,6 +169,7 @@ jobs:
           echo access-token=$TOKEN >> $GITHUB_OUTPUT
       - name: "install-devtools"
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
           pipx install poetry
           poetry config http-basic.immunomics-artifacts "__token__" "$TOKEN"
