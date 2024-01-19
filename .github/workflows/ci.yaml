@@ -20,7 +20,7 @@ jobs:
           - oneml-pipelines
           - oneml-processors
           - oneml-habitats
-    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "test: ${{ matrix.component }}"
     steps:
       - uses: actions/checkout@v4
