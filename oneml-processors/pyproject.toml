@@ -8,8 +8,8 @@ authors = []
 packages = [{ include = "oneml", from = "src/python" }]
 
 [[tool.poetry.source]]
-name = "immunomics-artifacts"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+name = "oneml-artifacts"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
 priority = "default"
 
 [tool.poetry-dynamic-versioning]

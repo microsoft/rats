@@ -9,9 +9,9 @@ packages = [
 ]
 
 [[tool.poetry.source]]
-name = "immunomics-artifacts"
-# https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+name = "oneml-artifacts"
+# https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
 priority = "default"
 
 [tool.poetry-dynamic-versioning]
