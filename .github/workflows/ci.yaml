@@ -106,7 +106,7 @@ jobs:
   publish-artifacts:
     if: "${{ inputs.publish-wheels }}"
     needs: test-components
-    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "push-artifacts"
     steps:
       - id: "authenticate"
@@ -143,7 +143,7 @@ jobs:
           - oneml-pipelines
           - oneml-processors
           - oneml-habitats
-    runs-on: [ "self-hosted", "1ES.Pool=oneml-test-300" ]
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "docs: ${{ matrix.component }}"
     steps:
       - uses: actions/checkout@v4
