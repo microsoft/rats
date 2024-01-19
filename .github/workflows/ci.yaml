@@ -34,7 +34,7 @@ jobs:
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
-          -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
           # auth to acr resources we use
           az acr login --name immunodata
           # generate an access token that we use for the run
@@ -115,7 +115,7 @@ jobs:
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
-          -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
           # auth to acr resources we use
           az acr login --name immunodata
           # generate an access token that we use for the run
@@ -158,7 +158,7 @@ jobs:
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
-          -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
           # auth to acr resources we use
           az acr login --name immunodata
           # generate an access token that we use for the run
