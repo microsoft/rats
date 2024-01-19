@@ -47,7 +47,9 @@ jobs:
           # let us reach things installed by pipx
           export PATH="$HOME/.local/bin:$PATH"
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
-          pipx install poetry
+          pipx install \
+            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            poetry
           poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
@@ -160,7 +162,9 @@ jobs:
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
-          pipx install poetry
+          pipx install \
+            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            poetry
           poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
