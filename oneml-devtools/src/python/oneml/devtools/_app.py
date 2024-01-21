@@ -1,9 +1,9 @@
 from typing import Any
 
 from oneml.services import (
-    ServiceContainer,
+    IExecutable, ServiceContainer,
     ServiceId,
-    service_group,
+    scoped_service_ids, service_group,
     service_provider,
 )
 
@@ -11,8 +11,9 @@ from ._commands import OnemlDevtoolsCli, OnemlDevtoolsCommands
 from ._container import DecoratedServiceProvider
 
 
+@scoped_service_ids
 class OnemlDevtoolsAppServices:
-    CLI = ServiceId[OnemlDevtoolsCli]("cli")
+    CLI = ServiceId[IExecutable]("cli")
 
 
 class OnemlDevtoolsAppServiceGroups:

@@ -1,13 +1,13 @@
 from collections.abc import Callable
 from functools import partial
-from typing import Protocol
+from typing import Any, Protocol
 
 import click
 from click import Command
 
 
-def command(f: Callable[[...], None]) -> Callable[[...], None]:
-    f.__oneml_is_command__ = True
+def command(f: Callable[..., None]) -> Callable[..., None]:
+    setattr(f, "__oneml_is_command__", True)
     return f
 
 
@@ -28,7 +28,7 @@ class ClickCommandRegistry(Protocol):
         The method name is used as the command name, and the docstring is used as the
         help text on the terminal.
         """
-        def cb(_method_name, *args, **kwargs):
+        def cb(_method_name: str, *args: Any, **kwargs: Any):
             """Callback handed to `click.Command`, calls the method with matching name on this class.
 
             When the command is decorated with `@click.params` and `@click.option`, `click` will

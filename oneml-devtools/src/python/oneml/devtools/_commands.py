@@ -31,10 +31,10 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def install(self, component_path: str) -> None:
         """Build the documentation site for one of the components in this project."""
-        component_path = Path(component_path)
-        pyproject_path = component_path / "pyproject.toml"
+        p = Path(component_path)
+        pyproject_path = p / "pyproject.toml"
 
-        if not component_path.is_dir() or not pyproject_path.is_file():
+        if not p.is_dir() or not pyproject_path.is_file():
             raise ValueError(f"component {component_path} does not exist")
 
         try:
@@ -46,11 +46,11 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def build_docs(self, component_path: str) -> None:
         """Build the documentation site for one of the components in this project."""
-        component_path = Path(component_path)
-        pyproject_path = component_path / "pyproject.toml"
-        site_dir_path = component_path / "dist/site"
+        p = Path(component_path)
+        pyproject_path = p / "pyproject.toml"
+        site_dir_path = p / "dist/site"
 
-        if not component_path.is_dir() or not pyproject_path.is_file():
+        if not p.is_dir() or not pyproject_path.is_file():
             raise ValueError(f"component {component_path} does not exist")
 
         try:
@@ -66,10 +66,10 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def build_wheel(self, component_path: str) -> None:
         """Build the python wheel for one of the components in this project."""
-        component_path = Path(component_path)
-        pyproject_path = component_path / "pyproject.toml"
+        p = Path(component_path)
+        pyproject_path = p / "pyproject.toml"
 
-        if not component_path.is_dir() or not pyproject_path.is_file():
+        if not p.is_dir() or not pyproject_path.is_file():
             raise ValueError(f"component {component_path} does not exist")
 
         try:
@@ -82,10 +82,10 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @click.argument("repository_name", type=str)
     def publish_wheel(self, component_path: str, repository_name: str) -> None:
         """Publish the python wheel for one of the components in this project."""
-        component_path = Path(component_path)
-        pyproject_path = component_path / "pyproject.toml"
+        p = Path(component_path)
+        pyproject_path = p / "pyproject.toml"
 
-        if not component_path.is_dir() or not pyproject_path.is_file():
+        if not p.is_dir() or not pyproject_path.is_file():
             raise ValueError(f"component {component_path} does not exist")
 
         try:
@@ -103,10 +103,10 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def test(self, component_path: str) -> None:
         """Build the python wheel for one of the components in this project."""
-        component_path = Path(component_path)
-        pyproject_path = component_path / "pyproject.toml"
+        p = Path(component_path)
+        pyproject_path = p / "pyproject.toml"
 
-        if not component_path.is_dir() or not pyproject_path.is_file():
+        if not p.is_dir() or not pyproject_path.is_file():
             raise ValueError(f"component {component_path} does not exist")
 
         try:
