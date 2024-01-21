@@ -1,7 +1,7 @@
 import logging.config
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Dict, Protocol
+from typing import Any, Protocol
 
 
 @dataclass(frozen=True)
@@ -24,7 +24,7 @@ class IApplyLogConfigs(Protocol):
 
 class LoggingClient(IUpdateLogLevels, IApplyLogConfigs):
 
-    _current_config: Dict[str, Any]
+    _current_config: dict[str, Any]
 
     def __init__(self):
         self._current_config = {

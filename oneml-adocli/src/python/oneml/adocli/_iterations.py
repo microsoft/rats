@@ -2,7 +2,6 @@ import datetime
 import logging
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import List, Tuple
 
 from azure.devops.v6_0.work import TeamContext, TeamSettingsIteration, WorkClient
 from azure.devops.v6_0.work_item_tracking import (
@@ -59,7 +58,7 @@ class AdoSprintClient:
         work_item = self._work_item_tracking_client.get_work_item(
             ticket.id, project=self._project_id, expand="Relations")
 
-        def find_parent_relation_index(relations: List[WorkItemRelation]) -> int:
+        def find_parent_relation_index(relations: list[WorkItemRelation]) -> int:
             for x, r in enumerate(relations):
                 if r.attributes["name"] == "Parent":
                     logger.debug(f"Detected parent relation at index: {x}")
@@ -116,7 +115,7 @@ class AdoSprintClient:
             project=self._project_id,
         )
 
-    def get_on_call_tickets(self) -> Tuple[AdoWorkItem, ...]:
+    def get_on_call_tickets(self) -> tuple[AdoWorkItem, ...]:
         feature = self._get_on_call_feature_response()
 
         child_ids = []
@@ -151,7 +150,7 @@ class AdoSprintClient:
             iteration_path=feature.fields["System.IterationPath"],
         )
 
-    @lru_cache()
+    @lru_cache  # noqa: B019
     def _get_on_call_feature_response(self) -> WorkItem:
         features = self._get_sprint_features()
         for feature in features:
@@ -160,8 +159,8 @@ class AdoSprintClient:
 
         raise RuntimeError(f"On Call Feature Not Found for Sprint({self._iteration.sprint()})")
 
-    @lru_cache()
-    def _get_sprint_features(self) -> Tuple[WorkItem, ...]:
+    @lru_cache  # noqa: B019
+    def _get_sprint_features(self) -> tuple[WorkItem, ...]:
         features = []
         for item in self._get_sprint_work_items():
             if item.fields["System.WorkItemType"] == "Feature":
@@ -169,16 +168,16 @@ class AdoSprintClient:
 
         return tuple(features)
 
-    @lru_cache()
-    def _get_sprint_work_items(self) -> Tuple[WorkItem, ...]:
+    @lru_cache  # noqa: B019
+    def _get_sprint_work_items(self) -> tuple[WorkItem, ...]:
         item_ids = self._get_sprint_work_item_ids()
         if not len(item_ids):
             return tuple()
 
         return tuple(self._work_item_tracking_client.get_work_items(item_ids, expand="Relations"))
 
-    @lru_cache()
-    def _get_sprint_work_item_ids(self) -> List[int]:
+    @lru_cache  # noqa: B019
+    def _get_sprint_work_item_ids(self) -> list[int]:
         tc = TeamContext(project_id=self._project_id, team_id=self._team_id)
         iteration_items = self._work_client.get_iteration_work_items(
             team_context=tc,
@@ -233,8 +232,8 @@ class IterationsClient:
 
         raise RuntimeError(f"Iteration for Sprint({sprint}) Not Found")
 
-    @lru_cache()
-    def get_iterations(self) -> List[AdoIteration]:
+    @lru_cache  # noqa: B019
+    def get_iterations(self) -> list[AdoIteration]:
         iterations = self._get_responses()
 
         result = []
@@ -261,7 +260,7 @@ class IterationsClient:
             end_date=response.attributes.finish_date,
         )
 
-    @lru_cache()
-    def _get_responses(self) -> List[TeamSettingsIteration]:
+    @lru_cache  # noqa: B019
+    def _get_responses(self) -> list[TeamSettingsIteration]:
         tc = TeamContext(project_id=self._project_id, team_id=self._team_id)
         return self._work_client.get_team_iterations(tc)
