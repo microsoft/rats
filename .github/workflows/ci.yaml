@@ -17,7 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         component:
-          - oneml-adocli
           - oneml-devtools
           - oneml-pipelines
           - oneml-processors
@@ -138,7 +137,6 @@ jobs:
       fail-fast: false
       matrix:
         component:
-          - oneml-adocli
           - oneml-devtools
           - oneml-pipelines
           - oneml-processors
