@@ -54,6 +54,10 @@ jobs:
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
             oneml-devtools/
+      - name: "poetry-install"
+        run: |
+          export PATH="$HOME/.local/bin:$PATH"
+          oneml-devtools install ${{ matrix.component }}/
       - id: "package-info"
         name: "package-info"
         run: |
