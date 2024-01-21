@@ -1,17 +1,13 @@
-import sys
-
-import os
-
 import subprocess
-
+import sys
+from collections.abc import Iterable
 from pathlib import Path
-
-from typing import Iterable
 
 import click
 
-from ._click import ClickCommandRegistry, command
 from oneml.services import IExecutable, ServiceProvider
+
+from ._click import ClickCommandRegistry, command
 
 
 class OnemlDevtoolsCli(IExecutable):
@@ -34,10 +30,9 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @command
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def install(self, component_path: str) -> None:
-        """build the documentation site for one of the components in this project"""
+        """Build the documentation site for one of the components in this project."""
         component_path = Path(component_path)
         pyproject_path = component_path / "pyproject.toml"
-        site_dir_path = component_path / "dist/site"
 
         if not component_path.is_dir() or not pyproject_path.is_file():
             raise ValueError(f"component {component_path} does not exist")
@@ -50,7 +45,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @command
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def build_docs(self, component_path: str) -> None:
-        """build the documentation site for one of the components in this project"""
+        """Build the documentation site for one of the components in this project."""
         component_path = Path(component_path)
         pyproject_path = component_path / "pyproject.toml"
         site_dir_path = component_path / "dist/site"
@@ -70,7 +65,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @command
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def build_wheel(self, component_path: str) -> None:
-        """build the python wheel for one of the components in this project"""
+        """Build the python wheel for one of the components in this project."""
         component_path = Path(component_path)
         pyproject_path = component_path / "pyproject.toml"
 
@@ -86,7 +81,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     @click.argument("repository_name", type=str)
     def publish_wheel(self, component_path: str, repository_name: str) -> None:
-        """publish the python wheel for one of the components in this project"""
+        """Publish the python wheel for one of the components in this project."""
         component_path = Path(component_path)
         pyproject_path = component_path / "pyproject.toml"
 
@@ -107,7 +102,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
     @command
     @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
     def test(self, component_path: str) -> None:
-        """build the python wheel for one of the components in this project"""
+        """Build the python wheel for one of the components in this project."""
         component_path = Path(component_path)
         pyproject_path = component_path / "pyproject.toml"
 
@@ -121,5 +116,5 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
 
     @command
     def ping(self) -> None:
-        """no-op used for testing"""
+        """No-op used for testing."""
         print("pong")

@@ -1,8 +1,9 @@
+from collections.abc import Callable
 from functools import partial
+from typing import Protocol
 
 import click
 from click import Command
-from typing import Callable, Protocol
 
 
 def command(f: Callable[[...], None]) -> Callable[[...], None]:
@@ -11,8 +12,7 @@ def command(f: Callable[[...], None]) -> Callable[[...], None]:
 
 
 class ClickCommandRegistry(Protocol):
-    """
-    Interface for classes that want to add `click` commands ro a `click.Group`.
+    """Interface for classes that want to add `click` commands ro a `click.Group`.
 
     The default implementation of `register` loops through all the methods in the class, looking
     for ones with the `__oneml_is_command__` property, and adds them to the `click.Group`. The
@@ -21,8 +21,7 @@ class ClickCommandRegistry(Protocol):
     """
 
     def register(self, group: click.Group) -> None:
-        """
-        A sprinkling of introspection to allow class methods to be `click` commands.
+        """A sprinkling of introspection to allow class methods to be `click` commands.
 
         This default implementation loops through all the methods in the class and
         turns the ones with the `__oneml_is_command__` property into `click` commands.
@@ -30,8 +29,7 @@ class ClickCommandRegistry(Protocol):
         help text on the terminal.
         """
         def cb(_method_name, *args, **kwargs):
-            """
-            Callback handed to `click.Command`, calls the method with matching name on this class.
+            """Callback handed to `click.Command`, calls the method with matching name on this class.
 
             When the command is decorated with `@click.params` and `@click.option`, `click` will
             call this callback with the parameters in the order they were defined. This callback

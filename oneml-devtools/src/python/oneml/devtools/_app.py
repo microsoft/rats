@@ -1,9 +1,14 @@
 from typing import Any
 
+from oneml.services import (
+    ServiceContainer,
+    ServiceId,
+    service_group,
+    service_provider,
+)
+
 from ._commands import OnemlDevtoolsCli, OnemlDevtoolsCommands
 from ._container import DecoratedServiceProvider
-from oneml.services import ServiceContainer, ServiceId, T_ServiceType, service_group, \
-    service_provider
 
 
 class OnemlDevtoolsAppServices:

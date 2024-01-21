@@ -1,10 +1,15 @@
+from collections.abc import Iterable, Mapping
 from functools import lru_cache
+from typing import Any, Protocol
 
-from typing import Any, Iterable, Mapping, Protocol
-
-from oneml.services import DuplicateServiceIdError, IProvideServices, ServiceId, \
-    ServiceIdNotFoundError, ServiceProvider, \
-    T_ServiceType
+from oneml.services import (
+    DuplicateServiceIdError,
+    IProvideServices,
+    ServiceId,
+    ServiceIdNotFoundError,
+    ServiceProvider,
+    T_ServiceType,
+)
 
 
 class DecoratedServiceProvider(IProvideServices, Protocol):
@@ -13,7 +18,7 @@ class DecoratedServiceProvider(IProvideServices, Protocol):
         self,
         service_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[T_ServiceType]:
-        @lru_cache  # noqa: B019
+        @lru_cache
         def parse_services() -> Mapping[ServiceId[Any], ServiceProvider[Any]]:
             result = {}
             methods = [attr for attr in dir(self) if not attr.startswith("_")]
@@ -39,7 +44,7 @@ class DecoratedServiceProvider(IProvideServices, Protocol):
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
-        @lru_cache  # noqa: B019
+        @lru_cache
         def parse_services() -> Mapping[ServiceId[Any], Iterable[ServiceProvider[Any]]]:
             result = {}
             methods = [attr for attr in dir(self) if not attr.startswith("_")]
@@ -68,7 +73,7 @@ class DecoratedServiceProvider(IProvideServices, Protocol):
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
-        @lru_cache  # noqa: B019
+        @lru_cache
         def parse_services() -> Mapping[ServiceId[Any], Iterable[ServiceProvider[Any]]]:
             result = {}
             methods = [attr for attr in dir(self) if not attr.startswith("_")]
