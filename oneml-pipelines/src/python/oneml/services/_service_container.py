@@ -18,8 +18,7 @@ class ServiceContainer(IProvideServices):
     def get_service_provider(
         self, service_id: ServiceId[T_ServiceType]
     ) -> ServiceProvider[T_ServiceType]:
-        # pyright issue: https://github.com/microsoft/pyright/issues/6953
-        return lambda: self.get_service(service_id)  # pyright: ignore
+        return lambda: self.get_service(service_id)
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
         if service_id not in self._service_cache:

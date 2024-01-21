@@ -124,8 +124,7 @@ class OnemlApp(App, IManageServices, IManageContexts):
         return self._app_container.get_service_provider(service_id)
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
-        # pyright issue: https://github.com/microsoft/pyright/issues/6953
-        return self._app_container.get_service(service_id)  # pyright: ignore
+        return self._app_container.get_service(service_id)
 
     def get_service_group_provider(
         self,
@@ -166,7 +165,4 @@ class OnemlApp(App, IManageServices, IManageContexts):
         return self._context_client().get_context(context_id)
 
     def _context_client(self) -> ContextClient:
-        return cast(
-            ContextClient,
-            self._app_container.get_service(OnemlAppServices.APP_CONTEXT_CLIENT),
-        )
+        return self._app_container.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)
