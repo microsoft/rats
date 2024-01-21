@@ -57,6 +57,7 @@ jobs:
       - id: "package-info"
         name: "package-info"
         run: |
+          export PATH="$HOME/.local/bin:$PATH"
           cd ${{ matrix.component }}/
           # use poetry to find out the version of our package
           VERSION=$(poetry version --short)
@@ -146,7 +147,6 @@ jobs:
       - id: "authenticate"
         name: "authenticate"
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
