@@ -7,7 +7,7 @@ from click import Command
 
 
 def command(f: Callable[..., None]) -> Callable[..., None]:
-    setattr(f, "__oneml_is_command__", True)
+    setattr(f, "__oneml_is_command__", True)  # noqa: B010
     return f
 
 

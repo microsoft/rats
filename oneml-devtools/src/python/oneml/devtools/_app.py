@@ -1,9 +1,11 @@
 from typing import Any
 
 from oneml.services import (
-    IExecutable, ServiceContainer,
+    IExecutable,
+    ServiceContainer,
     ServiceId,
-    scoped_service_ids, service_group,
+    scoped_service_ids,
+    service_group,
     service_provider,
 )
 
