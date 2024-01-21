@@ -17,9 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         component:
+          - oneml-adocli
+          - oneml-devtools
           - oneml-pipelines
           - oneml-processors
-          - oneml-habitats
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "test: ${{ matrix.component }}"
     steps:
@@ -137,9 +138,10 @@ jobs:
       fail-fast: false
       matrix:
         component:
+          - oneml-adocli
+          - oneml-devtools
           - oneml-pipelines
           - oneml-processors
-          - oneml-habitats
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "docs: ${{ matrix.component }}"
     steps:
