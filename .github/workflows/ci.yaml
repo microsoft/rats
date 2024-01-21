@@ -100,7 +100,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: "wheels.${{ matrix.component }}"
-          path: "wheels/${{ steps.package-info.outputs.package-wheel }}"
+          path: "${{ matrix.component }}/dist/${{ steps.package-info.outputs.package-wheel }}"
   publish-artifacts:
     if: "${{ inputs.publish-wheels }}"
     needs: test-components
