@@ -3,6 +3,7 @@ on:
   push:
     branches-ignore: ["main"]
 permissions:
+  contents: read
   pull-requests: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
