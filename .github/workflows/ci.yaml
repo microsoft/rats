@@ -23,6 +23,8 @@ jobs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "test: ${{ matrix.component }}"
     steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.sha }}
@@ -44,8 +46,6 @@ jobs:
           echo access-token=$TOKEN >> $GITHUB_OUTPUT
       - name: "install-devtools"
         run: |
-          # let us reach things installed by pipx
-          export PATH="$HOME/.local/bin:$PATH"
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
           pipx install \
             -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
@@ -56,12 +56,10 @@ jobs:
             oneml-devtools/
       - name: "poetry-install"
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           oneml-devtools install ${{ matrix.component }}/
       - id: "package-info"
         name: "package-info"
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           cd ${{ matrix.component }}/
           # use poetry to find out the version of our package
           VERSION=$(poetry version --short)
@@ -72,22 +70,18 @@ jobs:
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
       - name: ruff
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           cd ${{ matrix.component }}/
           poetry run ruff check --output-format=github src/python/ test/python/
       - name: pyright
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           cd ${{ matrix.component }}/
           poetry run pyright
       - name: pytest
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           cd ${{ matrix.component }}/
           poetry run pytest
       - name: "build-wheels"
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           cd ${{ matrix.component }}/
           poetry build -f wheel
       - name: publish test results
@@ -107,6 +101,8 @@ jobs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "push-artifacts"
     steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - id: "authenticate"
         name: "authenticate"
         run: |
@@ -143,6 +139,8 @@ jobs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "docs: ${{ matrix.component }}"
     steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.sha }}
@@ -164,7 +162,6 @@ jobs:
           echo access-token=$TOKEN >> $GITHUB_OUTPUT
       - name: "install-devtools"
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
           pipx install \
             -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
@@ -175,9 +172,7 @@ jobs:
             oneml-devtools/
       - name: "poetry-install"
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           oneml-devtools install ${{ matrix.component }}/
       - name: "build-docs"
         run: |
-          export PATH="$HOME/.local/bin:$PATH"
           oneml-devtools build-docs ${{ matrix.component }}/
