@@ -28,6 +28,7 @@ metadata = false
 python = ">=3.8.10,<3.11"
 click = "*"
 oneml-pipelines = "*"
+toml = "*"
 
 [tool.poetry.extras]
 dev = []

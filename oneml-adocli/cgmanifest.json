@@ -1,0 +1,534 @@
+{
+    "Registrations": [
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "attrs",
+                    "Version": "23.2.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "azure-devops",
+                    "Version": "6.0.0b4"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "cachetools",
+                    "Version": "5.3.2"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "certifi",
+                    "Version": "2023.11.17"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "charset-normalizer",
+                    "Version": "3.3.2"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "click",
+                    "Version": "8.1.7"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "colorama",
+                    "Version": "0.4.6"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "colorlog",
+                    "Version": "6.8.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "coverage",
+                    "Version": "7.4.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "dill",
+                    "Version": "0.3.7"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "exceptiongroup",
+                    "Version": "1.2.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "furl",
+                    "Version": "2.1.3"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "ghp-import",
+                    "Version": "2.1.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "google-auth",
+                    "Version": "2.26.2"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "idna",
+                    "Version": "3.6"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "importlib-metadata",
+                    "Version": "7.0.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "iniconfig",
+                    "Version": "2.0.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "isodate",
+                    "Version": "0.6.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "jinja2",
+                    "Version": "3.1.3"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "kubernetes",
+                    "Version": "29.0.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "markdown",
+                    "Version": "3.5.2"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "markupsafe",
+                    "Version": "2.1.3"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "mergedeep",
+                    "Version": "1.3.4"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "mkdocs",
+                    "Version": "1.5.3"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "msrest",
+                    "Version": "0.6.21"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "nodeenv",
+                    "Version": "1.8.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "oauthlib",
+                    "Version": "3.2.2"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "orderedmultidict",
+                    "Version": "1.0.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "packaging",
+                    "Version": "23.2"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pathspec",
+                    "Version": "0.12.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "platformdirs",
+                    "Version": "4.1.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pluggy",
+                    "Version": "1.3.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pyasn1",
+                    "Version": "0.5.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pyasn1-modules",
+                    "Version": "0.3.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pyright",
+                    "Version": "1.1.347"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pytest",
+                    "Version": "7.4.4"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pytest-cov",
+                    "Version": "4.1.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pytest-nunit",
+                    "Version": "1.0.4"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "python-dateutil",
+                    "Version": "2.8.2"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pyyaml",
+                    "Version": "6.0.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "pyyaml-env-tag",
+                    "Version": "0.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "requests",
+                    "Version": "2.31.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "requests-oauthlib",
+                    "Version": "1.3.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "rsa",
+                    "Version": "4.9"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "ruff",
+                    "Version": "0.1.13"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "setuptools",
+                    "Version": "69.0.3"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "six",
+                    "Version": "1.16.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "tomli",
+                    "Version": "2.0.1"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "typing-extensions",
+                    "Version": "4.9.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "urllib3",
+                    "Version": "2.1.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "watchdog",
+                    "Version": "3.0.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "websocket-client",
+                    "Version": "1.7.0"
+                }
+            },
+            "DevelopmentDependency": false
+        },
+        {
+            "Component": {
+                "Type": "pip",
+                "pip": {
+                    "Name": "zipp",
+                    "Version": "3.17.0"
+                }
+            },
+            "DevelopmentDependency": false
+        }
+    ]
+}
