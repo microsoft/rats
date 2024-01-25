@@ -30,9 +30,6 @@ click = "*"
 oneml-pipelines = "*"
 toml = "*"
 
-[tool.poetry.extras]
-dev = []
-
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
 pyright = "*"

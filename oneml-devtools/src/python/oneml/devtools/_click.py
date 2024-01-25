@@ -12,7 +12,7 @@ def command(f: Callable[..., None]) -> Callable[..., None]:
 
 
 class ClickCommandRegistry(Protocol):
-    """Interface for classes that want to add `click` commands ro a `click.Group`.
+    """Interface for classes that want to add `click` commands to a `click.Group`.
 
     The default implementation of `register` loops through all the methods in the class, looking
     for ones with the `__oneml_is_command__` property, and adds them to the `click.Group`. The
