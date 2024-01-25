@@ -1,12 +1,11 @@
 import json
-
 import subprocess
 import sys
-import toml
 from collections.abc import Iterable
 from pathlib import Path
 
 import click
+import toml
 
 from oneml.services import IExecutable, ServiceProvider
 
