@@ -6,5 +6,5 @@ pool:
 
 steps:
 - script: |
-    This pipeline does nothing but our policies auto-inject additional checks like Component Governance.
+    echo "This pipeline does nothing but our policies auto-inject additional checks like Component Governance."
   displayName: 'No Op'
