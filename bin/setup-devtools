@@ -1,0 +1,11 @@
+#!/bin/bash
+
+INDEX="https://$POETRY_HTTP_BASIC_HEALTH_FUTURES_LAB_PASSWORD@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+export PIPX_BIN_DIR="$PWD/bin"
+echo "In order to make sure that the pipx installation is correct, we will remove the pipx installation and reinstall it."
+echo "Executables will be installed in $PIPX_BIN_DIR."
+echo "Using a .pipx suffix on executables. These should be .gitignored because they are system specific."
+pipx uninstall oneml-devtools.pipx
+pipx install -e -i $INDEX oneml-devtools/ --suffix .pipx || exit $?
+echo "Installation complete. Run the below command to enable shell completions:"
+echo 'eval "$(_ONEML_DEVTOOLS_PIPX_COMPLETE=zsh_source oneml-devtools.pipx)"'
