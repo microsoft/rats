@@ -1,10 +1,8 @@
-pr:
-- main
+trigger: main
+pr: [main]
 
 pool:
   vmImage: ubuntu-latest
 
 steps:
-- script: |
-    echo "This pipeline does nothing but our policies auto-inject additional checks like Component Governance."
-  displayName: 'No Op'
+- task: ComponentGovernanceComponentDetection@0
