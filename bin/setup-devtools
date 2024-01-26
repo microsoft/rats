@@ -1,7 +1,8 @@
 #!/bin/bash
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 INDEX="https://$POETRY_HTTP_BASIC_HEALTH_FUTURES_LAB_PASSWORD@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
-export PIPX_BIN_DIR="$PWD/bin"
+export PIPX_BIN_DIR="$SCRIPT_DIR"
 echo "In order to make sure that the pipx installation is correct, we will remove the pipx installation and reinstall it."
 echo "Executables will be installed in $PIPX_BIN_DIR."
 echo "Using a .pipx suffix on executables. These should be .gitignored because they are system specific."

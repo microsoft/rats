@@ -52,6 +52,6 @@ class ClickCommandRegistry(Protocol):
             group.add_command(Command(
                 name=method_name.lower().replace("_", "-").strip("-"),
                 callback=partial(cb, method_name),
-                help=method.__doc__,
+                short_help=method.__doc__,
                 params=params,
             ))
