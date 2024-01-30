@@ -8,8 +8,8 @@ from oneml.services import (
     service_group,
     service_provider,
 )
-from ._click import ClickCommandRegistry
 
+from ._click import ClickCommandRegistry
 from ._commands import OnemlDevtoolsCli, OnemlDevtoolsCommands
 from ._container import DecoratedServiceProvider
 

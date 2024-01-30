@@ -179,7 +179,7 @@ jobs:
           oneml-devtools build-docs ${{ matrix.component }}/
           ls -lah ${{ matrix.component }}/dist/site
       - name: "upload-gh-pages"
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v3
         with:
           path: "${{ matrix.component }}/dist/site"
       - name: "deploy-gh-pages"
