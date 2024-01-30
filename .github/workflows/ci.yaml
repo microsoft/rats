@@ -133,9 +133,10 @@ jobs:
       fail-fast: false
       matrix:
         component:
-          - oneml-devtools
+# disabling all except one while i test gh pages deployments
+#          - oneml-devtools
           - oneml-pipelines
-          - oneml-processors
+#          - oneml-processors
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "docs: ${{ matrix.component }}"
     steps:
@@ -176,3 +177,4 @@ jobs:
       - name: "build-docs"
         run: |
           oneml-devtools build-docs ${{ matrix.component }}/
+          ls -lah ${{ matrix.component }}/dist/site
