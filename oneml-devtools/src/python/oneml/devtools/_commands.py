@@ -1,3 +1,7 @@
+from shutil import copy, copytree, rmtree
+
+from tempfile import mkdtemp
+
 import json
 import subprocess
 import sys
@@ -41,6 +45,57 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
 
         try:
             subprocess.run(["poetry", "install"], cwd=component_path, check=True)
+        except subprocess.CalledProcessError as e:
+            sys.exit(e.returncode)
+
+    @command
+    def serve_gh_pages(self) -> None:
+        """Run `build-gh-pages` and then serve the files to view the results locally."""
+
+        self._do_mkdocs_things("serve")
+
+    @command
+    def build_gh_pages(self) -> None:
+        """Combine all documentation and build the full gh-pages site."""
+
+        self._do_mkdocs_things("build")
+
+    def _do_mkdocs_things(self, cmd: str) -> None:
+        devtools_path = Path("oneml-devtools").resolve()
+        mkdocs_config = devtools_path / "mkdocs.yaml"
+        devtools_docs_path = devtools_path / "docs"
+
+        # was thinking of copying all the mkdocs from components but it makes the experience worse
+        # components = [
+        #     "oneml-adocli",
+        #     "oneml-pipelines",
+        #     "oneml-processors",
+        #     "oneml-habitats",
+        # ]
+        #
+        # for c in components:
+        #     component_docs_path = Path(c) / "docs"
+        #     destination_path = devtools_docs_path / c
+        #
+        #     if destination_path.exists():
+        #         rmtree(destination_path)
+        #
+        #     copytree(component_docs_path, destination_path)
+
+        site_dir_path = Path(".tmp/site")
+
+        args = [
+            "--config-file", str(mkdocs_config),
+        ]
+        if cmd == "build":
+            args.extend(["--site-dir", str(site_dir_path.resolve())])
+
+        try:
+            subprocess.run([
+                "poetry", "run",
+                "mkdocs", cmd,
+                *args,
+            ], cwd=Path("oneml-devtools"), check=True)
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 

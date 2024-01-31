@@ -1,1 +1,52 @@
-site_name: oneml-devtools
+site_name: oneml
+repo_url: "https://github.com/microsoft/oneml"
+repo_name: "oneml"
+docs_dir: "docs"
+theme:
+  name: material
+  logo: images/logo.png
+  favicon: images/favicon.ico
+  palette:
+    scheme: default
+    primary: teal
+    accent: light blue
+  icon:
+    repo: fontawesome/brands/github-alt
+  features:
+    - navigation.tabs
+    - content.code.copy
+extra_css:
+  - css/extra.css
+extra_javascript:
+  - js/mathjax.js
+  - js/tex-mml-chtml.js
+plugins:
+  - search
+  - awesome-pages
+  - mkdocs-video:
+      is_video: true
+      video_controls: true
+markdown_extensions:
+  # Allows for nicely styled notes and warnings: !!! note
+  - admonition
+  # Allows for adding attributes to markdown content: !(some-image){: align=left }
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.magiclink
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+  # Allows us to make a Tasklist: [x] some checked thing
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.arithmatex:
+      generic: true

@@ -45,6 +45,11 @@ setuptools = "*"
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "*"
+mkdocs-awesome-pages-plugin = { version = "*" }
+mkdocs-material = { version = "*" }
+mkdocs-video = { version = "*" }
+# Fix CVE-2023-32309 pymdown-extensions 9.10
+pymdown-extensions = { version = ">=10.0.0" }
 
 [tool.poetry.scripts]
 oneml-devtools = "oneml.devtools.__main__:run"
