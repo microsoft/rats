@@ -39,7 +39,9 @@ pytest-nunit = "*"
 ruff = "*"
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "*"
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-markdown-builder = "*"
 
 [tool.poetry.scripts]
 adocli = 'oneml.adocli._main:entrypoint'

@@ -7,6 +7,7 @@ import subprocess
 import sys
 from collections.abc import Iterable
 from pathlib import Path
+from os import symlink
 
 import click
 import toml
@@ -49,6 +50,73 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
             sys.exit(e.returncode)
 
     @command
+    def build_sphinx_docs(self) -> None:
+        self._sphinx_apidoc()
+        self._sphinx_markdown()
+
+    def _sphinx_apidoc(self) -> None:
+        components = [
+            "oneml-adocli",
+            "oneml-devtools",
+            "oneml-pipelines",
+            "oneml-processors",
+        ]
+
+        for c in components:
+            apidoc_path = Path(f"{c}/dist/sphinx-apidoc").resolve()
+            sphinx_config = Path("oneml-devtools/src/resources/sphinx-docs/conf.py").resolve()
+            rmtree(apidoc_path, ignore_errors=True)
+
+            sphinx_command = [
+                "poetry", "run",
+                "sphinx-apidoc",
+                "--doc-project",
+                "oneml",
+                "--tocfile",
+                "index",
+                "--implicit-namespaces",
+                "--module-first",
+                "--force",
+                "--output-dir",
+                str(apidoc_path),
+                f"src/python/oneml",
+            ]
+            try:
+                subprocess.run(sphinx_command, cwd=c, check=True)
+            except subprocess.CalledProcessError as e:
+                sys.exit(e.returncode)
+
+            copy(sphinx_config, apidoc_path / "conf.py")
+
+    def _sphinx_markdown(self) -> None:
+        components = [
+            "oneml-adocli",
+            "oneml-devtools",
+            "oneml-pipelines",
+            "oneml-processors",
+        ]
+
+        for c in components:
+            rmtree(f"{c}/dist/sphinx-markdown", ignore_errors=True)
+            sphinx_command = [
+                "poetry", "run",
+                "sphinx-build",
+                "-M", "markdown",
+                "dist/sphinx-apidoc",
+                "dist/sphinx-markdown",
+            ]
+            try:
+                subprocess.run(sphinx_command, cwd=c, check=True)
+            except subprocess.CalledProcessError as e:
+                sys.exit(e.returncode)
+
+            copytree(
+                f"{c}/dist/sphinx-markdown/markdown",
+                f"{c}/docs/api",
+                dirs_exist_ok=True,
+            )
+
+    @command
     def serve_gh_pages(self) -> None:
         """Run `build-gh-pages` and then serve the files to view the results locally."""
 
@@ -62,30 +130,37 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
 
     def _do_mkdocs_things(self, cmd: str) -> None:
         devtools_path = Path("oneml-devtools").resolve()
+        root_docs_path = devtools_path / "src/resources/root-docs"
         mkdocs_config = devtools_path / "mkdocs.yaml"
-        devtools_docs_path = devtools_path / "docs"
+        mkdocs_staging_path = devtools_path / "dist/docs"
+        site_dir_path = devtools_path / "dist/site"
+        mkdocs_staging_config = devtools_path / "dist/mkdocs.yaml"
+        # clear any stale state
+        rmtree(mkdocs_staging_path, ignore_errors=True)
 
-        # was thinking of copying all the mkdocs from components but it makes the experience worse
-        # components = [
-        #     "oneml-adocli",
-        #     "oneml-pipelines",
-        #     "oneml-processors",
-        #     "oneml-habitats",
-        # ]
-        #
-        # for c in components:
-        #     component_docs_path = Path(c) / "docs"
-        #     destination_path = devtools_docs_path / c
-        #
-        #     if destination_path.exists():
-        #         rmtree(destination_path)
-        #
-        #     copytree(component_docs_path, destination_path)
+        # start with the contents of our root-docs
+        copytree(root_docs_path, mkdocs_staging_path)
 
-        site_dir_path = Path(".tmp/site")
+        components = [
+            "oneml-adocli",
+            "oneml-devtools",
+            "oneml-pipelines",
+            "oneml-processors",
+        ]
+
+        for c in components:
+            component_docs_path = Path(c).resolve() / "docs"
+            symlink(component_docs_path, mkdocs_staging_path / c)
+
+        # for some reason, mkdocs does not like symlinks for the main config file
+        if mkdocs_staging_config.exists():
+            mkdocs_staging_config.unlink()
+
+        # replace it with a fresh version of the config
+        copy(mkdocs_config, mkdocs_staging_config)
 
         args = [
-            "--config-file", str(mkdocs_config),
+            "--config-file", str(mkdocs_staging_config),
         ]
         if cmd == "build":
             args.extend(["--site-dir", str(site_dir_path.resolve())])
@@ -95,7 +170,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
                 "poetry", "run",
                 "mkdocs", cmd,
                 *args,
-            ], cwd=Path("oneml-devtools"), check=True)
+            ], cwd=devtools_path, check=True)
         except subprocess.CalledProcessError as e:
             sys.exit(e.returncode)
 

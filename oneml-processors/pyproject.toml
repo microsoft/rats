@@ -42,7 +42,9 @@ pytest-nunit = "*"
 ruff = "*"
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "*"
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-markdown-builder = "*"
 
 [tool.poetry.plugins."oneml.app_plugins"]
 "oneml.processors-plugin" = "oneml.processors.plugin:OnemlProcessorsPlugin"

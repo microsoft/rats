@@ -42,7 +42,9 @@ ruff = "*"
 types-urllib3 = "*"
 
 [tool.poetry.group.docs.dependencies]
-mkdocs = "*"
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-markdown-builder = "*"
 
 [tool.poetry.scripts]
 
