@@ -18,8 +18,7 @@ If you're making changes to the `oneml-devtools` component, you will need to run
 `setup-devtools` when certain changes are made to `pyproject.toml`, so it's a good idea to run
 this command occasionally to make sure the environment isn't in a stale state.
 
-You can configure shell-completion for this command in `zsh` by adding the below snippet to
-`~/.zshrc`:
+You can configure shell-completion for the duration of your session with the command below:
 
 ``` bash
 eval "$(_ONEML_DEVTOOLS_PIPX_COMPLETE=zsh_source oneml-devtools.pipx)"
