@@ -50,7 +50,8 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
             sys.exit(e.returncode)
 
     @command
-    def build_sphinx_docs(self) -> None:
+    def build_api_docs(self) -> None:
+        """Build the API documentation for each of the components."""
         self._sphinx_apidoc()
         self._sphinx_markdown()
 
@@ -117,15 +118,13 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
             )
 
     @command
-    def serve_gh_pages(self) -> None:
-        """Run `build-gh-pages` and then serve the files to view the results locally."""
-
+    def mkdocs_serve(self) -> None:
+        """Combine our docs across components and run the mkdocs serve command."""
         self._do_mkdocs_things("serve")
 
     @command
-    def build_gh_pages(self) -> None:
-        """Combine all documentation and build the full gh-pages site."""
-
+    def mkdocs_build(self) -> None:
+        """Combine our docs across components using mkdocs build."""
         self._do_mkdocs_things("build")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
@@ -152,11 +151,8 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
             component_docs_path = Path(c).resolve() / "docs"
             symlink(component_docs_path, mkdocs_staging_path / c)
 
-        # for some reason, mkdocs does not like symlinks for the main config file
-        if mkdocs_staging_config.exists():
-            mkdocs_staging_config.unlink()
-
-        # replace it with a fresh version of the config
+        # replace the mkdocs config with a fresh version
+        mkdocs_staging_config.unlink(missing_ok=True)
         copy(mkdocs_config, mkdocs_staging_config)
 
         args = [

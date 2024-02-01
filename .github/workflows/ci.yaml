@@ -129,16 +129,8 @@ jobs:
           password: ${{ steps.authenticate.outputs.access-token }}
           repository-url: https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
   build-docs:
-    strategy:
-      fail-fast: false
-      matrix:
-        component:
-# disabling all except one while i test gh pages deployments
-#          - oneml-devtools
-          - oneml-pipelines
-#          - oneml-processors
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
-    name: "docs: ${{ matrix.component }}"
+    name: "build-docs"
     steps:
       # let us reach things installed by pipx
       - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
@@ -173,15 +165,19 @@ jobs:
             oneml-devtools/
       - name: "poetry-install"
         run: |
-          oneml-devtools install ${{ matrix.component }}/
+          # I would like to optimize this soon before these steps become too slow
+          oneml-devtools install oneml-adocli/
+          oneml-devtools install oneml-devtools/
+          oneml-devtools install oneml-pipelines/
+          oneml-devtools install oneml-processors/
       - name: "build-docs"
         run: |
-          oneml-devtools build-docs ${{ matrix.component }}/
-          ls -lah ${{ matrix.component }}/dist/site
+          oneml-devtools build-api-docs
+          oneml-devtools mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "${{ matrix.component }}/dist/site"
+          path: "oneml-devtools/dist/site"
       - name: "deploy-gh-pages"
         id: deployment
         uses: actions/deploy-pages@v4
