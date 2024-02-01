@@ -1,13 +1,10 @@
-from shutil import copy, copytree, rmtree
-
-from tempfile import mkdtemp
-
 import json
 import subprocess
 import sys
 from collections.abc import Iterable
-from pathlib import Path
 from os import symlink
+from pathlib import Path
+from shutil import copy, copytree, rmtree
 
 import click
 import toml
@@ -80,7 +77,7 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
                 "--force",
                 "--output-dir",
                 str(apidoc_path),
-                f"src/python/oneml",
+                "src/python/oneml",
             ]
             try:
                 subprocess.run(sphinx_command, cwd=c, check=True)
