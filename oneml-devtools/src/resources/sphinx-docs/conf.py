@@ -1,6 +1,4 @@
 # -- Project information -----------------------------------------------------
-import sphinx.ext.autosummary
-
 project = "oneml"
 copyright = "Us"
 author = "The OneML Team"
@@ -14,7 +12,7 @@ extensions = [
     "sphinx.ext.autodoc",  # main extension for generating from docstrings
     "sphinx.ext.autosummary",  # adds summary tables
     "sphinx.ext.intersphinx",
-    # "sphinx.ext.napoleon",  not sure this one works with the markdown builder
+    "sphinx.ext.napoleon",  # not sure this one works with the markdown builder
     # The `sphinx_autodoc_typehints` extension must be loaded AFTER `sphinx.ext.napoleon`.
     "sphinx_autodoc_typehints",
     "sphinx_markdown_builder",
