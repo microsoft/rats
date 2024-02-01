@@ -23,13 +23,6 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
-      - id: oneml-habitats
-        name: Run hooks in habitats package
-        entry: "bin/commit-hooks oneml-habitats"
-        language: script
-        pass_filenames: false
-        files: ^oneml-habitats/src/python/
-        types: [python]
       - id: oneml-pipelines
         name: Run hooks in pipelines package
         entry: "bin/commit-hooks oneml-pipelines"

@@ -10,7 +10,6 @@ parameters:
     type: string
     values:
     - oneml-devtools
-    - oneml-habitats
     - oneml-pipelines
     - oneml-processors
   - name: kernel_class

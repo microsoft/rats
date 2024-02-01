@@ -21,7 +21,6 @@ parameters:
     values:
     - oneml-app
     - oneml-devtools
-    - oneml-habitats
     - oneml-processors
 
 jobs:
