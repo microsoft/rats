@@ -1035,6 +1035,25 @@ url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/
 reference = "oneml-artifacts"
 
 [[package]]
+name = "mdx-truly-sane-lists"
+version = "1.3"
+description = "Extension for Python-Markdown that makes lists truly sane. Custom indents for nested lists and fix for messy linebreaks."
+optional = false
+python-versions = "*"
+files = [
+    {file = "mdx_truly_sane_lists-1.3-py3-none-any.whl", hash = "sha256:b9546a4c40ff8f1ab692f77cee4b6bfe8ddf9cccf23f0a24e71f3716fe290a37"},
+    {file = "mdx_truly_sane_lists-1.3.tar.gz", hash = "sha256:b661022df7520a1e113af7c355c62216b384c867e4f59fb8ee7ad511e6e77f45"},
+]
+
+[package.dependencies]
+Markdown = ">=2.6"
+
+[package.source]
+type = "legacy"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
+
+[[package]]
 name = "mergedeep"
 version = "1.3.4"
 description = "A deep merge function for 🐍."
@@ -1285,7 +1304,7 @@ reference = "oneml-artifacts"
 
 [[package]]
 name = "oneml-pipelines"
-version = "0.10.3.dev92"
+version = "0.10.3.dev96"
 description = ""
 optional = false
 python-versions = ">=3.8.10,<3.11"
@@ -2546,4 +2565,4 @@ reference = "oneml-artifacts"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "f6c0ba6c5106cc056c56b39507360dd5692f0b83822ca3cea451457e503fe26d"
+content-hash = "ff610ff017a9d7d3f4380fde967ed13896516601900ddf6bead516e19f78879b"

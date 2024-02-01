@@ -50,3 +50,6 @@ markdown_extensions:
       custom_checkbox: true
   - pymdownx.arithmatex:
       generic: true
+  # Needed because sphinx is generating lists with 2 spaces which is not supported by mkdocs
+  # See: https://github.com/mkdocs/mkdocs/issues/545
+  - mdx_truly_sane_lists
