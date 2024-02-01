@@ -1,4 +1,5 @@
 # -- Project information -----------------------------------------------------
+import sphinx.ext.autosummary
 
 project = "oneml"
 copyright = "Us"

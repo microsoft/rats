@@ -62,8 +62,9 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
 
         for c in components:
             apidoc_path = Path(f"{c}/dist/sphinx-apidoc").resolve()
-            sphinx_config = Path("oneml-devtools/src/resources/sphinx-docs/conf.py").resolve()
+            sphinx_resources_path = Path("oneml-devtools/src/resources/sphinx-docs").resolve()
             rmtree(apidoc_path, ignore_errors=True)
+            copytree(sphinx_resources_path, apidoc_path)
 
             sphinx_command = [
                 "poetry", "run",
@@ -77,14 +78,14 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
                 "--force",
                 "--output-dir",
                 str(apidoc_path),
+                "--templatedir",
+                str(apidoc_path / "_templates"),
                 "src/python/oneml",
             ]
             try:
                 subprocess.run(sphinx_command, cwd=c, check=True)
             except subprocess.CalledProcessError as e:
                 sys.exit(e.returncode)
-
-            copy(sphinx_config, apidoc_path / "conf.py")
 
     def _sphinx_markdown(self) -> None:
         components = [
