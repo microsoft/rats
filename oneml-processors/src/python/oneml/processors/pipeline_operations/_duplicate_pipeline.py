@@ -1,9 +1,9 @@
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from functools import reduce
+from typing import Any
 
 from omegaconf import MISSING
-from pyparsing import Any
 
 from oneml.processors.ux import PipelineConf, UPipeline, UPipelineBuilder
 
