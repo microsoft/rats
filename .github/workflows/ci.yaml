@@ -96,6 +96,12 @@ jobs:
           path: "${{ matrix.component }}/dist/${{ steps.package-info.outputs.package-wheel }}"
   publish-artifacts:
     if: "${{ inputs.publish-wheels }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        feed:
+          - https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
+          - https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
     needs: test-components
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "push-artifacts"
@@ -122,11 +128,11 @@ jobs:
           path: dist/
           pattern: "wheels.*"
           merge-multiple: true
-      - name: publish-wheels
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ steps.authenticate.outputs.access-token }}
-          repository-url: https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
+#      - name: publish-wheels
+#        uses: pypa/gh-action-pypi-publish@release/v1
+#        with:
+#          password: ${{ steps.authenticate.outputs.access-token }}
+#          repository-url: ${{ matrix.feed }}
   build-docs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "build-docs"
