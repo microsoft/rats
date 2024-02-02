@@ -118,12 +118,12 @@ Finally, we can ask the framework to provide a service object as the value of a 
 argument, like this:
 
 ```python
-from oneml.habitats import OnemlHabitatsServices
+from immunoshare.oneml.io import ImmunoshareOnemlIoServices
 
 save_pandas_3 = PipelineBuilder.task(
     processor_type=SavePandas,
     config=dict(file_name="a.csv"),
-    services=dict(output_folder=OnemlHabitatsServices.TMP_PATH),
+    services=dict(output_folder=ImmunoshareOnemlIoServices.TMP_PATH),
 )
 
 display_dag(save_pandas_3)

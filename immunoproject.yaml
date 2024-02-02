@@ -3,8 +3,6 @@ git_default_branch: main
 applications:
   - name: oneml-devtools
 libraries:
-  - name: oneml-habitats
-    publish_wheel: true
   - name: oneml-pipelines
     publish_wheel: true
   - name: oneml-processors
