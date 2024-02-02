@@ -241,42 +241,6 @@ class OnemlDevtoolsCommands(ClickCommandRegistry):
             sys.exit(e.returncode)
 
     @command
-    @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
-    def generate_cg_manifest(self, component_path: str) -> None:
-        """Build the component governance file for one of the components in this project."""
-        p = Path(component_path)
-        pyproject_path = p / "pyproject.toml"
-        lock_path = p / "poetry.lock"
-
-        if not p.is_dir() or not pyproject_path.is_file() or not lock_path.is_file():
-            raise ValueError(f"invalid component path: {component_path}")
-
-        poetry_lockfile = toml.load(lock_path)
-        manifest_path = p / "cgmanifest.json"
-
-        manifest_path.write_text(
-            json.dumps(
-                {
-                    "Registrations": [
-                        {
-                            "Component": {
-                                "Type": "pip",
-                                "pip": {
-                                    "Name": package["name"],
-                                    "Version": package["version"],
-                                },
-                            },
-                            "DevelopmentDependency": False,
-                        }
-                        for package in poetry_lockfile["package"]
-                        if package["source"]["type"] != "directory"
-                    ]
-                },
-                indent=4,
-            )
-        )
-
-    @command
     def ping(self) -> None:
         """No-op used for testing."""
         print("pong")
