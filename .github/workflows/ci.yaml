@@ -128,11 +128,11 @@ jobs:
           path: dist/
           pattern: "wheels.*"
           merge-multiple: true
-#      - name: publish-wheels
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#        with:
-#          password: ${{ steps.authenticate.outputs.access-token }}
-#          repository-url: ${{ matrix.feed }}
+      - name: publish-wheels
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ steps.authenticate.outputs.access-token }}
+          repository-url: ${{ matrix.feed }}
   build-docs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "build-docs"

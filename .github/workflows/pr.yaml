@@ -16,6 +16,6 @@ jobs:
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
     with:
-      publish-wheels: true
-      publish-docs: true
+      publish-wheels: false
+      publish-docs: false
       sha: ${{ github.sha }}
