@@ -56,3 +56,15 @@ Creating file /oneml/oneml-pipelines/dist/sphinx-apidoc/oneml.examples.rst.
 Creating file /oneml/oneml-pipelines/dist/sphinx-apidoc/oneml.examples.io2.rst.
 …
 ```
+
+## generate_cg_manifest
+
+Parses the dependency information in each component's `pyproject.toml` and generates a
+`cgmanifest.json` file that should be updated and checked in any time that component's
+dependencies are updated. This allows our ADO pipelines to run the required Component
+Governance checks.
+
+We don't generate these files during builds because we want to keep the ADO pipelines trivial
+so we should try to add some tests in `oneml-devtools` that fail if the checked in
+`cgmanifest.json` differs from a newly generated one. This should hopefully prevent people from
+forgetting to update the manifest when modifying our dependencies.
