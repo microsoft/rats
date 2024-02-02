@@ -17,4 +17,5 @@ jobs:
     secrets: inherit
     with:
       publish-wheels: false
+      publish-docs: true
       sha: ${{ github.sha }}

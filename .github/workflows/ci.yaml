@@ -11,6 +11,11 @@ on:
         default: false
         required: true
         type: boolean
+      publish-docs:
+        description: 'whether to publish docs to the github pages'
+        default: false
+        required: true
+        type: boolean
 jobs:
   test-components:
     strategy:
@@ -84,12 +89,6 @@ jobs:
         run: |
           cd ${{ matrix.component }}/
           poetry build -f wheel
-      - name: publish test results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: .tmp/${{ matrix.component }}/reports/pytest-junit.xml
-          check_name: "Test Results: ${{ matrix.component }}"
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
@@ -179,5 +178,6 @@ jobs:
         with:
           path: "oneml-devtools/dist/site"
       - name: "deploy-gh-pages"
+        if: "${{ inputs.publish-docs }}"
         id: deployment
         uses: actions/deploy-pages@v4
