@@ -1,5 +1,0 @@
-# all external registries from which users should be able to pull images for Jupyter kernels
-image_pull_secrets:
-  - secret_name: "immunodata-pull-secret"
-    registry_name: "immunodata.azurecr.io"
-    identity_name: TODO

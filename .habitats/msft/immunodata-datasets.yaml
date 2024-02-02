@@ -1,4 +1,0 @@
-writeable_catalog:
-  storage_account: "datasetmetadata"
-  production_container: "production"
-  development_container: "development"
