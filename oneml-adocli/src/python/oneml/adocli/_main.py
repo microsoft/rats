@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-from typing import Tuple
 
 from oneml.adocli._cli import RawCliRequest
 from oneml.adocli._di_container import AdocliDiContainer
@@ -10,7 +9,7 @@ from oneml.logging import PackageLogLevel
 logger = logging.getLogger(__name__)
 
 
-def main(argv: Tuple[str, ...]) -> None:
+def main(argv: tuple[str, ...]) -> None:
     di_container = AdocliDiContainer(RawCliRequest(
         argv=argv,
         environ=dict(os.environ),

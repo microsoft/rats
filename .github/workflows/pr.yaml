@@ -2,10 +2,20 @@ name: PR
 on:
   push:
     branches-ignore: ["main"]
+permissions:
+  contents: read
+#  pull-requests: write
+  checks: write
+  id-token: write
+  pages: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   ci-workflow:
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
     with:
       publish-wheels: false
+      publish-docs: false
       sha: ${{ github.sha }}

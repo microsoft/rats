@@ -9,8 +9,8 @@ packages = [
 ]
 
 [[tool.poetry.source]]
-name = "immunomics-artifacts"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+name = "oneml-artifacts"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
 priority = "default"
 
 [tool.poetry-dynamic-versioning]
@@ -29,9 +29,6 @@ colorlog = "*"
 oneml-pipelines = { version = "*" }
 python = ">=3.8.10,<3.11"
 
-[tool.poetry.extras]
-dev = []
-
 [tool.poetry.group.dev.dependencies]
 oneml-pipelines = { path = "../oneml-pipelines/", develop = true }
 coverage = "*"
@@ -40,6 +37,11 @@ pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-markdown-builder = "*"
 
 [tool.poetry.scripts]
 adocli = 'oneml.adocli._main:entrypoint'

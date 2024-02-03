@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable, Iterable
 from contextlib import AbstractContextManager
-from typing import Any, cast
+from typing import cast
 from uuid import uuid4
 
 from typing_extensions import NamedTuple
@@ -117,9 +117,6 @@ class OnemlApp(App, IManageServices, IManageContexts):
         with self.open_context(OnemlServiceContexts.EXECUTABLE, ctx):
             self._exe_container.execute_id(exe_id)
 
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        return self._app_factory.get_service_ids()
-
     def get_service_provider(
         self,
         service_id: ServiceId[T_ServiceType],
@@ -127,8 +124,7 @@ class OnemlApp(App, IManageServices, IManageContexts):
         return self._app_container.get_service_provider(service_id)
 
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
-        # pyright issue: https://github.com/microsoft/pyright/issues/6953
-        return self._app_container.get_service(service_id)  # pyright: ignore
+        return self._app_container.get_service(service_id)
 
     def get_service_group_provider(
         self,
@@ -169,7 +165,4 @@ class OnemlApp(App, IManageServices, IManageContexts):
         return self._context_client().get_context(context_id)
 
     def _context_client(self) -> ContextClient:
-        return cast(
-            ContextClient,
-            self._app_container.get_service(OnemlAppServices.APP_CONTEXT_CLIENT),
-        )
+        return self._app_container.get_service(OnemlAppServices.APP_CONTEXT_CLIENT)

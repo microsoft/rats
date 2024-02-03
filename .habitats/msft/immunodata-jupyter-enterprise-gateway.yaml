@@ -1,2 +1,0 @@
-# all external registries from which users should be able to pull images for Jupyter kernels
-image_pull_secrets: []

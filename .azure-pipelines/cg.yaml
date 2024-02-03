@@ -1,0 +1,11 @@
+trigger: [main]
+pr: [main]
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- task: ComponentGovernanceComponentDetection@0
+  inputs:
+    showAlertLink: true
+    failOnAlert: true

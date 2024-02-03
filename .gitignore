@@ -34,3 +34,6 @@
 
 # outputs
 **/outputs
+
+# oneml-devtools generates these files for us
+bin/*.pipx

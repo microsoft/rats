@@ -9,22 +9,22 @@ from ._services import ServiceId, ServiceProvider, T_ServiceType
 
 class ServiceContainer(IProvideServices):
     _factory: IProvideServices
+    _service_cache: dict[ServiceId[Any], Any]
 
     def __init__(self, factory: IProvideServices) -> None:
         self._factory = factory
-
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        return self._factory.get_service_ids()
+        self._service_cache = {}
 
     def get_service_provider(
         self, service_id: ServiceId[T_ServiceType]
     ) -> ServiceProvider[T_ServiceType]:
-        # pyright issue: https://github.com/microsoft/pyright/issues/6953
-        return lambda: self.get_service(service_id)  # pyright: ignore
+        return lambda: self.get_service(service_id)
 
-    @lru_cache  # noqa: B019
     def get_service(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
-        return self._factory.get_service(service_id)
+        if service_id not in self._service_cache:
+            self._service_cache[service_id] = self._factory.get_service(service_id)
+
+        return self._service_cache[service_id]
 
     @lru_cache  # noqa: B019
     def get_service_group_provider(
@@ -52,10 +52,6 @@ class ContextualServiceContainer(IProvideServices, Generic[T_ContextType]):
     ) -> None:
         self._container = container
         self._context_provider = context_provider
-
-    def get_service_ids(self) -> frozenset[ServiceId[Any]]:
-        # TODO: I don't like this method being in the interface
-        return self._container.get_service_ids()
 
     def get_service_provider(
         self, service_id: ServiceId[T_ServiceType]

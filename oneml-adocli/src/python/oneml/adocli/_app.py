@@ -1,6 +1,5 @@
 import logging
 from argparse import ArgumentParser, Namespace
-from pprint import pprint
 
 from ._cli import RawCliRequest
 from ._iterations import IterationsClient
@@ -16,7 +15,7 @@ class MoveOnCallTicketsCommand:
     def __init__(self, iterations_client: IterationsClient):
         self._iterations_client = iterations_client
 
-    def execute(self, from_sprint: int = None, to_sprint: int = None) -> None:
+    def execute(self, from_sprint: int | None = None, to_sprint: int | None = None) -> None:
         if not from_sprint:
             from_sprint = self._iterations_client.get_current_iteration().sprint()
 
@@ -83,10 +82,10 @@ class AdocliApp:
             name="update-goalie-sprint",
             help="set the active sprint for goalie work.",
         )
-        backlog = commands.add_parser(
-            name="manage-goalie-backlog",
-            help="update goalie tickets in the backlog.",
-        )
+        # backlog = commands.add_parser(
+        #     name="manage-goalie-backlog",
+        #     help="update goalie tickets in the backlog.",
+        # )
 
         sprint.add_argument(
             "--from",

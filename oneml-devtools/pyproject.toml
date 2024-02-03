@@ -9,8 +9,9 @@ packages = [
 ]
 
 [[tool.poetry.source]]
-name = "immunomics-artifacts"
-url = "https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/simple"
+name = "oneml-artifacts"
+# https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
 priority = "default"
 
 [tool.poetry-dynamic-versioning]
@@ -25,15 +26,9 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
-immunodata-cli = "^0.50.0"
-immunodata-core = "^0.50.0"
-immunodata-datasets = "^0.50.0"
-immunodata-devops = "^0.50.0"
-immunodata-docslib = "^0.50.0"
-immunodata-workflows = "^0.50.0"
-
-[tool.poetry.extras]
-dev = []
+click = "*"
+oneml-pipelines = "*"
+toml = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -42,10 +37,27 @@ pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+oneml-pipelines = {path = "../oneml-pipelines", develop = true}
 # to release packages to hflabs
 twine = "*"
+# pycharm requires setuptools :(
+setuptools = "*"
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "*"
+mkdocs-awesome-pages-plugin = "*"
+mkdocs-material = "*"
+mkdocs-video = "*"
+mdx-truly-sane-lists = "*"
+# Fix CVE-2023-32309 pymdown-extensions 9.10
+pymdown-extensions = { version = ">=10.0.0" }
+
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-markdown-builder = "*"
 
 [tool.poetry.scripts]
+oneml-devtools = "oneml.devtools.__main__:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

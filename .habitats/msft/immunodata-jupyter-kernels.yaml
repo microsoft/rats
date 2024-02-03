@@ -1,4 +1,0 @@
-kernelspec_namespace: "jupyter"
-infrastructure:
-  subscription_id: "7bd3802d-452e-4b2a-964e-e2c996bc7477"
-  resource_group_name: "immunodata.aks"

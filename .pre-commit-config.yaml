@@ -4,6 +4,7 @@ repos:
     hooks:
       - id: check-ast
       - id: check-added-large-files
+        args: ['--maxkb=1000']
       - id: check-case-conflict
       - id: check-docstring-first
       - id: check-executables-have-shebangs
@@ -20,6 +21,7 @@ repos:
       - id: forbid-submodules
       - id: name-tests-test
       - id: pretty-format-json
+        args: ["--autofix", "--indent", "4"]
       - id: trailing-whitespace
   - repo: local
     hooks:

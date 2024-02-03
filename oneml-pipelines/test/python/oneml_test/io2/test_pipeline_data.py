@@ -13,7 +13,7 @@ class ExampleData(NamedTuple):
 
 
 class TestPipelineData:
-    def setup(self) -> None:
+    def setup_method(self) -> None:
         self._example_node = PipelineNode("a")
         self._example_port = PipelinePort[ExampleData]("out")
         self._missing_port = PipelinePort[ExampleData]("missing")

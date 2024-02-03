@@ -11,17 +11,25 @@ on:
         default: false
         required: true
         type: boolean
+      publish-docs:
+        description: 'whether to publish docs to the github pages'
+        default: false
+        required: true
+        type: boolean
 jobs:
   test-components:
     strategy:
       fail-fast: false
       matrix:
         component:
+          - oneml-devtools
           - oneml-pipelines
           - oneml-processors
-    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "test: ${{ matrix.component }}"
     steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.sha }}
@@ -33,37 +41,33 @@ jobs:
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
-          -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
           # auth to acr resources we use
-          az acr login --name immunodata
           # generate an access token that we use for the run
-          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D")
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
           # Prevents the token from being output in logs
           echo "::add-mask::$TOKEN"
           echo "writing access token to $GITHUB_OUTPUT"
           echo access-token=$TOKEN >> $GITHUB_OUTPUT
-      - id: "create-build-image"
-        name: "create-build-image"
+      - name: "install-devtools"
         run: |
           TOKEN="${{ steps.authenticate.outputs.access-token }}"
-          # create a secrets file for docker to use
-          mkdir -p .tmp
-          echo "export POETRY_HTTP_BASIC_IMMUNOMICS_ARTIFACTS_PASSWORD=${TOKEN}" > .tmp/docker-build.env
-          # run the docker build by mounting our secrets
-          docker build \
-            -t immunodata.azurecr.io/oneml/${{ matrix.component }}:local \
-            --secret id=build-envs,src=.tmp/docker-build.env \
-            -f ${{ matrix.component }}/Dockerfile.build .
+          pipx install \
+            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            poetry
+          poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
+          pipx install \
+            -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            oneml-devtools/
+      - name: "poetry-install"
+        run: |
+          oneml-devtools install ${{ matrix.component }}/
       - id: "package-info"
         name: "package-info"
         run: |
+          cd ${{ matrix.component }}/
           # use poetry to find out the version of our package
-          VERSION=$(docker run \
-            -w /opt/build/${{ matrix.component }} \
-            -v $PWD:/opt/build:ro \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local \
-            poetry version --short)
-          PKG_NAME=$(echo "${{ matrix.component }}" | tr '-' '_')
+          VERSION=$(poetry version --short)
           PKG_NAME=$(echo "${{ matrix.component }}" | tr '-' '_')
           PKG_WHEEL="$PKG_NAME-$VERSION-py3-none-any.whl"
           echo package-version=$VERSION >> $GITHUB_OUTPUT
@@ -71,54 +75,49 @@ jobs:
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
       - name: ruff
         run: |
-          docker run \
-            -v $PWD/.tmp:/opt/oneml/.tmp \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run ruff check --output-format=github src/python/ test/python/
+          cd ${{ matrix.component }}/
+          poetry run ruff check --output-format=github src/python/ test/python/
       - name: pyright
         run: |
-          docker run \
-            -v $PWD/.tmp:/opt/oneml/.tmp \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run pyright
+          cd ${{ matrix.component }}/
+          poetry run pyright
       - name: pytest
         run: |
-          docker run \
-            -v $PWD/.tmp:/opt/oneml/.tmp \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry run pytest
+          cd ${{ matrix.component }}/
+          poetry run pytest
       - name: "build-wheels"
         run: |
-          mkdir -p wheels
-          docker run \
-            -e POETRY_DYNAMIC_VERSIONING_BYPASS=${{ steps.package-info.outputs.package-version }} \
-            -v $PWD/wheels:/opt/oneml/${{ matrix.component }}/dist \
-            immunodata.azurecr.io/oneml/${{ matrix.component }}:local poetry build -f wheel
-      - name: publish test results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        if: always()
-        with:
-          files: .tmp/${{ matrix.component }}/reports/pytest-junit.xml
-          check_name: "Test Results: ${{ matrix.component }}"
+          cd ${{ matrix.component }}/
+          poetry build -f wheel
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
           name: "wheels.${{ matrix.component }}"
-          path: "wheels/${{ steps.package-info.outputs.package-wheel }}"
+          path: "${{ matrix.component }}/dist/${{ steps.package-info.outputs.package-wheel }}"
   publish-artifacts:
     if: "${{ inputs.publish-wheels }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        feed:
+          - https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
+          - https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
     needs: test-components
-    runs-on: ["self-hosted", "1ES.Pool=oneml-test-300"]
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "push-artifacts"
     steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - id: "authenticate"
         name: "authenticate"
         run: |
           # authenticate as the managed identity we assigned to the 1es runner
           az login \
           --identity \
-          -u /subscriptions/7bd3802d-452e-4b2a-964e-e2c996bc7477/resourcegroups/immunodata.aks/providers/microsoft.managedidentity/userassignedidentities/k8s-pods-tekton-pipeline
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
           # auth to acr resources we use
-          az acr login --name immunodata
           # generate an access token that we use for the run
-          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D")
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
           # Prevents the token from being output in logs
           echo "::add-mask::$TOKEN"
           echo "writing access token to $GITHUB_OUTPUT"
@@ -133,4 +132,58 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ steps.authenticate.outputs.access-token }}
-          repository-url: https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
+          repository-url: ${{ matrix.feed }}
+  build-docs:
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
+    name: "build-docs"
+    steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+      - id: "authenticate"
+        name: "authenticate"
+        run: |
+          # authenticate as the managed identity we assigned to the 1es runner
+          az login \
+          --identity \
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
+          # auth to acr resources we use
+          # generate an access token that we use for the run
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
+          # Prevents the token from being output in logs
+          echo "::add-mask::$TOKEN"
+          echo "writing access token to $GITHUB_OUTPUT"
+          echo access-token=$TOKEN >> $GITHUB_OUTPUT
+      - name: "install-devtools"
+        run: |
+          TOKEN="${{ steps.authenticate.outputs.access-token }}"
+          pipx install \
+            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            poetry
+          poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
+          pipx install \
+            -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            oneml-devtools/
+      - name: "poetry-install"
+        run: |
+          # I would like to optimize this soon before these steps become too slow
+          oneml-devtools install oneml-adocli/
+          oneml-devtools install oneml-devtools/
+          oneml-devtools install oneml-pipelines/
+          oneml-devtools install oneml-processors/
+      - name: "build-docs"
+        run: |
+          oneml-devtools build-api-docs
+          oneml-devtools mkdocs-build
+      - name: "upload-gh-pages"
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "oneml-devtools/dist/site"
+      - name: "deploy-gh-pages"
+        if: "${{ inputs.publish-docs }}"
+        id: deployment
+        uses: actions/deploy-pages@v4
