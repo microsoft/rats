@@ -1,8 +1,9 @@
 [tool.poetry]
 name = "oneml-devtools"
+description = "OneML Development Tools"
 # Handled by `poetry-dynamic-versioning` plugin below.
 version = "0.0.0"
-description = ""
+readme = "README.md"
 authors = []
 packages = [
     {include = "oneml", from = "src/python"},
@@ -29,6 +30,7 @@ python = ">=3.8.10,<3.11"
 click = "*"
 oneml-pipelines = "*"
 toml = "*"
+twine = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
