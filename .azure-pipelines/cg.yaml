@@ -9,3 +9,5 @@ steps:
   inputs:
     showAlertLink: true
     failOnAlert: true
+  env:
+    EnableDetectorPoetry: true
