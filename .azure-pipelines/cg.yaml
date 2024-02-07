@@ -10,4 +10,4 @@ steps:
     showAlertLink: true
     failOnAlert: true
   env:
-    EnableDetectorPoetry: true
+    ENABLE_DETECTOR_POETRY: true
