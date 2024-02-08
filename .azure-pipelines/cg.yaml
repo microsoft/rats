@@ -3,11 +3,11 @@ pr: [main]
 
 pool:
   vmImage: ubuntu-latest
+variables:
+  EnableDetectorPoetry: true
 steps:
 - task: ComponentGovernanceComponentDetection@0
   inputs:
     showAlertLink: true
     failOnAlert: true
     logLevel: 'debug'
-  env:
-    EnableDetectorPoetry: true
