@@ -23,3 +23,8 @@ jobs:
       publish-wheels: true
       publish-docs: true
       sha: ${{ github.sha }}
+  codeql-workflow:
+    uses: ./.github/workflows/codeql.yaml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}
