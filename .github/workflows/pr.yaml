@@ -4,10 +4,12 @@ on:
     branches-ignore: ["main"]
 permissions:
   contents: read
+  actions: read
 #  pull-requests: write
   checks: write
   id-token: write
   pages: write
+  security-events: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
