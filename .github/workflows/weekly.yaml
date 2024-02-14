@@ -3,6 +3,7 @@ on:
   schedule:
     # Every monday at midnight
     - cron: "0 0 * * 1"
+  workflow_dispatch:
 permissions:
   contents: read
   actions: read
