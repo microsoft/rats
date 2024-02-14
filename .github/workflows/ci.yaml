@@ -69,6 +69,8 @@ jobs:
           # use poetry to find out the version of our package
           VERSION=$(poetry version --short)
           echo "detected version: $VERSION"
+          ls -lah ../
+          poetry self show
           PKG_NAME=$(echo "${{ matrix.component }}" | tr '-' '_')
           PKG_WHEEL="$PKG_NAME-$VERSION-py3-none-any.whl"
           echo package-version=$VERSION >> $GITHUB_OUTPUT
