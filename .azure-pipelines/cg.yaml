@@ -1,6 +1,11 @@
 trigger: [main]
 pr: [main]
-
+schedules:
+- cron: "0 0 * * 1"
+  displayName: "Weekly: msreco"
+  branches:
+    include:
+    - main
 pool:
   vmImage: ubuntu-latest
 variables:
