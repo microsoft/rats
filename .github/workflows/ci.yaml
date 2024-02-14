@@ -1,5 +1,21 @@
 name: CI
 on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'the git sha to checkout'
+        required: true
+        type: string
+      publish-wheels:
+        description: 'whether to publish wheels to the artifact repo'
+        default: false
+        required: true
+        type: boolean
+      publish-docs:
+        description: 'whether to publish docs to the github pages'
+        default: false
+        required: true
+        type: boolean
   workflow_call:
     inputs:
       sha:
@@ -56,6 +72,8 @@ jobs:
             -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
             poetry
           poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
+          poetry self add poetry-dynamic-versioning
+
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
             oneml-devtools/
@@ -68,6 +86,7 @@ jobs:
           cd ${{ matrix.component }}/
           # use poetry to find out the version of our package
           VERSION=$(poetry version --short)
+          echo "detected version: $VERSION"
           PKG_NAME=$(echo "${{ matrix.component }}" | tr '-' '_')
           PKG_WHEEL="$PKG_NAME-$VERSION-py3-none-any.whl"
           echo package-version=$VERSION >> $GITHUB_OUTPUT
@@ -183,6 +202,14 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: "oneml-devtools/dist/site"
+  deploy-docs:
+    # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
+    needs: ["test-components", "build-docs"]
+    # this one can run anywhere
+    runs-on: "ubuntu-latest"
+    name: "deploy-docs"
+    steps:
+      # let us reach things installed by pipx
       - name: "deploy-gh-pages"
         if: "${{ inputs.publish-docs }}"
         id: deployment
