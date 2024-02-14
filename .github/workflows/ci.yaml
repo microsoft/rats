@@ -153,8 +153,6 @@ jobs:
           password: ${{ steps.authenticate.outputs.access-token }}
           repository-url: ${{ matrix.feed }}
   build-docs:
-    # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
-    needs: test-components
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "build-docs"
     steps:
@@ -204,6 +202,14 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: "oneml-devtools/dist/site"
+  deploy-docs:
+    # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
+    needs: ["test-components", "build-docs"]
+    # this one can run anywhere
+    runs-on: "ubuntu-latest"
+    name: "deploy-docs"
+    steps:
+      # let us reach things installed by pipx
       - name: "deploy-gh-pages"
         if: "${{ inputs.publish-docs }}"
         id: deployment
