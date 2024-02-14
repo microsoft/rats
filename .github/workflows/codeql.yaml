@@ -1,5 +1,11 @@
 name: "CodeQL"
 on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'the git sha to checkout'
+        required: true
+        type: string
   workflow_call:
     inputs:
       sha:
