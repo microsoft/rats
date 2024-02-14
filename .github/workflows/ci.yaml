@@ -153,6 +153,8 @@ jobs:
           password: ${{ steps.authenticate.outputs.access-token }}
           repository-url: ${{ matrix.feed }}
   build-docs:
+    # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
+    needs: test-components
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "build-docs"
     steps:
