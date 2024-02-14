@@ -17,9 +17,12 @@ theme:
     - content.code.copy
 extra_css:
   - css/extra.css
-extra_javascript:
-  - js/mathjax.js
-  - js/tex-mml-chtml.js
+# removed because of codeql detection
+# https://github.com/microsoft/msreco/security/code-scanning/3
+# https://github.com/microsoft/msreco/security/code-scanning/4
+#extra_javascript:
+#  - js/mathjax.js
+#  - js/tex-mml-chtml.js
 plugins:
   - search
   - awesome-pages
@@ -48,8 +51,11 @@ markdown_extensions:
   # Allows us to make a Tasklist: [x] some checked thing
   - pymdownx.tasklist:
       custom_checkbox: true
-  - pymdownx.arithmatex:
-      generic: true
+# removed because of codeql detection
+# https://github.com/microsoft/msreco/security/code-scanning/3
+# https://github.com/microsoft/msreco/security/code-scanning/4
+#  - pymdownx.arithmatex:
+#      generic: true
   # Needed because sphinx is generating lists with 2 spaces which is not supported by mkdocs
   # See: https://github.com/mkdocs/mkdocs/issues/545
   - mdx_truly_sane_lists
