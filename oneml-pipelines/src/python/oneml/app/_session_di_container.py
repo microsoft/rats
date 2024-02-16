@@ -29,7 +29,8 @@ class OnemlSessionDiContainer:
 
     @service_provider(OnemlSessionExecutables.FRAME)
     def session_frame_exe(self) -> PipelineSessionFrameClient:
-        """Session frame execution client.
+        """
+        Session frame execution client.
 
         TODO: revisit this
         I think this provider can only be called when within a session, so it has to be used with

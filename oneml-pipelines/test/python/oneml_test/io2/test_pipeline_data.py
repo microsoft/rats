@@ -25,7 +25,8 @@ class TestPipelineData:
         )
 
     def test_basics(self) -> None:
-        """In its most basic form, the PipelineData class gives a simple API to publish and load data.
+        """
+        In its most basic form, the PipelineData class gives a simple API to publish and load data.
 
         We expect the same data to come out as we put in. Data in a pipeline is tied to
         """
@@ -48,7 +49,8 @@ class TestPipelineData:
             self._client.load(self._example_node, self._missing_port)
 
     def test_contextual_node_api(self) -> None:
-        """Our PipelineData class also implements the IManageNodeData interface.
+        """
+        Our PipelineData class also implements the IManageNodeData interface.
 
         This interface is useful for interacting with the data of a single node, so we can shorten
         the API to eliminate the need for the user to specify the node every time.

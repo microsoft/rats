@@ -1,4 +1,3 @@
-from oneml.pipelines.building import PipelineBuilderClient  # type: ignore[import]
 
 
 def test_imports() -> None:

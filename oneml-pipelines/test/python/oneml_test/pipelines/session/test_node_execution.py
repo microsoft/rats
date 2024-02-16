@@ -5,7 +5,7 @@ from oneml.pipelines.session import PipelineNodeExecutablesClient, PipelineSessi
 from oneml.services import IExecutable
 
 
-class FakeExecutable(IExecutable):
+class _FakeExecutable(IExecutable):
     called: bool
 
     def __init__(self) -> None:
@@ -25,7 +25,7 @@ class TestPipelineNodeExecutablesClient:
         )
 
     def test_basics(self) -> None:
-        executable = FakeExecutable()
+        executable = _FakeExecutable()
         node = PipelineNode("fake")
 
         self._client.set_executable(node, executable)
@@ -33,8 +33,8 @@ class TestPipelineNodeExecutablesClient:
         assert executable == self._client.get_executable(node)
 
     def test_validation(self) -> None:
-        executable1 = FakeExecutable()
-        executable2 = FakeExecutable()
+        executable1 = _FakeExecutable()
+        executable2 = _FakeExecutable()
 
         node1 = PipelineNode("fake-1")
         node2 = PipelineNode("fake-2")
@@ -51,7 +51,7 @@ class TestPipelineNodeExecutablesClient:
             self._client.get_executable(node2)
 
     def test_execution(self) -> None:
-        executable = FakeExecutable()
+        executable = _FakeExecutable()
         node = PipelineNode("fake")
 
         self._client.set_executable(node, executable)

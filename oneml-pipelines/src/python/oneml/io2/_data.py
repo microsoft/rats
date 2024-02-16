@@ -1,4 +1,5 @@
-"""Data concepts that are not related to pipelines.
+"""
+Data concepts that are not related to pipelines.
 
 This module contains ideas about reading and writing data of different types.
 """

@@ -1,3 +1,4 @@
+"""Elements that represent a pipeline to be executed."""
 from ._dag_client import (
     IAddPipelineDependencies,
     IAddPipelineNodes,

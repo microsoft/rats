@@ -1,3 +1,4 @@
+"""An early implementation of habitat apps and services."""
 from ._contexts import (
     ContextClient,
     ContextId,
@@ -30,40 +31,40 @@ __all__ = [
     "ContextId",
     "ContextOpener",
     "ContextProvider",
-    "IGetContexts",
-    "IManageContexts",
-    "T_ContextType",
-    # ._di_containers
-    "service_group",
-    "service_provider",
-    # _executables
-    "executable",
-    "after",
-    "before",
-    "IExecutable",
-    "T_ExecutableType",
-    # _executables_container
-    "ExecutablesClient",
-    # _scopes
-    "scoped_context_ids",
-    "scoped_service_ids",
     # _service_container
     "ContextualServiceContainer",
+    # _service_managers
+    "DuplicateServiceIdError",
+    # _executables_container
+    "ExecutablesClient",
+    "IDefineServices",
+    "IExecutable",
+    "IGetContexts",
+    "IManageContexts",
+    "IManageServices",
+    "IProvideServices",
     "ServiceContainer",
     # _service_factory
     "ServiceFactory",
-    # _service_managers
-    "DuplicateServiceIdError",
-    "IDefineServices",
-    "IManageServices",
-    "IProvideServices",
-    "ServiceIdNotFoundError",
+    "ServiceGroupProvider",
     # _services
     "ServiceId",
+    "ServiceIdNotFoundError",
     "ServiceProvider",
-    "ServiceGroupProvider",
+    "T_ContextType",
+    "T_ExecutableType",
     "T_ServiceType",
     "Tco_ServiceType",
     # _typed_containers
     "TypedServiceContainer",
+    "after",
+    "before",
+    # _executables
+    "executable",
+    # _scopes
+    "scoped_context_ids",
+    "scoped_service_ids",
+    # ._di_containers
+    "service_group",
+    "service_provider",
 ]

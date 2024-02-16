@@ -7,7 +7,8 @@ from ._services import ServiceId, ServiceProvider, T_ServiceType
 
 
 class ServiceFactory(IManageServices):
-    """A service factory provides easy access to new instances of services.
+    """
+    A service factory provides easy access to new instances of services.
 
     The expectation is that the factory will not cache multiple calls to `get_service()`. However,
     we make no effort to prevent the user from registering a provider that caches calls internally.

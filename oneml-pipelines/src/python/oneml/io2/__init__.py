@@ -1,3 +1,4 @@
+"""Second attempt at an IO library for pipeline results."""
 from ._io_plugins import OnemlIoOnNodeCompletion, OnemlIoPlugin
 from ._local_json_plugin import LocalJsonIoPlugin, LocalJsonIoSettings
 from ._local_json_writer import LocalJsonWriter
@@ -17,25 +18,25 @@ from ._pipeline_data import (
 )
 
 __all__ = [
-    # _io_plugins
-    "OnemlIoOnNodeCompletion",
-    "OnemlIoPlugin",
+    # _pipeline_data
+    "DuplicatePipelineDataError",
+    "ILoadNodeData",
+    "ILoadPipelineData",
+    "IManageNodeData",
+    "IManagePipelineData",
+    "IPublishNodeData",
+    "IPublishNodePortData",
+    "IPublishPipelineData",
+    "LocalIoSettings",
+    # _local_settings
+    "LocalJsonIoPlugin",
     # _local_json_plugin
     "LocalJsonIoSettings",
     # _local_json_writer
     "LocalJsonWriter",
-    # _local_settings
-    "LocalJsonIoPlugin",
-    "LocalIoSettings",
-    # _pipeline_data
-    "DuplicatePipelineDataError",
-    "IPublishNodePortData",
-    "ILoadNodeData",
-    "IPublishNodeData",
-    "IManageNodeData",
-    "ILoadPipelineData",
-    "IPublishPipelineData",
-    "IManagePipelineData",
+    # _io_plugins
+    "OnemlIoOnNodeCompletion",
+    "OnemlIoPlugin",
     "PipelineData",
     "PipelineDataId",
     "PipelineDataNotFoundError",
