@@ -92,4 +92,4 @@ class HydraPipelineConfigService(IGetConfigAndServiceId):
 
     def get_pipeline_config(self) -> dict[str, Any] | Any:
         pipeline_config = self._pipeline_config_provider()
-        return OmegaConf.to_container(pipeline_config, resolve=True)
+        return OmegaConf.to_container(pipeline_config.configs, resolve=True)
