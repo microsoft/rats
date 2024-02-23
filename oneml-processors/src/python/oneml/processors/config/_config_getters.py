@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Protocol, cast
 
 from hydra_zen import instantiate
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 
 from oneml.services import ServiceId
 
@@ -17,6 +17,10 @@ CONF_PATH = Path("src/resources/conf")
 class IGetConfig(Protocol):
     @abstractmethod
     def get_config(self, name: str) -> Mapping[str, Any] | None:
+        ...
+
+    @abstractmethod
+    def get_pipeline_config(self) -> dict[str, Any] | Any:
         ...
 
 
@@ -85,3 +89,7 @@ class HydraPipelineConfigService(IGetConfigAndServiceId):
         pipeline_config = self._pipeline_config_provider()
         cfg = pipeline_config.service_ids.get(name)
         return None if cfg is None else InstantiateConfMapping(DictConfig(cfg))
+
+    def get_pipeline_config(self) -> dict[str, Any] | Any:
+        pipeline_config = self._pipeline_config_provider()
+        return OmegaConf.to_container(pipeline_config, resolve=True)
