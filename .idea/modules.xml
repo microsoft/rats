@@ -2,12 +2,12 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/oneml.iml" filepath="$PROJECT_DIR$/.idea/oneml.iml" />
-      <module fileurl="file://$PROJECT_DIR$/oneml-adocli/.idea/oneml-adocli.iml" filepath="$PROJECT_DIR$/oneml-adocli/.idea/oneml-adocli.iml" />
-      <module fileurl="file://$PROJECT_DIR$/oneml-app/.idea/oneml-app.iml" filepath="$PROJECT_DIR$/oneml-app/.idea/oneml-app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/oneml-devtools/.idea/oneml-devtools.iml" filepath="$PROJECT_DIR$/oneml-devtools/.idea/oneml-devtools.iml" />
-      <module fileurl="file://$PROJECT_DIR$/oneml-pipelines/.idea/oneml-pipelines.iml" filepath="$PROJECT_DIR$/oneml-pipelines/.idea/oneml-pipelines.iml" />
-      <module fileurl="file://$PROJECT_DIR$/oneml-processors/.idea/oneml-processors.iml" filepath="$PROJECT_DIR$/oneml-processors/.idea/oneml-processors.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/rats.iml" filepath="$PROJECT_DIR$/.idea/rats.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rats-adocli/.idea/rats-adocli.iml" filepath="$PROJECT_DIR$/rats-adocli/.idea/rats-adocli.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rats-app/.idea/rats-app.iml" filepath="$PROJECT_DIR$/rats-app/.idea/rats-app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rats-devtools/.idea/rats-devtools.iml" filepath="$PROJECT_DIR$/rats-devtools/.idea/rats-devtools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rats-pipelines/.idea/rats-pipelines.iml" filepath="$PROJECT_DIR$/rats-pipelines/.idea/rats-pipelines.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rats-processors/.idea/rats-processors.iml" filepath="$PROJECT_DIR$/rats-processors/.idea/rats-processors.iml" />
     </modules>
   </component>
 </project>

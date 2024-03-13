@@ -1,10 +1,10 @@
-name: oneml
+name: rats
 git_default_branch: main
 applications:
-  - name: oneml-devtools
+  - name: rats-devtools
 libraries:
-  - name: oneml-pipelines
+  - name: rats-pipelines
     publish_wheel: true
-  - name: oneml-processors
+  - name: rats-processors
     publish_wheel: true
     build_api_docs: true
