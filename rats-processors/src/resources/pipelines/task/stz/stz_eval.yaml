@@ -1,0 +1,6 @@
+defaults:
+  - /task/base@_here_
+  - _self_
+
+processor_type: rats_test.processors.test_stz_lr_yaml.StzEval
+name: stz_eval

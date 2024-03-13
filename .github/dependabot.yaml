@@ -7,13 +7,13 @@ updates:
     target-branch: "main"
   - package-ecosystem: "pip"
     token: ${{secrets.IMMUNOMICS}}
-    directory: "/oneml-pipelines/"
+    directory: "/rats-pipelines/"
     schedule:
       interval: "daily"
     target-branch: "main"
   - package-ecosystem: "pip"
     token: ${{secrets.IMMUNOMICS}}
-    directory: "/oneml-processors/"
+    directory: "/rats-processors/"
     schedule:
       interval: "daily"
     target-branch: "main"

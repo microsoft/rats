@@ -25,17 +25,17 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
-      - id: oneml-pipelines
+      - id: rats-pipelines
         name: Run hooks in pipelines package
-        entry: "bin/commit-hooks oneml-pipelines"
+        entry: "bin/commit-hooks rats-pipelines"
         language: script
         pass_filenames: false
-        files: ^oneml-pipelines/src/python/
+        files: ^rats-pipelines/src/python/
         types: [python]
-      - id: oneml-processors
+      - id: rats-processors
         name: Run hooks in processors package
-        entry: "bin/commit-hooks oneml-processors"
+        entry: "bin/commit-hooks rats-processors"
         language: script
         pass_filenames: false
-        files: ^oneml-processors/src/python/
+        files: ^rats-processors/src/python/
         types: [python]

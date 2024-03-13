@@ -13,7 +13,7 @@
 
 # ignore personal workspace files
 **/*.code-workspace
-!oneml.code-workspace
+!rats.code-workspace
 
 **/.vscode/
 !**/.vscode/launch.json
@@ -35,5 +35,5 @@
 # outputs
 **/outputs
 
-# oneml-devtools generates these files for us
+# rats-devtools generates these files for us
 bin/*.pipx

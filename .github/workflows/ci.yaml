@@ -38,9 +38,9 @@ jobs:
       fail-fast: false
       matrix:
         component:
-          - oneml-devtools
-          - oneml-pipelines
-          - oneml-processors
+          - rats-devtools
+          - rats-pipelines
+          - rats-processors
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "test: ${{ matrix.component }}"
     steps:
@@ -76,10 +76,10 @@ jobs:
 
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
-            oneml-devtools/
+            rats-devtools/
       - name: "poetry-install"
         run: |
-          oneml-devtools install ${{ matrix.component }}/
+          rats-devtools install ${{ matrix.component }}/
       - id: "package-info"
         name: "package-info"
         run: |
@@ -186,22 +186,22 @@ jobs:
           poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
-            oneml-devtools/
+            rats-devtools/
       - name: "poetry-install"
         run: |
           # I would like to optimize this soon before these steps become too slow
-          oneml-devtools install oneml-adocli/
-          oneml-devtools install oneml-devtools/
-          oneml-devtools install oneml-pipelines/
-          oneml-devtools install oneml-processors/
+          rats-devtools install rats-adocli/
+          rats-devtools install rats-devtools/
+          rats-devtools install rats-pipelines/
+          rats-devtools install rats-processors/
       - name: "build-docs"
         run: |
-          oneml-devtools build-api-docs
-          oneml-devtools mkdocs-build
+          rats-devtools build-api-docs
+          rats-devtools mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "oneml-devtools/dist/site"
+          path: "rats-devtools/dist/site"
   deploy-docs:
     # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
     needs: ["test-components", "build-docs"]
