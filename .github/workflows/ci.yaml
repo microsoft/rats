@@ -185,7 +185,7 @@ jobs:
             poetry
           poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
           pipx install \
-            -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            -e  \
             rats-devtools/
       - name: "poetry-install"
         run: |
