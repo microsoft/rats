@@ -46,6 +46,9 @@ sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
 
+[tool.poetry.scripts]
+rats = "oneml._rats_example.__main__:run"
+
 [tool.poetry.plugins."oneml.app_plugins"]
 "oneml.processors-plugin" = "oneml.processors.plugin:OnemlProcessorsPlugin"
 
@@ -92,7 +95,7 @@ reportUnknownArgumentType = false
 reportUnknownLambdaType = false
 reportUnknownVariableType = false
 reportUnknownMemberType = false
-reportCallInDefaultInitializer = false
+reportCallInDefaultInitializer = true
 reportUnnecessaryIsInstance = false
 reportUnnecessaryComparison = false
 reportUnusedCallResult = false

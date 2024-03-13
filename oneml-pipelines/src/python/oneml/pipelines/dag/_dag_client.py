@@ -116,7 +116,7 @@ class PipelineDagClient(IManagePipelineDags):
         self, dependencies: tuple[PipelineNode, ...]
     ) -> frozenset[PipelineNode]:
         inbound_edges = set(dependencies)
-        result = []
+        result: list[PipelineNode] = []
 
         for node in self.get_nodes():
             node_dependencies = self.get_node_dependencies(node)
@@ -139,7 +139,7 @@ class PipelineDagClient(IManagePipelineDags):
         return frozenset(self._data_dependencies[ctx].get(node, ()))
 
     def get_nodes(self) -> frozenset[PipelineNode]:
-        return frozenset(self._nodes.get(self._context(), []))
+        return frozenset(self._nodes.get(self._context(), set()))
 
 
 class NodeDependenciesRegisteredError(RuntimeError):

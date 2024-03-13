@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class InMemoryUriFormatter(IFormatUri[T_DataType]):
     def __call__(self, data_id: PipelineDataId[T_DataType]) -> RWDataUri:
         # TODO: if we use `scheme://path`, we can use the urlparse lib
-        uri = str(furl().set(scheme="memory").set(path=f"{data_id}").url)
+        uri = str(furl().set(scheme="memory").set(path=f"{data_id}").url)  # type: ignore
         return RWDataUri(uri)
 
 

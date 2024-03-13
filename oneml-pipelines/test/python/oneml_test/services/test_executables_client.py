@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 from oneml.services import (
     ContextClient,
     ExecutablesClient,

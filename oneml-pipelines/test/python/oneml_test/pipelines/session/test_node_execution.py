@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 import pytest
 
 from oneml.pipelines.dag import PipelineNode

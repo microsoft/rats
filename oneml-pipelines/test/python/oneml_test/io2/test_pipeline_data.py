@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 from typing import NamedTuple
 
 import pytest

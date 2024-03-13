@@ -101,7 +101,7 @@ class PipelineNodeStateClient(IManagePipelineNodeState):
     def get_nodes_by_state(self, state: PipelineNodeState) -> tuple[PipelineNode, ...]:
         with self._lock:
             nodes = self._node_states.get(self._context(), {}).items()
-            matches = []
+            matches: list[PipelineNode] = []
             for node, node_state in nodes:
                 if node_state == state:
                     matches.append(node)

@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterable
-from typing import Any
+from typing import Any, cast
 
 from ._executables import IExecutable
 from ._service_managers import DuplicateServiceIdError, IManageServices, ServiceIdNotFoundError
@@ -39,7 +39,7 @@ class ServiceFactory(IManageServices):
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
         def gen() -> Iterable[T_ServiceType]:
-            for p in self._groups.get(group_id, tuple()):
+            for p in self._groups.get(group_id, []):
                 yield p()
 
         return gen
@@ -48,7 +48,10 @@ class ServiceFactory(IManageServices):
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
-        return tuple(self._groups.get(group_id, tuple()))
+        # We do not validate that the user gave us a group id that is the right type.
+        return tuple(
+            cast(Iterable[ServiceProvider[T_ServiceType]], self._groups.get(group_id, tuple())),
+        )
 
     def add_service(
         self,
