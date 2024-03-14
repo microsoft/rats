@@ -11,17 +11,17 @@ updates:
       interval: "daily"
     target-branch: "main"
   - package-ecosystem: "pip"
-    directory: "/pyrats/"
-    schedule:
-      interval: "daily"
-    target-branch: "main"
-  - package-ecosystem: "pip"
     directory: "/rats-pipelines/"
     schedule:
       interval: "daily"
     target-branch: "main"
   - package-ecosystem: "pip"
     directory: "/rats-processors/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+  - package-ecosystem: "pip"
+    directory: "/rats/"
     schedule:
       interval: "daily"
     target-branch: "main"
