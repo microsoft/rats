@@ -20,7 +20,7 @@ class InMemoryRW(IReadAndWriteData[Any]):
         split_uri = furl(data_uri.uri)
         if split_uri.scheme != "memory":  # type: ignore[reportUnknownMemberType]
             raise ValueError(f"Expected memory scheme, got {split_uri.scheme}")  # type: ignore[reportUnknownMemberType]
-        if len(split_uri.netloc) > 0:  # type: ignore[reportUnknownMemberType]
+        if split_uri.netloc is not None and len(split_uri.netloc) > 0:  # type: ignore[reportUnknownMemberType]
             raise ValueError(f"Expected empty netloc, got {split_uri.netloc}")  # type: ignore[reportUnknownMemberType]
         if not split_uri.path:
             raise ValueError(f"Expected non-empty path, got {split_uri.path}")
