@@ -27,7 +27,6 @@ metadata = false
 [tool.poetry.dependencies]
 azure-devops = "^6.0.0-beta.4"
 colorlog = "*"
-rats-pipelines = { version = "*" }
 python = ">=3.8.10,<3.11"
 
 [tool.poetry.group.dev.dependencies]
