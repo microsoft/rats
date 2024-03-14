@@ -28,7 +28,6 @@ metadata = false
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
 click = "*"
-rats-pipelines = "*"
 toml = "*"
 twine = "*"
 
