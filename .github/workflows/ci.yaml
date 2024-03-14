@@ -38,6 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         component:
+          - pyrats
           - rats-devtools
           - rats-pipelines
           - rats-processors
@@ -100,6 +101,7 @@ jobs:
       fail-fast: false
       matrix:
         component:
+          - pyrats
           - rats-pipelines
           - rats-processors
     needs: test-components
