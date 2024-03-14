@@ -29,12 +29,12 @@ repos:
       - id: trailing-whitespace
   - repo: local
     hooks:
-      - id: pyrats
+      - id: rats
         name: Run hooks in pipelines package
-        entry: "bin/commit-hooks pyrats"
+        entry: "bin/commit-hooks rats"
         language: script
         pass_filenames: false
-        files: ^pyrats/src/python/
+        files: ^rats/src/python/
         types: [python]
       - id: rats-devtools
         name: Run hooks in pipelines package
