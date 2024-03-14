@@ -1,3 +1,5 @@
+"""Another experimental io package."""
+
 from ._io_plugins import RatsIoOnNodeCompletion, RatsIoPlugin
 from ._local_json_plugin import LocalJsonIoPlugin, LocalJsonIoSettings
 from ._local_json_writer import LocalJsonWriter

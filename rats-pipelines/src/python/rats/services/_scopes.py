@@ -8,7 +8,8 @@ T = TypeVar("T")
 
 
 def scoped_service_ids(cls: type[T]) -> type[T]:
-    """Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
+    """
+    Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
 
     The scoped ServiceId instances have a prefix to eliminate the chance of conflicts across
     packages.
@@ -35,14 +36,15 @@ def scoped_service_ids(cls: type[T]) -> type[T]:
             if not isinstance(non_ns, ServiceId):
                 continue
 
-            prop = ServiceId(f"{cls.__module__}.{cls.__name__}:{non_ns.name}")
+            prop = ServiceId[Any](f"{cls.__module__}.{cls.__name__}:{non_ns.name}")
             setattr(cls, prop_name, prop)
 
     return cls
 
 
 def scoped_context_ids(cls: type[T]) -> type[T]:
-    """Decorator that replaces all ContextId instances in the class with scoped ContextId instances.
+    """
+    Decorator that replaces all ContextId instances in the class with scoped ContextId instances.
 
     The scoped ContextId instances have a prefix to eliminate the chance of conflicts across
     packages.
@@ -69,7 +71,7 @@ def scoped_context_ids(cls: type[T]) -> type[T]:
             if not isinstance(non_ns, ContextId):
                 continue
 
-            prop = ContextId(f"{cls.__module__}.{cls.__name__}:{non_ns.name}")
+            prop = ContextId[Any](f"{cls.__module__}.{cls.__name__}:{non_ns.name}")
             setattr(cls, prop_name, prop)
 
     return cls

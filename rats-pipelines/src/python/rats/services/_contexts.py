@@ -18,7 +18,8 @@ class ContextId(NamedTuple, Generic[T_ContextType]):
 
 
 class ContextProvider(Protocol[Tco_ContextType]):
-    """Callback that returns a single context object.
+    """
+    Callback that returns a single context object.
 
     This allows us to pass a pre-configured context into a service so the service does not need to
     specify context ids and simply asks for the value.

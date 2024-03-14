@@ -66,7 +66,8 @@ class RatsIoDiContainer:
 
     @service_group(after(RatsAppServices.PIPELINE_EXECUTABLE))
     def default_io_rw(self) -> DefaultIoRw:
-        """Default IO handlers for the pipeline.
+        """
+        Default IO handlers for the pipeline.
 
         After the user has defined a DAG, we use this service to traverse the data nodes and
         configure some default IO handlers.

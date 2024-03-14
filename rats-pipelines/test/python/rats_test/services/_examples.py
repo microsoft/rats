@@ -36,6 +36,7 @@ class RussianBlueService(CatService):
 
 
 class DogExecutable(IExecutable):
+
     def execute(self) -> None:
         print("woof")
 

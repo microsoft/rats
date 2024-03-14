@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from rats.services import IExecutable, ServiceId
 
@@ -7,19 +7,20 @@ T = TypeVar("T")
 
 
 def scoped_pipeline_ids(cls: type[T]) -> type[T]:
-    """Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
+    """
+    Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
 
     The scoped ServiceId instances have a prefix to eliminate the chance of conflicts across
     packages.
     """
-    props = [prop for prop in dir(cls) if prop.startswith("_") is False]
+    props: list[str] = [prop for prop in dir(cls) if prop.startswith("_") is False]
 
     for prop_name in props:
         non_ns = getattr(cls, prop_name)
         if not isinstance(non_ns, ServiceId):
             continue
 
-        prop = ServiceId(
+        prop = ServiceId[Any](
             f"{cls.__module__}.{cls.__name__}:{non_ns.name}[pipeline]",
         )
         setattr(cls, prop_name, prop)
