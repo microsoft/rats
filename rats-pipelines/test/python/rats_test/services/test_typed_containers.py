@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 from rats.services import ServiceFactory, TypedServiceContainer
 
 from ._examples import CatService, ExampleServiceGroups, make_cat

@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 from rats.pipelines.session import PipelineSessionState, PipelineSessionStateClient
 
 

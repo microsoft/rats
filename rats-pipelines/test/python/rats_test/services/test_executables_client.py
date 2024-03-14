@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 from rats.services import (
     ContextClient,
     ExecutablesClient,
