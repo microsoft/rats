@@ -6,13 +6,16 @@ updates:
       interval: "weekly"
     target-branch: "main"
   - package-ecosystem: "pip"
-    token: ${{secrets.IMMUNOMICS}}
+    directory: "/rats-devtools/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+  - package-ecosystem: "pip"
     directory: "/rats-pipelines/"
     schedule:
       interval: "daily"
     target-branch: "main"
   - package-ecosystem: "pip"
-    token: ${{secrets.IMMUNOMICS}}
     directory: "/rats-processors/"
     schedule:
       interval: "daily"

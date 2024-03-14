@@ -5,14 +5,10 @@ description = "Rats Azure Devops CLI"
 version = "0.0.0"
 readme = "README.md"
 authors = []
-packages = [
-    {include = "rats", from = "src/python"},
-]
-
-[[tool.poetry.source]]
-name = "oneml-artifacts"
-url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
-priority = "primary"
+packages = [{include = "rats", from = "src/python"}]
+repository = "https://github.com/microsoft/rats/"
+documentation = "https://microsoft.github.io/rats/"
+keywords = ["pipelines", "machine learning", "research"]
 
 [tool.poetry-dynamic-versioning]
 enable = true
