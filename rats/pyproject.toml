@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "pyrats"
-description = "Pyrats package for the RATS project."
+name = "rats"
+description = "Package for the bundled rats components."
 # Handled by `poetry-dynamic-versioning` plugin below.
 version = "0.0.0"
 readme = "README.md"
