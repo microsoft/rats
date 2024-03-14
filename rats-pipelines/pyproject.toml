@@ -10,12 +10,9 @@ packages = [
     {include = "rats", from = "src/python"},
 ]
 
-#[[tool.poetry.source]]
-#name = "oneml-artifacts"
-#url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple/"
 [[tool.poetry.source]]
-name = "health-futures-lab"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple/"
+name = "oneml-artifacts"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
 priority = "primary"
 
 [tool.poetry-dynamic-versioning]

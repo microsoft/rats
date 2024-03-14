@@ -13,8 +13,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "attrs"
@@ -37,8 +37,8 @@ tests-no-zope = ["attrs[tests-mypy]", "cloudpickle", "hypothesis", "pympler", "p
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "babel"
@@ -59,8 +59,8 @@ dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "cachetools"
@@ -75,8 +75,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "certifi"
@@ -91,8 +91,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "charset-normalizer"
@@ -195,8 +195,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "colorama"
@@ -211,8 +211,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "coverage"
@@ -283,8 +283,8 @@ toml = ["tomli"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "dill"
@@ -303,8 +303,8 @@ profile = ["gprof2dot (>=2022.7.29)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "docutils"
@@ -319,8 +319,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "exceptiongroup"
@@ -338,8 +338,8 @@ test = ["pytest (>=6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "furl"
@@ -358,8 +358,8 @@ six = ">=1.8.0"
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "google-auth"
@@ -386,8 +386,8 @@ requests = ["requests (>=2.20.0,<3.0.0.dev0)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "idna"
@@ -402,8 +402,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "imagesize"
@@ -418,8 +418,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "importlib-metadata"
@@ -442,8 +442,8 @@ testing = ["flufl.flake8", "importlib-resources (>=1.3)", "packaging", "pyfakefs
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "iniconfig"
@@ -458,8 +458,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "jinja2"
@@ -480,8 +480,8 @@ i18n = ["Babel (>=2.7)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "kubernetes"
@@ -511,8 +511,8 @@ adal = ["adal (>=1.0.2)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "markupsafe"
@@ -585,8 +585,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "nodeenv"
@@ -604,8 +604,8 @@ setuptools = "*"
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "oauthlib"
@@ -625,8 +625,8 @@ signedtoken = ["cryptography (>=3.0.0)", "pyjwt (>=2.0.0,<3)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "orderedmultidict"
@@ -644,8 +644,8 @@ six = ">=1.8.0"
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "packaging"
@@ -660,8 +660,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pluggy"
@@ -680,8 +680,8 @@ testing = ["pytest", "pytest-benchmark"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pyasn1"
@@ -696,8 +696,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pyasn1-modules"
@@ -715,8 +715,8 @@ pyasn1 = ">=0.4.6,<0.6.0"
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pygments"
@@ -735,8 +735,8 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pyright"
@@ -758,8 +758,8 @@ dev = ["twine (>=3.4.1)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pytest"
@@ -785,8 +785,8 @@ testing = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "pygm
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pytest-cov"
@@ -808,8 +808,8 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtuale
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pytest-nunit"
@@ -830,8 +830,8 @@ dev = ["pytest", "pytest-cov", "xmlschema (==1.0.13)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "python-dateutil"
@@ -849,8 +849,8 @@ six = ">=1.5"
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pytz"
@@ -865,8 +865,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "pyyaml"
@@ -893,6 +893,7 @@ files = [
     {file = "PyYAML-6.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:bf07ee2fef7014951eeb99f56f39c9bb4af143d8aa3c21b1677805985307da34"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:855fb52b0dc35af121542a76b9a84f8d1cd886ea97c84703eaa6d88e37a2ad28"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:40df9b996c2b73138957fe23a16a4f0ba614f4c0efce1e9406a184b6d07fa3a9"},
+    {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a08c6f0fe150303c1c6b71ebcd7213c2858041a7e01975da3a99aed1e7a378ef"},
     {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c22bec3fbe2524cde73d7ada88f6566758a8f7227bfbf93a408a9d86bcc12a0"},
     {file = "PyYAML-6.0.1-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8d4e9c88387b0f5c7d5f281e55304de64cf7f9c0021a3525bd3b1c542da3b0e4"},
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
@@ -929,8 +930,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "requests"
@@ -955,8 +956,8 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "requests-oauthlib"
@@ -978,8 +979,8 @@ rsa = ["oauthlib[signedtoken] (>=3.0.0)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "rsa"
@@ -997,15 +998,15 @@ pyasn1 = ">=0.1.3"
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "ruff"
 version = "0.3.2"
-description = ""
+description = "An extremely fast Python linter and code formatter, written in Rust."
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 files = [
     {file = "ruff-0.3.2-py3-none-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:77f2612752e25f730da7421ca5e3147b213dca4f9a0f7e0b534e9562c5441f01"},
     {file = "ruff-0.3.2-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:9966b964b2dd1107797be9ca7195002b874424d1d5472097701ae8f43eadef5d"},
@@ -1028,8 +1029,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "setuptools"
@@ -1049,8 +1050,8 @@ testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jar
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "six"
@@ -1065,8 +1066,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "snowballstemmer"
@@ -1081,8 +1082,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinx"
@@ -1121,8 +1122,8 @@ test = ["cython", "filelock", "html5lib", "pytest (>=4.6)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinx-autodoc-typehints"
@@ -1145,8 +1146,8 @@ testing = ["covdefaults (>=2.3)", "coverage (>=7.3.2)", "diff-cover (>=8.0.1)", 
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinx-markdown-builder"
@@ -1169,8 +1170,8 @@ dev = ["black", "bumpver", "coveralls", "flake8", "isort", "pip-tools", "pylint"
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinxcontrib-applehelp"
@@ -1189,8 +1190,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinxcontrib-devhelp"
@@ -1209,8 +1210,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinxcontrib-htmlhelp"
@@ -1229,8 +1230,8 @@ test = ["html5lib", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinxcontrib-jsmath"
@@ -1248,8 +1249,8 @@ test = ["flake8", "mypy", "pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinxcontrib-qthelp"
@@ -1268,8 +1269,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "sphinxcontrib-serializinghtml"
@@ -1288,8 +1289,8 @@ test = ["pytest"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "tabulate"
@@ -1307,8 +1308,8 @@ widechars = ["wcwidth"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "tomli"
@@ -1323,8 +1324,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "types-urllib3"
@@ -1339,8 +1340,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "typing-extensions"
@@ -1355,8 +1356,8 @@ files = [
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "urllib3"
@@ -1377,8 +1378,8 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "websocket-client"
@@ -1398,8 +1399,8 @@ test = ["websockets"]
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [[package]]
 name = "zipp"
@@ -1418,10 +1419,10 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 
 [package.source]
 type = "legacy"
-url = "https://pkgs.dev.azure.com/health-futures-lab/_packaging/artifacts/pypi/simple"
-reference = "health-futures-lab"
+url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
+reference = "oneml-artifacts"
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "fff1a83af36a79803dcf89e317e9301eb334a8247afa95d080efc6657f3efe2c"
+content-hash = "5227f66a0c6d948dd9a0b7e759d9be937e3577d1a19404a0549f8824a8f7ad42"
