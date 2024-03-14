@@ -125,6 +125,8 @@ jobs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "build-docs"
     steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.sha }}
