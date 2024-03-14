@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
     with:
-      publish-wheels: false
+      publish-wheels: true
       publish-docs: false
       sha: ${{ github.sha }}
   codeql-workflow:
