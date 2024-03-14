@@ -1020,7 +1020,7 @@ reference = "oneml-artifacts"
 
 [[package]]
 name = "rats-pipelines"
-version = "0.10.3.dev59"
+version = "0.10.3.dev61"
 description = "Rats Pipelines"
 optional = false
 python-versions = ">=3.8.10,<3.11"
@@ -1513,4 +1513,4 @@ reference = "oneml-artifacts"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "8775b2e993362a6c433f17d9ef9628d7fc5c35163fe43ae42a7771f9e520d39f"
+content-hash = "a9dd4f33d376bd23134b2fdf69c8877ed792c5581639677138cbd08f13eb8e11"
