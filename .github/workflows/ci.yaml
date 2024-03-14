@@ -106,7 +106,7 @@ jobs:
     name: "push-artifacts"
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/example-processors
+      url: https://test.pypi.org/p/${{ matrix.component }}
     permissions:
       id-token: write
     steps:
