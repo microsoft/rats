@@ -25,13 +25,16 @@ dirty = false
 # https://developercommunity.visualstudio.com/t/local-version-segments-for-python-package-feeds/892057
 metadata = false
 
+[tool.poetry-monorepo-dependency-plugin]
+enable = true
+
 [tool.poetry.dependencies]
 dill = "*"
-typing_extensions = "*"
+furl = "^2.1.3"
 # we can move the k8s dependency to another package and use plugins
 kubernetes = { version = "*" }
 python = ">=3.8.10,<3.11"
-furl = "^2.1.3"
+typing_extensions = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"

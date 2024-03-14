@@ -29,9 +29,9 @@ metadata = false
 enable = true
 
 [tool.poetry.dependencies]
-python = ">=3.8.10,<3.11"
 rats-pipelines = {path = "../rats-pipelines", develop = true}
 click = "*"
+python = ">=3.8.10,<3.11"
 toml = "*"
 twine = "*"
 
