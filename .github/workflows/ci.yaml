@@ -73,6 +73,7 @@ jobs:
             poetry
           poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
           poetry self add poetry-dynamic-versioning
+          poetry self add poetry-monorepo-dependency-plugin
 
           pipx install \
             -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \

@@ -1572,4 +1572,4 @@ reference = "oneml-artifacts"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "2b20331129255ae31f85644d733b5fd862f8eb3b581a27e14991a00e0aa1db32"
+content-hash = "fdb908649ad28c4b3603e9a417d0ff4e31bce7013388e76fb720b4cf47b0369f"
