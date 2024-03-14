@@ -27,7 +27,7 @@ metadata = false
 
 [tool.poetry.dependencies]
 python = ">=3.8.10,<3.11"
-rats-pipelines = {path = "../rats-pipelines", develop = true}
+rats-pipelines = "*"
 click = "*"
 toml = "*"
 twine = "*"
@@ -38,6 +38,7 @@ pyright = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
+rats-pipelines = {path = "../rats-pipelines", develop = true}
 ruff = "*"
 # to release packages to hflabs
 twine = "*"
