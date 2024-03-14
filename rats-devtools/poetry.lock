@@ -1735,7 +1735,7 @@ reference = "oneml-artifacts"
 [[package]]
 name = "pyyaml-env-tag"
 version = "0.1"
-description = "A custom YAML tag for referencing environment variables in YAML files."
+description = "A custom YAML tag for referencing environment variables in YAML files. "
 optional = false
 python-versions = ">=3.6"
 files = [
@@ -1753,7 +1753,7 @@ reference = "oneml-artifacts"
 
 [[package]]
 name = "rats-pipelines"
-version = "0.10.3.dev60"
+version = "0.0.0"
 description = "Rats Pipelines"
 optional = false
 python-versions = ">=3.8.10,<3.11"
@@ -2034,9 +2034,9 @@ reference = "oneml-artifacts"
 [[package]]
 name = "ruff"
 version = "0.3.2"
-description = "An extremely fast Python linter and code formatter, written in Rust."
+description = ""
 optional = false
-python-versions = ">=3.7"
+python-versions = "*"
 files = [
     {file = "ruff-0.3.2-py3-none-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:77f2612752e25f730da7421ca5e3147b213dca4f9a0f7e0b534e9562c5441f01"},
     {file = "ruff-0.3.2-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:9966b964b2dd1107797be9ca7195002b874424d1d5472097701ae8f43eadef5d"},
@@ -2567,4 +2567,4 @@ reference = "oneml-artifacts"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.10,<3.11"
-content-hash = "d3ad34dcfef0342da6490b8ea48681c4e1cee668f4325910068027453208d362"
+content-hash = "38398f18dc4305054aaef291c8c73cb6d3d3901748e3a841a7a7d15a46f3872a"
