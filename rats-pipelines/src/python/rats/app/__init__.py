@@ -1,3 +1,5 @@
+"""Main application package for rats."""
+
 from ._io2_di_container import RatsIo2Services
 from ._rats_app import RatsApp
 from ._rats_app_plugins import AppPlugin, RatsAppNoopPlugin

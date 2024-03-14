@@ -25,13 +25,12 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
+rats-pipelines = { path = "../rats-pipelines/", develop = true }
 azure-devops = "^6.0.0-beta.4"
 colorlog = "*"
-rats-pipelines = { version = "*" }
 python = ">=3.8.10,<3.11"
 
 [tool.poetry.group.dev.dependencies]
-rats-pipelines = { path = "../rats-pipelines/", develop = true }
 coverage = "*"
 pyright = "*"
 pytest = "*"

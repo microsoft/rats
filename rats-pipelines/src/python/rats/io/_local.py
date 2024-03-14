@@ -16,10 +16,10 @@ logger = logging.getLogger(__name__)
 class LocalRWBase:
     def _get_path(self, data_uri: RWDataUri) -> Path:
         split_uri = furl(data_uri.uri)
-        if split_uri.scheme != "file":
-            raise ValueError(f"Expected file scheme, got {split_uri.scheme}")
-        if split_uri.netloc:
-            raise ValueError(f"Expected empty netloc, got {split_uri.netloc}")
+        if split_uri.scheme != "file":  # type: ignore[reportUnknownMemberType]
+            raise ValueError(f"Expected file scheme, got {split_uri.scheme}")  # type: ignore[reportUnknownMemberType]
+        if split_uri.netloc:  # type: ignore[reportUnknownMemberType]
+            raise ValueError(f"Expected empty netloc, got {split_uri.netloc}")  # type: ignore[reportUnknownMemberType]
         if not split_uri.path:
             raise ValueError(f"Expected non-empty path, got {split_uri.path}")
         if split_uri.query:
@@ -35,13 +35,13 @@ class DillLocalRW(LocalRWBase, IReadAndWriteData[object]):
         path = self._get_path(data_uri)
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("wb") as f:
-            dill.dump(payload, f)
+            dill.dump(payload, f)  # type: ignore[reportUnknownMemberType]
 
     def read(self, data_uri: RWDataUri) -> object:
         logger.debug(f"{self.__class__.__name__}: reading from {data_uri}")
         path = self._get_path(data_uri)
         with path.open("rb") as f:
-            return dill.load(f)
+            return dill.load(f)  # type: ignore[reportUnknownMemberType]
 
 
 class JsonLocalRW(LocalRWBase, IReadAndWriteData[object]):

@@ -1,3 +1,5 @@
+"""Pipeline sessions."""
+
 from ._contexts import PipelineSession, RatsSessionContexts
 from ._node_execution import (
     IExecutePipelineNodes,

@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 import pytest
 
 from rats.services import DuplicateServiceIdError, ServiceFactory, ServiceIdNotFoundError
@@ -35,7 +36,7 @@ class TestServiceFactory:
 
     def test_misconfigurations(self) -> None:
         with pytest.raises(ServiceIdNotFoundError):
-            self._empty_factory.get_service(ExampleServices.CAT_1)
+            _ = self._empty_factory.get_service(ExampleServices.CAT_1)
 
         with pytest.raises(DuplicateServiceIdError):
             # the callback doesn't actually matter

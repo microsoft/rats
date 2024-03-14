@@ -1,3 +1,5 @@
+"""Experimental io package."""
+
 from ._io_data import (
     IFormatUri,
     IGetLoaders,

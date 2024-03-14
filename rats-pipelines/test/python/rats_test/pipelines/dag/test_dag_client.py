@@ -1,3 +1,4 @@
+# pyright: reportUninitializedInstanceVariable=false
 from rats.pipelines.dag import PipelineDagClient, PipelineNode
 
 

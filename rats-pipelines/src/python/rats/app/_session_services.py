@@ -10,7 +10,8 @@ from rats.services import ServiceId, scoped_service_ids
 
 @scoped_service_ids
 class RatsSessionServices:
-    """Rats session services.
+    """
+    Rats session services.
 
     This services class should stay private! Anything we want to expose should be exposed through
     the RatsAppServices class so that users have a single thing to import.
@@ -24,7 +25,8 @@ class RatsSessionServices:
 
 @scoped_service_ids
 class RatsSessionExecutables:
-    """Rats session executables.
+    """
+    Rats session executables.
 
     Sessions are made up of executions of frames; some of which, execute nodes. The services
     below allow us to attach hooks using `before()` and `after()`.

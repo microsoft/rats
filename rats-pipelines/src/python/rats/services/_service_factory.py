@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterable
-from typing import Any
+from typing import Any, cast
 
 from ._executables import IExecutable
 from ._service_managers import DuplicateServiceIdError, IManageServices, ServiceIdNotFoundError
@@ -7,7 +7,8 @@ from ._services import ServiceId, ServiceProvider, T_ServiceType
 
 
 class ServiceFactory(IManageServices):
-    """A service factory provides easy access to new instances of services.
+    """
+    A service factory provides easy access to new instances of services.
 
     The expectation is that the factory will not cache multiple calls to `get_service()`. However,
     we make no effort to prevent the user from registering a provider that caches calls internally.
@@ -38,7 +39,7 @@ class ServiceFactory(IManageServices):
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
         def gen() -> Iterable[T_ServiceType]:
-            for p in self._groups.get(group_id, tuple()):
+            for p in self._groups.get(group_id, []):
                 yield p()
 
         return gen
@@ -47,7 +48,10 @@ class ServiceFactory(IManageServices):
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
-        return tuple(self._groups.get(group_id, tuple()))
+        # We do not validate that the user gave us a group id that is the right type.
+        return tuple(
+            cast(Iterable[ServiceProvider[T_ServiceType]], self._groups.get(group_id, tuple())),
+        )
 
     def add_service(
         self,

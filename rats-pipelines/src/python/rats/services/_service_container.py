@@ -27,14 +27,14 @@ class ServiceContainer(IProvideServices):
         return self._service_cache[service_id]
 
     @lru_cache  # noqa: B019
-    def get_service_group_provider(
+    def get_service_group_provider(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
         return self._factory.get_service_group_provider(group_id)
 
     @lru_cache  # noqa: B019
-    def get_service_group_providers(
+    def get_service_group_providers(  # pyright: ignore[reportIncompatibleMethodOverride]
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
