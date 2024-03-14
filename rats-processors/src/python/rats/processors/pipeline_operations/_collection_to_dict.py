@@ -56,7 +56,7 @@ class CollectionToDict:
         if entries_to_types is None:
             assert entries is not None
             assert element_type is not None
-            entries_to_types = dict.fromkeys(entries, element_type)
+            entries_to_types = {entry: element_type for entry in entries}
         else:
             assert entries is None
             assert element_type is None
@@ -123,7 +123,7 @@ class DictToCollection:
         if entries_to_types is None:
             assert entries is not None
             assert element_type is not None
-            entries_to_types = dict.fromkeys(entries, element_type)
+            entries_to_types = {entry: element_type for entry in entries}
         else:
             assert entries is None
             assert element_type is None

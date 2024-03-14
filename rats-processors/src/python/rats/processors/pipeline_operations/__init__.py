@@ -10,12 +10,12 @@ from ._duplicate_pipeline import DuplicatePipeline, DuplicatePipelineConf
 from ._expose_given_outputs import ExposeGivenOutputs
 
 __all__ = [
+    "Manifest",
     "CollectionToDict",
     "DictToCollection",
+    "RatsProcessorsPipelineOperationsPlugin",
     "DuplicatePipeline",
     "DuplicatePipelineConf",
     "ExposeGivenOutputs",
-    "Manifest",
-    "RatsProcessorsPipelineOperationsPlugin",
     "RatsProcessorsPipelineOperationsServices",
 ]
