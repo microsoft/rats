@@ -1,0 +1,29 @@
+name: Weekly
+on:
+  schedule:
+    # Every monday at midnight
+    - cron: "0 0 * * 1"
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  id-token: write
+  pages: write
+  security-events: write
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+jobs:
+  ci-workflow:
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
+    with:
+      publish-wheels: false
+      publish-docs: false
+      sha: main
+  codeql-workflow:
+    uses: ./.github/workflows/codeql.yaml
+    secrets: inherit
+    with:
+      sha: main

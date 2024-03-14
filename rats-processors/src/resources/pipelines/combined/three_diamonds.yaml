@@ -1,0 +1,39 @@
+defaults:
+  - base@_here_
+  - /duplicate@pipelines.parallel: parallel_diamond
+  - /task/diamond@pipelines.B: B
+  - /task/diamond@pipelines.C: C
+  - /task/diamond@pipelines.D: D
+  - _self_
+
+name: three_diamond
+outputs: {}
+dependencies:
+  d0:
+    in_entry:
+      pipeline: pipelines.B
+      port: inputs.X
+    out_entry:
+      pipeline: pipelines.parallel
+      port: outputs.Z1.left
+  d1:
+    in_entry:
+      pipeline: pipelines.C
+      port: inputs.X
+    out_entry:
+      pipeline: pipelines.parallel
+      port: outputs.Z2.right
+  d2:
+    in_entry:
+      pipeline: pipelines.D
+      port: inputs.X1
+    out_entry:
+      pipeline: pipelines.B
+      port: outputs.Z
+  d3:
+    in_entry:
+      pipeline: pipelines.D
+      port: inputs.X2
+    out_entry:
+      pipeline: pipelines.C
+      port: outputs.Z

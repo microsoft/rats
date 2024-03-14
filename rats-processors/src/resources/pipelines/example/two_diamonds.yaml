@@ -1,0 +1,4 @@
+# @package _global_
+defaults:
+  - /combined@pipeline: two_diamonds
+  - _self_

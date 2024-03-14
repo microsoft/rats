@@ -1,0 +1,30 @@
+name: Main
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+permissions:
+  contents: read
+  actions: read
+  #  pull-requests: write
+  checks: write
+  id-token: write
+  pages: write
+  security-events: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ci-workflow:
+    uses: ./.github/workflows/ci.yaml
+    secrets: inherit
+    with:
+      publish-wheels: true
+      publish-docs: true
+      sha: ${{ github.sha }}
+  codeql-workflow:
+    uses: ./.github/workflows/codeql.yaml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}

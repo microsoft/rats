@@ -1,0 +1,16 @@
+defaults:
+  - /combined/base@_here_
+  - /estimator@pipelines.stz: stz
+  - /estimator@pipelines.lr: lr
+  - /dependency@dependencies.d0: collection
+  - _self_
+
+name: stz_lr
+dependencies:
+  d0:
+    in_collection:
+      pipeline: pipelines.lr
+      port: inputs.X
+    out_collection:
+      pipeline: pipelines.stz
+      port: outputs.Z

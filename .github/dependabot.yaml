@@ -1,0 +1,19 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "main"
+  - package-ecosystem: "pip"
+    token: ${{secrets.IMMUNOMICS}}
+    directory: "/rats-pipelines/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"
+  - package-ecosystem: "pip"
+    token: ${{secrets.IMMUNOMICS}}
+    directory: "/rats-processors/"
+    schedule:
+      interval: "daily"
+    target-branch: "main"

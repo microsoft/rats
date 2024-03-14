@@ -1,0 +1,217 @@
+name: CI
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'the git sha to checkout'
+        required: true
+        type: string
+      publish-wheels:
+        description: 'whether to publish wheels to the artifact repo'
+        default: false
+        required: true
+        type: boolean
+      publish-docs:
+        description: 'whether to publish docs to the github pages'
+        default: false
+        required: true
+        type: boolean
+  workflow_call:
+    inputs:
+      sha:
+        description: 'the git sha to checkout'
+        required: true
+        type: string
+      publish-wheels:
+        description: 'whether to publish wheels to the artifact repo'
+        default: false
+        required: true
+        type: boolean
+      publish-docs:
+        description: 'whether to publish docs to the github pages'
+        default: false
+        required: true
+        type: boolean
+jobs:
+  test-components:
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - rats-devtools
+          - rats-pipelines
+          - rats-processors
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
+    name: "test: ${{ matrix.component }}"
+    steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+      - id: "authenticate"
+        name: "authenticate"
+        run: |
+          # authenticate as the managed identity we assigned to the 1es runner
+          az login \
+          --identity \
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
+          # auth to acr resources we use
+          # generate an access token that we use for the run
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
+          # Prevents the token from being output in logs
+          echo "::add-mask::$TOKEN"
+          echo "writing access token to $GITHUB_OUTPUT"
+          echo access-token=$TOKEN >> $GITHUB_OUTPUT
+      - name: "install-devtools"
+        run: |
+          TOKEN="${{ steps.authenticate.outputs.access-token }}"
+          pipx install \
+            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            poetry
+          poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
+          poetry self add poetry-dynamic-versioning
+          poetry self add poetry-monorepo-dependency-plugin
+
+          pipx install \
+            -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            rats-devtools/
+      - name: "poetry-install"
+        run: |
+          rats-devtools install ${{ matrix.component }}/
+      - id: "package-info"
+        name: "package-info"
+        run: |
+          cd ${{ matrix.component }}/
+          # use poetry to find out the version of our package
+          VERSION=$(poetry version --short)
+          echo "detected version: $VERSION"
+          PKG_NAME=$(echo "${{ matrix.component }}" | tr '-' '_')
+          PKG_WHEEL="$PKG_NAME-$VERSION-py3-none-any.whl"
+          echo package-version=$VERSION >> $GITHUB_OUTPUT
+          echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
+          echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
+      - name: ruff
+        run: |
+          cd ${{ matrix.component }}/
+          poetry run ruff check --output-format=github src/python/ test/python/
+      - name: pyright
+        run: |
+          cd ${{ matrix.component }}/
+          poetry run pyright
+      - name: pytest
+        run: |
+          cd ${{ matrix.component }}/
+          poetry run pytest
+      - name: "build-wheels"
+        run: |
+          cd ${{ matrix.component }}/
+          poetry build -f wheel
+      - name: "upload-artifacts"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "wheels.${{ matrix.component }}"
+          path: "${{ matrix.component }}/dist/${{ steps.package-info.outputs.package-wheel }}"
+  publish-artifacts:
+    if: "${{ inputs.publish-wheels }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        feed:
+          - https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
+          - https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
+    needs: test-components
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
+    name: "push-artifacts"
+    steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      - id: "authenticate"
+        name: "authenticate"
+        run: |
+          # authenticate as the managed identity we assigned to the 1es runner
+          az login \
+          --identity \
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
+          # auth to acr resources we use
+          # generate an access token that we use for the run
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
+          # Prevents the token from being output in logs
+          echo "::add-mask::$TOKEN"
+          echo "writing access token to $GITHUB_OUTPUT"
+          echo access-token=$TOKEN >> $GITHUB_OUTPUT
+      - name: download-wheels
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+          pattern: "wheels.*"
+          merge-multiple: true
+      - name: publish-wheels
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ steps.authenticate.outputs.access-token }}
+          repository-url: ${{ matrix.feed }}
+  build-docs:
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
+    name: "build-docs"
+    steps:
+      # let us reach things installed by pipx
+      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+      - id: "authenticate"
+        name: "authenticate"
+        run: |
+          # authenticate as the managed identity we assigned to the 1es runner
+          az login \
+          --identity \
+          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
+          # auth to acr resources we use
+          # generate an access token that we use for the run
+          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
+          # Prevents the token from being output in logs
+          echo "::add-mask::$TOKEN"
+          echo "writing access token to $GITHUB_OUTPUT"
+          echo access-token=$TOKEN >> $GITHUB_OUTPUT
+      - name: "install-devtools"
+        run: |
+          TOKEN="${{ steps.authenticate.outputs.access-token }}"
+          pipx install \
+            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            poetry
+          poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
+          pipx install \
+            -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
+            rats-devtools/
+      - name: "poetry-install"
+        run: |
+          # I would like to optimize this soon before these steps become too slow
+          rats-devtools install rats-adocli/
+          rats-devtools install rats-devtools/
+          rats-devtools install rats-pipelines/
+          rats-devtools install rats-processors/
+      - name: "build-docs"
+        run: |
+          rats-devtools build-api-docs
+          rats-devtools mkdocs-build
+      - name: "upload-gh-pages"
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "rats-devtools/dist/site"
+  deploy-docs:
+    # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
+    needs: ["test-components", "build-docs"]
+    # this one can run anywhere
+    runs-on: "ubuntu-latest"
+    name: "deploy-docs"
+    steps:
+      # let us reach things installed by pipx
+      - name: "deploy-gh-pages"
+        if: "${{ inputs.publish-docs }}"
+        id: deployment
+        uses: actions/deploy-pages@v4

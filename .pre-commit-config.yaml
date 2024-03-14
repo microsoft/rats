@@ -1,0 +1,45 @@
+exclude: |
+  (?x)(
+      ^.idea/
+  )
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-ast
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: forbid-submodules
+      - id: name-tests-test
+      - id: pretty-format-json
+        args: ["--autofix", "--indent", "4"]
+      - id: trailing-whitespace
+  - repo: local
+    hooks:
+      - id: rats-pipelines
+        name: Run hooks in pipelines package
+        entry: "bin/commit-hooks rats-pipelines"
+        language: script
+        pass_filenames: false
+        files: ^rats-pipelines/src/python/
+        types: [python]
+      - id: rats-processors
+        name: Run hooks in processors package
+        entry: "bin/commit-hooks rats-processors"
+        language: script
+        pass_filenames: false
+        files: ^rats-processors/src/python/
+        types: [python]

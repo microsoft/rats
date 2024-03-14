@@ -1,0 +1,11 @@
+#!/bin/bash
+
+COMPONENT=$1
+
+cd $COMPONENT
+echo "running ruff linter"
+poetry run ruff check src/python --fix
+echo "running ruff formatter"
+poetry run ruff format src/python
+# echo "running pyright"
+# poetry run pyright
