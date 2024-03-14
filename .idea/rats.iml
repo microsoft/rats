@@ -9,7 +9,6 @@
     <orderEntry type="module" module-name="rats-pipelines" />
     <orderEntry type="module" module-name="rats-processors" />
     <orderEntry type="module" module-name="rats-devtools" />
-    <orderEntry type="module" module-name="rats-adocli" />
     <orderEntry type="module" module-name="rats-habitats" />
   </component>
   <component name="PackageRequirementsSettings">

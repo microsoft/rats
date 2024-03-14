@@ -11,5 +11,4 @@ Thoughts on the definition of an app, a pipeline, and a dag.
 - ImmunocliCliApp
 - RatsApp
   - this is the only pipeline app
-- AdocliApp
 """
