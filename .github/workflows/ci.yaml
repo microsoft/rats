@@ -109,8 +109,6 @@ jobs:
     permissions:
       id-token: write
     steps:
-      # let us reach things installed by pipx
-      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: download-wheels
         uses: actions/download-artifact@v4
         with:
@@ -119,8 +117,10 @@ jobs:
       - name: publish-wheels
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
+          user: __token__
+          password: ${{ secrets.TESTPYPI_API_TOKEN }}
           repository-url: https://test.pypi.org/legacy/
+          verbose: true
   build-docs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "build-docs"
