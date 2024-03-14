@@ -2,7 +2,7 @@ trigger: [main]
 pr: [main]
 schedules:
 - cron: "0 0 * * 1"
-  displayName: "Weekly: msreco"
+  displayName: "Weekly: rats"
   branches:
     include:
     - main
