@@ -95,7 +95,7 @@ jobs:
           name: "wheels.${{ matrix.component }}"
           path: "${{ matrix.component }}/dist/${{ steps.package-info.outputs.package-wheel }}"
 
-  publish-testpypi-pkg:
+  publish-pypi-pkg:
     if: "${{ inputs.publish-wheels }}"
     strategy:
       fail-fast: false
@@ -105,10 +105,10 @@ jobs:
           - rats-processors
     needs: test-components
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
-    name: "publish-testpypi-pkg"
+    name: "publish-pypi-pkg"
     environment:
       name: pypi
-      url: https://test.pypi.org/p/${{ matrix.component }}
+      url: https://pypi.org/p/${{ matrix.component }}
     permissions:
       id-token: write
     steps:
@@ -122,7 +122,6 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-          repository-url: https://test.pypi.org/legacy/
 
   build-docs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
