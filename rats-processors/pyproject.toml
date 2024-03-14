@@ -9,6 +9,7 @@ packages = [{ include = "rats", from = "src/python" }]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
+license = "MIT"
 
 
 [tool.poetry-dynamic-versioning]
