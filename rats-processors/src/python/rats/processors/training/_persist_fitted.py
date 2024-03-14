@@ -89,7 +89,7 @@ class PersistFittedEvalPipeline(IPersistFittedEvalPipeline):
             config=dict(
                 eval_using_persistance_pl=eval_using_persistance_pl,
             ),
-            input_annotation={fitted_name: str for fitted_name in read_fitted_pl.inputs.uris},
+            input_annotation=dict.fromkeys(read_fitted_pl.inputs.uris, str),
         ).rename_inputs(
             {fitted_name: f"uris.{fitted_name}" for fitted_name in read_fitted_pl.inputs.uris}
         )

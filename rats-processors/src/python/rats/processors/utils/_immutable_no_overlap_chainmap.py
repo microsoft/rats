@@ -18,7 +18,7 @@ class ImmutableNoOverlapChainMap(Mapping[K, V]):
         for m in maps:
             s = set(m.keys())
             duplicates.update(s.intersection(key_to_map))
-            key_to_map.update({k: m for k in s})
+            key_to_map.update(dict.fromkeys(s, m))
         if duplicates:
             raise ValueError(f"Duplicate keys found: {duplicates}")
         return key_to_map

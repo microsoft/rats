@@ -35,7 +35,7 @@ class Scatter:
     @classmethod
     def get_return_annotation(cls, K: int) -> dict[str, type]:
         out_names = [f"in1_n{k}" for k in range(K)] + [f"in2_n{k}" for k in range(K)]
-        return {out_name: str for out_name in out_names}
+        return dict.fromkeys(out_names, str)
 
     def process(self, in1: str, in2: str) -> dict[str, str]:
         return {f"in1_n{k}": f"{in1}_n{k}" for k in range(self._K)} | {

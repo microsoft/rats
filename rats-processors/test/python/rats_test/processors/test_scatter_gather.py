@@ -12,7 +12,7 @@ class Scatter:
     @classmethod
     def get_return_annotation(cls, K: int) -> dict[str, type]:
         out_names = [f"in1_{k}" for k in range(K)] + [f"in2_{k}" for k in range(K)]
-        return {out_name: str for out_name in out_names}
+        return dict.fromkeys(out_names, str)
 
     @classmethod
     def get_renames(cls, K: int) -> dict[str, str]:

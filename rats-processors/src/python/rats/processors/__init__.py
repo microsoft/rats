@@ -3,9 +3,9 @@ from .training import ScatterGatherBuilders, TrainAndEvalBuilders
 from .ux import Pipeline, PipelineBuilder
 
 __all__ = [
-    "PipelineBuilder",
-    "display_dag",
-    "TrainAndEvalBuilders",
-    "ScatterGatherBuilders",
     "Pipeline",
+    "PipelineBuilder",
+    "ScatterGatherBuilders",
+    "TrainAndEvalBuilders",
+    "display_dag",
 ]
