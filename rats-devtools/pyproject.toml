@@ -5,15 +5,11 @@ description = "Rats Development Tools"
 version = "0.0.0"
 readme = "README.md"
 authors = []
-packages = [
-    {include = "rats", from = "src/python"},
-]
-
-[[tool.poetry.source]]
-name = "oneml-artifacts"
-# https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
-url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
-priority = "primary"
+packages = [{include = "rats", from = "src/python"}]
+repository = "https://github.com/microsoft/rats/"
+documentation = "https://microsoft.github.io/rats/"
+keywords = ["pipelines", "machine learning", "research"]
+license = "MIT"
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -31,7 +27,7 @@ enable = true
 [tool.poetry.dependencies]
 rats-pipelines = {path = "../rats-pipelines", develop = true}
 click = "*"
-python = ">=3.8.10,<3.11"
+python = "^3.10"
 toml = "*"
 twine = "*"
 

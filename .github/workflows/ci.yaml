@@ -38,6 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         component:
+          - rats
           - rats-devtools
           - rats-pipelines
           - rats-processors
@@ -51,33 +52,12 @@ jobs:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
           fetch-tags: true
-      - id: "authenticate"
-        name: "authenticate"
-        run: |
-          # authenticate as the managed identity we assigned to the 1es runner
-          az login \
-          --identity \
-          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
-          # auth to acr resources we use
-          # generate an access token that we use for the run
-          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
-          # Prevents the token from being output in logs
-          echo "::add-mask::$TOKEN"
-          echo "writing access token to $GITHUB_OUTPUT"
-          echo access-token=$TOKEN >> $GITHUB_OUTPUT
       - name: "install-devtools"
         run: |
-          TOKEN="${{ steps.authenticate.outputs.access-token }}"
-          pipx install \
-            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
-            poetry
-          poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
+          pipx install poetry
           poetry self add poetry-dynamic-versioning
           poetry self add poetry-monorepo-dependency-plugin
-
-          pipx install \
-            -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
-            rats-devtools/
+          pipx install -e rats-devtools/
       - name: "poetry-install"
         run: |
           rats-devtools install ${{ matrix.component }}/
@@ -114,45 +94,35 @@ jobs:
         with:
           name: "wheels.${{ matrix.component }}"
           path: "${{ matrix.component }}/dist/${{ steps.package-info.outputs.package-wheel }}"
-  publish-artifacts:
+
+  publish-pypi-pkg:
     if: "${{ inputs.publish-wheels }}"
     strategy:
       fail-fast: false
       matrix:
-        feed:
-          - https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/upload
-          - https://pkgs.dev.azure.com/immunomics/_packaging/immunomics-artifacts/pypi/upload
+        component:
+          - rats-pipelines
+          - rats-processors
     needs: test-components
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
-    name: "push-artifacts"
+    name: "publish-pypi-pkg"
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ matrix.component }}
+    permissions:
+      id-token: write
     steps:
-      # let us reach things installed by pipx
-      - run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
-      - id: "authenticate"
-        name: "authenticate"
-        run: |
-          # authenticate as the managed identity we assigned to the 1es runner
-          az login \
-          --identity \
-          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
-          # auth to acr resources we use
-          # generate an access token that we use for the run
-          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
-          # Prevents the token from being output in logs
-          echo "::add-mask::$TOKEN"
-          echo "writing access token to $GITHUB_OUTPUT"
-          echo access-token=$TOKEN >> $GITHUB_OUTPUT
       - name: download-wheels
         uses: actions/download-artifact@v4
         with:
+          name: "wheels.${{ matrix.component }}"
           path: dist/
-          pattern: "wheels.*"
-          merge-multiple: true
       - name: publish-wheels
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          password: ${{ steps.authenticate.outputs.access-token }}
-          repository-url: ${{ matrix.feed }}
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
   build-docs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "build-docs"
@@ -164,30 +134,10 @@ jobs:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
           fetch-tags: true
-      - id: "authenticate"
-        name: "authenticate"
-        run: |
-          # authenticate as the managed identity we assigned to the 1es runner
-          az login \
-          --identity \
-          -u /subscriptions/5cdce458-55d0-479a-9e75-d331b234c8f7/resourcegroups/oneml.ci/providers/Microsoft.ManagedIdentity/userAssignedIdentities/oneml-github-runner-pool
-          # auth to acr resources we use
-          # generate an access token that we use for the run
-          TOKEN=$(az account get-access-token --query accessToken --output tsv --subscription "Immunomics R&D Infra")
-          # Prevents the token from being output in logs
-          echo "::add-mask::$TOKEN"
-          echo "writing access token to $GITHUB_OUTPUT"
-          echo access-token=$TOKEN >> $GITHUB_OUTPUT
       - name: "install-devtools"
         run: |
-          TOKEN="${{ steps.authenticate.outputs.access-token }}"
-          pipx install \
-            -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
-            poetry
-          poetry config http-basic.oneml-artifacts "__token__" "$TOKEN"
-          pipx install \
-            -e -i https://$TOKEN@pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple \
-            rats-devtools/
+          pipx install poetry
+          pipx install -e rats-devtools/
       - name: "poetry-install"
         run: |
           # I would like to optimize this soon before these steps become too slow
@@ -210,7 +160,6 @@ jobs:
     runs-on: "ubuntu-latest"
     name: "deploy-docs"
     steps:
-      # let us reach things installed by pipx
       - name: "deploy-gh-pages"
         if: "${{ inputs.publish-docs }}"
         id: deployment

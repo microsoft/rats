@@ -4,16 +4,12 @@ description = "Rats Pipelines"
 # Handled by `poetry-dynamic-versioning` plugin below.
 version = "0.0.0"
 readme = "README.md"
-
 authors = []
-packages = [
-    {include = "rats", from = "src/python"},
-]
-
-[[tool.poetry.source]]
-name = "oneml-artifacts"
-url = "https://pkgs.dev.azure.com/health-futures-lab/labs/_packaging/oneml/pypi/simple"
-priority = "primary"
+packages = [{include = "rats", from = "src/python"}]
+repository = "https://github.com/microsoft/rats/"
+documentation = "https://microsoft.github.io/rats/"
+keywords = ["pipelines", "machine learning", "research"]
+license = "MIT"
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -33,7 +29,7 @@ dill = "*"
 furl = "^2.1.3"
 # we can move the k8s dependency to another package and use plugins
 kubernetes = { version = "*" }
-python = ">=3.8.10,<3.11"
+python = "^3.10"
 typing_extensions = "*"
 
 [tool.poetry.group.dev.dependencies]
