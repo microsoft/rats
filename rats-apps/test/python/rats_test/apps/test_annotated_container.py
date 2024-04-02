@@ -1,10 +1,9 @@
 from collections.abc import Callable
-from typing import Any, NamedTuple, ParamSpec, TypeVar
+from typing import Any, NamedTuple, ParamSpec
 
 import pytest
 
 from rats import apps
-from rats.apps._categories import ProviderCategories
 
 
 class ExampleStorage:
@@ -281,9 +280,9 @@ class TestAnnotatedContainer:
         assert self._app.has(ExampleIds.STORAGE)
         assert self._app.has_group(ExampleIds.GROUPS.STORAGE_REPLICAS)
         assert self._app.has_config(ExampleIds.make_config_id("foo-config.miss-fallback"))
-        assert self._app.has_category(ProviderCategories.SERVICE, ExampleIds.STORAGE)
+        assert self._app.has_category(apps.ProviderCategories.SERVICE, ExampleIds.STORAGE)
 
         assert not self._app.has(ExampleIds.MISSING)
         assert not self._app.has_group(ExampleIds.GROUPS.MISSING)
         assert not self._app.has_config(ExampleIds.make_config_id("foo-config.missing"))
-        assert not self._app.has_category(ProviderCategories.SERVICE, ExampleIds.MISSING)
+        assert not self._app.has_category(apps.ProviderCategories.SERVICE, ExampleIds.MISSING)

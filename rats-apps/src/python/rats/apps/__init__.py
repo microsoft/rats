@@ -8,6 +8,7 @@ from ._annotations import (
     group,
     service,
 )
+from ._categories import ProviderCategories
 from ._container import Container, DuplicateServiceError, ServiceNotFoundError
 from ._ids import ConfigId, P_ProviderParams, ServiceId, T_ConfigType, T_ServiceType
 
@@ -17,6 +18,7 @@ __all__ = [
     "Container",
     "DuplicateServiceError",
     "P_ProviderParams",
+    "ProviderCategories",
     "ServiceId",
     "ServiceNotFoundError",
     "T_ConfigType",
