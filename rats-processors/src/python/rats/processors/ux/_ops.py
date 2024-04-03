@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import operator
-from abc import abstractmethod, abstractproperty
+from abc import abstractmethod
 from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from functools import cached_property
@@ -45,7 +45,8 @@ class Dependency(Generic[T]):
 
 
 class DependencyOp(Sequence[Dependency[T]]):
-    @abstractproperty
+    @property
+    @abstractmethod
     def dependencies(self) -> tuple[Dependency[T], ...]: ...
 
     @abstractmethod
