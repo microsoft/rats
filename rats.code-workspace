@@ -7,6 +7,9 @@
             "path": "docs"
         },
         {
+            "path": "rats-apps"
+        },
+        {
             "path": "rats-pipelines"
         },
         {
@@ -17,6 +20,7 @@
         "files.exclude": {
             // de-duplicate paths added as workspace roots above
             "docs": true,
+            "rats-apps": true,
             "rats-pipelines": true,
             "rats-processors": true,
             // tool-generated dirs/files
