@@ -1,7 +1,8 @@
 from abc import abstractmethod
 from collections.abc import Iterator
-from typing import Generic, Protocol
+from typing import Generic, Protocol, cast
 
+from ._categories import ProviderCategories
 from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
 
 
@@ -45,27 +46,52 @@ class Container(Protocol):
         except StopIteration:
             return False
 
-    @abstractmethod
     def get(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
         """Retrieve a service instance by its id."""
+        services = list(self.get_category(ProviderCategories.SERVICE, service_id))
+        if len(services) == 0:
+            services.extend(
+                list(self.get_category(ProviderCategories.FALLBACK_SERVICE, service_id)),
+            )
 
-    @abstractmethod
+        if len(services) > 1:
+            raise DuplicateServiceError(service_id)
+        elif len(services) == 0:
+            raise ServiceNotFoundError(service_id)
+        else:
+            return cast(T_ServiceType, services[0])
+
     def get_group(
         self,
         group_id: ServiceId[T_ServiceType],
-    ) -> Iterator[ServiceProvider[T_ServiceType]]:
+    ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id."""
+        if not self.has_category(ProviderCategories.GROUP, group_id):
+            yield from self.get_category(ProviderCategories.FALLBACK_GROUP, group_id)
 
-    @abstractmethod
+        yield from self.get_category(ProviderCategories.GROUP, group_id)
+
     def get_config(self, config_id: ConfigId[T_ConfigType]) -> T_ConfigType:
         """Retrieve a config by its id."""
+        services = list(self.get_category(ProviderCategories.CONFIG, config_id))
+        if len(services) == 0:
+            services.extend(
+                list(self.get_category(ProviderCategories.FALLBACK_CONFIG, config_id)),
+            )
+
+        if len(services) > 1:
+            raise DuplicateServiceError(config_id)
+        elif len(services) == 0:
+            raise ServiceNotFoundError(config_id)
+        else:
+            return cast(T_ConfigType, services[0])
 
     @abstractmethod
     def get_category(
         self,
         category_id: ServiceId[T_ServiceType],
         group_id: ServiceId[T_ServiceType],
-    ) -> Iterator[ServiceProvider[T_ServiceType]]:
+    ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service category."""
 
 

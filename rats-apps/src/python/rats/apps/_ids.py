@@ -11,5 +11,5 @@ class ServiceId(NamedTuple, Generic[T_ServiceType]):
     name: str
 
 
-class ConfigId(ServiceId, Generic[T_ConfigType]):
-    name: str
+class ConfigId(ServiceId[T_ConfigType]):
+    pass

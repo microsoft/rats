@@ -6,7 +6,7 @@ from typing import Any, Generic, cast
 from typing_extensions import NamedTuple
 
 from ._categories import ProviderCategories
-from ._container import Container, DuplicateServiceError, ServiceNotFoundError
+from ._container import Container
 from ._ids import ConfigId, P_ProviderParams, ServiceId, T_ConfigType, T_ServiceType
 
 
@@ -53,43 +53,6 @@ class FunctionAnnotationsBuilder:
 
 class AnnotatedContainer(Container):
 
-    def get(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
-        services = list(self.get_category(ProviderCategories.SERVICE, service_id))
-        if len(services) == 0:
-            services.extend(
-                list(self.get_category(ProviderCategories.FALLBACK_SERVICE, service_id)),
-            )
-
-        if len(services) > 1:
-            raise DuplicateServiceError(service_id)
-        elif len(services) == 0:
-            raise ServiceNotFoundError(service_id)
-        else:
-            return services[0]
-
-    def get_config(self, config_id: ConfigId[T_ConfigType]) -> T_ConfigType:
-        services = list(self.get_category(ProviderCategories.CONFIG, config_id))
-        if len(services) == 0:
-            services.extend(
-                list(self.get_category(ProviderCategories.FALLBACK_CONFIG, config_id)),
-            )
-
-        if len(services) > 1:
-            raise DuplicateServiceError(config_id)
-        elif len(services) == 0:
-            raise ServiceNotFoundError(config_id)
-        else:
-            return services[0]
-
-    def get_group(
-        self,
-        group_id: ServiceId[T_ServiceType],
-    ) -> Iterator[T_ServiceType]:
-        if not self.has_category(ProviderCategories.GROUP, group_id):
-            yield from self.get_category(ProviderCategories.FALLBACK_GROUP, group_id)
-
-        yield from self.get_category(ProviderCategories.GROUP, group_id)
-
     def get_category(
         self,
         category_id: ServiceId[T_ServiceType],
@@ -109,53 +72,53 @@ class AnnotatedContainer(Container):
 
 def service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[[P_ProviderParams], T_ServiceType]], Callable[[P_ProviderParams], T_ServiceType]]:
+) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
     return fn_annotation_decorator(ProviderCategories.SERVICE, service_id)
 
 
 def group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[[P_ProviderParams], T_ServiceType]], Callable[[P_ProviderParams], T_ServiceType]]:
+) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
     return fn_annotation_decorator(ProviderCategories.GROUP, group_id)
 
 
 def config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[[P_ProviderParams], T_ConfigType]], Callable[[P_ProviderParams], T_ConfigType]]:
+) -> Callable[[Callable[P_ProviderParams, T_ConfigType]], Callable[P_ProviderParams, T_ConfigType]]:
     return fn_annotation_decorator(ProviderCategories.CONFIG, config_id)
 
 
 def fallback_service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[[P_ProviderParams], T_ServiceType]], Callable[[P_ProviderParams], T_ServiceType]]:
+) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
     return fn_annotation_decorator(ProviderCategories.FALLBACK_SERVICE, service_id)
 
 
 def fallback_group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[[P_ProviderParams], T_ServiceType]], Callable[[P_ProviderParams], T_ServiceType]]:
+) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
     return fn_annotation_decorator(ProviderCategories.FALLBACK_GROUP, group_id)
 
 
 def fallback_config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[[P_ProviderParams], T_ConfigType]], Callable[[P_ProviderParams], T_ConfigType]]:
+) -> Callable[[Callable[P_ProviderParams, T_ConfigType]], Callable[P_ProviderParams, T_ConfigType]]:
     return fn_annotation_decorator(ProviderCategories.FALLBACK_CONFIG, config_id)
 
 
 def container(
     group_id: ServiceId[T_ServiceType] = ServiceId[Container]("__default__"),
-) -> Callable[[Callable[[P_ProviderParams], T_ServiceType]], Callable[[P_ProviderParams], T_ServiceType]]:
+) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
     return fn_annotation_decorator(ProviderCategories.CONTAINER, group_id)
 
 
 def fn_annotation_decorator(
     category_id: ServiceId[T_ServiceType],
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[P_ProviderParams], T_ServiceType]:
+) -> Callable[P_ProviderParams, T_ServiceType]:
     def wrapper(
-        fn: Callable[[P_ProviderParams], T_ServiceType],
-    ) -> Callable[[P_ProviderParams], T_ServiceType]:
+        fn: Callable[P_ProviderParams, T_ServiceType],
+    ) -> Callable[P_ProviderParams, T_ServiceType]:
         _add_annotation(category_id, fn, service_id)
         return cache(fn)
 
