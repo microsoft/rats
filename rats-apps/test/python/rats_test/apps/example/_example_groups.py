@@ -30,27 +30,3 @@ class ExampleGroupsPlugin2(apps.AnnotatedContainer):
     @apps.group(ExampleIds.GROUPS.STORAGE)
     def storage_group_1(self) -> StorageClient:
         return StorageClient(self._app.get_config(ExampleIds.CONFIGS.STORAGE))
-#
-#
-# class ExampleFallbackPlugin2(apps.AnnotatedContainer):
-#
-#     _app: apps.Container
-#
-#     def __init__(self, app: apps.Container) -> None:
-#         self._app = app
-#
-#     @apps.service(ExampleIds.OTHER_STORAGE)
-#     def other_storage(self) -> StorageClient:
-#         return StorageClient(StorageSettings("other", "thing"))
-#
-#
-# class ExampleFallbackPlugin3(apps.AnnotatedContainer):
-#
-#     _app: apps.Container
-#
-#     def __init__(self, app: apps.Container) -> None:
-#         self._app = app
-#
-#     @apps.config(ExampleIds.CONFIGS.OTHER_STORAGE)
-#     def other_storage_config(self) -> StorageSettings:
-#         return StorageSettings("other", "thing")
