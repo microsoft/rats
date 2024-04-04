@@ -84,12 +84,14 @@ jobs:
       - name: pytest
         run: |
           cd ${{ matrix.component }}/
-          poetry run pytest --cov=src/python/rats --cov=test/python/rats_test
+          poetry run pytest --cov
       - name: upload-coverage
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: microsoft/rats
+          name: ${{ matrix.component }}
+          verbose: true
       - name: build-wheels
         run: |
           cd ${{ matrix.component }}/

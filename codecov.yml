@@ -1,0 +1,30 @@
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
+codecov:
+  require_ci_to_pass: false
+
+component_management:
+  individual_components:
+    - component_id: rats
+      name: rats
+      paths:
+        - src/python/rats/**
+    - component_id: rats-devtools
+      name: rats-devtools
+      paths:
+        - src/python/rats/**
+    - component_id: rats-pipelines
+      name: rats-pipelines
+      paths:
+        - src/python/rats/**
+    - component_id: rats-processors
+      name: rats-processors
+      paths:
+        - src/python/rats/**
