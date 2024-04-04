@@ -36,6 +36,13 @@ repos:
         pass_filenames: false
         files: ^rats/src/python/
         types: [python]
+      - id: rats
+        name: Run hooks in pipelines package
+        entry: "bin/commit-hooks rats-apps"
+        language: script
+        pass_filenames: false
+        files: ^rats/src/python/
+        types: [python]
       - id: rats-devtools
         name: Run hooks in pipelines package
         entry: "bin/commit-hooks rats-devtools"
