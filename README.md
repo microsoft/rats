@@ -1,5 +1,8 @@
 # Research Analysis Tools (rats)
 
+[![codecov](https://codecov.io/gh/microsoft/rats/graph/badge.svg?token=hcpBAa587E)](https://codecov.io/gh/microsoft/rats)
+
+
 Rats is a collection of tools to help researchers define and run experiments.
 It is designed to be a modular and extensible framework currently supporting building and
 running pipelines, integrating configs and services.
