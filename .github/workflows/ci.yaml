@@ -52,7 +52,7 @@ jobs:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
           fetch-tags: true
-      - name: "install-devtools"
+      - name: install-devtools
         run: |
           pipx install poetry
           poetry self add poetry-dynamic-versioning
@@ -61,8 +61,8 @@ jobs:
       - name: "poetry-install"
         run: |
           rats-devtools install ${{ matrix.component }}/
-      - id: "package-info"
-        name: "package-info"
+      - id: package-info
+        name: package-info
         run: |
           cd ${{ matrix.component }}/
           # use poetry to find out the version of our package
@@ -84,12 +84,20 @@ jobs:
       - name: pytest
         run: |
           cd ${{ matrix.component }}/
-          poetry run pytest
-      - name: "build-wheels"
+          poetry run pytest --cov
+      - name: upload-coverage
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: microsoft/rats
+          name: ${{ matrix.component }}
+          flags: ${{ matrix.component }}
+          verbose: true
+      - name: build-wheels
         run: |
           cd ${{ matrix.component }}/
           poetry build -f wheel
-      - name: "upload-artifacts"
+      - name: upload-artifacts
         uses: actions/upload-artifact@v4
         with:
           name: "wheels.${{ matrix.component }}"
