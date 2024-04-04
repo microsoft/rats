@@ -21,6 +21,7 @@ class ConfigProvider(ServiceProvider[T_ConfigType], Protocol):
 
 
 class Container(Protocol):
+    """Main interface for service containers."""
 
     def has(self, service_id: ServiceId[T_ServiceType]) -> bool:
         try:

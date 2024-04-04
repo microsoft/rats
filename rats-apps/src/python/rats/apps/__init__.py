@@ -11,6 +11,7 @@ from ._annotations import (
 from ._categories import ProviderCategories
 from ._container import Container, DuplicateServiceError, ServiceNotFoundError
 from ._ids import ConfigId, P_ProviderParams, ServiceId, T_ConfigType, T_ServiceType
+from ._scoping import autoscope
 
 __all__ = [
     "AnnotatedContainer",
@@ -23,6 +24,7 @@ __all__ = [
     "ServiceNotFoundError",
     "T_ConfigType",
     "T_ServiceType",
+    "autoscope",
     "config",
     "container",
     "fallback_config",
