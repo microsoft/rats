@@ -34,9 +34,9 @@ class ExampleStoragePlugin(apps.AnnotatedContainer):
         return StorageSettings(f"random-{randint(1, 1000000)}", f"random-{randint(1, 1000000)}")
 
     @apps.config(ExampleIds.CONFIGS.DUPLICATE)
-    def duplicate_config_1(self) -> StorageClient:
+    def duplicate_config_1(self) -> StorageSettings:
         return StorageSettings("fake", "fake")
 
     @apps.config(ExampleIds.CONFIGS.DUPLICATE)
-    def duplicate_config_2(self) -> StorageClient:
+    def duplicate_config_2(self) -> StorageSettings:
         return StorageSettings("fake", "fake")
