@@ -91,7 +91,6 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: microsoft/rats
           name: ${{ matrix.component }}
-          flags: ${{ matrix.component }}
           verbose: true
       - name: build-wheels
         run: |
