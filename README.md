@@ -6,6 +6,10 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+[![PyPI - Version](https://img.shields.io/pypi/v/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
+[![PyPI - Wheel](https://img.shields.io/pypi/wheel/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
+
 
 Rats is a collection of tools to help researchers define and run experiments.
 It is designed to be a modular and extensible framework currently supporting building and
