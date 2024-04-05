@@ -1,0 +1,16 @@
+codecov:
+  require_ci_to_pass: false
+
+component_management:
+  default_rules:  # default rules that will be inherited by all components
+    statuses:
+      - type: project
+        informational: true
+      - type: patch
+        informational: true
+    paths:
+      - src/python/rats/**
+  individual_components:
+    - component_id: rats-devtools
+    - component_id: rats-pipelines
+    - component_id: rats-processors
