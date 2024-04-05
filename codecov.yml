@@ -12,10 +12,6 @@ codecov:
 
 component_management:
   individual_components:
-    - component_id: rats
-      name: rats
-      paths:
-        - src/python/rats/**
     - component_id: rats-devtools
       name: rats-devtools
       paths:
