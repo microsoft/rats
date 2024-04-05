@@ -22,7 +22,7 @@ class PluginContainers(Container):
         for container in self._load_containers():
             yield from container.get_category(category_id, group_id)
 
-    @cache
+    @cache  # noqa: B019
     def _load_containers(self) -> Iterable[Container]:
         entries = entry_points(group=self._group)
         return tuple(entry.load()(self._app) for entry in entries)

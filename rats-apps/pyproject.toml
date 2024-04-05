@@ -122,6 +122,8 @@ select = [
 ignore = [
     "E501", # E501: Line too long ({width} > {limit})
     "D212", # D212: Multi-line docstring summary should start at the second line
+    # This rule seems buggy: https://github.com/astral-sh/ruff/issues/2480
+    "PD011", # PD011: Use `.to_numpy()` instead of `.values`
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.

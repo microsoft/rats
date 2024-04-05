@@ -9,6 +9,8 @@ from ._categories import ProviderCategories
 from ._container import Container
 from ._ids import ConfigId, P_ProviderParams, ServiceId, T_ConfigType, T_ServiceType
 
+DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
+
 
 class FunctionAnnotations(NamedTuple, Generic[T_ServiceType]):
     name: str
@@ -107,7 +109,7 @@ def fallback_config(
 
 
 def container(
-    group_id: ServiceId[T_ServiceType] = ServiceId[Container]("__default__"),
+    group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
 ) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
     return fn_annotation_decorator(ProviderCategories.CONTAINER, group_id)
 
