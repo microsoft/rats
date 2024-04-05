@@ -22,13 +22,7 @@ class StorageClient:
         self.data = {}
 
     def save(self, key: str, value: str) -> None:
-        if key in self.data:
-            raise ValueError(f"key already exists: {key}")
-
         self.data[key] = value
 
     def load(self, key: str) -> str:
-        if key not in self.data:
-            raise ValueError(f"key not found: {key}")
-
         return self.data[key]
