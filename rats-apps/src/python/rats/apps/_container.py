@@ -2,8 +2,8 @@ from abc import abstractmethod
 from collections.abc import Iterator
 from typing import Generic, Protocol, cast
 
-from ._categories import ProviderCategories
 from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
+from ._namespaces import ProviderNamespaces
 
 
 class ServiceProvider(Protocol[T_ServiceType]):
@@ -41,18 +41,18 @@ class Container(Protocol):
         except ServiceNotFoundError:
             return False
 
-    def has_category(self, category_id: ServiceId[T_ServiceType], group_id: ServiceId[T_ServiceType]) -> bool:
+    def has_namespace(self, namespace: str, group_id: ServiceId[T_ServiceType]) -> bool:
         try:
-            return next(self.get_category(category_id, group_id)) is not None
+            return next(self.get_namespace(namespace, group_id)) is not None
         except StopIteration:
             return False
 
     def get(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
         """Retrieve a service instance by its id."""
-        services = list(self.get_category(ProviderCategories.SERVICE, service_id))
+        services = list(self.get_namespace(ProviderNamespaces.SERVICES, service_id))
         if len(services) == 0:
             services.extend(
-                list(self.get_category(ProviderCategories.FALLBACK_SERVICE, service_id)),
+                list(self.get_namespace(ProviderNamespaces.FALLBACK_SERVICES, service_id)),
             )
 
         if len(services) > 1:
@@ -67,17 +67,17 @@ class Container(Protocol):
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id."""
-        if not self.has_category(ProviderCategories.GROUP, group_id):
-            yield from self.get_category(ProviderCategories.FALLBACK_GROUP, group_id)
+        if not self.has_namespace(ProviderNamespaces.GROUPS, group_id):
+            yield from self.get_namespace(ProviderNamespaces.FALLBACK_GROUPS, group_id)
 
-        yield from self.get_category(ProviderCategories.GROUP, group_id)
+        yield from self.get_namespace(ProviderNamespaces.GROUPS, group_id)
 
     def get_config(self, config_id: ConfigId[T_ConfigType]) -> T_ConfigType:
         """Retrieve a config by its id."""
-        services = list(self.get_category(ProviderCategories.CONFIG, config_id))
+        services = list(self.get_namespace(ProviderNamespaces.CONFIGS, config_id))
         if len(services) == 0:
             services.extend(
-                list(self.get_category(ProviderCategories.FALLBACK_CONFIG, config_id)),
+                list(self.get_namespace(ProviderNamespaces.FALLBACK_CONFIGS, config_id)),
             )
 
         if len(services) > 1:
@@ -88,12 +88,12 @@ class Container(Protocol):
             return cast(T_ConfigType, services[0])
 
     @abstractmethod
-    def get_category(
+    def get_namespace(
         self,
-        category_id: ServiceId[T_ServiceType],
+        namespace: str,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
-        """Retrieve a service group by its id, within a given service category."""
+        """Retrieve a service group by its id, within a given service namespace."""
 
 
 class ServiceNotFoundError(RuntimeError, Generic[T_ServiceType]):

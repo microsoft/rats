@@ -5,123 +5,123 @@ from typing import Any, Generic, cast
 
 from typing_extensions import NamedTuple
 
-from ._categories import ProviderCategories
 from ._container import Container
 from ._ids import ConfigId, P_ProviderParams, ServiceId, T_ConfigType, T_ServiceType
+from ._namespaces import ProviderNamespaces
 
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
 
 
 class FunctionAnnotations(NamedTuple, Generic[T_ServiceType]):
     name: str
-    category_id: ServiceId[T_ServiceType]
+    namespace: str
     values: tuple[ServiceId[T_ServiceType]]
 
 
 class ClassAnnotations(NamedTuple):
     values: tuple[FunctionAnnotations, ...]
 
-    def find_in_category(
+    def find_in_namespace(
         self,
-        category_id: ServiceId[T_ServiceType],
+        namespace: str,
         group_id: ServiceId[T_ServiceType],
     ) -> tuple[FunctionAnnotations[T_ServiceType], ...]:
-        return tuple([x for x in self.with_category(category_id) if group_id in x.values])
+        return tuple([x for x in self.with_namespace(namespace) if group_id in x.values])
 
-    def with_category(
+    def with_namespace(
         self,
-        category_id: ServiceId[T_ServiceType],
+        namespace: str,
     ) -> tuple[FunctionAnnotations[T_ServiceType], ...]:
-        return tuple([x for x in self.values if x.category_id == category_id])
+        return tuple([x for x in self.values if x.namespace == namespace])
 
 
 class FunctionAnnotationsBuilder:
-    _service_ids: dict[ServiceId[Any], list[ServiceId[Any]]]
+    _service_ids: dict[str, list[ServiceId[Any]]]
 
     def __init__(self) -> None:
         self._service_ids = defaultdict(list)
 
-    def add(self, category_id: ServiceId[T_ServiceType], service_id: ServiceId[T_ServiceType]) -> None:
-        self._service_ids[category_id].append(service_id)
+    def add(self, namespace: str, service_id: ServiceId[T_ServiceType]) -> None:
+        self._service_ids[namespace].append(service_id)
 
     def make(self, name: str) -> tuple[FunctionAnnotations, ...]:
         return tuple(
             [
-                FunctionAnnotations[Any](name=name, category_id=category_id, values=tuple(services))
-                for category_id, services in self._service_ids.items()
+                FunctionAnnotations[Any](name=name, namespace=namespace, values=tuple(services))
+                for namespace, services in self._service_ids.items()
             ]
         )
 
 
 class AnnotatedContainer(Container):
 
-    def get_category(
+    def get_namespace(
         self,
-        category_id: ServiceId[T_ServiceType],
+        namespace: str,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         annotations = _extract_class_annotations(type(self))
-        containers = annotations.with_category(ProviderCategories.CONTAINER)
-        groups = annotations.find_in_category(category_id, group_id)
+        containers = annotations.with_namespace(ProviderNamespaces.CONTAINERS)
+        groups = annotations.find_in_namespace(namespace, group_id)
 
         for annotation in groups:
             yield getattr(self, annotation.name)()
 
         for container in containers:
             c = getattr(self, container.name)()
-            yield from c.get_category(category_id, group_id)
+            yield from c.get_namespace(namespace, group_id)
 
 
 def service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
-    return fn_annotation_decorator(ProviderCategories.SERVICE, service_id)
+) -> Callable[P_ProviderParams, T_ServiceType]:
+    return fn_annotation_decorator(ProviderNamespaces.SERVICES, service_id)
 
 
 def group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
-    return fn_annotation_decorator(ProviderCategories.GROUP, group_id)
+) -> Callable[P_ProviderParams, T_ServiceType]:
+    return fn_annotation_decorator(ProviderNamespaces.GROUPS, group_id)
 
 
 def config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[P_ProviderParams, T_ConfigType]], Callable[P_ProviderParams, T_ConfigType]]:
-    return fn_annotation_decorator(ProviderCategories.CONFIG, config_id)
+) -> Callable[P_ProviderParams, T_ServiceType]:
+    return fn_annotation_decorator(ProviderNamespaces.CONFIGS, config_id)
 
 
 def fallback_service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
-    return fn_annotation_decorator(ProviderCategories.FALLBACK_SERVICE, service_id)
+) -> Callable[P_ProviderParams, T_ServiceType]:
+    return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, service_id)
 
 
 def fallback_group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
-    return fn_annotation_decorator(ProviderCategories.FALLBACK_GROUP, group_id)
+) -> Callable[P_ProviderParams, T_ServiceType]:
+    return fn_annotation_decorator(ProviderNamespaces.FALLBACK_GROUPS, group_id)
 
 
 def fallback_config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[P_ProviderParams, T_ConfigType]], Callable[P_ProviderParams, T_ConfigType]]:
-    return fn_annotation_decorator(ProviderCategories.FALLBACK_CONFIG, config_id)
+) -> Callable[P_ProviderParams, T_ServiceType]:
+    return fn_annotation_decorator(ProviderNamespaces.FALLBACK_CONFIGS, config_id)
 
 
 def container(
     group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
-) -> Callable[[Callable[P_ProviderParams, T_ServiceType]], Callable[P_ProviderParams, T_ServiceType]]:
-    return fn_annotation_decorator(ProviderCategories.CONTAINER, group_id)
+) -> Callable[P_ProviderParams, T_ServiceType]:
+    return fn_annotation_decorator(ProviderNamespaces.CONTAINERS, group_id)
 
 
 def fn_annotation_decorator(
-    category_id: ServiceId[T_ServiceType],
+    namespace: str,
     service_id: ServiceId[T_ServiceType],
 ) -> Callable[P_ProviderParams, T_ServiceType]:
     def wrapper(
         fn: Callable[P_ProviderParams, T_ServiceType],
     ) -> Callable[P_ProviderParams, T_ServiceType]:
-        _add_annotation(category_id, fn, service_id)
+        _add_annotation(namespace, fn, service_id)
         return cache(fn)
 
     return wrapper
@@ -140,9 +140,9 @@ def _extract_class_annotations(cls: Any) -> ClassAnnotations:
     return ClassAnnotations(tuple(function_annotations))
 
 
-def _add_annotation(category_id: ServiceId[T_ServiceType], fn: Any, service_id: ServiceId[T_ServiceType]) -> None:
+def _add_annotation(namespace: str, fn: Any, service_id: ServiceId[T_ServiceType]) -> None:
     builder = _get_annotations_builder(fn)
-    builder.add(category_id, service_id)
+    builder.add(namespace, service_id)
 
 
 def _get_annotations_builder(fn: Any) -> FunctionAnnotationsBuilder:

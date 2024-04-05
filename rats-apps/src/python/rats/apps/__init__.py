@@ -14,9 +14,9 @@ from ._annotations import (
     group,
     service,
 )
-from ._categories import ProviderCategories
 from ._container import Container, DuplicateServiceError, ServiceNotFoundError
 from ._ids import ConfigId, P_ProviderParams, ServiceId, T_ConfigType, T_ServiceType
+from ._namespaces import ProviderNamespaces
 from ._scoping import autoscope
 
 __all__ = [
@@ -25,7 +25,7 @@ __all__ = [
     "Container",
     "DuplicateServiceError",
     "P_ProviderParams",
-    "ProviderCategories",
+    "ProviderNamespaces",
     "ServiceId",
     "ServiceNotFoundError",
     "T_ConfigType",

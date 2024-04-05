@@ -101,9 +101,9 @@ class TestAnnotatedContainer:
         assert self._app_1.has(example.ExampleIds.STORAGE)
         assert self._app_groups_1.has_group(example.ExampleIds.GROUPS.STORAGE)
         assert self._app_1.has_config(example.ExampleIds.CONFIGS.STORAGE)
-        assert self._app_1.has_category(apps.ProviderCategories.SERVICE, example.ExampleIds.STORAGE)
+        assert self._app_1.has_namespace(apps.ProviderNamespaces.SERVICES, example.ExampleIds.STORAGE)
 
         assert not self._app_1.has(example.ExampleIds.OTHER_STORAGE)
         assert not self._app_1.has_group(example.ExampleIds.GROUPS.OTHER_STORAGE)
         assert not self._app_1.has_config(example.ExampleIds.CONFIGS.OTHER_STORAGE)
-        assert not self._app_1.has_category(apps.ProviderCategories.SERVICE, example.ExampleIds.OTHER_STORAGE)
+        assert not self._app_1.has_namespace(apps.ProviderNamespaces.SERVICES, example.ExampleIds.OTHER_STORAGE)

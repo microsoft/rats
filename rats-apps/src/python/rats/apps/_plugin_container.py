@@ -2,8 +2,8 @@ from collections.abc import Iterable, Iterator
 from functools import cache
 from importlib.metadata import entry_points
 
-from . import ServiceId, T_ServiceType
 from ._container import Container
+from ._ids import ServiceId, T_ServiceType
 
 
 class PluginContainers(Container):
@@ -14,13 +14,13 @@ class PluginContainers(Container):
         self._app = app
         self._group = group
 
-    def get_category(
+    def get_namespace(
         self,
-        category_id: ServiceId[T_ServiceType],
+        namespace: ServiceId[T_ServiceType],
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         for container in self._load_containers():
-            yield from container.get_category(category_id, group_id)
+            yield from container.get_namespace(namespace, group_id)
 
     @cache  # noqa: B019
     def _load_containers(self) -> Iterable[Container]:
