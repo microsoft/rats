@@ -5,23 +5,43 @@ updates:
     schedule:
       interval: "weekly"
     target-branch: "main"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
   - package-ecosystem: "pip"
     directory: "/rats-devtools/"
     schedule:
       interval: "daily"
     target-branch: "main"
+    groups:
+      package-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "pip"
     directory: "/rats-pipelines/"
     schedule:
       interval: "daily"
     target-branch: "main"
+    groups:
+      package-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "pip"
     directory: "/rats-processors/"
     schedule:
       interval: "daily"
     target-branch: "main"
+    groups:
+      package-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: "pip"
     directory: "/rats/"
     schedule:
       interval: "daily"
     target-branch: "main"
+    groups:
+      package-dependencies:
+        patterns:
+          - "*"
