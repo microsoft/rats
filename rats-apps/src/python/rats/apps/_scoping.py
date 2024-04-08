@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from types import FunctionType
 from typing import Any, ParamSpec, TypeVar, cast
 
@@ -14,8 +15,8 @@ def autoscope(cls: type[T]) -> type[T]:
     The scoped ServiceId instances have a prefix to eliminate the chance of conflicts across
     packages.
     """
-    def wrap(func: FunctionType) -> FunctionType:
-        def wrapper(*args: P.args, **kwargs: P.kwargs) -> FunctionType:
+    def wrap(func: Callable[..., Any]) -> Callable[..., Any]:
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> ServiceId[Any]:
             result = func(*args, **kwargs)
             if not isinstance(result, ServiceId):
                 return result

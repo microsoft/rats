@@ -4,21 +4,19 @@ from rats import apps
 from rats.apps import ServiceId
 
 
-def _bar(name: str) -> ServiceId[Any]:
-    return ServiceId[Any](name)
-
-
-def _custom(name: str) -> str:
-    return f"prefix[{name}]"
-
-
 @apps.autoscope
 class ExampleServices:
     FOO = apps.ServiceId[Any]("foo")
     CONFIG = apps.ConfigId[Any]("config")
     OTHER = 52
-    bar = _bar
-    custom = _custom
+
+    @staticmethod
+    def bar(name: str) -> ServiceId[Any]:
+        return ServiceId[Any](name)
+
+    @staticmethod
+    def custom(name: str) -> str:
+        return f"prefix[{name}]"
 
 
 class TestScoping:

@@ -1,7 +1,7 @@
 from rats import apps
 
 from ._ids import ExampleIds
-from ._storage import StorageClient, StorageSettings
+from ._storage import StorageClient
 
 
 class ExampleGroupsPlugin1(apps.AnnotatedContainer):

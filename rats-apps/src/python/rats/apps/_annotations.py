@@ -1,21 +1,21 @@
 from collections import defaultdict
 from collections.abc import Callable, Iterator
 from functools import cache
-from typing import Any, Generic, cast
+from typing import Any, cast
 
 from typing_extensions import NamedTuple
 
 from ._container import Container
-from ._ids import ConfigId, P_ProviderParams, ServiceId, T_ConfigType, T_ServiceType
+from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
 from ._namespaces import ProviderNamespaces
 
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
 
 
-class FunctionAnnotations(NamedTuple, Generic[T_ServiceType]):
+class FunctionAnnotations(NamedTuple):
     name: str
     namespace: str
-    values: tuple[ServiceId[T_ServiceType]]
+    values: tuple[ServiceId[Any], ...]
 
 
 class ClassAnnotations(NamedTuple):
@@ -25,13 +25,13 @@ class ClassAnnotations(NamedTuple):
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
-    ) -> tuple[FunctionAnnotations[T_ServiceType], ...]:
+    ) -> tuple[FunctionAnnotations, ...]:
         return tuple([x for x in self.with_namespace(namespace) if group_id in x.values])
 
     def with_namespace(
         self,
         namespace: str,
-    ) -> tuple[FunctionAnnotations[T_ServiceType], ...]:
+    ) -> tuple[FunctionAnnotations, ...]:
         return tuple([x for x in self.values if x.namespace == namespace])
 
 
@@ -47,7 +47,7 @@ class FunctionAnnotationsBuilder:
     def make(self, name: str) -> tuple[FunctionAnnotations, ...]:
         return tuple(
             [
-                FunctionAnnotations[Any](name=name, namespace=namespace, values=tuple(services))
+                FunctionAnnotations(name=name, namespace=namespace, values=tuple(services))
                 for namespace, services in self._service_ids.items()
             ]
         )
@@ -74,53 +74,53 @@ class AnnotatedContainer(Container):
 
 def service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.SERVICES, service_id)
 
 
 def group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.GROUPS, group_id)
 
 
 def config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ConfigType]]:
     return fn_annotation_decorator(ProviderNamespaces.CONFIGS, config_id)
 
 
 def fallback_service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, service_id)
 
 
 def fallback_group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_GROUPS, group_id)
 
 
 def fallback_config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ConfigType]]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_CONFIGS, config_id)
 
 
 def container(
     group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.CONTAINERS, group_id)
 
 
 def fn_annotation_decorator(
     namespace: str,
     service_id: ServiceId[T_ServiceType],
-) -> Callable[P_ProviderParams, T_ServiceType]:
+) -> Callable[..., Callable[..., T_ServiceType]]:
     def wrapper(
-        fn: Callable[P_ProviderParams, T_ServiceType],
-    ) -> Callable[P_ProviderParams, T_ServiceType]:
+        fn: Callable[..., T_ServiceType],
+    ) -> Callable[..., T_ServiceType]:
         _add_annotation(namespace, fn, service_id)
         return cache(fn)
 
@@ -129,13 +129,13 @@ def fn_annotation_decorator(
 
 @cache
 def _extract_class_annotations(cls: Any) -> ClassAnnotations:
-    function_annotations = []
+    function_annotations: list[FunctionAnnotations] = []
     for method_name in dir(cls):
         if method_name.startswith("_"):
             continue
 
         builder = _get_annotations_builder(getattr(cls, method_name))
-        function_annotations.extend(builder.make(method_name))
+        function_annotations.extend(list(builder.make(method_name)))
 
     return ClassAnnotations(tuple(function_annotations))
 

@@ -1,22 +1,22 @@
 from abc import abstractmethod
 from collections.abc import Iterator
-from typing import Generic, Protocol, cast
+from typing import Generic, Protocol
 
-from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
+from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType, Tco_ConfigType, Tco_ServiceType
 from ._namespaces import ProviderNamespaces
 
 
-class ServiceProvider(Protocol[T_ServiceType]):
+class ServiceProvider(Protocol[Tco_ServiceType]):
 
     @abstractmethod
-    def __call__(self) -> T_ServiceType:
+    def __call__(self) -> Tco_ServiceType:
         """Return the service instance."""
 
 
-class ConfigProvider(ServiceProvider[T_ConfigType], Protocol):
+class ConfigProvider(ServiceProvider[Tco_ConfigType], Protocol[Tco_ConfigType]):
 
     @abstractmethod
-    def __call__(self) -> T_ConfigType:
+    def __call__(self) -> Tco_ConfigType:
         """Return the config instance."""
 
 
@@ -37,7 +37,7 @@ class Container(Protocol):
 
     def has_config(self, config_id: ConfigId[T_ConfigType]) -> bool:
         try:
-            return self.get_config(config_id) is not None
+            return bool(self.get_config(config_id))
         except ServiceNotFoundError:
             return False
 
@@ -60,7 +60,7 @@ class Container(Protocol):
         elif len(services) == 0:
             raise ServiceNotFoundError(service_id)
         else:
-            return cast(T_ServiceType, services[0])
+            return services[0]
 
     def get_group(
         self,
@@ -85,7 +85,7 @@ class Container(Protocol):
         elif len(services) == 0:
             raise ServiceNotFoundError(config_id)
         else:
-            return cast(T_ConfigType, services[0])
+            return services[0]
 
     @abstractmethod
     def get_namespace(

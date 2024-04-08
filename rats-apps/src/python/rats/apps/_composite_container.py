@@ -12,7 +12,7 @@ class CompositeContainer(Container):
 
     def get_namespace(
         self,
-        namespace: ServiceId[T_ServiceType],
+        namespace: str,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         for container in self._containers:
