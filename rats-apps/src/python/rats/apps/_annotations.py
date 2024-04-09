@@ -12,27 +12,38 @@ from ._namespaces import ProviderNamespaces
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
 
 
-class FunctionAnnotations(NamedTuple):
+class ProviderAnnotationsNamespace(NamedTuple):
+    """
+    The list of service ids attached to a given function.
+
+    The `name` attribute is the name of the function, and the `namespace` attribute represents a
+    specific meaning for the group of services.
+    """
     name: str
     namespace: str
-    values: tuple[ServiceId[Any], ...]
+    group: tuple[ServiceId[Any], ...]
 
 
-class ClassAnnotations(NamedTuple):
-    values: tuple[FunctionAnnotations, ...]
+class ServiceAnnotations(NamedTuple):
+    """
+    Holds metadata about the annotated service provider.
 
-    def find_in_namespace(
+    Loosely inspired by: https://peps.python.org/pep-3107/.
+    """
+    providers: tuple[ProviderAnnotationsNamespace, ...]
+
+    def group_in_namespace(
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
-    ) -> tuple[FunctionAnnotations, ...]:
-        return tuple([x for x in self.with_namespace(namespace) if group_id in x.values])
+    ) -> tuple[ProviderAnnotationsNamespace, ...]:
+        return tuple([x for x in self.with_namespace(namespace) if group_id in x.group])
 
     def with_namespace(
         self,
         namespace: str,
-    ) -> tuple[FunctionAnnotations, ...]:
-        return tuple([x for x in self.values if x.namespace == namespace])
+    ) -> tuple[ProviderAnnotationsNamespace, ...]:
+        return tuple([x for x in self.providers if x.namespace == namespace])
 
 
 class FunctionAnnotationsBuilder:
@@ -44,10 +55,10 @@ class FunctionAnnotationsBuilder:
     def add(self, namespace: str, service_id: ServiceId[T_ServiceType]) -> None:
         self._service_ids[namespace].append(service_id)
 
-    def make(self, name: str) -> tuple[FunctionAnnotations, ...]:
+    def make(self, name: str) -> tuple[ProviderAnnotationsNamespace, ...]:
         return tuple(
             [
-                FunctionAnnotations(name=name, namespace=namespace, values=tuple(services))
+                ProviderAnnotationsNamespace(name=name, namespace=namespace, group=tuple(services))
                 for namespace, services in self._service_ids.items()
             ]
         )
@@ -62,7 +73,7 @@ class AnnotatedContainer(Container):
     ) -> Iterator[T_ServiceType]:
         annotations = _extract_class_annotations(type(self))
         containers = annotations.with_namespace(ProviderNamespaces.CONTAINERS)
-        groups = annotations.find_in_namespace(namespace, group_id)
+        groups = annotations.group_in_namespace(namespace, group_id)
 
         for annotation in groups:
             yield getattr(self, annotation.name)()
@@ -128,8 +139,8 @@ def fn_annotation_decorator(
 
 
 @cache
-def _extract_class_annotations(cls: Any) -> ClassAnnotations:
-    function_annotations: list[FunctionAnnotations] = []
+def _extract_class_annotations(cls: Any) -> ServiceAnnotations:
+    function_annotations: list[ProviderAnnotationsNamespace] = []
     for method_name in dir(cls):
         if method_name.startswith("_"):
             continue
@@ -137,7 +148,7 @@ def _extract_class_annotations(cls: Any) -> ClassAnnotations:
         builder = _get_annotations_builder(getattr(cls, method_name))
         function_annotations.extend(list(builder.make(method_name)))
 
-    return ClassAnnotations(tuple(function_annotations))
+    return ServiceAnnotations(tuple(function_annotations))
 
 
 def _add_annotation(namespace: str, fn: Any, service_id: ServiceId[T_ServiceType]) -> None:
