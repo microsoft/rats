@@ -12,7 +12,7 @@ from ._namespaces import ProviderNamespaces
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
 
 
-class ProviderAnnotationsNamespace(NamedTuple):
+class GroupAnnotations(NamedTuple):
     """
     The list of service ids attached to a given function.
 
@@ -21,28 +21,28 @@ class ProviderAnnotationsNamespace(NamedTuple):
     """
     name: str
     namespace: str
-    group: tuple[ServiceId[Any], ...]
+    groups: tuple[ServiceId[Any], ...]
 
 
-class ServiceAnnotations(NamedTuple):
+class FunctionAnnotations(NamedTuple):
     """
     Holds metadata about the annotated service provider.
 
     Loosely inspired by: https://peps.python.org/pep-3107/.
     """
-    providers: tuple[ProviderAnnotationsNamespace, ...]
+    providers: tuple[GroupAnnotations, ...]
 
     def group_in_namespace(
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
-    ) -> tuple[ProviderAnnotationsNamespace, ...]:
-        return tuple([x for x in self.with_namespace(namespace) if group_id in x.group])
+    ) -> tuple[GroupAnnotations, ...]:
+        return tuple([x for x in self.with_namespace(namespace) if group_id in x.groups])
 
     def with_namespace(
         self,
         namespace: str,
-    ) -> tuple[ProviderAnnotationsNamespace, ...]:
+    ) -> tuple[GroupAnnotations, ...]:
         return tuple([x for x in self.providers if x.namespace == namespace])
 
 
@@ -55,10 +55,10 @@ class FunctionAnnotationsBuilder:
     def add(self, namespace: str, service_id: ServiceId[T_ServiceType]) -> None:
         self._service_ids[namespace].append(service_id)
 
-    def make(self, name: str) -> tuple[ProviderAnnotationsNamespace, ...]:
+    def make(self, name: str) -> tuple[GroupAnnotations, ...]:
         return tuple(
             [
-                ProviderAnnotationsNamespace(name=name, namespace=namespace, group=tuple(services))
+                GroupAnnotations(name=name, namespace=namespace, groups=tuple(services))
                 for namespace, services in self._service_ids.items()
             ]
         )
@@ -139,8 +139,8 @@ def fn_annotation_decorator(
 
 
 @cache
-def _extract_class_annotations(cls: Any) -> ServiceAnnotations:
-    function_annotations: list[ProviderAnnotationsNamespace] = []
+def _extract_class_annotations(cls: Any) -> FunctionAnnotations:
+    function_annotations: list[GroupAnnotations] = []
     for method_name in dir(cls):
         if method_name.startswith("_"):
             continue
@@ -148,7 +148,7 @@ def _extract_class_annotations(cls: Any) -> ServiceAnnotations:
         builder = _get_annotations_builder(getattr(cls, method_name))
         function_annotations.extend(list(builder.make(method_name)))
 
-    return ServiceAnnotations(tuple(function_annotations))
+    return FunctionAnnotations(tuple(function_annotations))
 
 
 def _add_annotation(namespace: str, fn: Any, service_id: ServiceId[T_ServiceType]) -> None:
