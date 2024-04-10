@@ -1,0 +1,184 @@
+[tool.poetry]
+name = "rats-apps"
+# Handled by `poetry-dynamic-versioning` plugin below.
+version = "0.0.0"
+description = "research analysis tools for building applications"
+authors = []
+packages = [
+    {include = "rats", from = "src/python"},
+]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+bump = true
+dirty = false
+metadata = true
+
+[tool.poetry.dependencies]
+python = "^3.10"
+typing_extensions = "*"
+
+[tool.poetry.group.dev.dependencies]
+coverage = "*"
+pyright = "*"
+pytest = "*"
+pytest-cov = "*"
+pytest-nunit = "*"
+ruff = "*"
+types-urllib3 = "*"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "*"
+sphinx-autodoc-typehints = "*"
+sphinx-markdown-builder = "*"
+
+[tool.poetry.plugins."rats-apps.test-plugins"]
+example-storage = "rats_test.apps.example:ExampleStoragePlugin"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+pythonVersion = "3.10"
+include = ["src/python", "test/python"]
+exclude = ["**/__pycache__"]
+
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+
+deprecateTypingAliases = true
+reportPropertyTypeMismatch = true
+reportUnusedImport = true
+reportUnusedClass = true
+reportUnusedVariable = true
+reportDuplicateImport = true
+reportUntypedFunctionDecorator = true
+reportUntypedClassDecorator = true
+reportUntypedBaseClass = true
+reportUntypedNamedTuple = true
+reportConstantRedefinition = true
+reportDeprecated = true
+reportInconsistentConstructor = true
+reportUnknownParameterType = true
+reportMissingParameterType = true
+reportMissingTypeArgument = true
+reportUnnecessaryCast = true
+reportUnnecessaryContains = true
+reportImplicitStringConcatenation = true
+reportInvalidStubStatement = true
+reportIncompleteStub = true
+reportUnnecessaryTypeIgnoreComment = true
+reportMatchNotExhaustive = true
+reportShadowedImports = true
+
+reportMissingTypeStubs = false
+reportImportCycles = true
+reportUnusedFunction = false
+reportMissingSuperCall = false
+reportPrivateUsage = true
+reportUninitializedInstanceVariable = true
+reportUnknownArgumentType = true
+reportUnknownLambdaType = true
+reportUnknownVariableType = true
+reportUnknownMemberType = true
+reportCallInDefaultInitializer = true
+reportUnnecessaryIsInstance = true
+reportUnnecessaryComparison = true
+reportUnusedCallResult = false
+reportUnusedExpression = true
+reportImplicitOverride = false
+reportIncompatibleVariableOverride = true
+reportIncompatibleMethodOverride = true
+
+
+[tool.ruff]
+cache-dir = "../.tmp/rats-apps/.ruff_cache"
+include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
+line-length = 99
+indent-width = 4
+target-version = "py310"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+select = [
+    "B", # Bugbear
+    "D", # Docstring
+    "E", # Pycodestyle
+    "F", # Pyflakes
+    "I", # Import
+    "Q", # Quotes
+    "W", # PEP8 warnings
+    "NPY", # Numpy
+    "PD", # Pydocstyle
+    "PTH", # Path
+    "RUF", # Ruff
+    "UP", # Unittest
+    "D213", # D213: Multi-line docstring summary should start at the second line
+]
+ignore = [
+    "E501", # E501: Line too long ({width} > {limit})
+    "D212", # D212: Multi-line docstring summary should start at the second line
+    # This rule seems buggy: https://github.com/astral-sh/ruff/issues/2480
+    "PD011", # PD011: Use `.to_numpy()` instead of `.values`
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+"test/*" = [
+    "F401", # Unused import
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["rats", "rats_test"]
+
+[tool.ruff.format]
+quote-style = "double"  # Like Black, use double quotes for strings.
+indent-style = "space"  # Like Black, indent with spaces, rather than tabs.
+skip-magic-trailing-comma = false  # Like Black, respect magic trailing commas.
+line-ending = "auto"  # Like Black, automatically detect the appropriate line ending.
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+docstring-code-format = true
+
+[tool.coverage.run]
+data_file = "../.tmp/rats-apps/.coverage"
+relative_files = true
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.coverage.xml]
+output = "../.tmp/rats-apps/reports/coverage.xml"
+
+[tool.pytest.ini_options]
+cache_dir = "../.tmp/rats-apps/.pytest_cache"
+testpaths = ["test/python"]
+# Root namespace package folder here ensures coverage will include files with 0% coverage
+addopts = """
+    --cov=src/python/rats --cov=test/python/rats_test
+    --cov-report=term
+    --cov-report=xml
+    --junit-xml ../.tmp/rats-apps/reports/pytest-junit.xml
+    --capture=no
+    --cov-branch
+    --cache-clear
+"""
