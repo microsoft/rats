@@ -1,51 +1,51 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "weekly"
-    target-branch: "main"
+      interval: weekly
+    target-branch: main
     groups:
       github-actions:
         patterns:
           - "*"
-  - package-ecosystem: "pip"
-    directory: "/rats/"
+  - package-ecosystem: pip
+    directory: /rats/
     schedule:
-      interval: "daily"
-    target-branch: "main"
+      interval: weekly
+    target-branch: main
     groups:
       package-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: "pip"
-    directory: "/rats-apps/"
+  - package-ecosystem: pip
+    directory: /rats-apps/
     schedule:
-      interval: "daily"
-    target-branch: "main"
+      interval: weekly
+    target-branch: main
     groups:
       package-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: "pip"
-    directory: "/rats-devtools/"
+  - package-ecosystem: pip
+    directory: /rats-devtools/
     schedule:
-      interval: "daily"
-    target-branch: "main"
+      interval: weekly
+    target-branch: main
     groups:
       package-dependencies:
         patterns:
           - "*"
-  - package-ecosystem: "pip"
-    directory: "/rats-pipelines/"
+  - package-ecosystem: pip
+    directory: /rats-pipelines/
     schedule:
-      interval: "daily"
-    target-branch: "main"
-  - package-ecosystem: "pip"
-    directory: "/rats-processors/"
+      interval: weekly
+    target-branch: main
+  - package-ecosystem: pip
+    directory: /rats-processors/
     schedule:
-      interval: "daily"
-    target-branch: "main"
+      interval: weekly
+    target-branch: main
     groups:
       package-dependencies:
         patterns:
