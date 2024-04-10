@@ -15,7 +15,7 @@ class ExampleStoragePlugin(apps.AnnotatedContainer):
 
     @apps.service(ExampleIds.STORAGE)
     def default_storage(self) -> StorageClient:
-        return StorageClient(self._app.get_config(ExampleIds.CONFIGS.STORAGE))
+        return StorageClient(self._app.get(ExampleIds.CONFIGS.STORAGE))
 
     @apps.service(ExampleIds.DUPLICATE_SERVICE)
     def duplicate_1(self) -> StorageClient:

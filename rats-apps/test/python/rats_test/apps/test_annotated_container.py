@@ -64,29 +64,29 @@ class TestAnnotatedContainer:
             self._app_1.get(example.ExampleIds.DUPLICATE_SERVICE)
 
     def test_config_retrieval(self) -> None:
-        settings = self._app_1.get_config(example.ExampleIds.CONFIGS.STORAGE)
+        settings = self._app_1.get(example.ExampleIds.CONFIGS.STORAGE)
         assert settings.storage_account == "default"
 
     def test_config_retrieval_404(self) -> None:
         with pytest.raises(apps.ServiceNotFoundError):
-            self._app_1.get_config(example.ExampleIds.CONFIGS.OTHER_STORAGE)
+            self._app_1.get(example.ExampleIds.CONFIGS.OTHER_STORAGE)
 
     def test_config_retrieval_is_cached(self) -> None:
-        first = self._app_1.get_config(example.ExampleIds.CONFIGS.RANDOM_STORAGE)
+        first = self._app_1.get(example.ExampleIds.CONFIGS.RANDOM_STORAGE)
         for _ in range(100):
-            assert first == self._app_1.get_config(example.ExampleIds.CONFIGS.RANDOM_STORAGE)
+            assert first == self._app_1.get(example.ExampleIds.CONFIGS.RANDOM_STORAGE)
 
     def test_config_fallback(self) -> None:
         # app_2 has a plugin that defines a fallback service
-        fallback = self._app_fallback_1.get_config(example.ExampleIds.CONFIGS.OTHER_STORAGE)
+        fallback = self._app_fallback_1.get(example.ExampleIds.CONFIGS.OTHER_STORAGE)
         assert fallback.storage_account == "other[fallback]"
 
-        primary = self._app_fallback_3.get_config(example.ExampleIds.OTHER_STORAGE)
+        primary = self._app_fallback_3.get(example.ExampleIds.CONFIGS.OTHER_STORAGE)
         assert primary.storage_account == "other"
 
     def test_duplicate_config(self) -> None:
         with pytest.raises(apps.DuplicateServiceError):
-            self._app_1.get_config(example.ExampleIds.CONFIGS.DUPLICATE)
+            self._app_1.get(example.ExampleIds.CONFIGS.DUPLICATE)
 
     def test_group_retrieval(self) -> None:
         storage_group_1 = self._app_groups_1.get_group(example.ExampleIds.GROUPS.STORAGE)
@@ -100,10 +100,10 @@ class TestAnnotatedContainer:
     def test_has_apis(self) -> None:
         assert self._app_1.has(example.ExampleIds.STORAGE)
         assert self._app_groups_1.has_group(example.ExampleIds.GROUPS.STORAGE)
-        assert self._app_1.has_config(example.ExampleIds.CONFIGS.STORAGE)
+        assert self._app_1.has(example.ExampleIds.CONFIGS.STORAGE)
         assert self._app_1.has_namespace(apps.ProviderNamespaces.SERVICES, example.ExampleIds.STORAGE)
 
         assert not self._app_1.has(example.ExampleIds.OTHER_STORAGE)
         assert not self._app_1.has_group(example.ExampleIds.GROUPS.OTHER_STORAGE)
-        assert not self._app_1.has_config(example.ExampleIds.CONFIGS.OTHER_STORAGE)
+        assert not self._app_1.has(example.ExampleIds.CONFIGS.OTHER_STORAGE)
         assert not self._app_1.has_namespace(apps.ProviderNamespaces.SERVICES, example.ExampleIds.OTHER_STORAGE)

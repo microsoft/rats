@@ -13,11 +13,11 @@ class ExampleGroupsPlugin1(apps.AnnotatedContainer):
 
     @apps.fallback_group(ExampleIds.GROUPS.STORAGE)
     def fallback_group_1(self) -> StorageClient:
-        return StorageClient(self._app.get_config(ExampleIds.CONFIGS.STORAGE))
+        return StorageClient(self._app.get(ExampleIds.CONFIGS.STORAGE))
 
     @apps.fallback_group(ExampleIds.GROUPS.STORAGE)
     def fallback_group_2(self) -> StorageClient:
-        return StorageClient(self._app.get_config(ExampleIds.CONFIGS.STORAGE))
+        return StorageClient(self._app.get(ExampleIds.CONFIGS.STORAGE))
 
 
 class ExampleGroupsPlugin2(apps.AnnotatedContainer):
@@ -29,4 +29,4 @@ class ExampleGroupsPlugin2(apps.AnnotatedContainer):
 
     @apps.group(ExampleIds.GROUPS.STORAGE)
     def storage_group_1(self) -> StorageClient:
-        return StorageClient(self._app.get_config(ExampleIds.CONFIGS.STORAGE))
+        return StorageClient(self._app.get(ExampleIds.CONFIGS.STORAGE))

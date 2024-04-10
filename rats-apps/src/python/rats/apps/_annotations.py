@@ -98,7 +98,7 @@ def group(
 def config(
     config_id: ConfigId[T_ConfigType],
 ) -> Callable[..., Callable[..., T_ConfigType]]:
-    return fn_annotation_decorator(ProviderNamespaces.CONFIGS, config_id)
+    return fn_annotation_decorator(ProviderNamespaces.SERVICES, config_id)
 
 
 def fallback_service(
@@ -116,7 +116,7 @@ def fallback_group(
 def fallback_config(
     config_id: ConfigId[T_ConfigType],
 ) -> Callable[..., Callable[..., T_ConfigType]]:
-    return fn_annotation_decorator(ProviderNamespaces.FALLBACK_CONFIGS, config_id)
+    return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, config_id)
 
 
 def container(

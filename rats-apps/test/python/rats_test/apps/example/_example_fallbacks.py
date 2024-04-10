@@ -13,7 +13,7 @@ class ExampleFallbackPlugin1(apps.AnnotatedContainer):
 
     @apps.fallback_service(ExampleIds.OTHER_STORAGE)
     def fallback_other_storage(self) -> StorageClient:
-        return StorageClient(self._app.get_config(ExampleIds.CONFIGS.OTHER_STORAGE))
+        return StorageClient(self._app.get(ExampleIds.CONFIGS.OTHER_STORAGE))
 
     @apps.fallback_config(ExampleIds.CONFIGS.OTHER_STORAGE)
     def fallback_other_storage_config(self) -> StorageSettings:

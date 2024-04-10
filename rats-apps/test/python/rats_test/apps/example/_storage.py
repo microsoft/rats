@@ -3,7 +3,7 @@ An example library that provides users with a storage client.
 
 We pretend to require some storage settings, but the client stores data in memory so that we can write some simple tests.
 """
-from typing_extensions import NamedTuple
+from typing import NamedTuple
 
 
 class StorageSettings(NamedTuple):

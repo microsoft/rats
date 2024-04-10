@@ -2,7 +2,7 @@ from abc import abstractmethod
 from collections.abc import Iterator
 from typing import Generic, Protocol
 
-from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType, Tco_ConfigType, Tco_ServiceType
+from ._ids import ServiceId, T_ServiceType, Tco_ConfigType, Tco_ServiceType
 from ._namespaces import ProviderNamespaces
 
 
@@ -35,12 +35,6 @@ class Container(Protocol):
         except StopIteration:
             return False
 
-    def has_config(self, config_id: ConfigId[T_ConfigType]) -> bool:
-        try:
-            return bool(self.get_config(config_id))
-        except ServiceNotFoundError:
-            return False
-
     def has_namespace(self, namespace: str, group_id: ServiceId[T_ServiceType]) -> bool:
         try:
             return next(self.get_namespace(namespace, group_id)) is not None
@@ -71,21 +65,6 @@ class Container(Protocol):
             yield from self.get_namespace(ProviderNamespaces.FALLBACK_GROUPS, group_id)
 
         yield from self.get_namespace(ProviderNamespaces.GROUPS, group_id)
-
-    def get_config(self, config_id: ConfigId[T_ConfigType]) -> T_ConfigType:
-        """Retrieve a config by its id."""
-        services = list(self.get_namespace(ProviderNamespaces.CONFIGS, config_id))
-        if len(services) == 0:
-            services.extend(
-                list(self.get_namespace(ProviderNamespaces.FALLBACK_CONFIGS, config_id)),
-            )
-
-        if len(services) > 1:
-            raise DuplicateServiceError(config_id)
-        elif len(services) == 0:
-            raise ServiceNotFoundError(config_id)
-        else:
-            return services[0]
 
     @abstractmethod
     def get_namespace(
