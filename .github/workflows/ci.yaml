@@ -87,7 +87,7 @@ jobs:
           cd ${{ matrix.component }}/
           poetry run pytest --cov
       - name: upload-coverage
-        uses: codecov/codecov-action@v4.2.0
+        uses: codecov/codecov-action@v4.3.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: microsoft/rats
