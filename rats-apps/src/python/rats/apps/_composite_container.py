@@ -10,10 +10,10 @@ class CompositeContainer(Container):
     def __init__(self, *containers: Container) -> None:
         self._containers = containers
 
-    def get_namespace(
+    def get_namespaced_group(
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         for container in self._containers:
-            yield from container.get_namespace(namespace, group_id)
+            yield from container.get_namespaced_group(namespace, group_id)

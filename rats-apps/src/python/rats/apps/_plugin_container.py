@@ -14,13 +14,13 @@ class PluginContainers(Container):
         self._app = app
         self._group = group
 
-    def get_namespace(
+    def get_namespaced_group(
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         for container in self._load_containers():
-            yield from container.get_namespace(namespace, group_id)
+            yield from container.get_namespaced_group(namespace, group_id)
 
     @cache  # noqa: B019
     def _load_containers(self) -> Iterable[Container]:

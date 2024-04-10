@@ -66,7 +66,7 @@ class FunctionAnnotationsBuilder:
 
 class AnnotatedContainer(Container):
 
-    def get_namespace(
+    def get_namespaced_group(
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
@@ -80,7 +80,7 @@ class AnnotatedContainer(Container):
 
         for container in containers:
             c = getattr(self, container.name)()
-            yield from c.get_namespace(namespace, group_id)
+            yield from c.get_namespaced_group(namespace, group_id)
 
 
 def service(

@@ -37,16 +37,16 @@ class Container(Protocol):
 
     def has_namespace(self, namespace: str, group_id: ServiceId[T_ServiceType]) -> bool:
         try:
-            return next(self.get_namespace(namespace, group_id)) is not None
+            return next(self.get_namespaced_group(namespace, group_id)) is not None
         except StopIteration:
             return False
 
     def get(self, service_id: ServiceId[T_ServiceType]) -> T_ServiceType:
         """Retrieve a service instance by its id."""
-        services = list(self.get_namespace(ProviderNamespaces.SERVICES, service_id))
+        services = list(self.get_namespaced_group(ProviderNamespaces.SERVICES, service_id))
         if len(services) == 0:
             services.extend(
-                list(self.get_namespace(ProviderNamespaces.FALLBACK_SERVICES, service_id)),
+                list(self.get_namespaced_group(ProviderNamespaces.FALLBACK_SERVICES, service_id)),
             )
 
         if len(services) > 1:
@@ -62,12 +62,12 @@ class Container(Protocol):
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id."""
         if not self.has_namespace(ProviderNamespaces.GROUPS, group_id):
-            yield from self.get_namespace(ProviderNamespaces.FALLBACK_GROUPS, group_id)
+            yield from self.get_namespaced_group(ProviderNamespaces.FALLBACK_GROUPS, group_id)
 
-        yield from self.get_namespace(ProviderNamespaces.GROUPS, group_id)
+        yield from self.get_namespaced_group(ProviderNamespaces.GROUPS, group_id)
 
     @abstractmethod
-    def get_namespace(
+    def get_namespaced_group(
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
