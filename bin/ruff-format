@@ -26,8 +26,6 @@ do
       files="$files $file"
     fi
   done
-  echo "Files to format in $dir:"
-  echo $files
 
   if [ ! -z "$files" ]; then
     # Run the 'ruff' command
