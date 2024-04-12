@@ -2,9 +2,6 @@ exclude: |
   (?x)(
       ^.idea/
   )
-ci:
-  autofix_prs: false
-  skip: [ruff, ruff-format]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
