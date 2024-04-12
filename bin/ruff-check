@@ -1,14 +1,47 @@
 #!/bin/bash
 
+# Initialize error code variable
+error_code=0
+
+# Process each argument
+trimmed_args=""
+for arg in "$@"
+do
+  # Add the parent to all arguments
+  arg=${arg#*/}
+  trimmed_args="$trimmed_args $arg"
+done
+
 # Find all directories containing 'pyproject.yaml'
 for dir in $(find . -type d -exec sh -c '[ -f "{}"/pyproject.yaml ]' ';' -print)
 do
   # Change to the directory
   cd "$dir"
 
-  # Run the 'ruff' command
-  poetry run ruff check --fix src/python test/python
+  # Check if the trimmed file exists in the directory
+  files=""
+  for file in $trimmed_args
+  do
+    if [ -f "$file" ]; then
+      files="$files $file"
+    fi
+  done
+  echo "Files to format in $dir:"
+  echo $files
+
+  if [ ! -z "$files" ]; then
+    # Run the 'ruff' command
+    poetry run ruff format $files
+
+    # If the command fails, save the error code
+    if [ $? -ne 0 ]; then
+        error_code=$?
+    fi
+  fi
 
   # Change back to the original directory
-  cd -
+  cd ..
 done
+
+# Return the error code
+exit $error_code
