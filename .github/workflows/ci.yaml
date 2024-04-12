@@ -55,7 +55,7 @@ jobs:
           fetch-tags: true
       - name: install-devtools
         run: |
-          pipx install poetry
+          pipx install poetry pre-commit
           poetry self add poetry-dynamic-versioning
           poetry self add poetry-monorepo-dependency-plugin
           pipx install -e rats-devtools/
