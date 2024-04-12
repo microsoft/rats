@@ -21,7 +21,6 @@ repos:
       - id: check-shebang-scripts-are-executable
       - id: check-symlinks
       - id: check-toml
-      - id: check-xml
       - id: check-yaml
       - id: debug-statements
       - id: detect-private-key
@@ -32,11 +31,19 @@ repos:
         args: ["--autofix", "--indent", "4"]
       - id: trailing-whitespace
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.7
+  - repo: local
     hooks:
-      - id: ruff # linter
-        types_or: [python, pyi, jupyter]
-        args: [--fix]
-      - id: ruff-format # formatter
-        types_or: [python, pyi, jupyter]
+      - id: ruff-format
+        name: ruff-format
+        entry: "bin/ruff-format"
+        language: script
+        pass_filenames: false
+        files: "rats/src/python/|rats/test/python/"
+        types: [python]
+      - id: ruff-check # linter
+        name: ruff-check
+        entry: "bin/ruff-check"
+        language: script
+        pass_filenames: false
+        files: "rats/src/python/|rats/test/python/"
+        types: [python]

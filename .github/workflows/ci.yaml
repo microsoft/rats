@@ -78,11 +78,15 @@ jobs:
         run: |
           poetry run pre-commit run --all-files
         env:
-          SKIP: "ruff,ruff-format"
-      - name: ruff
+          SKIP: "ruff-format,ruff-check"
+      - name: ruff-format
         run: |
           cd ${{ matrix.component }}/
-          poetry run ruff check --output-format=github src/python/ test/python/
+          poetry run ruff format --check src/python/ test/python/
+      - name: ruff-check
+        run: |
+          cd ${{ matrix.component }}/
+          poetry run ruff check --no-fix --output-format=github src/python/ test/python/
       - name: pyright
         run: |
           cd ${{ matrix.component }}/

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Find all directories containing 'pyproject.yaml'
+for dir in $(find . -type d -exec sh -c '[ -f "{}"/pyproject.yaml ]' ';' -print)
+do
+  # Change to the directory
+  cd "$dir"
+
+  # Run the 'ruff' command
+  poetry run ruff format src/python test/python
+
+  # Change back to the original directory
+  cd -
+done
