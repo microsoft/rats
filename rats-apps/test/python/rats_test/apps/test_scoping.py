@@ -20,7 +20,6 @@ class ExampleServices:
 
 
 class TestScoping:
-
     def test_properties_are_scoped(self) -> None:
         expected = f"{__name__}:ExampleServices[foo]"
         assert ExampleServices.FOO.name == expected

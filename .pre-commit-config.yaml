@@ -2,13 +2,17 @@ exclude: |
   (?x)(
       ^.idea/
   )
+ci:
+  autofix_prs: false
+  skip: [ruff, ruff-format]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: check-ast
       - id: check-added-large-files
-        args: ['--maxkb=1000']
+        args: ["--maxkb=1000"]
       - id: check-case-conflict
       - id: check-docstring-first
       - id: check-executables-have-shebangs
@@ -27,40 +31,12 @@ repos:
       - id: pretty-format-json
         args: ["--autofix", "--indent", "4"]
       - id: trailing-whitespace
-  - repo: local
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.7
     hooks:
-      - id: rats
-        name: Run hooks in pipelines package
-        entry: "bin/commit-hooks rats"
-        language: script
-        pass_filenames: false
-        files: ^rats/src/python/
-        types: [python]
-      - id: rats
-        name: Run hooks in pipelines package
-        entry: "bin/commit-hooks rats-apps"
-        language: script
-        pass_filenames: false
-        files: ^rats/src/python/
-        types: [python]
-      - id: rats-devtools
-        name: Run hooks in pipelines package
-        entry: "bin/commit-hooks rats-devtools"
-        language: script
-        pass_filenames: false
-        files: ^rats-devtools/src/python/
-        types: [python]
-      - id: rats-pipelines
-        name: Run hooks in pipelines package
-        entry: "bin/commit-hooks rats-pipelines"
-        language: script
-        pass_filenames: false
-        files: ^rats-pipelines/src/python/
-        types: [python]
-      - id: rats-processors
-        name: Run hooks in processors package
-        entry: "bin/commit-hooks rats-processors"
-        language: script
-        pass_filenames: false
-        files: ^rats-processors/src/python/
-        types: [python]
+      - id: ruff # linter
+        types_or: [python, pyi, jupyter]
+        args: [--fix]
+      - id: ruff-format # formatter
+        types_or: [python, pyi, jupyter]
