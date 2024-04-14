@@ -74,11 +74,6 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
           echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
-      - name: pre-commit
-        run: |
-          pre-commit run --all-files
-        env:
-          SKIP: "ruff-format,ruff-check"
       - name: ruff-format
         run: |
           cd ${{ matrix.component }}/
