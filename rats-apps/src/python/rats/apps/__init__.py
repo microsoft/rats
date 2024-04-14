@@ -4,6 +4,7 @@ Provides a small set of libraries to help create new applications.
 Applications give you the ability to define a development experience to match your project's
 domain.
 """
+
 from ._annotations import (
     AnnotatedContainer,
     config,

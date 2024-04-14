@@ -7,14 +7,12 @@ from ._namespaces import ProviderNamespaces
 
 
 class ServiceProvider(Protocol[Tco_ServiceType]):
-
     @abstractmethod
     def __call__(self) -> Tco_ServiceType:
         """Return the service instance."""
 
 
 class ConfigProvider(ServiceProvider[Tco_ConfigType], Protocol[Tco_ConfigType]):
-
     @abstractmethod
     def __call__(self) -> Tco_ConfigType:
         """Return the config instance."""

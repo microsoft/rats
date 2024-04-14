@@ -5,7 +5,6 @@ from ._storage import StorageClient, StorageSettings
 
 
 class ExampleFallbackPlugin1(apps.AnnotatedContainer):
-
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -21,7 +20,6 @@ class ExampleFallbackPlugin1(apps.AnnotatedContainer):
 
 
 class ExampleFallbackPlugin2(apps.AnnotatedContainer):
-
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -33,7 +31,6 @@ class ExampleFallbackPlugin2(apps.AnnotatedContainer):
 
 
 class ExampleFallbackPlugin3(apps.AnnotatedContainer):
-
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

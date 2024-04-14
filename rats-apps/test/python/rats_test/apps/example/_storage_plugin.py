@@ -7,7 +7,6 @@ from ._storage import StorageClient, StorageSettings
 
 
 class ExampleStoragePlugin(apps.AnnotatedContainer):
-
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

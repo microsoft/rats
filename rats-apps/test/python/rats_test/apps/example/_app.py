@@ -7,7 +7,6 @@ from rats.apps._plugin_container import PluginContainers
 
 
 class ExampleApp(apps.AnnotatedContainer):
-
     _plugins: tuple[Callable[[Container], Container], ...]
 
     def __init__(self, *plugins: Callable[[Container], Container]):
