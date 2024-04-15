@@ -40,11 +40,6 @@ sphinx-markdown-builder = "*"
 [tool.poetry.plugins."rats-apps.test-plugins"]
 example-storage = "rats_test.apps.example:ExampleStoragePlugin"
 
-[tool.commitizen]
-name = "cz_gitmoji"
-update_changelog_on_bump = true
-version_provider = "poetry"
-
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
 build-backend = "poetry.core.masonry.api"

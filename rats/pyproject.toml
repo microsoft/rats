@@ -44,11 +44,6 @@ sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
 
-[tool.commitizen]
-name = "cz_gitmoji"
-update_changelog_on_bump = true
-version_provider = "poetry"
-
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
 build-backend = "poetry_dynamic_versioning.backend"
@@ -113,17 +108,17 @@ target-version = "py310"
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 select = ["B", "D", "E", "F", "I", "Q", "W", "NPY", "PD", "PTH", "RUF", "UP"]
 ignore = [
-    "B026", # B026: Star-arg unpacking after a keyword argument is strongly discouraged
-    "D100", # D100: Missing docstring in public module
-    "D101", # D101: Missing docstring in public class
-    "D102", # D102: Missing docstring in public method
-    "D103", # D103: Missing docstring in public function
-    "D104", # D104: Missing docstring in public package
-    "D105", # D105: Missing docstring in magic method
-    "D107", # D107: Missing docstring in __init__
-    "D417", # D417: Missing argument descriptions in Docstrings
-    "E203", # E203: Whitespace before ':'
-    "E501", # E501: Line too long ({width} > {limit})
+  "B026", # B026: Star-arg unpacking after a keyword argument is strongly discouraged
+  "D100", # D100: Missing docstring in public module
+  "D101", # D101: Missing docstring in public class
+  "D102", # D102: Missing docstring in public method
+  "D103", # D103: Missing docstring in public function
+  "D104", # D104: Missing docstring in public package
+  "D105", # D105: Missing docstring in magic method
+  "D107", # D107: Missing docstring in __init__
+  "D417", # D417: Missing argument descriptions in Docstrings
+  "E203", # E203: Whitespace before ':'
+  "E501", # E501: Line too long ({width} > {limit})
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
