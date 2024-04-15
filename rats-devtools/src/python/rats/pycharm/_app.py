@@ -7,17 +7,28 @@ from ._commands import RatsDevtoolsCli, RatsDevtoolsCommands
 from ._container import DecoratedServiceProvider
 
 
-class PycharmApp:
-    def __init__(self, plugins: Iterable[apps.Container]) -> None:
+class PluginAction(Protocol):
+    def run(self) -> None: ...
+
+
+class PycharmApp(apps.AnnotatedContainer):
+    _plugins: tuple[Callable[[Container], Container], ...]
+
+    def __init__(self, *plugins: Callable[[Container], Container]):
         self._plugins = plugins
 
-    def run(self) -> None:
-        pass
+    @apps.container()
+    def _runtime_plugins(self) -> Container:
+        return CompositeContainer(*[p(self) for p in self._plugins])
+
+    @apps.container()
+    def _package_plugins(self) -> Container:
+        return PluginContainers(self, "rats-devtools.app-plugins")
 
 
-@scoped_service_ids
-class RatsDevtoolsAppServices:
-    CLI = ServiceId[Any]("cli")
+@apps.autoscope
+class PycharmAppServices:
+    CLI = ServiceId[PluginAction]("cli")
 
 
 class RatsDevtoolsAppServiceGroups:

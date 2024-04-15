@@ -259,6 +259,29 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             sys.exit(e.returncode)
 
     @command
+    @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
+    def check_all(self, component_path: str) -> None:
+        """Build the python wheel for one of the components in this project."""
+        p = Path(component_path)
+        pyproject_path = p / "pyproject.toml"
+
+        if not p.is_dir() or not pyproject_path.is_file():
+            raise ValueError(f"component {component_path} does not exist")
+
+        cmds = [
+            ["poetry", "run", "ruff", "check", "--fix", "--unsafe-fixes"],
+            ["poetry", "run", "pyright"],
+            ["poetry", "run", "pytest"],
+        ]
+
+        try:
+            for c in cmds:
+                subprocess.run(c, cwd=component_path, check=True)
+        except subprocess.CalledProcessError as e:
+            print("Checks failed!")
+            sys.exit(e.returncode)
+
+    @command
     def ping(self) -> None:
         """No-op used for testing."""
         print("pong")

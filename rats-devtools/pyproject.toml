@@ -25,13 +25,14 @@ metadata = false
 enable = true
 
 [tool.poetry.dependencies]
-rats-pipelines = {path = "../rats-pipelines", develop = true}
+rats-apps = "*"
 click = "*"
 python = "^3.10"
 toml = "*"
 twine = "*"
 
 [tool.poetry.group.dev.dependencies]
+rats-apps = {path = "../rats-apps", develop = true}
 coverage = "*"
 pyright = "*"
 pytest = "*"
