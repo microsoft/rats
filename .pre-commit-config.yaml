@@ -44,6 +44,7 @@ repos:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
       - id: commitizen-branch
+        additional_dependencies: [cz-conventional-gitmoji]
         stages: [push]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
