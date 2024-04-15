@@ -23,7 +23,8 @@ dirty = false
 metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
-enable = false
+enable = true
+version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
 rats-pipelines = { path = "../rats-pipelines/", develop = true }

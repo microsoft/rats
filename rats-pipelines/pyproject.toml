@@ -22,7 +22,8 @@ dirty = false
 metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
-enable = false
+enable = true
+version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
 dill = "*"
@@ -119,23 +120,23 @@ target-version = "py310"
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 select = [
-    "B",    # Bugbear
-    "D",    # Docstring
-    "E",    # Pycodestyle
-    "F",    # Pyflakes
-    "I",    # Import
-    "Q",    # Quotes
-    "W",    # PEP8 warnings
-    "NPY",  # Numpy
-    "PD",   # Pydocstyle
-    "PTH",  # Path
-    "RUF",  # Ruff
-    "UP",   # Unittest
-    "D213", # D213: Multi-line docstring summary should start at the second line
+  "B",    # Bugbear
+  "D",    # Docstring
+  "E",    # Pycodestyle
+  "F",    # Pyflakes
+  "I",    # Import
+  "Q",    # Quotes
+  "W",    # PEP8 warnings
+  "NPY",  # Numpy
+  "PD",   # Pydocstyle
+  "PTH",  # Path
+  "RUF",  # Ruff
+  "UP",   # Unittest
+  "D213", # D213: Multi-line docstring summary should start at the second line
 ]
 ignore = [
-    "E501", # E501: Line too long ({width} > {limit})
-    "D212", # D212: Multi-line docstring summary should start at the second line
+  "E501", # E501: Line too long ({width} > {limit})
+  "D212", # D212: Multi-line docstring summary should start at the second line
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -147,12 +148,12 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
 "test/*" = [
-    "F401", # Unused import
-    "D100", # Missing docstring in public module
-    "D101", # Missing docstring in public class
-    "D102", # Missing docstring in public method
-    "D103", # Missing docstring in public function
-    "D104", # Missing docstring in public package
+  "F401", # Unused import
+  "D100", # Missing docstring in public module
+  "D101", # Missing docstring in public class
+  "D102", # Missing docstring in public method
+  "D103", # Missing docstring in public function
+  "D104", # Missing docstring in public package
 ]
 
 [tool.ruff.lint.pydocstyle]
