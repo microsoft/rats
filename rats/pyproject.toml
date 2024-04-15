@@ -2,7 +2,7 @@
 name = "rats"
 description = "Package for the bundled rats components."
 # Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.0.0"
+version = "0.1.1"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]
@@ -22,7 +22,8 @@ dirty = false
 metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
-enable = false
+enable = true
+version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
 rats-pipelines = { path = "../rats-pipelines", develop = true }
