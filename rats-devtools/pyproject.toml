@@ -5,7 +5,7 @@ description = "Rats Development Tools"
 version = "0.0.0"
 readme = "README.md"
 authors = []
-packages = [{include = "rats", from = "src/python"}]
+packages = [{ include = "rats", from = "src/python" }]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
@@ -22,10 +22,10 @@ dirty = false
 metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
-enable = true
+enable = false
 
 [tool.poetry.dependencies]
-rats-pipelines = {path = "../rats-pipelines", develop = true}
+rats-pipelines = { path = "../rats-pipelines", develop = true }
 click = "*"
 python = "^3.10"
 toml = "*"
@@ -37,9 +37,9 @@ pyright = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
-setuptools = "*"  # pycharm requires setuptools :(
+setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
-twine = "*"  # to release packages to hflabs
+twine = "*"        # to release packages to hflabs
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "*"
@@ -151,10 +151,10 @@ convention = "google"
 known-first-party = ["rats", "rats_test"]
 
 [tool.ruff.format]
-quote-style = "double"  # Like Black, use double quotes for strings.
-indent-style = "space"  # Like Black, indent with spaces, rather than tabs.
-skip-magic-trailing-comma = false  # Like Black, respect magic trailing commas.
-line-ending = "auto"  # Like Black, automatically detect the appropriate line ending.
+quote-style = "double"            # Like Black, use double quotes for strings.
+indent-style = "space"            # Like Black, indent with spaces, rather than tabs.
+skip-magic-trailing-comma = false # Like Black, respect magic trailing commas.
+line-ending = "auto"              # Like Black, automatically detect the appropriate line ending.
 
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.

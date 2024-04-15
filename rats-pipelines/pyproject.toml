@@ -5,7 +5,7 @@ description = "Rats Pipelines"
 version = "0.0.0"
 readme = "README.md"
 authors = []
-packages = [{include = "rats", from = "src/python"}]
+packages = [{ include = "rats", from = "src/python" }]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
@@ -22,7 +22,7 @@ dirty = false
 metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
-enable = true
+enable = false
 
 [tool.poetry.dependencies]
 dill = "*"
@@ -119,18 +119,18 @@ target-version = "py310"
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 select = [
-    "B", # Bugbear
-    "D", # Docstring
-    "E", # Pycodestyle
-    "F", # Pyflakes
-    "I", # Import
-    "Q", # Quotes
-    "W", # PEP8 warnings
-    "NPY", # Numpy
-    "PD", # Pydocstyle
-    "PTH", # Path
-    "RUF", # Ruff
-    "UP", # Unittest
+    "B",    # Bugbear
+    "D",    # Docstring
+    "E",    # Pycodestyle
+    "F",    # Pyflakes
+    "I",    # Import
+    "Q",    # Quotes
+    "W",    # PEP8 warnings
+    "NPY",  # Numpy
+    "PD",   # Pydocstyle
+    "PTH",  # Path
+    "RUF",  # Ruff
+    "UP",   # Unittest
     "D213", # D213: Multi-line docstring summary should start at the second line
 ]
 ignore = [
@@ -162,10 +162,10 @@ convention = "google"
 known-first-party = ["rats", "rats_test"]
 
 [tool.ruff.format]
-quote-style = "double"  # Like Black, use double quotes for strings.
-indent-style = "space"  # Like Black, indent with spaces, rather than tabs.
-skip-magic-trailing-comma = false  # Like Black, respect magic trailing commas.
-line-ending = "auto"  # Like Black, automatically detect the appropriate line ending.
+quote-style = "double"            # Like Black, use double quotes for strings.
+indent-style = "space"            # Like Black, indent with spaces, rather than tabs.
+skip-magic-trailing-comma = false # Like Black, respect magic trailing commas.
+line-ending = "auto"              # Like Black, automatically detect the appropriate line ending.
 
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.

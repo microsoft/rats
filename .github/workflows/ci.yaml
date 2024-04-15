@@ -56,8 +56,8 @@ jobs:
       - name: install-devtools
         run: |
           pipx install poetry
-          poetry self add poetry-dynamic-versioning
-          poetry self add poetry-monorepo-dependency-plugin
+          pipx inject poetry "poetry-dynamic-versioning[plugin]"
+          pipx inject poetry "poetry-monorepo-dependency-plugin"
           pipx install -e rats-devtools/
       - name: "poetry-install"
         run: |
