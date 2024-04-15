@@ -95,15 +95,21 @@ class TestAnnotatedContainer:
         storage_group_2 = self._app_groups_2.get_group(example.ExampleIds.GROUPS.STORAGE)
         assert len(list(storage_group_2)) == 1
 
-        assert len(list(self._app_groups_2.get_group(example.ExampleIds.GROUPS.OTHER_STORAGE))) == 0
+        assert (
+            len(list(self._app_groups_2.get_group(example.ExampleIds.GROUPS.OTHER_STORAGE))) == 0
+        )
 
     def test_has_apis(self) -> None:
         assert self._app_1.has(example.ExampleIds.STORAGE)
         assert self._app_groups_1.has_group(example.ExampleIds.GROUPS.STORAGE)
         assert self._app_1.has(example.ExampleIds.CONFIGS.STORAGE)
-        assert self._app_1.has_namespace(apps.ProviderNamespaces.SERVICES, example.ExampleIds.STORAGE)
+        assert self._app_1.has_namespace(
+            apps.ProviderNamespaces.SERVICES, example.ExampleIds.STORAGE
+        )
 
         assert not self._app_1.has(example.ExampleIds.OTHER_STORAGE)
         assert not self._app_1.has_group(example.ExampleIds.GROUPS.OTHER_STORAGE)
         assert not self._app_1.has(example.ExampleIds.CONFIGS.OTHER_STORAGE)
-        assert not self._app_1.has_namespace(apps.ProviderNamespaces.SERVICES, example.ExampleIds.OTHER_STORAGE)
+        assert not self._app_1.has_namespace(
+            apps.ProviderNamespaces.SERVICES, example.ExampleIds.OTHER_STORAGE
+        )

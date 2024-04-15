@@ -5,7 +5,6 @@ from ._storage import StorageClient
 
 
 class ExampleGroupsPlugin1(apps.AnnotatedContainer):
-
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -21,7 +20,6 @@ class ExampleGroupsPlugin1(apps.AnnotatedContainer):
 
 
 class ExampleGroupsPlugin2(apps.AnnotatedContainer):
-
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

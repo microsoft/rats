@@ -2,10 +2,10 @@
 name = "rats"
 description = "Package for the bundled rats components."
 # Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.0.0"
+version = "0.1.1"
 readme = "README.md"
 authors = []
-packages = [{include = "rats", from = "src/python"}]
+packages = [{ include = "rats", from = "src/python" }]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
@@ -23,10 +23,11 @@ metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
 enable = true
+version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
-rats-pipelines = {path = "../rats-pipelines", develop = true}
-rats-processors = {path = "../rats-processors", develop = true}
+rats-pipelines = { path = "../rats-pipelines", develop = true }
+rats-processors = { path = "../rats-processors", develop = true }
 python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
@@ -35,7 +36,7 @@ pyright = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
-setuptools = "*"  # pycharm requires setuptools :(
+setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
 
 [tool.poetry.group.docs.dependencies]
@@ -137,10 +138,10 @@ convention = "google"
 known-first-party = ["rats", "rats_test"]
 
 [tool.ruff.format]
-quote-style = "double"  # Like Black, use double quotes for strings.
-indent-style = "space"  # Like Black, indent with spaces, rather than tabs.
-skip-magic-trailing-comma = false  # Like Black, respect magic trailing commas.
-line-ending = "auto"  # Like Black, automatically detect the appropriate line ending.
+quote-style = "double"            # Like Black, use double quotes for strings.
+indent-style = "space"            # Like Black, indent with spaces, rather than tabs.
+skip-magic-trailing-comma = false # Like Black, respect magic trailing commas.
+line-ending = "auto"              # Like Black, automatically detect the appropriate line ending.
 
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.

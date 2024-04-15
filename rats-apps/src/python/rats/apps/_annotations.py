@@ -19,6 +19,7 @@ class GroupAnnotations(NamedTuple):
     The `name` attribute is the name of the function, and the `namespace` attribute represents a
     specific meaning for the group of services.
     """
+
     name: str
     namespace: str
     groups: tuple[ServiceId[Any], ...]
@@ -30,6 +31,7 @@ class FunctionAnnotations(NamedTuple):
 
     Loosely inspired by: https://peps.python.org/pep-3107/.
     """
+
     providers: tuple[GroupAnnotations, ...]
 
     def group_in_namespace(
@@ -65,7 +67,6 @@ class FunctionAnnotationsBuilder:
 
 
 class AnnotatedContainer(Container):
-
     def get_namespaced_group(
         self,
         namespace: str,
