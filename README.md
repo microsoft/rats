@@ -21,6 +21,10 @@ running pipelines, integrating configs and services.
 ## Getting started
 
 
+## Documentation
+https://microsoft.github.io/rats
+
+
 ## Components
 
 

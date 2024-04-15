@@ -2,7 +2,7 @@
 name = "rats-devtools"
 description = "Rats Development Tools"
 # Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.1.1"
+version = "0.1.2"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]
@@ -57,6 +57,11 @@ sphinx-markdown-builder = "*"
 
 [tool.poetry.scripts]
 rats-devtools = "rats.devtools.__main__:run"
+
+[tool.commitizen]
+name = "cz_gitmoji"
+update_changelog_on_bump = true
+version_provider = "poetry"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
