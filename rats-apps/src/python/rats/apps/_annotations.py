@@ -1,13 +1,14 @@
 from collections import defaultdict
 from collections.abc import Callable, Iterator
 from functools import cache
-from typing import Any, cast
+from typing import Any, ParamSpec, cast
 
 from typing_extensions import NamedTuple
 
 from ._container import Container
 from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
 from ._namespaces import ProviderNamespaces
+from ._scoping import scope_service_name
 
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
 
@@ -57,6 +58,9 @@ class FunctionAnnotationsBuilder:
     def add(self, namespace: str, service_id: ServiceId[T_ServiceType]) -> None:
         self._service_ids[namespace].append(service_id)
 
+    def get_service_names(self, namespace: str) -> tuple[str, ...]:
+        return tuple(s.name for s in self._service_ids.get(namespace, []))
+
     def make(self, name: str) -> tuple[GroupAnnotations, ...]:
         return tuple(
             [
@@ -84,57 +88,98 @@ class AnnotatedContainer(Container):
             yield from c.get_namespaced_group(namespace, group_id)
 
 
+P = ParamSpec("P")
+
+
 def service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[..., Callable[..., T_ServiceType]]:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.SERVICES, service_id)
+
+
+def autoid_service(fn: Callable[P, T_ServiceType]) -> Callable[P, T_ServiceType]:
+    _service_id = method_service_id(fn)
+    _add_annotation(ProviderNamespaces.SERVICES, fn, _service_id)
+    cached_fn = cache(fn)
+    return cast(Callable[P, T_ServiceType], cached_fn)
 
 
 def group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[..., Callable[..., T_ServiceType]]:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.GROUPS, group_id)
 
 
 def config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[..., Callable[..., T_ConfigType]]:
+) -> Callable[[Callable[P, T_ConfigType]], Callable[P, T_ConfigType]]:
     return fn_annotation_decorator(ProviderNamespaces.SERVICES, config_id)
 
 
 def fallback_service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[..., Callable[..., T_ServiceType]]:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, service_id)
 
 
 def fallback_group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[..., Callable[..., T_ServiceType]]:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_GROUPS, group_id)
 
 
 def fallback_config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[..., Callable[..., T_ConfigType]]:
+) -> Callable[[Callable[P, T_ConfigType]], Callable[P, T_ConfigType]]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, config_id)
 
 
 def container(
     group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
-) -> Callable[..., Callable[..., T_ServiceType]]:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.CONTAINERS, group_id)
+
+
+def _get_method_service_id_name(method: Callable[..., Any]) -> str:
+    existing_names = _get_annotations_builder(method).get_service_names(
+        ProviderNamespaces.SERVICES
+    )
+    if existing_names:
+        return existing_names[0]
+    else:
+        module_name = method.__module__
+        class_name, method_name = method.__qualname__.rsplit(".", 1)
+        service_name = scope_service_name(module_name, class_name, method_name)
+        return service_name
+
+
+def method_service_id(method: Callable[..., T_ServiceType]) -> ServiceId[T_ServiceType]:
+    """
+    Get a service id for a method.
+
+    The service id is constructed from the module, class and method name.  It should be identical
+    regardless of whether the method is bound or not, and regardless of the instance it is bound
+    to.
+
+    The service type is the return type of the method.
+    """
+    service_name = _get_method_service_id_name(method)
+    return ServiceId[T_ServiceType](service_name)
 
 
 def fn_annotation_decorator(
     namespace: str,
     service_id: ServiceId[T_ServiceType],
-) -> Callable[..., Callable[..., T_ServiceType]]:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     def wrapper(
-        fn: Callable[..., T_ServiceType],
-    ) -> Callable[..., T_ServiceType]:
-        _add_annotation(namespace, fn, service_id)
-        return cache(fn)
+        fn: Callable[P, T_ServiceType],
+    ) -> Callable[P, T_ServiceType]:
+        _service_id = service_id
+        _add_annotation(namespace, fn, _service_id)
+        cached_fn = cache(fn)
+        # The static type of cached_fn should be correct, but it does not maintain the param-spec,
+        # so we need to cast.
+        return cast(Callable[P, T_ServiceType], cached_fn)
 
     return wrapper
 

@@ -1,9 +1,9 @@
 from collections.abc import Callable
 
 from rats import apps
-from rats.apps import Container
-from rats.apps._composite_container import CompositeContainer
-from rats.apps._plugin_container import PluginContainers
+from rats.apps import CompositeContainer, Container, PluginContainers
+
+from ._dummy_containers import DummyContainer
 
 
 class ExampleApp(apps.AnnotatedContainer):
@@ -11,6 +11,10 @@ class ExampleApp(apps.AnnotatedContainer):
 
     def __init__(self, *plugins: Callable[[Container], Container]):
         self._plugins = plugins
+
+    @apps.container()
+    def dummy(self) -> Container:
+        return DummyContainer(self)
 
     @apps.container()
     def runtime_plugins(self) -> Container:
