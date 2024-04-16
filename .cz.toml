@@ -4,7 +4,6 @@ tag_format = "v$version"
 version_scheme = "pep440"
 version = "0.1.2"
 update_changelog_on_bump = true
-# major_version_zero = true
 version_files = [
     "rats/pyproject.toml:version",
     "rats-apps/pyproject.toml:version",
