@@ -27,6 +27,7 @@ enable = true
 version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
+rats-apps = { path = "../rats-apps/", develop = true }
 rats-pipelines = { path = "../rats-pipelines/", develop = true }
 dill = "^0.3.5"
 furl = "^2.1.3"

@@ -19,6 +19,9 @@ _KEYWORD_ONLY = _ParameterKind.KEYWORD_ONLY
 _VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
 
 
+T_Processor_Output = Mapping[str, Any] | NamedTuple | None
+
+
 # IProcess protocol cannot be generic because the return type is abstract.
 # However, any IProcess can be made generic and return a generic TypedDict.
 @runtime_checkable
