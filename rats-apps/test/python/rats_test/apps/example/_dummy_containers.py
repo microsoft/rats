@@ -18,7 +18,7 @@ class DummyContainer1(apps.AnnotatedContainer):
 
     # Declaring a service without a service id.  The id will be automatically generated from the
     # fully qualified name of the method.
-    @apps.service()
+    @apps.autoid_service
     def unnamed_service1(self) -> Tag1:
         return Tag1("c1.s1")
 
@@ -34,7 +34,7 @@ class DummyContainer1(apps.AnnotatedContainer):
         return self._app.get(apps.method_service_id(self.unnamed_service1))
 
     # Again without a service id, but this service will be made public below.
-    @apps.service()
+    @apps.autoid_service
     def tag2(self) -> Tag2:
         # Calling a service using the private service id.
         return self._app.get(_PrivateIds.SERVICE2)
@@ -44,7 +44,7 @@ class DummyContainer1(apps.AnnotatedContainer):
         # Within a container, you can also directly call the service method.
         return self.unnamed_service2()
 
-    @apps.service()
+    @apps.autoid_service
     def tag1b(self) -> Tag1:
         # Calling a service from another container using its public service id.
         return self._app.get(DummyContainerServiceIds.C2T1)
@@ -58,11 +58,11 @@ class DummyContainer2(apps.AnnotatedContainer):
 
     # Declaring a service without a service id.  We are using a method name already used in
     # DummyContainer1, to test that they are not confused.
-    @apps.service()
+    @apps.autoid_service
     def unnamed_service1(self) -> Tag1:
         return Tag1("c2.s1")
 
-    @apps.service()
+    @apps.autoid_service
     def tag1(self) -> Tag1:
         return self._app.get(apps.method_service_id(self.unnamed_service1))
 

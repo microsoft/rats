@@ -92,9 +92,16 @@ P = ParamSpec("P")
 
 
 def service(
-    service_id: ServiceId[T_ServiceType] | None = None,
+    service_id: ServiceId[T_ServiceType],
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     return fn_annotation_decorator(ProviderNamespaces.SERVICES, service_id)
+
+
+def autoid_service(fn: Callable[P, T_ServiceType]) -> Callable[P, T_ServiceType]:
+    _service_id = method_service_id(fn)
+    _add_annotation(ProviderNamespaces.SERVICES, fn, _service_id)
+    cached_fn = cache(fn)
+    return cast(Callable[P, T_ServiceType], cached_fn)
 
 
 def group(
@@ -162,12 +169,12 @@ def method_service_id(method: Callable[..., T_ServiceType]) -> ServiceId[T_Servi
 
 def fn_annotation_decorator(
     namespace: str,
-    service_id: ServiceId[T_ServiceType] | None,
+    service_id: ServiceId[T_ServiceType],
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     def wrapper(
         fn: Callable[P, T_ServiceType],
     ) -> Callable[P, T_ServiceType]:
-        _service_id = service_id or method_service_id(fn)
+        _service_id = service_id
         _add_annotation(namespace, fn, _service_id)
         cached_fn = cache(fn)
         # The static type of cached_fn should be correct, but it does not maintain the param-spec,
