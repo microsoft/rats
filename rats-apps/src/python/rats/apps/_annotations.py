@@ -8,6 +8,7 @@ from typing_extensions import NamedTuple
 from ._container import Container
 from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
 from ._namespaces import ProviderNamespaces
+from ._scoping import scope_service_name
 
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
 
@@ -139,7 +140,9 @@ def _get_method_service_id_name(method: Callable[..., Any]) -> str:
     if existing_names:
         return existing_names[0]
     else:
-        service_name = f"__rats_auto_method_service_id_:{method.__module__}.{method.__qualname__}"
+        module_name = method.__module__
+        class_name, method_name = method.__qualname__.rsplit(".", 1)
+        service_name = scope_service_name(module_name, class_name, method_name)
         return service_name
 
 
