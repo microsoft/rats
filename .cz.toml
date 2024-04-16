@@ -2,6 +2,8 @@
 name = "cz_gitmoji"
 tag_format = "v$version"
 version_scheme = "pep440"
-version_provider = "poetry"
+version = "0.1.2"
+version_provider = "commitizen"
 update_changelog_on_bump = true
 major_version_zero = true
+version_files = ["**/pyproject.toml:version"]
