@@ -65,5 +65,4 @@ repos:
         name: Run codespell to check for common misspellings in files
         language: python
         types: [text]
-        args: ["--write-changes", "--ignore-words-list", "asend"]
         exclude: "poetry.lock"

@@ -7,7 +7,7 @@ This is an immediate scenario, e.g. for training AIRIVA on many disease labels a
 * $i$ is indexing input repertoires.
 * $j$ is indexing input TCRs.
 * $k$ is indexing label columns (e.g. diseases, HLAs).
-* $U_{i,j}$ is upr count of TCR $j$ in repetoire $i$.
+* $U_{i,j}$ is upr count of TCR $j$ in repertoire $i$.
 * $L_{i,k}$ is labels.
 * $M_i$ is repertoire metadata.
 
@@ -107,7 +107,7 @@ TBD
    1. Assign HLAs to repertoires using `x_inferred_hlas` or sideloaded RUO HLA assignments,
        yielding binary matrix $RH$.
    1. Compute TCR-HLA association using FET or Mann-Whitney.
-   1. Binarize TCR-HLA assocation by p-value threshold or FDR, yielding binary matrix $TH$.
+   1. Binarize TCR-HLA association by p-value threshold or FDR, yielding binary matrix $TH$.
    1. Compute binary mask matrix $M = RH \cdot TH^T > 0$
    1. Filter TCRs to those that are associated with at least one repertoire $F = \{j | \sum_i M_{ij} > 0\}$,
        typically $\approx$ 20k-100k

@@ -22,9 +22,13 @@ To create a pipeline and run it, we can use the following lines:
 from rats.processors import RatsProcessorsServices
 from rats.processors.ux import PipelineBuilder
 
-hello_world = PipelineBuilder.task(HelloWorld, "hello_world")  # creates a pipeline of single node
+hello_world = PipelineBuilder.task(
+    HelloWorld, "hello_world"
+)  # creates a pipeline of single node
 
-runner_factory = rats_service_provider.get_service(RatsProcessorsServices.PIPELINE_RUNNER_FACTORY)
+runner_factory = rats_service_provider.get_service(
+    RatsProcessorsServices.PIPELINE_RUNNER_FACTORY
+)
 runner = runner_factory(hello_world)  # creates a runner for the given pipeline
 runner()  # runs the pipeline
 ```
@@ -50,27 +54,34 @@ We have the following classes and declared outputs:
 ```python
 from typing import Any, NamedTuple
 
+
 class AOutput(NamedTuple):
     Z1: Any
     Z2: Any
+
 
 class A:
     def process(self) -> AOutput:
         ...
 
+
 class BOutput(NamedTuple):
     Z: float
+
 
 class B:
     def process(self, X: Any) -> BOutput:
         ...
 
+
 class COutput(NamedTuple):
     Z: Any
+
 
 class C:
     def process(self, X: Any) -> COutput:
         ...
+
 
 class D:
     def process(self, X1: Any, X2: Any) -> None:
@@ -106,7 +117,7 @@ d = PipelineBuilder.task(D, "D")
 
 diamond = PipelineBuilder.combine(
     name="diamond",
-    pipelines = [a, b, c, d],
+    pipelines=[a, b, c, d],
     dependencies=(
         b.inputs.X << a.outputs.Z1,
         c.inputs.X << a.outputs.Z2,
@@ -115,7 +126,7 @@ diamond = PipelineBuilder.combine(
     ),
 )
 
-display_dag(diamond) # displays the pipeline
+display_dag(diamond)  # displays the pipeline
 ```
 
 ![png](figures/beginners_8_0.png)
@@ -147,17 +158,21 @@ shown below.
 ```python
 from typing import NamedTuple
 
+
 class StandardizeTrainOut(NamedTuple):
     mean: float
     scale: float
     Z_train: float
 
+
 class StandardizeTrain:
     def process(self, X_train: float) -> StandardizeTrainOut:
         ...
 
+
 class StandardizeEvalOut(NamedTuple):
     Z_eval: float
+
 
 class StandardizeEval:
     def __init__(self, mean: float, scale: float) -> None:
@@ -166,16 +181,20 @@ class StandardizeEval:
     def process(self, X_eval: float) -> StandardizeEvalOut:
         ...
 
+
 class LogisticRegressionTrainOut(NamedTuple):
     model: tuple[float, ...]
     Z_train: float
+
 
 class LogisticRegressionTrain:
     def process(self, X_train: float, Y_train: float) -> LogisticRegressionTrainOut:
         ...
 
+
 class LogisticRegressionEvalOut(NamedTuple):
     Z_eval: float
+
 
 class LogisticRegressionEval:
     def __init__(self, model: tuple[float, ...]) -> None:
@@ -323,7 +342,9 @@ For now, it is sufficient to understand that:
 ```python
 from rats.processors import RatsProcessorsServices
 
-runner_factory = rats_service_provider.get_service(RatsProcessorsServices.PIPELINE_RUNNER_FACTORY)
+runner_factory = rats_service_provider.get_service(
+    RatsProcessorsServices.PIPELINE_RUNNER_FACTORY
+)
 ```
 
 ## Running pipelines
@@ -350,5 +371,7 @@ The following pseudocode illustrates running `standardized_lr`, but recall that 
 implemented the methods of the different processors we defined above, so this isn't runnable code.
 
 ```python
-standardized_lr_outputs = standardized_lr_runner(dict(X_eval=..., X_train=..., Y_eval=..., Y_train=...))
+standardized_lr_outputs = standardized_lr_runner(
+    dict(X_eval=..., X_train=..., Y_eval=..., Y_train=...)
+)
 ```

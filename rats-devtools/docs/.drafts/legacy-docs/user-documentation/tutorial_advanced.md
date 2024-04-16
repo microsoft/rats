@@ -62,12 +62,15 @@ For example,
 from typing import NamedTuple
 from rats.processors import PipelineBuilder
 
+
 class ReportOut(NamedTuple):
     acc: float
+
 
 class Report:
     def process(probs: float) -> ReportOut:
         ...
+
 
 r1 = PipelineBuilder.task(Report, name="r1")
 r2 = PipelineBuilder.task(Report, name="r2")
@@ -76,7 +79,9 @@ reports = PipelineBuilder.combine(
     name="reports",
     inputs={"probs": r1.inputs.probs | r2.inputs.probs},  # merge operation
 )
-reports.inputs.probs << logistic_regression.outputs.probs  # will return two dependencies
+(
+    reports.inputs.probs << logistic_regression.outputs.probs
+)  # will return two dependencies
 ```
 
 We combine `r1` and `r2` into a single pipeline and we expose `probs` as single input, which is the
@@ -96,16 +101,20 @@ For example,
 from typing import NamedTuple, Sequence
 from rats.processors import PipelineBuilder
 
+
 class ReportOut(NamedTuple):
     acc: float
+
 
 class Report:
     def process(probs: float) -> ReportOut:
         ...
 
+
 class Summary:
     def process(accuracies: Sequence[float]) -> None:
         ...
+
 
 r1 = PipelineBuilder.task(Report, name="r1")
 r1 = PipelineBuilder.task(Report, name="r2")
@@ -178,7 +187,7 @@ logistic_regression.inputs.X.eval << standardization.outputs.Z.eval
 
 > :bulb: **Info:**
 The set of names of the two collections need to be identical.
-Entries will be matched by name to create depedencies, e.g.,
+Entries will be matched by name to create dependencies, e.g.,
 `Z.train` with `X.train` and `Z.eval` with `X.eval`, respectively, in the above example.
 
 The operation returns a
@@ -281,7 +290,9 @@ You can transform single entries into collections, or entries from collections i
 notation:
 
 ```python
-standardization = standardization.rename_inputs({"X.train": "X_train", "X.eval": "X_eval"})
+standardization = standardization.rename_inputs(
+    {"X.train": "X_train", "X.eval": "X_eval"}
+)
 standardization.inputs.X_train  # InPort objects
 standardization.inputs.X_eval
 # standardization.inputs.X.train  # raises error
@@ -293,13 +304,11 @@ If the new name of an entry already exists, or repeats, a merge operation will b
 r1 = PipelineBuilder.task(Report, name="r1")
 r2 = PipelineBuilder.task(Report, name="r2")
 reports = PipelineBuilder.combine(
-    r1, r2,
-    name="reports",
-    inputs={"acc.r1": r1.outputs.acc, "acc.r2": r2.outputs.acc}
+    r1, r2, name="reports", inputs={"acc.r1": r1.outputs.acc, "acc.r2": r2.outputs.acc}
 )
 reports.in_collection.acc  # Inputs collection with two entries
 reports.rename_inputs({"acc.r1": "acc", "acc.r2": "acc"})  # rename / merge operation
-reports.inputs.acc # InPort object with two entries merged together (broadcast)
+reports.inputs.acc  # InPort object with two entries merged together (broadcast)
 ```
 See [`InPort` merge section](#merge-inport) for details on broadcast
 and [`OutPort` merge section](#merge-outport) foir details on concatenation operations.
@@ -320,6 +329,7 @@ class Report:
     def process(probs: float) -> None:
         ...
 
+
 report = PipelineBuilder.task(Report)
 r1 = report.decorate("r1")
 r2 = report.decorate("r2")
@@ -329,7 +339,7 @@ reports = PipelineBuilder.combine(
     dependencies=(
         one_pipeline.outputs.probs >> r1.inputs.probs,
         two_pipeline.outputs.probs >> r2.inputs.probs,
-    )
+    ),
 )
 ```
 
@@ -379,7 +389,9 @@ class Estimator(Pipeline):
         eval_pl = eval_pl.decorate("eval")
 
         # decorate shared dependencies to match newly decorated train and eval pipelines
-        dependencies = (dp.decorate("eval", "train") for dp in chain.from_iterable(dependencies))
+        dependencies = (
+            dp.decorate("eval", "train") for dp in chain.from_iterable(dependencies)
+        )
 
         # merge the `outputs` and `outputs` of train and eval pipelines
         outputs: UserOutput = dict(train_pl.outputs | eval_pl.outputs)

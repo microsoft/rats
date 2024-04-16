@@ -8,6 +8,7 @@ It's any object that implements the `IProcess` interface:
 ```python
 from typing import Any, Callable, Mapping, Protocol
 
+
 class IProcess(Protocol):
     process: Callable[..., Mapping[str, Any] | None]
 ```
@@ -23,8 +24,9 @@ Below is a simple example:
 ```python
 from rats.processors import IProcess
 
+
 class ExampleProcessor(IProcess):
-    def __init__(self, ...) -> None:
+    def __init__(self, args) -> None:
         ...
 
     def process(self) -> None:

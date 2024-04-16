@@ -120,7 +120,7 @@ class _TrainAndEval(ITrainAndEval):
 class TrainAndEvalConf(PipelineConf):
     name: str = MISSING
 
-    # Train pipeline, taking train data and outputing the fitted parameters:
+    # Train pipeline, taking train data and outputting the fitted parameters:
     train_pl: PipelineConf = MISSING
 
     # Evaluation pipeline taking fitted parameters and data and outputting processed data.  Used
@@ -220,10 +220,10 @@ class _TrainAndEvalWhenTrainAlsoEvaluates(ITrainAndEval):
 class TrainAndEvalWhenTrainAlsoEvaluatesConf(PipelineConf):
     name: str = MISSING
 
-    # Train pipeline, taking train data and outputing the fitted parameters and processed train
+    # Train pipeline, taking train data and outputting the fitted parameters and processed train
     # data:
     train_pl: PipelineConf = MISSING
-    # Evaluation pipeline taking fitted parameters and eval data, and outputing the
+    # Evaluation pipeline taking fitted parameters and eval data, and outputting the
     # processed eval data:
     eval_pl: PipelineConf = MISSING
     # Fitted parameters, expressed as a list of DependencyOpConf between the train and eval
@@ -254,10 +254,10 @@ class TrainAndEvalBuilders:
         Args:
         * name: name for the built pipeline.
         * train_pl: A pipeline that takes data, fits parameters to it, and evaluates the data
-          using these fitted parameters.  Inputs and outputs are assumed to be entires, not
+          using these fitted parameters.  Inputs and outputs are assumed to be entries, not
           collections.
         * eval_pl: A pipeline that takes fitted parameters and data, and evaluates the data
-          using these fitted parameters.  Inputs and outputs are assumed to be entires, not
+          using these fitted parameters.  Inputs and outputs are assumed to be entries, not
           collections.
         * dependencies: A sequence of dependencies mapping the fitted parameters from train_pl
           outputs to eval_pl inputs.
@@ -268,8 +268,8 @@ class TrainAndEvalBuilders:
             become collection inputs, with `train` entries going to `train_pl` and `eval`
             entries going to `eval_pl.
           * Outputs from `train_pl` and `eval_pl`, except those indicated in
-            `dependencies` become collection outputs, with `train` entries comming from
-            `train_pl` and `eval` entries comming from `eval_pl`.
+            `dependencies` become collection outputs, with `train` entries coming from
+            `train_pl` and `eval` entries coming from `eval_pl`.
           * Fitted parameter, i.e. outputs of `train_pl` that are indicated in `dependencies`
             becomes outputs of the built pipeline.
 
@@ -309,13 +309,13 @@ class TrainAndEvalBuilders:
         Args:
         * name: name for the built pipeline.
         * train_pl: A pipeline that takes data, and outputs models/parameters fitted from the
-          data.  Inputs and outputs are assumed to be entires, not collections.
+          data.  Inputs and outputs are assumed to be entries, not collections.
         * train_eval_pl: A pipeline that takes fitted models/parameters and data, and
           evaluates the data using these fitted parameters.  This pipeline will be used on the
-          train data.  Inputs and outputs are assumed to be entires, not collections.
+          train data.  Inputs and outputs are assumed to be entries, not collections.
         * eval_eval_pl: A pipeline that takes fitted models/parameters and data, and
           evaluates the data using these fitted parameters.  This pipeline will be used on the
-          eval data.    Inputs and outputs are assumed to be entires, not collections.
+          eval data.    Inputs and outputs are assumed to be entries, not collections.
 
         All outputs of `train_pl` are assumed to be fitted models/parameters.
 
@@ -360,10 +360,10 @@ class TrainAndEvalBuilders:
         Args:
         * name: ename for the built pipeline.
         * train_pl: A pipeline that takes data, and outputs models/parameters fitted from the
-          data.  Inputs and outputs are assumed to be entires, not collections.
+          data.  Inputs and outputs are assumed to be entries, not collections.
         * eval_pl: A pipeline that takes fitted models/parameters and data, and evaluates the
           data using these fitted parameters.  Will be used on both train data and eval data.
-          Inputs and outputs are assumed to be entires, not collections.
+          Inputs and outputs are assumed to be entries, not collections.
 
         All outputs of `train_pl` are assumed to be fitted models/parameters.
 

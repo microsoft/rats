@@ -18,7 +18,7 @@ def _verify_dag_integrity(dag: DAG) -> None:
                 raise ValueError(f"Dependency source node {d.node} is not in the DAG.")
             if d.in_arg.name not in dag.nodes[node].inputs:
                 raise ValueError(
-                    f"Input parameter {d.in_arg.name} of dependecy {d} is not in target node {node}."
+                    f"Input parameter {d.in_arg.name} of dependency {d} is not in target node {node}."
                 )
             if d.out_arg is None:
                 raise ValueError(f"Output parameter is not specified for {d}.")

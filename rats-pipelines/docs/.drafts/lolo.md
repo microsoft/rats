@@ -19,7 +19,7 @@ collaboration related to the contents of that file by other individuals is done 
 - I can make changes to the document.
 - I can depend on the contents of the document.
 - Others can submit requests to change the document.
-- Others can submit requests to depend on the conntents of the document.
+- Others can submit requests to depend on the contents of the document.
 - Permissions to change the document are not related to permissions to depend on a draft entity.
 - This draft is a draft entity itself.
 - I only need permission to move the contents of this document, out of this document.
@@ -39,6 +39,7 @@ Thoughts on APIs like the below:
 ```python
 from typing import Protocol
 from rats.pipelines.dag import PipelineNode
+
 
 class RatsIoPlugin(Protocol):
     def on_node_completion(self, node: PipelineNode) -> None:
@@ -96,6 +97,7 @@ class ExampleIoPlugins(RatsIoPlugin):
 """
 
 """
+```
 DI Containers are specific to the `main` layer of the application, which should only be used for
 wiring together library capabilities. This means we should never depend on a specific DI Container,
 which we've already removed the need for, by making them all fully private. However, we need to
@@ -123,6 +125,7 @@ never import this module from the related libraries.
 ```python
 from rats.services import ServiceId, ContextId, service_provider
 
+
 class FooServices:
     CAT = ServiceId("cat")
     DOG = ServiceId("dog")
@@ -133,7 +136,6 @@ class FooContexts:
 
 
 class FooDiContainer:
-
     @service_provider(FooServices.CAT)
     def cat(self) -> Cat:
         return Cat()
@@ -195,7 +197,7 @@ think of a context as a SettingId that is bound to a mutable state. Alternativel
 contexts as a setting that is opened and closed like a file handle.
 
 ```python
------ option 1 -----
+# ----- option 1 -----
 class AppContext(NamedTuple):
     app_id: str
 
@@ -210,7 +212,8 @@ class PipelineNodeContext(NamedTuple):
     session_id: str
     node_id: str
 
------ option 2 -----
+
+# ----- option 2 -----
 class AppContext(NamedTuple):
     app_id: str
 
@@ -221,11 +224,9 @@ class PipelineSessionContext(NamedTuple):
 
 class PipelineNodeContext(NamedTuple):
     node_id: str
-
 
 
 class NodePublisher:
-
     _node_provider: PipelineNodeContextProvider
 
     def publish(self, port, data):
@@ -234,7 +235,6 @@ class NodePublisher:
 
 
 class NodePublisher:
-
     _node: PipelineNodeContext
     _publisher: DataPublisher
 
@@ -259,15 +259,17 @@ def provider(publisher_map) -> DataPublisher:
     )
 
 
-
-with context_client.set_context(SettingId[AppContext]("app"), AppContext(str(uuid.uuid4()))):
+with context_client.set_context(
+    SettingId[AppContext]("app"), AppContext(str(uuid.uuid4()))
+):
     active_app = context_client.get_context(SettingId[AppContext]("app"))
     print(active_app.app_id)  # This will be the uuid value from above
 
 # When a context is "closed", retrieving it will raise an exception.
 context_client.get_context(SettingId[AppContext]("app"))
+```
 
-
+```yaml
 # Process 1
 app:
     app_id: {uuid}
@@ -394,7 +396,7 @@ Thoughts:
 - opening the footprint of the session to include the definition of the pipeline has benefits
   - the dag can receive a unique key (the session)
   - the dag can still be derived by a static config, but that is an implementation detail
-- does the definnition of the pipeline go into frames? I think so
+- does the definition of the pipeline go into frames? I think so
   - this would allow us to portpone the decision of if we support running multiple pipelines in
   one session
   - we can also postpone deciding how or if we support dynamic pipelines

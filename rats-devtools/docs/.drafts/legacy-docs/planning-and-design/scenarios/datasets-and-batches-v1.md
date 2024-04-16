@@ -24,13 +24,16 @@ The [next section](#data) defines these concepts in more detail.
 
 ### Batch
 
-A batch is a dictionary mapping property names to property values.  All values should already be in memory.  The types used for values are TBD.  The batch should also provide access to metadata, such as names of dimensions, shape (=sizes of dimesions), dtypes, names of columns.
+A batch is a dictionary mapping property names to property values.  All values should already be in memory.  The types used for values are TBD.  The batch should also provide access to metadata, such as names of dimensions, shape (=sizes of dimensions), dtypes, names of columns.
 
 ### Dataset
 
 ```python
+from typing import Iterable
+
+
 class Dataset:
-    def load() -> Batch:
+    def load(self) -> Batch:
         """Load the dataset."""
 
     def select(self, propety_names: List[str]) -> Dataset:
@@ -45,14 +48,16 @@ class Dataset:
         1. slicing by a providing a salt and a predicate.  A hash of the element key and the salt is passed to the predicate.
         """
 
-    def get_slice_iterable(self, iteration_operation: IterationOperation) -> Iterable[Dataset]:
+    def get_slice_iterable(
+        self, iteration_operation: IterationOperation
+    ) -> Iterable[Dataset]:
         """Breaks down `self` into an iteration of datasets.
 
         The returned datasets are non-intersecting and their union is this dataset.
 
         Iteration operation TBD.  Should allow:
         1. Slicing along a dimension, providing arbitrary slices of roughly requested size.
-        1. Slicing along a dimension, using modulu of a hash of the key, defined using salt, N.
+        1. Slicing along a dimension, using modulo of a hash of the key, defined using salt, N.
         1. Slicing along multiple dimensions.
         """
 
@@ -63,12 +68,14 @@ class Dataset:
         """
 
     @classmethod
-    def from_batches(cls, Iterable[Batch], slice_dimensions: List[str]) -> Dataset:
+    def from_batches(
+        cls, batches: Iterable[Batch], slice_dimensions: list[str]
+    ) -> Dataset:
         """Creates a dataset from an iterable of batches.
 
         Assumes:
         1. All batches have the same set of properties.
-        1. Batches are distinct allong `slice_dimensions`.
+        1. Batches are distinct along `slice_dimensions`.
         1. Properties that are not indexed by `slice_dimensions` are repeated in all batches.
         """
 
@@ -87,7 +94,7 @@ class Dataset:
         """Get the list of names of properties held in this dataset."""
 
     def get_property_dimensions(self, property_name: str) -> List[str]:
-        """Get the list of dimention names for a property of this dataset."""
+        """Get the list of dimension names for a property of this dataset."""
 ```
 
 ## Processors
@@ -121,7 +128,9 @@ class FET(BatchProcessor):
 ```python
 class SumRows(BatchProcessor):
     independent_dimensions: List[str] = ["*SAMPLE_DIMENSION*"]
-    input_properties: Dict[str, List[str]] = dict(matrix=["*SAMPLE_DIMENSION*", "*FEATURE_DIMENSION*"])
+    input_properties: Dict[str, List[str]] = dict(
+        matrix=["*SAMPLE_DIMENSION*", "*FEATURE_DIMENSION*"]
+    )
     output_properties: Dict[str, List[str]] = dict(matrix_sum=["*SAMPLE_DIMENSION*"])
 
     def process() -> None:
@@ -131,8 +140,11 @@ class SumRows(BatchProcessor):
 ```python
 class LinearRegression(BatchProcessor):
     independent_dimensions: List[str] = []
-    input_properties: Dict[str, List[str]] = dict(features= ["*SAMPLE_DIMENSION*", "*FEATURE_DIMENSION*"], labels= ["*SAMPLE_DIMENSION*"])
-    output_properties: Dict[str, List[str]] = dict(model= [])
+    input_properties: Dict[str, List[str]] = dict(
+        features=["*SAMPLE_DIMENSION*", "*FEATURE_DIMENSION*"],
+        labels=["*SAMPLE_DIMENSION*"],
+    )
+    output_properties: Dict[str, List[str]] = dict(model=[])
 
     def process() -> None:
         ...
