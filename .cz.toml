@@ -3,7 +3,12 @@ name = "cz_gitmoji"
 tag_format = "v$version"
 version_scheme = "pep440"
 version = "0.1.2"
-version_provider = "commitizen"
 update_changelog_on_bump = true
-major_version_zero = true
-version_files = ["**/pyproject.toml:version"]
+# major_version_zero = true
+version_files = [
+    "rats/pyproject.toml:version",
+    "rats-apps/pyproject.toml:version",
+    "rats-devtools/pyproject.toml:version",
+    "rats-pipelines/pyproject.toml:version",
+    "rats-processors/pyproject.toml:version",
+]
