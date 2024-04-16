@@ -160,13 +160,16 @@ def method_service_id(method: Callable[..., T_ServiceType]) -> ServiceId[T_Servi
 def fn_annotation_decorator(
     namespace: str,
     service_id: ServiceId[T_ServiceType] | None,
-) -> Callable[..., Callable[..., T_ServiceType]]:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     def wrapper(
-        fn: Callable[..., T_ServiceType],
-    ) -> Callable[..., T_ServiceType]:
+        fn: Callable[P, T_ServiceType],
+    ) -> Callable[P, T_ServiceType]:
         _service_id = service_id or method_service_id(fn)
         _add_annotation(namespace, fn, _service_id)
-        return cache(fn)
+        cached_fn = cache(fn)
+        # The static type of cached_fn should be correct, but it does not maintain the param-spec,
+        # so we need to cast.
+        return cast(Callable[P, T_ServiceType], cached_fn)
 
     return wrapper
 
