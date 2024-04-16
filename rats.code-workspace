@@ -10,6 +10,9 @@
             "path": "rats-apps"
         },
         {
+            "path": "rats-devtools"
+        },
+        {
             "path": "rats-pipelines"
         },
         {
