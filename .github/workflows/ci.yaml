@@ -39,6 +39,7 @@ jobs:
       matrix:
         component:
           - rats
+          - rats-apps
           - rats-devtools
           - rats-pipelines
           - rats-processors
@@ -52,17 +53,17 @@ jobs:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
           fetch-tags: true
-      - name: "install-devtools"
+      - name: install-devtools
         run: |
           pipx install poetry
-          poetry self add poetry-dynamic-versioning
-          poetry self add poetry-monorepo-dependency-plugin
+          pipx inject poetry "poetry-dynamic-versioning[plugin]"
+          pipx inject poetry "poetry-monorepo-dependency-plugin"
           pipx install -e rats-devtools/
       - name: "poetry-install"
         run: |
           rats-devtools install ${{ matrix.component }}/
-      - id: "package-info"
-        name: "package-info"
+      - id: package-info
+        name: package-info
         run: |
           cd ${{ matrix.component }}/
           # use poetry to find out the version of our package
@@ -73,10 +74,14 @@ jobs:
           echo package-version=$VERSION >> $GITHUB_OUTPUT
           echo package-name=$PKG_NAME >> $GITHUB_OUTPUT
           echo package-wheel=$PKG_WHEEL >> $GITHUB_OUTPUT
-      - name: ruff
+      - name: ruff-format
         run: |
           cd ${{ matrix.component }}/
-          poetry run ruff check --output-format=github src/python/ test/python/
+          poetry run ruff format --check src/python/ test/python/
+      - name: ruff-check
+        run: |
+          cd ${{ matrix.component }}/
+          poetry run ruff check --no-fix --output-format=github src/python/ test/python/
       - name: pyright
         run: |
           cd ${{ matrix.component }}/
@@ -84,12 +89,19 @@ jobs:
       - name: pytest
         run: |
           cd ${{ matrix.component }}/
-          poetry run pytest
-      - name: "build-wheels"
+          poetry run pytest --cov
+      - name: upload-coverage
+        uses: codecov/codecov-action@v4.3.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: microsoft/rats
+          name: ${{ matrix.component }}
+          verbose: true
+      - name: build-wheels
         run: |
           cd ${{ matrix.component }}/
           poetry build -f wheel
-      - name: "upload-artifacts"
+      - name: upload-artifacts
         uses: actions/upload-artifact@v4
         with:
           name: "wheels.${{ matrix.component }}"
@@ -101,6 +113,7 @@ jobs:
       fail-fast: false
       matrix:
         component:
+          - rats-apps
           - rats-pipelines
           - rats-processors
     needs: test-components

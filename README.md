@@ -1,5 +1,17 @@
 # Research Analysis Tools (rats)
 
+[![Main](https://github.com/microsoft/rats/actions/workflows/main.yaml/badge.svg)](https://github.com/microsoft/rats/actions/workflows/main.yaml)
+[![codecov](https://codecov.io/gh/microsoft/rats/graph/badge.svg?token=hcpBAa587E)](https://codecov.io/gh/microsoft/rats)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/microsoft/rats/main.svg)](https://results.pre-commit.ci/latest/github/microsoft/rats/main)
+[![Checked with pyright](https://microsoft.github.io/pyright/img/pyright_badge.svg)](https://microsoft.github.io/pyright/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+[![PyPI - Version](https://img.shields.io/pypi/v/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
+[![PyPI - Wheel](https://img.shields.io/pypi/wheel/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
+
+
 Rats is a collection of tools to help researchers define and run experiments.
 It is designed to be a modular and extensible framework currently supporting building and
 running pipelines, integrating configs and services.

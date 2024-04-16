@@ -7,6 +7,9 @@
             "path": "docs"
         },
         {
+            "path": "rats-apps"
+        },
+        {
             "path": "rats-pipelines"
         },
         {
@@ -17,6 +20,7 @@
         "files.exclude": {
             // de-duplicate paths added as workspace roots above
             "docs": true,
+            "rats-apps": true,
             "rats-pipelines": true,
             "rats-processors": true,
             // tool-generated dirs/files
@@ -32,16 +36,30 @@
             "**/__pycache__": true
         },
         // settings to apply to all workspace roots
+        "debug.toolBarLocation": "commandCenter",
+        "diffEditor.diffAlgorithm": "advanced",
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": "explicit",
             "source.fixAll": "explicit",
         },
-        "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.rulers": [
             99
         ],
+        "[dockercompose]": {
+            "editor.autoIndent": "advanced"
+        },
+        "[jsonc]": {
+            "editor.defaultFormatter": "vscode.json-language-features"
+        },
+        "[python]": {
+            "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "[yaml]": {
+            "editor.autoIndent": "advanced"
+        },
         "jupyter.notebookFileRoot": "${workspaceFolder}",
+        "markdown.validate.enabled": true,
         "notebook.formatOnSave.enabled": true,
         "notebook.codeActionsOnSave": {
             "source.fixAll": true,
@@ -58,15 +76,14 @@
         ],
         "python.analysis.inlayHints.pytestParameters": true,
         "python.envFile": "${workspaceFolder}/.envrc",
-        "debug.toolBarLocation": "commandCenter",
-        "markdown.validate.enabled": true,
-        "diffEditor.diffAlgorithm": "advanced",
+        "redhat.telemetry.enabled": false,
         "search.exclude": {
             "**/build": true,
             "**/.tmp": true,
             "**/outputs": true,
             "**/__pycache__": true
         },
+        "yaml.format.enable": true,
     },
     "extensions": {
         "recommendations": [
@@ -75,6 +92,7 @@
             "ms-python.debugpy",
             "charliermarsh.ruff",
             "eamodio.gitlens",
+            "redhat.vscode-yaml",
         ]
     }
 }
