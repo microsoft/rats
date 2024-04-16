@@ -7,6 +7,7 @@ domain.
 
 from ._annotations import (
     AnnotatedContainer,
+    autoid_service,
     config,
     container,
     fallback_config,
@@ -40,6 +41,7 @@ __all__ = [
     "group",
     "service",
     "method_service_id",
+    "autoid_service",
     "CompositeContainer",
     "PluginContainers",
 ]
