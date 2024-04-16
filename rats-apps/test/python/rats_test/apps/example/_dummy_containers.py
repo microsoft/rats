@@ -7,6 +7,7 @@ from ._dummies import ITag, Tag1, Tag2
 class _PrivateIds:
     SERVICE2 = apps.ServiceId[Tag2]("service2")
     C1T1 = apps.ServiceId[ITag]("c1t1")
+    C1T2a = apps.ServiceId[Tag2]("c1t2a")
 
 
 class DummyContainer1(apps.AnnotatedContainer):
@@ -38,7 +39,7 @@ class DummyContainer1(apps.AnnotatedContainer):
         # Calling a service using the private service id.
         return self._app.get(_PrivateIds.SERVICE2)
 
-    @apps.service()
+    @apps.service(_PrivateIds.C1T2a)
     def tag2a(self) -> Tag2:
         # Within a container, you can also directly call the service method.
         return self.unnamed_service2()
@@ -74,8 +75,11 @@ class DummyContainer(apps.CompositeContainer):
 # Declaring public service ids for the services we want to expose outside this module.
 # This is the only class defined in this module that would be exposed outside the package.
 class DummyContainerServiceIds:
+    # Take a private id and make it public.
     C1T1 = _PrivateIds.C1T1
+    # Make public ids for a services with auto-generated ids.
     C1T2 = apps.method_service_id(DummyContainer1.tag2)
-    C1T2a = apps.method_service_id(DummyContainer1.tag2a)
     C1T1b = apps.method_service_id(DummyContainer1.tag1b)
     C2T1 = apps.method_service_id(DummyContainer2.tag1)
+    # The same mechanism can be used for services declared with service ids.
+    C1T2a = apps.method_service_id(DummyContainer1.tag2a)

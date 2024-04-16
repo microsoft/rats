@@ -57,6 +57,9 @@ class FunctionAnnotationsBuilder:
     def add(self, namespace: str, service_id: ServiceId[T_ServiceType]) -> None:
         self._service_ids[namespace].append(service_id)
 
+    def get_service_names(self, namespace: str) -> tuple[str, ...]:
+        return tuple(s.name for s in self._service_ids.get(namespace, []))
+
     def make(self, name: str) -> tuple[GroupAnnotations, ...]:
         return tuple(
             [
@@ -130,8 +133,14 @@ def container(
 
 
 def _get_method_service_id_name(method: Callable[..., Any]) -> str:
-    service_name = f"__rats_auto_method_service_id_:{method.__module__}.{method.__qualname__}"
-    return service_name
+    existing_names = _get_annotations_builder(method).get_service_names(
+        ProviderNamespaces.SERVICES
+    )
+    if existing_names:
+        return existing_names[0]
+    else:
+        service_name = f"__rats_auto_method_service_id_:{method.__module__}.{method.__qualname__}"
+        return service_name
 
 
 def method_service_id(method: Callable[..., T_ServiceType]) -> ServiceId[T_ServiceType]:
