@@ -20,6 +20,10 @@ bump = true
 dirty = false
 metadata = false
 
+[tool.poetry-monorepo-dependency-plugin]
+enable = true
+version-pinning-strategy = "semver"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 typing_extensions = "*"
