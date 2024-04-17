@@ -4,7 +4,6 @@ from rats import apps
 
 from ._click import ClickCommandRegistry
 from ._commands import RatsDevtoolsCli, RatsDevtoolsCommands
-from ._container import DecoratedServiceProvider
 
 
 @apps.autoscope
@@ -16,14 +15,14 @@ class RatsDevtoolsAppServiceGroups:
     COMMANDS = apps.ServiceId[ClickCommandRegistry]("commands")
 
 
-class RatsDevtoolsAppContainer(DecoratedServiceProvider):
+class RatsDevtoolsAppContainer(apps.AnnotatedContainer):
     def get_service_ids(self) -> Any:
         raise RuntimeError("deprecated method added for backwards compatibility")
 
     @apps.service(RatsDevtoolsAppServices.CLI)
     def cli(self) -> RatsDevtoolsCli:
         return RatsDevtoolsCli(
-            self.get_service_group_provider(
+            lambda: self.get_group(
                 RatsDevtoolsAppServiceGroups.COMMANDS,
             )
         )
@@ -35,4 +34,4 @@ class RatsDevtoolsAppContainer(DecoratedServiceProvider):
 
 def run() -> None:
     container = RatsDevtoolsAppContainer()
-    container.get_service(RatsDevtoolsAppServices.CLI).execute()
+    container.get(RatsDevtoolsAppServices.CLI).execute()
