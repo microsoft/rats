@@ -131,7 +131,7 @@ class Annotations:
     ) -> dict[str, InProcessorParam]:
         # Classes that inherit from Protocol and do not override __init__, have an __init__ set by
         # in Protocol.__init_subclass__ to a function in the typing module.  That function accepts
-        # *args and **kwargs, but in runtime, no contructor parameters are allowed.
+        # *args and **kwargs, but in runtime, no constructor parameters are allowed.
         # Therefore, if processor_type.__init__.__module__=="typing" we should assume the init
         # signature is empty.
         if getattr(processor_type.__init__, "__module__", None) == "typing":

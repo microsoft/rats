@@ -35,7 +35,7 @@ class P2Pipeline:
         cls, dependencies: Iterable[DagDependency]
     ) -> tuple[PipelineDataDependency[Any], ...]:
         if any(dp.node is None for dp in dependencies):
-            raise ValueError("Trying to convert a hanging depencency.")
+            raise ValueError("Trying to convert a hanging dependency.")
 
         data_dps: list[PipelineDataDependency[Any]] = []
         grouped_dps: defaultdict[str, list[DagDependency]] = defaultdict(list)

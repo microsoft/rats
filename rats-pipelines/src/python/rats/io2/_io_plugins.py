@@ -10,10 +10,10 @@ class RatsIoPlugin(Protocol):
     Plugin class to implement when wanting to enhance the IO capabilitiesa of Rats Pipelines.
 
     The methods in this class are not abstract because we want to be able to add methods without
-    implementors having to implement them immediately. The default implementation of each method
+    implementers having to implement them immediately. The default implementation of each method
     will always be some form of no-op, most likely an empty method.
 
-    Because of the above, implementors should avoid implementing this class alongside other public
+    Because of the above, implementers should avoid implementing this class alongside other public
     methods, because we don't want to cause conflicts with future methods. However, adding a method
     to this interface should still be considered an API breaking change, because we can't guarantee
     that our users have followed this spoken rule.

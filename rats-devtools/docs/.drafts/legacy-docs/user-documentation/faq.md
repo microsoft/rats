@@ -23,7 +23,7 @@ publish archetype pipelines whose parameters can later be specified.
 
 We find that without appropriate design conventions, input / output connecting mechanisms,
 convenient pipeline design language, composability and compatible functionality, these
-tools require large time and rewritting overhead that make them difficult to use in research
+tools require large time and rewriting overhead that make them difficult to use in research
 environments.
 Existing tools do not facilitate this functionality and it is not easy for multiple authors to
 write code that can be easily interconnected, or to specify and modify pipelines easily.

@@ -48,7 +48,7 @@ DPTYPE: dict[str, str] = {
 def _parse_dependencies(dependencies: DictConfig | None) -> None:
     for v in dependencies.values() if dependencies else {}:
         if "_target_" not in v:
-            err_msg = "Only the following pairs of (input, output) attributes are recogized: "
+            err_msg = "Only the following pairs of (input, output) attributes are recognized: "
             err_msg += "(in_entry, out_entry), (in_collection, out_collection), "
             err_msg += "(in_pipeline, out_pipeline)."
             if len(v) > 2:

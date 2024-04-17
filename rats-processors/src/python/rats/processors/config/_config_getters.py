@@ -40,7 +40,7 @@ class InstantiateConfMapping(Mapping[str, Any]):
     def __init__(self, cfg: DictConfig) -> None:
         self._cfg = cfg
 
-    # Note: Using a @cache or @lru_cache instead of @cached_property here causes inifinte recursion
+    # Note: Using a @cache or @lru_cache instead of @cached_property here causes infinite recursion
     # when the second object of the class is used.  This is probably b/c the cache is created at
     # the class level, and self is a key in the cache, and so calling __getitem__ requires
     # comparing self to the cache key which requires calling __getitem__ recursively.

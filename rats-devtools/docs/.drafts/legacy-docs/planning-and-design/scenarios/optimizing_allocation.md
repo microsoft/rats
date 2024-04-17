@@ -2,7 +2,7 @@
 
 ## Intro
 
-A pipepline is a multi-DAG where each node holds a processor, and edges represent data that
+A pipeline is a multi-DAG where each node holds a processor, and edges represent data that
 needs to flow from the output of one node to the inputs of another.
 
 We need to allocate each node to a compute instance (e.g. AKS node / pod).
