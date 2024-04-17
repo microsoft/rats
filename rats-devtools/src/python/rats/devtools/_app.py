@@ -2,8 +2,8 @@ from typing import Any
 
 from rats import apps
 
-from ._click import ClickCommandRegistry
-from ._commands import RatsDevtoolsCli, RatsDevtoolsCommands
+from ._click import ClickCommandGroup, ClickCommandRegistry
+from ._commands import RatsDevtoolsCommands
 
 
 @apps.autoscope
@@ -20,8 +20,8 @@ class RatsDevtoolsAppContainer(apps.AnnotatedContainer):
         raise RuntimeError("deprecated method added for backwards compatibility")
 
     @apps.service(RatsDevtoolsAppServices.CLI)
-    def cli(self) -> RatsDevtoolsCli:
-        return RatsDevtoolsCli(
+    def cli(self) -> ClickCommandGroup:
+        return ClickCommandGroup(
             lambda: self.get_group(
                 RatsDevtoolsAppServiceGroups.COMMANDS,
             )
