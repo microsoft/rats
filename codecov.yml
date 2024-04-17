@@ -11,6 +11,7 @@ component_management:
     paths:
       - src/python/rats/**
   individual_components:
+    - component_id: rats-apps
     - component_id: rats-devtools
     - component_id: rats-pipelines
     - component_id: rats-processors
