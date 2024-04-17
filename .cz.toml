@@ -2,12 +2,12 @@
 name = "cz_gitmoji"
 tag_format = "v$version"
 version_scheme = "pep440"
-version = "0.1.2"
+version_provider = "scm"
 update_changelog_on_bump = true
 version_files = [
-    "rats/pyproject.toml:version",
-    "rats-apps/pyproject.toml:version",
-    "rats-devtools/pyproject.toml:version",
-    "rats-pipelines/pyproject.toml:version",
-    "rats-processors/pyproject.toml:version",
+  "rats/pyproject.toml",
+  "rats-apps/pyproject.toml",
+  "rats-devtools/pyproject.toml",
+  "rats-pipelines/pyproject.toml",
+  "rats-processors/pyproject.toml",
 ]

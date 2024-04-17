@@ -42,13 +42,13 @@ repos:
     rev: v3.22.0
     hooks:
       - id: commitizen
-        additional_dependencies: [cz-conventional-gitmoji]
+        additional_dependencies: [cz-conventional-gitmoji==0.3.0]
       - id: commitizen-branch
-        additional_dependencies: [cz-conventional-gitmoji]
+        additional_dependencies: [cz-conventional-gitmoji==0.3.0]
         stages: [push]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
-    rev: v0.2.4
+    rev: v0.3.0
     hooks:
       - id: conventional-gitmoji
 
