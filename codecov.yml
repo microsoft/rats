@@ -6,11 +6,12 @@ component_management:
     statuses:
       - type: project
         informational: true
-      - type: patch
-        informational: true
+#      - type: patch
+#        informational: true
     paths:
       - src/python/rats/**
   individual_components:
+    - component_id: rats-apps
     - component_id: rats-devtools
     - component_id: rats-pipelines
     - component_id: rats-processors

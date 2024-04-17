@@ -1,9 +1,10 @@
 from collections.abc import Callable
 
 from rats import apps
-from rats.apps import CompositeContainer, Container, PluginContainers
+from rats.apps import CompositeContainer, Container
 
 from ._dummy_containers import DummyContainer
+from ._storage_plugin import ExampleStoragePlugin
 
 
 class ExampleApp(apps.AnnotatedContainer):
@@ -22,4 +23,4 @@ class ExampleApp(apps.AnnotatedContainer):
 
     @apps.container()
     def package_plugins(self) -> Container:
-        return PluginContainers(self, "rats-apps.test-plugins")
+        return ExampleStoragePlugin(self)
