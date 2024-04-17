@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from rats import apps
-from rats.apps import CompositeContainer, Container, PluginContainers
+from rats.apps import CompositeContainer, Container
 
 from ._dummy_containers import DummyContainer
 from ._storage_plugin import ExampleStoragePlugin
