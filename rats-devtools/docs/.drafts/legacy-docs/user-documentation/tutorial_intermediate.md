@@ -272,8 +272,7 @@ class StandardizeTrainOut(NamedTuple):
 
 
 class StandardizeTrain:
-    def process(X: float) -> StandardizeTrainOut:
-        ...
+    def process(X: float) -> StandardizeTrainOut: ...
 
 
 class StandardizeEvalOut(NamedTuple):
@@ -281,11 +280,9 @@ class StandardizeEvalOut(NamedTuple):
 
 
 class StandardizeEval:
-    def __init__(self, mean: float, scale: float) -> None:
-        ...
+    def __init__(self, mean: float, scale: float) -> None: ...
 
-    def process(X: float) -> StandardizeEvalOut:
-        ...
+    def process(X: float) -> StandardizeEvalOut: ...
 
 
 stz_train = PipelineBuilder.task(StandardizeTrain)
@@ -381,8 +378,7 @@ class LogisticRegressionTrainOut(NamedTuple):
 
 
 class LogisticRegressionTrain:
-    def process(X: float, Y: float) -> LogisticRegressionTrainOut:
-        ...
+    def process(X: float, Y: float) -> LogisticRegressionTrainOut: ...
 
 
 class LogisticRegressionEvalOut(NamedTuple):
@@ -391,11 +387,9 @@ class LogisticRegressionEvalOut(NamedTuple):
 
 
 class LogisticRegressionEval:
-    def __init__(self, model: tuple[float, ...]) -> None:
-        ...
+    def __init__(self, model: tuple[float, ...]) -> None: ...
 
-    def process(X: float, Y: float) -> LogisticRegressionEvalOut:
-        ...
+    def process(X: float, Y: float) -> LogisticRegressionEvalOut: ...
 
 
 lr_train = PipelineBuilder.task(LogisticRegressionTrain, name="lr_train")
@@ -654,8 +648,7 @@ TInputs = TypeVar("TInputs", bound=Inputs, covariant=True)
 TOutputs = TypeVar("TOutputs", bound=Outputs, covariant=True)
 
 
-class Pipeline(Generic[TInputs, TOutputs]):
-    ...
+class Pipeline(Generic[TInputs, TOutputs]): ...
 ```
 This mechanism allow Pipelines to be annotated as we have seen in the builders above:
 ```python
@@ -747,8 +740,7 @@ Tco_Pipeline = TypeVar("Tco_Pipeline", bound=UPipeline, covariant=True)
 
 
 class IProvidePipeline(Protocol[Tco_Pipeline]):
-    def __call__(self) -> Tco_Pipeline:
-        ...
+    def __call__(self) -> Tco_Pipeline: ...
 ```
 
 Note that `IProvidePipeline` is a

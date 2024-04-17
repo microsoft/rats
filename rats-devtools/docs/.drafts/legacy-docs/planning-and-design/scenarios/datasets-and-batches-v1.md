@@ -121,8 +121,7 @@ class FET(BatchProcessor):
     input_properties: Dict[str, List[str]] = dict(indicators=["repertoire", "TCR"])
     output_properties: Dict[str, List[str]] = dict(pvalues=["TCR"])
 
-    def process() -> None:
-        ...
+    def process() -> None: ...
 ```
 
 ```python
@@ -133,8 +132,7 @@ class SumRows(BatchProcessor):
     )
     output_properties: Dict[str, List[str]] = dict(matrix_sum=["*SAMPLE_DIMENSION*"])
 
-    def process() -> None:
-        ...
+    def process() -> None: ...
 ```
 
 ```python
@@ -146,8 +144,7 @@ class LinearRegression(BatchProcessor):
     )
     output_properties: Dict[str, List[str]] = dict(model=[])
 
-    def process() -> None:
-        ...
+    def process() -> None: ...
 ```
 
 ### Dataset level processors

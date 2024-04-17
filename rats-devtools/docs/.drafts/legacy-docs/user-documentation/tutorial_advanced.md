@@ -68,8 +68,7 @@ class ReportOut(NamedTuple):
 
 
 class Report:
-    def process(probs: float) -> ReportOut:
-        ...
+    def process(probs: float) -> ReportOut: ...
 
 
 r1 = PipelineBuilder.task(Report, name="r1")
@@ -107,13 +106,11 @@ class ReportOut(NamedTuple):
 
 
 class Report:
-    def process(probs: float) -> ReportOut:
-        ...
+    def process(probs: float) -> ReportOut: ...
 
 
 class Summary:
-    def process(accuracies: Sequence[float]) -> None:
-        ...
+    def process(accuracies: Sequence[float]) -> None: ...
 
 
 r1 = PipelineBuilder.task(Report, name="r1")
@@ -326,8 +323,7 @@ Consider the following example:
 
 ```python
 class Report:
-    def process(probs: float) -> None:
-        ...
+    def process(probs: float) -> None: ...
 
 
 report = PipelineBuilder.task(Report)

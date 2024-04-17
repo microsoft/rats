@@ -26,11 +26,9 @@ from rats.processors import IProcess
 
 
 class ExampleProcessor(IProcess):
-    def __init__(self, args) -> None:
-        ...
+    def __init__(self, args) -> None: ...
 
-    def process(self) -> None:
-        ...
+    def process(self) -> None: ...
 ```
 
 The `IProcess` interface simply requires that you implement a `process` method, and returns a

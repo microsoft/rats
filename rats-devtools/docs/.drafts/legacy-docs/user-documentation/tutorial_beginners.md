@@ -61,8 +61,7 @@ class AOutput(NamedTuple):
 
 
 class A:
-    def process(self) -> AOutput:
-        ...
+    def process(self) -> AOutput: ...
 
 
 class BOutput(NamedTuple):
@@ -70,8 +69,7 @@ class BOutput(NamedTuple):
 
 
 class B:
-    def process(self, X: Any) -> BOutput:
-        ...
+    def process(self, X: Any) -> BOutput: ...
 
 
 class COutput(NamedTuple):
@@ -79,13 +77,11 @@ class COutput(NamedTuple):
 
 
 class C:
-    def process(self, X: Any) -> COutput:
-        ...
+    def process(self, X: Any) -> COutput: ...
 
 
 class D:
-    def process(self, X1: Any, X2: Any) -> None:
-        ...
+    def process(self, X1: Any, X2: Any) -> None: ...
 ```
 
 *Processors* can have arbitrary inputs, in this case we have processors with empty, single, single
@@ -166,8 +162,7 @@ class StandardizeTrainOut(NamedTuple):
 
 
 class StandardizeTrain:
-    def process(self, X_train: float) -> StandardizeTrainOut:
-        ...
+    def process(self, X_train: float) -> StandardizeTrainOut: ...
 
 
 class StandardizeEvalOut(NamedTuple):
@@ -175,11 +170,9 @@ class StandardizeEvalOut(NamedTuple):
 
 
 class StandardizeEval:
-    def __init__(self, mean: float, scale: float) -> None:
-        ...
+    def __init__(self, mean: float, scale: float) -> None: ...
 
-    def process(self, X_eval: float) -> StandardizeEvalOut:
-        ...
+    def process(self, X_eval: float) -> StandardizeEvalOut: ...
 
 
 class LogisticRegressionTrainOut(NamedTuple):
@@ -188,8 +181,7 @@ class LogisticRegressionTrainOut(NamedTuple):
 
 
 class LogisticRegressionTrain:
-    def process(self, X_train: float, Y_train: float) -> LogisticRegressionTrainOut:
-        ...
+    def process(self, X_train: float, Y_train: float) -> LogisticRegressionTrainOut: ...
 
 
 class LogisticRegressionEvalOut(NamedTuple):
@@ -197,11 +189,9 @@ class LogisticRegressionEvalOut(NamedTuple):
 
 
 class LogisticRegressionEval:
-    def __init__(self, model: tuple[float, ...]) -> None:
-        ...
+    def __init__(self, model: tuple[float, ...]) -> None: ...
 
-    def process(self, X_eval: float, Y_eval: float) -> LogisticRegressionEvalOut:
-        ...
+    def process(self, X_eval: float, Y_eval: float) -> LogisticRegressionEvalOut: ...
 ```
 
 We create single node pipelines, aka. *tasks*, and combine them, similar to how we did with in the
