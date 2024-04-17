@@ -17,7 +17,13 @@ vcs = "git"
 style = "pep440"
 bump = true
 dirty = false
+# This would allow us to publish from PR builds but Azure Devops artifacts lack support:
+# https://developercommunity.visualstudio.com/t/local-version-segments-for-python-package-feeds/892057
 metadata = false
+
+[tool.poetry-monorepo-dependency-plugin]
+enable = true
+version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -36,9 +42,6 @@ types-urllib3 = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
-
-[tool.poetry.plugins."rats-apps.test-plugins"]
-example-storage = "rats_test.apps.example:ExampleStoragePlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

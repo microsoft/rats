@@ -1,6 +1,15 @@
 codecov:
   require_ci_to_pass: false
 
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        informational: true
+
 component_management:
   default_rules:  # default rules that will be inherited by all components
     statuses:
@@ -11,12 +20,13 @@ component_management:
     paths:
       - src/python/rats/**
   individual_components:
+    - component_id: rats-apps
     - component_id: rats-devtools
     - component_id: rats-pipelines
     - component_id: rats-processors
 
 comment:
-  layout: "condensed_header, condensed_components, condensed_files, condensed_footer"
+  layout: header, components, condensed_files, condensed_footer
   behavior: default
   require_changes: false  # if true: only post the comment if coverage changes
   require_base: false  # [true :: must have a base report to post]

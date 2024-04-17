@@ -26,6 +26,7 @@ enable = true
 version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
+rats-apps = { path = "../rats-apps", develop = true }
 rats-pipelines = { path = "../rats-pipelines", develop = true }
 click = "*"
 python = "^3.10"
