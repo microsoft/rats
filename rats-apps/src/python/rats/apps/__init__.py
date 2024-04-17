@@ -19,6 +19,7 @@ from ._annotations import (
 )
 from ._composite_container import CompositeContainer
 from ._container import Container, DuplicateServiceError, ServiceNotFoundError
+from ._executables import App, Executable
 from ._ids import ConfigId, ServiceId
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
@@ -26,12 +27,17 @@ from ._scoping import autoscope
 
 __all__ = [
     "AnnotatedContainer",
+    "App",
+    "CompositeContainer",
     "ConfigId",
     "Container",
     "DuplicateServiceError",
+    "Executable",
+    "PluginContainers",
     "ProviderNamespaces",
     "ServiceId",
     "ServiceNotFoundError",
+    "autoid_service",
     "autoscope",
     "config",
     "container",
@@ -39,9 +45,6 @@ __all__ = [
     "fallback_group",
     "fallback_service",
     "group",
-    "service",
     "method_service_id",
-    "autoid_service",
-    "CompositeContainer",
-    "PluginContainers",
+    "service",
 ]
