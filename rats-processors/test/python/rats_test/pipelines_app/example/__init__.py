@@ -1,5 +1,5 @@
 from ._app import ExampleApp
-from ._pipeline1 import ExamplePipelineServices
+from ._service_ids import ExamplePipelineServices
 
 __all__ = [
     "ExampleApp",
