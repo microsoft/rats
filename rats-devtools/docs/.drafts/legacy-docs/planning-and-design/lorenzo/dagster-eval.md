@@ -82,7 +82,6 @@ class Presenter:
 
 
 class GenerateThings:
-
     _out: Presenter
 
     def __init__(self, out: Presenter) -> None:
@@ -106,7 +105,6 @@ some issues:
 
 ```python
 class Presenter:
-
     _results: list[str]
 
     def __init__(self) -> None:
@@ -121,7 +119,6 @@ class Presenter:
 
 
 class GenerateThings:
-
     _out: Presenter
 
     def __init__(self, out: Presenter) -> None:
@@ -132,7 +129,6 @@ class GenerateThings:
 
 
 class Adapter:
-
     _command: GenerateThings
     _presenter: Presenter
 

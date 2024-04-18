@@ -35,13 +35,15 @@ returned by providers.
             # run query against database
             pass
 
+
     def database_client_provider() -> DatabaseClient:
         return DatabaseClient(
-            host='localhost',
+            host="localhost",
             port=5432,
-            username='postgres',
-            password='postgres',
+            username="postgres",
+            password="postgres",
         )
+
 
     container = ServiceContainer()
     container.register_provider(
@@ -67,7 +69,7 @@ for the core responsibilities of the system.
     at least one person interested in each and every permutation of required and optional
     cluster arguments; some will want to provide a user email to track along with the cluster
     usage; some will ask you to populate that field based on the user's current azure cli
-    profile. Making this assumption avoids us going through the futile excercise of trying to
+    profile. Making this assumption avoids us going through the futile exercise of trying to
     group sets of cluster arguments into things our flawed notion of a persona might find
     interesting, we can call those details private, and puntable, and stick with the simpler, more
     obvious use case; our users want to create spark clusters.
@@ -112,7 +114,6 @@ arguments, and eliminating the decision of where the values might come from.
 
     ```python
     class CreateClusterExecutable:
-
         def __init__(self, request: ClusterRequest) -> None:
             self._request = request
 
@@ -135,8 +136,8 @@ arguments, and eliminating the decision of where the values might come from.
 ```python
 cit = Context[ClusterRequest]("cli-command.create-cluster")
 
-class SomeUseCases:
 
+class SomeUseCases:
     def __init__(self, ctx: ContextClient) -> None:
         self._ctx = ctx
 
@@ -146,11 +147,14 @@ class SomeUseCases:
         print(f"creating cluster named: {values.name})")
 
 
-with r.open(cit, ClusterRequest(
+with r.open(
+    cit,
+    ClusterRequest(
         name="example-cluster",
         cpu_cores=4,
         memory=100,
-    )):
+    ),
+):
     exe.execute()
 ```
 
@@ -158,28 +162,32 @@ Last bit! We can now hide all this flexibility and expose perfect APIs to our tw
 
 ```python
 class PersonaA:
-
     def create_cluster(self, name: str) -> None:
-        with r.open(cit, ClusterRequest(
-            name=f"jupyter-{name}",
-            # Get below values… from somewhere else
-            cpu_cores=4,
-            memory=50,
-        )):
+        with r.open(
+            cit,
+            ClusterRequest(
+                name=f"jupyter-{name}",
+                # Get below values… from somewhere else
+                cpu_cores=4,
+                memory=50,
+            ),
+        ):
             self.exe.execute()
 
         CreateClusterExecutable(...).execute()
 
 
 class PersonaB:
-
     def create_cluster(self, cpu_cores: int) -> None:
-        with r.open(cit, ClusterRequest(
-            cpu_cores=cpu_cores,
-            # Get below values… from somewhere else
-            name=f"workflow-{uuid}",
-            memory=50,
-        )):
+        with r.open(
+            cit,
+            ClusterRequest(
+                cpu_cores=cpu_cores,
+                # Get below values… from somewhere else
+                name=f"workflow-{uuid}",
+                memory=50,
+            ),
+        ):
             self.exe.execute()
 ```
 

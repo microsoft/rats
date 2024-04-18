@@ -2,7 +2,7 @@
 name = "rats-pipelines"
 description = "Rats Pipelines"
 # Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.1.1"
+version = "0.1.2"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]

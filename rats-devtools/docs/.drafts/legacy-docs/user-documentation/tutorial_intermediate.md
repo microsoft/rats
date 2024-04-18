@@ -62,7 +62,7 @@ When the task is executed it performs the following:
 ### Constructor Parameters
 
 To construct a processor object, the task needs to provide a value for each parameter of the
-constuctor of `processor_type`.
+constructor of `processor_type`.
 
 For each such parameter, the value will be provided in one of the following three ways:
 
@@ -82,8 +82,10 @@ from typing import NamedTuple
 from rats.processors.ux import PipelineBuilder, display_dag
 from rats.processors.dag import display_dag
 
+
 class SavePandasOut(NamedTuple):
     file_path: str
+
 
 class SavePandas:
     def __init__(self, output_folder: Path, file_name: str):
@@ -95,7 +97,7 @@ class SavePandas:
         return SavePandasOut(file_path=self._file_path)
 ```
 
-We can provide the constuctor arguments when we build the task, like this:
+We can provide the constructor arguments when we build the task, like this:
 
 ```python
 save_pandas_1 = PipelineBuilder.task(
@@ -106,15 +108,17 @@ save_pandas_1 = PipelineBuilder.task(
 display_dag(save_pandas_1)
 ```
 
-Or, we can ommit some of them and they will become an inputs the the task:
+Or, we can omit some of them and they will become an inputs the the task:
 
 ```python
-save_pandas_2 = PipelineBuilder.task(processor_type=SavePandas, config=dict(file_name="a.csv"))
+save_pandas_2 = PipelineBuilder.task(
+    processor_type=SavePandas, config=dict(file_name="a.csv")
+)
 
 display_dag(save_pandas_2)
 ```
 
-Finally, we can ask the framework to provide a service object as the value of a contructor
+Finally, we can ask the framework to provide a service object as the value of a constructor
 argument, like this:
 
 ```python
@@ -138,7 +142,8 @@ from pathlib import Path
 from rats.processors import RatsProcessorsServices
 
 pipeline_runner_factory = rats_service_provider.get_service(
-    RatsProcessorsServices.PIPELINE_RUNNER_FACTORY)
+    RatsProcessorsServices.PIPELINE_RUNNER_FACTORY
+)
 ```
 
 And we'll need to provide a dataframe as input:
@@ -188,6 +193,7 @@ Consider the following *processor*:
 ```python
 from typing import Any, Mapping
 
+
 class Identity:
     def process(self, **kwargs) -> Mapping[str, Any]:
         return kwargs
@@ -202,7 +208,7 @@ do not know them a priori.
 They do need to be specified at pipeline construction time, and that is the reason why
 `rats.processors.Task` accepts `input_annotation` and `return_annotation` parameters.
 
-For most *processors* these arguments will be unncessary, but if we provide them, they will
+For most *processors* these arguments will be unnecessary, but if we provide them, they will
 override the class's input or output signatures, respectively.
 
 For example:
@@ -210,7 +216,9 @@ For example:
 from rats.processors import PipelineBuilder
 
 io_annotation = {"foo": str, "boo": bool, "bee": int}
-t = PipelineBuilder.task(Identity, input_annotation=io_annotation, return_annotation=io_annotation)
+t = PipelineBuilder.task(
+    Identity, input_annotation=io_annotation, return_annotation=io_annotation
+)
 ```
 
 > :notebook: **Note**:
@@ -256,24 +264,26 @@ Consider the following `standardization` example:
 from typing import NamedTuple
 from rats.processors import PipelineBuilder
 
+
 class StandardizeTrainOut(NamedTuple):
     mean: float
     scale: float
     Z: float
 
+
 class StandardizeTrain:
-    def process(X: float) -> StandardizeTrainOut:
-        ...
+    def process(X: float) -> StandardizeTrainOut: ...
+
 
 class StandardizeEvalOut(NamedTuple):
     Z: float
 
-class StandardizeEval:
-    def __init__(self, mean: float, scale: float) -> None:
-        ...
 
-    def process(X: float) -> StandardizeEvalOut:
-        ...
+class StandardizeEval:
+    def __init__(self, mean: float, scale: float) -> None: ...
+
+    def process(X: float) -> StandardizeEvalOut: ...
+
 
 stz_train = PipelineBuilder.task(StandardizeTrain)
 stz_eval = PipelineBuilder.task(StandardizeEval)
@@ -332,8 +342,8 @@ specify how `X` and `Z` are combined together.
 In the `PipelineBuilder.combine` example from above we have written:
 
 ```python
-inputs={"X.train": stz_train.inputs.X, "X.eval": stz_eval.inputs.X},
-outputs={"Z.train": stz_train.outputs.Z, "Z.eval": stz_eval.outputs.Z}
+inputs = ({"X.train": stz_train.inputs.X, "X.eval": stz_eval.inputs.X},)
+outputs = {"Z.train": stz_train.outputs.Z, "Z.eval": stz_eval.outputs.Z}
 ```
 
 The combined pipeline will expose variables as collections of parameters:
@@ -361,24 +371,26 @@ Here another example with `logistic_regression`:
 from typing import NamedTuple
 from rats.processors import PipelineBuilder
 
+
 class LogisticRegressionTrainOut(NamedTuple):
     model: tuple[float]
     Z: float
 
+
 class LogisticRegressionTrain:
-    def process(X: float, Y: float) -> LogisticRegressionTrainOut:
-        ...
+    def process(X: float, Y: float) -> LogisticRegressionTrainOut: ...
+
 
 class LogisticRegressionEvalOut(NamedTuple):
     Z: float
     probs: float
 
-class LogisticRegressionEval:
-    def __init__(self, model: tuple[float, ...]) -> None:
-        ...
 
-    def process(X: float, Y: float) -> LogisticRegressionEvalOut:
-        ...
+class LogisticRegressionEval:
+    def __init__(self, model: tuple[float, ...]) -> None: ...
+
+    def process(X: float, Y: float) -> LogisticRegressionEvalOut: ...
+
 
 lr_train = PipelineBuilder.task(LogisticRegressionTrain, name="lr_train")
 lr_eval = PipelineBuilder.task(LogisticRegressionEval, name="lr_eval")
@@ -480,7 +492,7 @@ This is achieved via specifying inputs and outputs when combining pipelines toge
 ### Defaults for `UserInput` and `UserOutput`
 
 Leaving `inputs` and `outputs` of `PipelineBuilder.combine` unspecified or set to `None` will
-default their specificiation:
+default their specification:
 
 - All `inputs` or `outputs` from pipelines to combine will be merged, after subtracting any input
 or output specified in the `dependencies` argument.
@@ -508,8 +520,8 @@ outputs = {
 ```
 
 Only `standardization.outputs.Z` is specified in the dependencies list and excluded.
-Furthremore, pecifying `Z` output could also have been done more verbosely:
-```python
+Furthermore, specifying `Z` output could also have been done more verbosely:
+```
 {
     ...,
     "Z.train": logistic_regression.outputs.Z.train,
@@ -546,28 +558,37 @@ For example:
 ```python
 from rats.processors.ux import Inputs, Outputs, InPort, OutPort
 
+
 class XIn(Inputs):
     X: InPort[float]
+
 
 class XMeanScaleIn(Inputs):
     X: InPort[float]
     mean: InPort[float]
     scale: InPort[float]
 
+
 class ZOut(Outputs):
     Z: OutPort[float]
+
 
 class ZMeanScaleOut(Outputs):
     Z: OutPort[float]
     mean: OutPort[float]
     scale: OutPort[float]
 
+
 stz_train = PipelineBuilder[XIn, ZMeanScaleOut].task(StandardizeTrain)
 stz_eval = PipelineBuilder[XMeanScaleIn, ZOut].task(StandardizeEval)
 
 # statically evaluated and completed with IDE
-stz_eval.inputs.mean << stz_train.outputs.mean  # identified as InPort << OutPort on hover
-stz_eval.inputs.scale << stz_train.outputs.scale   # identified as InPort << OutPort on hover
+(
+    stz_eval.inputs.mean << stz_train.outputs.mean
+)  # identified as InPort << OutPort on hover
+(
+    stz_eval.inputs.scale << stz_train.outputs.scale
+)  # identified as InPort << OutPort on hover
 ```
 
 When combining variables together, nested declaration is possible:
@@ -576,17 +597,21 @@ class TrainEvalIn(Inputs):
     train: InPort[float]
     eval: InPort[float]
 
+
 class TrainEvalZOut(Outputs):
     train: OutPort[float]
     eval: OutPort[float]
 
+
 class StzIn(Inputs):
     X: TrainEvalIn
+
 
 class StzOut(Outputs):
     Z: TrainEvalZOut
     mean: OutPort[float]
     scale: OutPort[float]
+
 
 stz = PipelineBuilder[StzIn, StzOut].combine(
     pipelines=[stz_train, stz_eval],
@@ -601,11 +626,11 @@ stz = PipelineBuilder[StzIn, StzOut].combine(
         "scale": stz_train.outputs.scale,
         "Z.train": stz_train.outputs.Z,
         "Z.eval": stz_eval.outputs.Z,
-    }
+    },
 )
 # statically evaluated and completed with IDE
 stz.inputs.X  # identified as Inputs
-stz.inputs.X.train # identified as InPort
+stz.inputs.X.train  # identified as InPort
 stz.inputs.X.eval  # identified as InPort
 stz.outputs.Z  # identified as Outputs
 stz.outputs.Z.train  # identified as OutPort
@@ -622,8 +647,8 @@ from typing import Generic, TypeVar
 TInputs = TypeVar("TInputs", bound=Inputs, covariant=True)
 TOutputs = TypeVar("TOutputs", bound=Outputs, covariant=True)
 
-class Pipeline(Generic[TInputs, TOutputs]):
-    ...
+
+class Pipeline(Generic[TInputs, TOutputs]): ...
 ```
 This mechanism allow Pipelines to be annotated as we have seen in the builders above:
 ```python
@@ -666,9 +691,13 @@ from rats.services import (
 
 from ._pipeline import DiamondExecutable, DiamondPipeline, DiamondPipelineProvider
 
+
 @scoped_service_ids
 class _PrivateServices:
-    DIAMOND_PIPELINE_PROVIDER = ServiceId[IProvidePipeline[DiamondPipeline]]("diamond-provider")
+    DIAMOND_PIPELINE_PROVIDER = ServiceId[IProvidePipeline[DiamondPipeline]](
+        "diamond-provider"
+    )
+
 
 class DiamondExampleDiContainer:
     _app: IProvideServices
@@ -683,7 +712,10 @@ class DiamondExampleDiContainer:
     @service_group(RatsProcessorsRegistryServiceGroups.PIPELINE_PROVIDERS)
     def diamond_pipeline_providers_group(self) -> IProvidePipelineCollection:
         diamond = _PrivateServices.DIAMOND_PIPELINE_PROVIDER
-        return ServiceMapping(services_provider=self._app, service_ids_map={"diamond": diamond})
+        return ServiceMapping(
+            services_provider=self._app, service_ids_map={"diamond": diamond}
+        )
+
 
 class DiamondExampleServices:
     DIAMOND_PIPELINE_PROVIDER = _PrivateServices.DIAMOND_PIPELINE_PROVIDER
@@ -706,9 +738,9 @@ from rats.processors.ux import UPipeline
 
 Tco_Pipeline = TypeVar("Tco_Pipeline", bound=UPipeline, covariant=True)
 
+
 class IProvidePipeline(Protocol[Tco_Pipeline]):
-    def __call__(self) -> Tco_Pipeline:
-        ...
+    def __call__(self) -> Tco_Pipeline: ...
 ```
 
 Note that `IProvidePipeline` is a

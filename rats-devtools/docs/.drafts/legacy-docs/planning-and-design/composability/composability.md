@@ -10,7 +10,7 @@ complicated operations by adding nodes or repeating patterns to build more sophi
 ML pipelines.
 
 Composing pipelines is not a trivial operation (we need to keep track of output to input
-dependencies betwen steps!), and we have not found a library that does it either.
+dependencies between steps!), and we have not found a library that does it either.
 However, we have reached a nice solution that feels natural and general enough for ML use cases,
 including building train and evaluation pipelines automatically, and combining them with
 HPO (hyperparameter optimization), cross-validation, pseudolabelling.

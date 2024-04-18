@@ -48,7 +48,7 @@ class InParameter(PipelineParam[InProcessorParam, T]):
 
     def __lshift__(self, other: OutParameter[T]) -> Dependency[T]:
         if not isinstance(other, OutParameter):
-            raise ValueError("Not assinging outputs to inputs.")
+            raise ValueError("Not assigning outputs to inputs.")
 
         return Dependency(self, other)
 
@@ -71,7 +71,7 @@ class OutParameter(PipelineParam[OutProcessorParam, T]):
 
     def __rshift__(self, other: InParameter[T]) -> Dependency[T]:
         if not isinstance(other, InParameter):
-            raise ValueError("Not assinging outputs to inputs.")
+            raise ValueError("Not assigning outputs to inputs.")
 
         return Dependency(other, self)
 
