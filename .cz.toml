@@ -4,10 +4,4 @@ tag_format = "v$version"
 version_scheme = "pep440"
 version_provider = "scm"
 update_changelog_on_bump = true
-version_files = [
-  "rats/pyproject.toml",
-  "rats-apps/pyproject.toml",
-  "rats-devtools/pyproject.toml",
-  "rats-pipelines/pyproject.toml",
-  "rats-processors/pyproject.toml",
-]
+version_files = ["**/pyproject.toml"]
