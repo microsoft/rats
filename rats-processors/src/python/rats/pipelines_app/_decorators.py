@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from functools import wraps
 from typing import Concatenate, ParamSpec, TypeVar
 
 from rats import apps
@@ -23,6 +24,9 @@ def _process_method_to_task_method(
         return ux.UTask(_Processor)
 
     get_task.__name__ = process_method.__name__
+    get_task.__module__ = process_method.__module__
+    get_task.__qualname__ = process_method.__qualname__
+    get_task.__doc__ = process_method.__doc__
 
     return get_task
 
@@ -49,6 +53,7 @@ def pipeline(
     """
     name = get_pipeline_method.__name__
 
+    @wraps(get_pipeline_method)
     def get_pipeline_and_rename(
         self: T_Container,
     ) -> ux.Pipeline[ux.TInputs, ux.TOutputs]:
@@ -57,5 +62,4 @@ def pipeline(
             pipeline = pipeline.decorate(name)
         return pipeline
 
-    get_pipeline_and_rename.__name__ = name
     return apps.autoid_service(get_pipeline_and_rename)

@@ -42,7 +42,11 @@ from ._pipeline import (
     PipelineConf,
     UPipeline,
 )
-from ._session import ExposeGivenOutputsProcessor, PipelineRunner, PipelineRunnerFactory
+from ._session import (
+    ExposeGivenOutputsProcessor,
+    PipelineRunner,
+    PipelineRunnerFactory,
+)
 
 __all__ = [
     "CombinedConf",

@@ -7,7 +7,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import Enum
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
-from typing import Any, NamedTuple, Protocol, final, runtime_checkable
+from typing import Any, NamedTuple, Protocol, Union, final, runtime_checkable
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ _KEYWORD_ONLY = _ParameterKind.KEYWORD_ONLY
 _VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
 
 
-T_Processor_Output = Mapping[str, Any] | NamedTuple | None
+T_Processor_Output = Union[Mapping[str, Any], NamedTuple, None]  # noqa: UP007 otherwise pytest complains
 
 
 # IProcess protocol cannot be generic because the return type is abstract.
