@@ -67,9 +67,8 @@ class MyContainer(PipelineContainer):
     @pipeline
     def my_pipeline(self) -> ExecutablePipeline:
         load_data = self.load_data()
-        train_model = self.train_model()
-        return CombinedPipeline(
-            name="my_pipeline",
+        train_model = self.get(train_model)
+        return self.combine(
             pipelines=[load_data, train_model],
             dependencies=(train_model.inputs.data << load_data.outputs.data),
         )
