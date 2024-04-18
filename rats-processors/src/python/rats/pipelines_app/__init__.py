@@ -1,5 +1,6 @@
 from ._combiner import IPipelineCombiner
 from ._decorators import pipeline, task
+from ._pipeline_container import PipelineContainer
 from ._services import (
     IPipelineRunner,
     IPipelineRunnerFactory,
@@ -10,6 +11,7 @@ from ._services import (
 
 __all__ = [
     "pipeline",
+    "PipelineContainer",
     "PipelineServices",
     "PipelineServiceContainer",
     "IPipelineRunner",

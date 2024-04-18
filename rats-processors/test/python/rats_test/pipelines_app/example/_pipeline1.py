@@ -14,7 +14,7 @@ class TrainModelOutput(NamedTuple):
     length: int
 
 
-class ExamplePipelineContainer(apps.AnnotatedContainer):
+class ExamplePipelineContainer(rpa.PipelineContainer):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
