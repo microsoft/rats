@@ -11,7 +11,7 @@ from typing import (
     Any,
     NamedTuple,
     Protocol,
-    Union,  # pyright: ignore[reportDeprecated]  pytest fails when defining T_Processor_Output using |
+    Union,  # pyright: ignore[reportDeprecated]  pytest fails when defining ProcessorOutput using |
     final,
     runtime_checkable,
 )
@@ -26,7 +26,7 @@ _KEYWORD_ONLY = _ParameterKind.KEYWORD_ONLY
 _VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
 
 
-T_Processor_Output = Union[Mapping[str, Any], NamedTuple, None]  # type: ignore[reportDeprecated]  # noqa: UP007  otherwise pytest fails
+ProcessorOutput = Union[Mapping[str, Any], NamedTuple, None]  # type: ignore[reportDeprecated]  # noqa: UP007  otherwise pytest fails
 
 
 # IProcess protocol cannot be generic because the return type is abstract.

@@ -7,7 +7,7 @@ from ._processor import (
     InProcessorParam,
     IProcess,
     OutProcessorParam,
-    T_Processor_Output,
+    ProcessorOutput,
 )
 from ._utils import find_downstream_nodes
 from ._viz import dag_to_svg, display_dag
@@ -33,5 +33,5 @@ __all__ = [
     "find_downstream_nodes",
     "RatsProcessorsDagPlugin",
     "RatsProcessorsDagServices",
-    "T_Processor_Output",
+    "ProcessorOutput",
 ]

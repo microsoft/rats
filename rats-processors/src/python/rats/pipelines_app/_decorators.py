@@ -19,7 +19,7 @@ class _process_method_to_task_method(Generic[TInputs, TOutputs]):
 
     def __new__(
         cls,
-        process_method: Callable[Concatenate[T_Container, P], ux.T_Processor_Output],
+        process_method: Callable[Concatenate[T_Container, P], ux.ProcessorOutput],
     ) -> Callable[[T_Container], ux.Pipeline[TInputs, TOutputs]]:
         class _Processor(ux.IProcess):
             process = process_method
@@ -50,26 +50,26 @@ class task(Generic[TInputs, TOutputs]):
 
     def __new__(
         cls,
-        process_method: Callable[Concatenate[T_Container, P], ux.T_Processor_Output],
+        process_method: Callable[Concatenate[T_Container, P], ux.ProcessorOutput],
     ) -> Callable[[T_Container], ux.Pipeline[TInputs, TOutputs]]:
         task_method = _process_method_to_task_method[TInputs, TOutputs](process_method)
         return apps.autoid_service(task_method)
 
 
 def pipeline(
-    get_pipeline_method: Callable[[T_Container], ux.Pipeline[ux.TInputs, ux.TOutputs]],
+    pipeline_method: Callable[[T_Container], ux.Pipeline[ux.TInputs, ux.TOutputs]],
 ) -> Callable[[T_Container], ux.Pipeline[ux.TInputs, ux.TOutputs]]:
     """Decorator creating a pipeline service.
 
     The name of the pipeline will be name of the method.
     """
-    name = get_pipeline_method.__name__
+    name = pipeline_method.__name__
 
-    @wraps(get_pipeline_method)
+    @wraps(pipeline_method)
     def get_pipeline_and_rename(
         self: T_Container,
     ) -> ux.Pipeline[ux.TInputs, ux.TOutputs]:
-        pipeline = get_pipeline_method(self)
+        pipeline = pipeline_method(self)
         if pipeline.name != name:
             pipeline = pipeline.decorate(name)
         return pipeline
