@@ -1,4 +1,5 @@
-from typing import NamedTuple, cast
+from collections.abc import Iterator
+from typing import Any, NamedTuple, cast
 
 from rats import apps
 from rats import pipelines_app as rpa
@@ -60,3 +61,17 @@ class ExamplePipelineContainer2(rpa.PipelineContainer):
         p2 = self.get(apps.method_service_id(self.train_model))
         p = self.combine([p1, p2], dependencies=[p1.outputs.data >> p2.inputs.data])
         return cast(ux.Pipeline[P2Inputs, P2Outputs], p)
+
+    @rpa.dependencies
+    def dep1(
+        self, load_data: LoadDataOutputs, train_model: TrainModelInputs
+    ) -> Iterator[ux.DependencyOp[Any]]:
+        yield load_data.data >> train_model.data
+
+    @rpa.combine
+    def p3(
+        self,
+        load_data: Any,
+        train_model: Any,
+        dep1: Any,
+    ) -> ux.Pipeline[P2Inputs, P2Outputs]: ...

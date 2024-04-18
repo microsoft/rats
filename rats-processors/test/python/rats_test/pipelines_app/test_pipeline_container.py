@@ -41,6 +41,22 @@ class TestPipelineContainer:
         )
         assert "length" in outputs
 
+    def test_p3(self) -> None:
+        prf = self._app.get(rpa.PipelineServices.PIPELINE_RUNNER_FACTORY)
+        pipeline = self._app.get(ExamplePipelineServices.P2)
+        pr = prf(pipeline)
+        inputs = dict(
+            url="http://example.com",
+            model_type="linear",
+            num_layers=2,
+        )
+        outputs = pr(inputs)
+        assert (
+            outputs["message"]
+            == "Training model with data: Data from http://example.com with config linear, 2"
+        )
+        assert "length" in outputs
+
     def static_checks(self) -> None:
         # Does not run;
         # Static type checkers (mypy, pyright) will verify that static types of the pipelines

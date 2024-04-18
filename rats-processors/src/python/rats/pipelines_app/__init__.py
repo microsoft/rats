@@ -1,4 +1,4 @@
-from ._decorators import pipeline, task
+from ._decorators import combine, dependencies, pipeline, task
 from ._pipeline_container import PipelineContainer
 from ._services import (
     IPipelineRunner,
@@ -17,4 +17,6 @@ __all__ = [
     "IPipelineRunnerFactory",
     "IPipelineToDot",
     "task",
+    "combine",
+    "dependencies",
 ]
