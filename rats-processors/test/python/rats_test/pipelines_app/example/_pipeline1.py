@@ -15,11 +15,6 @@ class TrainModelOutput(NamedTuple):
 
 
 class ExamplePipelineContainer(rpa.PipelineContainer):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
     @rpa.task
     def load_data(self, url: str) -> LoadDataOutput:
         return LoadDataOutput(data=f"Data from {url}")
@@ -33,8 +28,7 @@ class ExamplePipelineContainer(rpa.PipelineContainer):
     def p1(self) -> ux.UPipeline:
         p1 = self.load_data()
         p2 = self.get(apps.method_service_id(self.train_model))
-        combiner = self._app.get(rpa.PipelineServices.PIPELINE_COMBINER)
-        p = combiner([p1, p2], dependencies=[p1 >> p2])
+        p = self.combine([p1, p2], dependencies=[p1 >> p2])
         return p
 
 

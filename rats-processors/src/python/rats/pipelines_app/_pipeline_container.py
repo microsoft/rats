@@ -1,13 +1,30 @@
+from collections.abc import Sequence
+from typing import Any
+from uuid import uuid4
+
 from rats import apps
+from rats.processors import ux
 
 
 class PipelineContainer(apps.AnnotatedContainer):
     """Specialized container for defining pipelines.
 
-    Currently does nothing beyond being an AnnotationContainer, but we might want to add some
-    pipeline specific functionality in the future.  Possibly, we'll change the way the
-    implementations of the pipeline specific decorators work and we'll need to add functionality to
-    this class to support this.
+    Exposes functionality for defining tasks and pipelines.
     """
 
-    pass
+    def combine(
+        self,
+        pipelines: Sequence[ux.UPipeline],
+        name: str | None = None,
+        dependencies: Sequence[ux.DependencyOp[Any]] | None = None,
+        inputs: ux.UserInput | None = None,
+        outputs: ux.UserOutput | None = None,
+    ) -> ux.UPipeline:
+        name = name or uuid4().hex
+        return ux.CombinedPipeline(
+            pipelines=pipelines,
+            name=name,
+            dependencies=dependencies,
+            inputs=inputs,
+            outputs=outputs,
+        )

@@ -13,4 +13,4 @@ class ExampleApp(apps.AnnotatedContainer):
 
     @apps.container()
     def example3_pipeline(self) -> ExamplePipelineContainer:
-        return ExamplePipelineContainer(app=self)
+        return ExamplePipelineContainer()
