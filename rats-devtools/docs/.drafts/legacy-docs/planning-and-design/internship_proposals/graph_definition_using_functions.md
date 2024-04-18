@@ -40,11 +40,13 @@ std_eval = delayed_func(StandardizeEval)
 lr_train = delayed_func(LRTrain)
 lr_eval = delayed_func(LREval)
 
+
 def std(train_X, eval_X):
     std_params = std_train(train_X)
     train_Z = std_eval(train_Z, **std_params)
     eval_Z = std_eval(eval_Z, **std_params)
     return Munch(train_Z=train_X, eval_Z=eval_Z)
+
 
 def lr(train_X, train_Y, eval_features):
     lr_params = lr_train(train_X, train_Y)
@@ -52,13 +54,12 @@ def lr(train_X, train_Y, eval_features):
     eval_predictions = lr_eval(eval_features, **lr_params)
     return Munch(train_predictions=train_predictions, eval_predictions=eval_predictions)
 
+
 def std_lr(train_X, train_Y, eval_X):
     std_res = std(train_X, eval_X)
-    res = lr(
-        train_X=std_res.train_Z,
-        train_Y=train_Y,
-        eval_X=std_res.eval_Z)
+    res = lr(train_X=std_res.train_Z, train_Y=train_Y, eval_X=std_res.eval_Z)
     return res
+
 
 g = get_graph_from_delayed_func(std_lr)
 ```

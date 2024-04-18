@@ -292,7 +292,7 @@ class PipelineBuilder(Generic[TInputs, TOutputs]):
 
         The `process` method may take a variable length parameters (*param). Like any other
         parameter, it will become an inputs to the pipeline. Unlike other inputs, this inputs will
-        be able to take multiple dependecies.  See example below.
+        be able to take multiple dependencies.  See example below.
 
         If `return_annotation` is given, then it defines the outputs of the built pipeline. It is
         expected that the `process_method` will return a dictionary with the appropriate keys and
@@ -327,10 +327,10 @@ class PipelineBuilder(Generic[TInputs, TOutputs]):
 
             `predefined_standardize` and `eval_standardize` are single-node pipelines.
 
-            `predefined_standardize` uses predefined standartization parameters, provided by
+            `predefined_standardize` uses predefined standardization parameters, provided by
                 `config`.  Its single inputs will be `X`, and at runtime that inputs will be
                 provided as an argument to `process`.
-            `eval_standardize` uses standartization parameters fitted at run time by an upstream
+            `eval_standardize` uses standardization parameters fitted at run time by an upstream
                 pipeline.  Its inputs will be `scale` and `shift` that will be provided at runtime
                 as constructor arguments, and `X` that will be provided at runtime as an argument
                 to `process`.
@@ -457,7 +457,7 @@ class PipelineBuilder(Generic[TInputs, TOutputs]):
                 )
 
             `combined` will:
-            * include dependenies mapping `w1` outputs `C` to `w2` inputs `D` and `w3` inputs `A` and
+            * include dependencies mapping `w1` outputs `C` to `w2` inputs `D` and `w3` inputs `A` and
                 mapping `w2` outputs `E` to `w3` inputs `G`.
             * have inputs `A` and `B`, mapped to `w1` inputs `A` and `B` respectively.
             * have outputs `F` and `H`, mapped from `w2` outputs `F` and `w3` outputs `H`
@@ -478,7 +478,7 @@ class PipelineBuilder(Generic[TInputs, TOutputs]):
                 )
 
             `combined` will:
-            * include dependenies mapping `w1` outputs `C` to `w2` inputs `D` and mapping `w2` outputs
+            * include dependencies mapping `w1` outputs `C` to `w2` inputs `D` and mapping `w2` outputs
                 `E` to `w3` inputs `G`.
             * have inputs `A` and `B`, `A` mapped to `w1` inputs `A` and `w3` inputs `A`, and `B`
                 mapped to `w1` inputs `B`.
@@ -508,7 +508,7 @@ class PipelineBuilder(Generic[TInputs, TOutputs]):
                 )
 
             `combined` will:
-            * include dependenies mapping
+            * include dependencies mapping
             * * `w1` outputs `C` to `w2` inputs `D` and `w3` inputs `A`.
             * * `w2` outputs `E` to `w3` inputs `G` and `w4` inputs `A`.
             * have inputs `a1`, `b`, and `a2` mapped to `w1` inputs `A` and `w1` inputs `B`, and `w3`

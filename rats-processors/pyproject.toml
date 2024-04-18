@@ -2,7 +2,7 @@
 name = "rats-processors"
 description = "Rats Processors"
 # Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.1.1"
+version = "0.1.2"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]
@@ -10,7 +10,6 @@ repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
-
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -27,6 +26,7 @@ enable = true
 version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
+rats-apps = { path = "../rats-apps/", develop = true }
 rats-pipelines = { path = "../rats-pipelines/", develop = true }
 dill = "^0.3.5"
 furl = "^2.1.3"
@@ -116,17 +116,17 @@ target-version = "py310"
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 select = ["B", "D", "E", "F", "I", "Q", "W", "NPY", "PD", "PTH", "RUF", "UP"]
 ignore = [
-    "B026", # B026: Star-arg unpacking after a keyword argument is strongly discouraged
-    "D100", # D100: Missing docstring in public module
-    "D101", # D101: Missing docstring in public class
-    "D102", # D102: Missing docstring in public method
-    "D103", # D103: Missing docstring in public function
-    "D104", # D104: Missing docstring in public package
-    "D105", # D105: Missing docstring in magic method
-    "D107", # D107: Missing docstring in __init__
-    "D417", # D417: Missing argument descriptions in Docstrings
-    "E203", # E203: Whitespace before ':'
-    "E501", # E501: Line too long ({width} > {limit})
+  "B026", # B026: Star-arg unpacking after a keyword argument is strongly discouraged
+  "D100", # D100: Missing docstring in public module
+  "D101", # D101: Missing docstring in public class
+  "D102", # D102: Missing docstring in public method
+  "D103", # D103: Missing docstring in public function
+  "D104", # D104: Missing docstring in public package
+  "D105", # D105: Missing docstring in magic method
+  "D107", # D107: Missing docstring in __init__
+  "D417", # D417: Missing argument descriptions in Docstrings
+  "E203", # E203: Whitespace before ':'
+  "E501", # E501: Line too long ({width} > {limit})
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.

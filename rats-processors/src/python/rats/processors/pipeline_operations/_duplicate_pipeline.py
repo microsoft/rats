@@ -9,7 +9,7 @@ from rats.processors.ux import PipelineConf, UPipeline, UPipelineBuilder
 
 
 class DuplicatePipeline:
-    """Builds a pipeline with mutiple copies of a given pipeline.
+    """Builds a pipeline with multiple copies of a given pipeline.
 
     Simple inputs/outputs are converted to in/out collections, with the entry names corresponding
     to pipeline copy name.

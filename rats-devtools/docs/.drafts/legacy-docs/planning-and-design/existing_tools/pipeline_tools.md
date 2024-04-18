@@ -49,7 +49,7 @@ Note that at this point we have not listed any dependency on data, nor on the na
 experiment to run.
 This is another core principle that we are not constraining the framework to a specific use case,
 but to an agnostic framework that can be adapted to those use cases.
-It will be the responsability of the users to compose the pipelines needed for their experiments.
+It will be the responsibility of the users to compose the pipelines needed for their experiments.
 There will not be any prescriptive way for composing such experiments.
 
 However, it is unavoidable that in the ML pipeline there is always a training stage and a
@@ -69,7 +69,7 @@ We will use them as well for Rats pipelines.
 standardization may shift and scale data given precalculated mean and std, or some model may
 output binary predictions.
 * Estimator: An Estimator is an algorithm which can be fit on data and produces a Transformer.
-For example, computing the mean and std of some data and outputing a Transformer that
+For example, computing the mean and std of some data and outputting a Transformer that
 standardizes data, or training a model that later is used to make predictions.
 
 Following these principles, we would like that if we specify an experiment such as
@@ -77,7 +77,7 @@ standardized-logistic-regression (SLR), where we first standardize the data, the
 When we get data to evaluate the model we don't need to specify both procedures, but the pipeline
 specifies a path for the training and evaluation pipelines   appropriately.
 
-One way for doing this would be to draw the following graph with cronological dependencies, i.e.,
+One way for doing this would be to draw the following graph with chronological dependencies, i.e.,
 the prediction task cannot start until the model has been trained:
 
 ![Standardized Logistic Regression](figures/standardized-logistic-regression1.png)
@@ -155,14 +155,14 @@ We already know Luigi and the software team knows its limitations best.
 On the other hand, [Prefect](https://www.prefect.io/) is very well regarded but it is commercial.
 It looks like Prefect relies on a Hybrid Model, where Prefect Core is an open source library to
 define workflows and run them, but all features like UI, database, permissions, etc. is managed
-on propietary software in their Cloud.
+on proprietary software in their Cloud.
 
 
 ### AzureML
 
 ![AzureML logo.](figures/azureml_logo.jpg)
 
-AzureML has a Pipelines module that it is quite versatile in running scripts and commnands.
+AzureML has a Pipelines module that it is quite versatile in running scripts and commands.
 It runs on top of Kubernetes and we believe it is also compatible with Argo, i.e., Argo
 workflows can be run in AKS and those runs be displayed in AzureML.
 
@@ -217,7 +217,7 @@ To implement the algorithms functionality it relies on well-known ML libraries s
 natively in Python.
 It is developed by Quantum Black (McKinsey), it is open-sourced, and it's aim is to help organize
 ML projects easily, their repo structure, pipelines, documentation and library packaging.
-Pipeliens can run in a single node, possibly with parallel threads, and more recently they released
+Pipelines can run in a single node, possibly with parallel threads, and more recently they released
 plugins to translate their pipelines into Airflow and Argo.
 It seems to us that such plugins can be regarded as a Python SDK to connect with Argo or Airflow.
 
@@ -252,7 +252,7 @@ the execution of (shell) scripts.
 A user organizes their steps in scripts, specify input and outputs entries, compute resources, and
 then launches the workflow.
 
-The library submits jobs to kubernetes, uses Docker to run these processess and orchestrates the
+The library submits jobs to kubernetes, uses Docker to run these processes and orchestrates the
 whole sequence of steps.
 However, even though it has asynchronous communication support between processes, we did not find
 any reference to running in multiple machines.
@@ -286,7 +286,7 @@ Hera Python SDK can help us interface with Argo easily and avoid writing configu
 directly.
 
 Prefect seemed like a popular choice because it gives free individual use, but it is commercial and
-relies on a propietary server side for UI and databases.
+relies on a proprietary server side for UI and databases.
 
 AzureML and Kubeflow either rely on Kubernetes for orchestrating pipelines or Argo, respectively,
 and they only provide Python SDKs.

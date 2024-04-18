@@ -2,7 +2,7 @@
 name = "rats-devtools"
 description = "Rats Development Tools"
 # Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.1.1"
+version = "0.1.2"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]
@@ -114,7 +114,6 @@ reportUnusedExpression = false
 reportImplicitOverride = false
 reportIncompatibleVariableOverride = false
 reportIncompatibleMethodOverride = false
-
 
 [tool.ruff]
 cache-dir = "../.tmp/rats-devtools/.ruff_cache"

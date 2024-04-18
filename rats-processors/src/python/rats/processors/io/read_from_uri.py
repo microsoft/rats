@@ -66,14 +66,14 @@ class ReadFromUriProcessor(Generic[DataType]):
             # if given a fragment, it is assumed that the uri points to a manifest, and the
             # fragment is the key within the manifest, pointing to a either different uri, or
             # a path relative to the manifest uri
-            # first we'll consturct the manifest uri, by removing the fragment:
+            # first we'll construct the manifest uri, by removing the fragment:
             manifest_uri = urlunparse(parsed_uri._replace(fragment=""))
             logger.debug(
                 f"Assuming {manifest_uri} points to a manifest json file, that {fragment} is a "
                 + "key within it, and the the value is either a uri or a relative path to the "
                 + "manifest uri."
             )
-            # recusrively read the manifest:
+            # recursively read the manifest:
             path_from_manifest = self._read(manifest_uri, self._read_manifest_service_ids)
             # find the value associated with the fragment key:
             try:

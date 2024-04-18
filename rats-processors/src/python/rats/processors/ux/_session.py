@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 from rats.app import RatsApp
@@ -68,7 +68,7 @@ def build_output_collector(output_storage: dict[str, Ref], pipeline: UPipeline) 
     return CombinedPipeline(name="OutputCollector", pipelines=output_populators)
 
 
-class SessionOutputsGetter(Iterable[str]):
+class SessionOutputsGetter(Mapping[str, Any]):
     _storage: namedcollection[Ref]
 
     def __init__(self, storage: Mapping[str, Ref]) -> None:
@@ -86,6 +86,9 @@ class SessionOutputsGetter(Iterable[str]):
 
     def __iter__(self) -> Iterator[str]:
         yield from self._storage
+
+    def __len__(self) -> int:
+        return len(self._storage)
 
 
 class PipelineRunnerFactory:

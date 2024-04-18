@@ -7,7 +7,14 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from enum import Enum
 from inspect import _ParameterKind, formatannotation, get_annotations, signature
-from typing import Any, NamedTuple, Protocol, final, runtime_checkable
+from typing import (
+    Any,
+    NamedTuple,
+    Protocol,
+    Union,  # pyright: ignore[reportDeprecated]  pytest fails when defining ProcessorOutput using |
+    final,
+    runtime_checkable,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +24,9 @@ _POSITIONAL_OR_KEYWORD = _ParameterKind.POSITIONAL_OR_KEYWORD
 _VAR_POSITIONAL = _ParameterKind.VAR_POSITIONAL
 _KEYWORD_ONLY = _ParameterKind.KEYWORD_ONLY
 _VAR_KEYWORD = _ParameterKind.VAR_KEYWORD
+
+
+ProcessorOutput = Union[Mapping[str, Any], NamedTuple, None]  # type: ignore[reportDeprecated]  # noqa: UP007  otherwise pytest fails
 
 
 # IProcess protocol cannot be generic because the return type is abstract.
@@ -131,7 +141,7 @@ class Annotations:
     ) -> dict[str, InProcessorParam]:
         # Classes that inherit from Protocol and do not override __init__, have an __init__ set by
         # in Protocol.__init_subclass__ to a function in the typing module.  That function accepts
-        # *args and **kwargs, but in runtime, no contructor parameters are allowed.
+        # *args and **kwargs, but in runtime, no constructor parameters are allowed.
         # Therefore, if processor_type.__init__.__module__=="typing" we should assume the init
         # signature is empty.
         if getattr(processor_type.__init__, "__module__", None) == "typing":
