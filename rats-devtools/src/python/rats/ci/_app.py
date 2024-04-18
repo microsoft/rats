@@ -1,37 +1,37 @@
 from rats import apps, devtools  # type: ignore[reportAttributeAccessIssue]
 
-from ._commands import RatsPycharmCommands
+from ._commands import RatsCiCommands
 
 
 @apps.autoscope
-class RatsPycharmServices:
+class RatsCiServices:
     CLI = apps.ServiceId[apps.Executable]("cli")
 
 
-class RatsPycharmGroups:
+class RatsCiGroups:
     COMMANDS = apps.ServiceId[devtools.ClickCommandRegistry]("pycharm-commands")
 
 
-class RatsPycharmPlugin(apps.AnnotatedContainer):
+class RatsCiPlugin(apps.AnnotatedContainer):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.service(RatsPycharmServices.CLI)
+    @apps.service(RatsCiServices.CLI)
     def cli(self) -> apps.Executable:
         return devtools.ClickCommandGroup(
             lambda: self._app.get_group(
-                RatsPycharmGroups.COMMANDS,
+                RatsCiGroups.COMMANDS,
             )
         )
 
     @apps.group(devtools.RatsDevtoolsGroups.COMMANDS)
-    @apps.group(RatsPycharmGroups.COMMANDS)
-    def commands(self) -> RatsPycharmCommands:
-        return RatsPycharmCommands()
+    @apps.group(RatsCiGroups.COMMANDS)
+    def commands(self) -> RatsCiCommands:
+        return RatsCiCommands()
 
 
 def run() -> None:
-    app = apps.AppContainer(lambda app: RatsPycharmPlugin(app))
-    app.get(RatsPycharmServices.CLI).execute()
+    app = apps.AppContainer(lambda app: RatsCiPlugin(app))
+    app.get(RatsCiServices.CLI).execute()
