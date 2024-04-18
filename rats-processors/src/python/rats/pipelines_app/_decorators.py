@@ -14,25 +14,25 @@ TOutputs = TypeVar("TOutputs", bound=ux.Outputs, covariant=True)
 
 # A class with a __new__ method is equivalent to a function, with the advantage that it can have a
 # generic type arguments.
-class _process_method_to_task_method(Generic[TInputs, TOutputs]):
+class _method_to_task_provider(Generic[TInputs, TOutputs]):
     """Convert a process method to a method returning a task wrapping over the process method."""
 
     def __new__(
         cls,
-        process_method: Callable[Concatenate[T_Container, P], ux.ProcessorOutput],
+        method: Callable[Concatenate[T_Container, P], ux.ProcessorOutput],
     ) -> Callable[[T_Container], ux.Pipeline[TInputs, TOutputs]]:
         class _Processor(ux.IProcess):
-            process = process_method
+            process = method
 
-        _Processor.__name__ = process_method.__name__
+        _Processor.__name__ = method.__name__
 
         def get_task(self: T_Container) -> ux.Pipeline[TInputs, TOutputs]:
             return ux.Task[TInputs, TOutputs](_Processor)
 
-        get_task.__name__ = process_method.__name__
-        get_task.__module__ = process_method.__module__
-        get_task.__qualname__ = process_method.__qualname__
-        get_task.__doc__ = process_method.__doc__
+        get_task.__name__ = method.__name__
+        get_task.__module__ = method.__module__
+        get_task.__qualname__ = method.__qualname__
+        get_task.__doc__ = method.__doc__
 
         return get_task
 
@@ -50,9 +50,9 @@ class task(Generic[TInputs, TOutputs]):
 
     def __new__(
         cls,
-        process_method: Callable[Concatenate[T_Container, P], ux.ProcessorOutput],
+        method: Callable[Concatenate[T_Container, P], ux.ProcessorOutput],
     ) -> Callable[[T_Container], ux.Pipeline[TInputs, TOutputs]]:
-        task_method = _process_method_to_task_method[TInputs, TOutputs](process_method)
+        task_method = _method_to_task_provider[TInputs, TOutputs](method)
         return apps.autoid_service(task_method)
 
 
@@ -67,9 +67,9 @@ def pipeline(
 
     @wraps(pipeline_method)
     def get_pipeline_and_rename(
-        self: T_Container,
+        container: T_Container,
     ) -> ux.Pipeline[ux.TInputs, ux.TOutputs]:
-        pipeline = pipeline_method(self)
+        pipeline = pipeline_method(container)
         if pipeline.name != name:
             pipeline = pipeline.decorate(name)
         return pipeline
