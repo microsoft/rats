@@ -1,3 +1,5 @@
+from rats.processors.dag import IProcess, ProcessorOutput
+
 from ._app_plugin import RatsProcessorsUxPlugin, RatsProcessorsUxServices
 from ._builder import (
     CombinedConf,
@@ -40,7 +42,11 @@ from ._pipeline import (
     PipelineConf,
     UPipeline,
 )
-from ._session import ExposeGivenOutputsProcessor, PipelineRunner, PipelineRunnerFactory
+from ._session import (
+    ExposeGivenOutputsProcessor,
+    PipelineRunner,
+    PipelineRunnerFactory,
+)
 
 __all__ = [
     "CombinedConf",
@@ -84,4 +90,6 @@ __all__ = [
     "ensure_non_clashing_pipeline_names",
     "RatsProcessorsUxPlugin",
     "RatsProcessorsUxServices",
+    "IProcess",
+    "ProcessorOutput",
 ]
