@@ -9,7 +9,7 @@ from rats import apps
 from rats.app import RatsApp as LegacyApp
 from rats.processors import dag, ux
 
-from ._pipeline_registery import PipelineRegistryEntry, PipelineRegistryGroups
+from ._pipeline_registry import PipelineRegistryEntry, PipelineRegistryGroups
 
 
 class IPipelineRunner(Protocol):

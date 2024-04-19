@@ -1,6 +1,6 @@
 from ._decorators import pipeline, task
 from ._pipeline_container import PipelineContainer
-from ._pipeline_registery import (
+from ._pipeline_registry import (
     PipelineRegistryEntry,
     PipelineRegistryGroups,
 )
