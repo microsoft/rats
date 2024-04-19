@@ -23,72 +23,94 @@ running pipelines, integrating configs and services.
 https://microsoft.github.io/rats
 
 
+## Components
+
+### rats-apps
+A light package containing the interfaces and tools to organize your code in a modular way.
+It provides the mechanisms to define _services_ (a.k.a., general purpose objects) and _containers_
+(classes containing service providers).
+These _containers_ are then added to a general app as plugins providing an entry point to a whole
+ecosystem of general _services_.
+
+### rats-pipelines
+
+A package to define and run pipelines of _nodes_ (computational tasks) and _edges_
+(node dependencies or data dependencies).
+It provides a low-level API to define pipeline execution, task execution and IO management.
+It also provides a high level API to orchestrate running a pipeline locally or in a distributed
+environment.
+
+
+### rats-processors
+
+A package to create and compose pipelines in a higher level API, where _processors (classes
+or unbound methods) are mapped into _pipeline nodes_, _node ports_ are inferred from the
+_processors_ signature, and _edges_ are created by connecting the _node ports_ inputs and outputs.
+Pipelines defined this way are immutable objects that can be reused and composed into larger
+pipelines.
+
+### rats-devtools
+
+A light component to help with the development of the other components.
+It provides a set of tools to generate documentation, run tests, format and lint code and help
+in the release process.
+
+
 ## Getting started
 
-Install the latest version of rats from PyPI:
+Install the latest version of rats from PyPI for any component you want:
 
 ```bash
 # With pip3.
-pip3 install rats-apps rats-pipelines rats-processors
+pip3 install rats-apps rats-apps rats-pipelines rats-processors
 
 # With poetry.
-poetry add rats-apps rats-pipelines rats-processors
+poetry add rats-apps rats-apps rats-pipelines rats-processors
 
 # With uv.
-uv pip install rats-apps rats-pipelines rats-processors
+uv pip install rats-apps rats-apps rats-pipelines rats-processors
 
 # With pipenv.
-pipenv install rats-apps rats-pipelines rats-processors
+pipenv install rats-apps rats-apps rats-pipelines rats-processors
 ```
 
-In you python project or Jupyter notebook, you can compose a pipeline as follows:
+## Development
 
-```python
-from typing import NamedTuple
+### Optional system dependencies
 
-import pandas as pd
-from rats.apps import PipelineContainer
-from rats.processors import CombinedPipeline, ExecutablePipeline, task, pipeline
+We use the following optional dependencies for development:
+* [direnv](https://direnv.net/): To manage environment variables and load python virtual environments automatically.
+* [pyenv](https://github.com/pyenv/pyenv): To manage python versions.
+* [pipx](https://pipxproject.github.io/pipx/): To install python packages in isolated environments.
+* [commitizen](https://commitizen-tools.github.io/commitizen/): To help with [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
+* [cz-conventional-gitmoji](https://github.com/ljnsn/cz-conventional-gitmoji): A commitizen plugin that combines gitmoji and conventional commits.
+* [pre-commit](https://pre-commit.com/): To run code formatting and linting before committing.
 
+### Required system dependencies
 
-class DataOut(NamedTuple):
-    data: pd.DataFrame
+* [poetry](https://python-poetry.org/): To manage package dependencies and virtual environments.
+* [python >= 3.10](https://www.python.org/)
 
+For setting up the development environment:
 
-class MyContainer(PipelineContainer):
-    @task
-    def load_data(self) -> DataOut:
-        return DataOut(data=pd.read_csv("data.csv"))
-
-    @task
-    def train_model(self, data: pd.DataFrame):
-        return {"model": "trained"}
-
-    @pipeline
-    def my_pipeline(self) -> ExecutablePipeline:
-        load_data = self.load_data()
-        train_model = self.get(train_model)
-        return self.combine(
-            pipelines=[load_data, train_model],
-            dependencies=(train_model.inputs.data << load_data.outputs.data),
-        )
+* Clone the repository and cd into it.
+* Install the dependencies with poetry:
+```bash
+cd rats; poetry install; cd -
+cd rats-apps; poetry install; cd -
+cd rats-devtools; poetry install; cd -
+cd rats-pipelines; poetry install; cd -
+cd rats-processors; poetry install; cd -
 ```
-and run it like this:
-
-```python
-container = MyContainer()  # initialize your container
-p = container.get("my_pipeline")  # public method to get a service from a container
-container.draw(p)
-container.run(p)
+* Install `rats-devtools` command (optional):
+```bash
+pipx install -e rats-devtools  # installs in local environment
 ```
-
-
-## Components
 
 
 ## Contributing
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
+This project welcomes contributions and suggestions. Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
 the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
 
