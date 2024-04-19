@@ -1,4 +1,4 @@
-from typing import NamedTuple, cast
+from typing import Any, NamedTuple, cast
 
 from rats import apps
 from rats import pipelines_app as rpa
@@ -60,3 +60,11 @@ class ExamplePipelineContainer2(rpa.PipelineContainer):
         p2 = self.get(apps.method_service_id(self.train_model))
         p = self.combine([p1, p2], dependencies=[p1.outputs.data >> p2.inputs.data])
         return cast(ux.Pipeline[P2Inputs, P2Outputs], p)
+
+    @apps.group(rpa.PipelineRegistryGroups.EXECUTABLE_PIPELINES)
+    def executable_pipeline(self) -> Any:
+        yield dict(
+            name="p2",
+            doc="Example pipeline 2",
+            service_id=apps.method_service_id(self.p2),
+        )

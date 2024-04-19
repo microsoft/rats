@@ -57,3 +57,11 @@ class TestPipelineContainer:
         # verify typing of pipeline
         train_model.outputs.message >> p2.inputs.url  # ok
         p2.outputs.length >> p2.inputs.num_layers  # ok
+
+    def test_registry(self) -> None:
+        registered_pipelines = self._app.get(rpa.PipelineServices.EXECUTABLE_PIPELINES)
+        assert len(registered_pipelines) == 1
+        assert registered_pipelines[0]["name"] == "p2"
+        p2a = self._app.get(ExamplePipelineServices.P2)
+        p2b = self._app.get(registered_pipelines[0]["service_id"])
+        assert p2a is p2b
