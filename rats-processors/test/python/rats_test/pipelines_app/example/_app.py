@@ -3,8 +3,9 @@ from rats.app import RatsApp as LegacyApp
 from rats.apps import Container
 from rats.pipelines_app import PipelineServiceContainer
 
-from ._pipeline1 import ExamplePipelineContainer1
-from ._pipeline2 import ExamplePipelineContainer2
+from ._complex_pipeline import ExampleComplexPipelineBuilder
+from ._simple_typed_pipeline import ExampleSimpleTypedPipelineBuilder
+from ._simple_untyped_pipeline import ExampleSimpleUntypedPipelineBuilder
 
 
 class ExampleApp(apps.AnnotatedContainer):
@@ -13,9 +14,13 @@ class ExampleApp(apps.AnnotatedContainer):
         return PipelineServiceContainer(legacy_app=LegacyApp.default(), app=self)
 
     @apps.container()
-    def example_pipeline1(self) -> ExamplePipelineContainer1:
-        return ExamplePipelineContainer1()
+    def example_pipeline1(self) -> ExampleSimpleUntypedPipelineBuilder:
+        return ExampleSimpleUntypedPipelineBuilder()
 
     @apps.container()
-    def example_pipeline2(self) -> ExamplePipelineContainer2:
-        return ExamplePipelineContainer2()
+    def example_pipeline2(self) -> ExampleSimpleTypedPipelineBuilder:
+        return ExampleSimpleTypedPipelineBuilder()
+
+    @apps.container()
+    def example_pipeline3(self) -> ExampleComplexPipelineBuilder:
+        return ExampleComplexPipelineBuilder(app=self)

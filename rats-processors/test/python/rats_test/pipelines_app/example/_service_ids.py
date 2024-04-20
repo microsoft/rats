@@ -1,11 +1,11 @@
-from rats import apps
-
-from ._pipeline1 import ExamplePipelineContainer1
-from ._pipeline2 import ExamplePipelineContainer2
+from ._complex_pipeline import ExampleComplexPipelineServices
+from ._simple_typed_pipeline import ExampleSimpleTypedPipelineServices
+from ._simple_untyped_pipeline import ExampleSimpleUntypedPipelineServices
 
 
 class ExamplePipelineServices:
-    P1 = apps.method_service_id(ExamplePipelineContainer1.p1)
-    P2 = apps.method_service_id(ExamplePipelineContainer2.p2)
-    LOAD_DATA = apps.method_service_id(ExamplePipelineContainer2.load_data)
-    TRAIN_MODEL = apps.method_service_id(ExamplePipelineContainer2.train_model)
+    P1 = ExampleSimpleUntypedPipelineServices.P1
+    TRAIN_PIPELINE = ExampleSimpleTypedPipelineServices.TRAIN_PIPELINE
+    TRAIN_AND_TEST_PIPELINE = ExampleComplexPipelineServices.TRAIN_AND_TEST_PIPELINE
+    LOAD_DATA = ExampleSimpleTypedPipelineServices.LOAD_DATA
+    TRAIN_MODEL = ExampleSimpleTypedPipelineServices.TRAIN_MODEL

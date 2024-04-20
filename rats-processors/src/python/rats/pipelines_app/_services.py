@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from collections.abc import Mapping
+from itertools import chain
 from typing import Any, Protocol
 
 import pydot
@@ -7,6 +8,8 @@ import pydot
 from rats import apps
 from rats.app import RatsApp as LegacyApp
 from rats.processors import dag, ux
+
+from ._pipeline_registry import PipelineRegistryEntry, PipelineRegistryGroups
 
 
 class IPipelineRunner(Protocol):
@@ -40,9 +43,14 @@ class PipelineServiceContainer(apps.AnnotatedContainer):
     def pipeline_to_dot(self) -> IPipelineToDot:
         return dag._viz.pipeline_to_dot
 
+    @apps.autoid_service
+    def executable_pipelines(self) -> tuple[PipelineRegistryEntry, ...]:
+        return tuple(chain(*self._app.get_group(PipelineRegistryGroups.EXECUTABLE_PIPELINES)))
+
 
 class PipelineServices:
     PIPELINE_RUNNER_FACTORY = apps.method_service_id(
         PipelineServiceContainer.pipeline_runner_factory
     )
     PIPELINE_TO_DOT = apps.method_service_id(PipelineServiceContainer.pipeline_to_dot)
+    EXECUTABLE_PIPELINES = apps.method_service_id(PipelineServiceContainer.executable_pipelines)
