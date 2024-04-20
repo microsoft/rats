@@ -57,7 +57,7 @@ class namedcollection(Generic[T_co]):
         2
 
         >>> n6 = namedcollection({"foo": 1, "bar": 2, "hey": n1}, boo=4)
-        n6.hey
+        >>> n6.hey
         namedcollection(foo=1, bar=2, hey=3)
         >>> n6.boo
         4
