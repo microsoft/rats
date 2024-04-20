@@ -44,8 +44,8 @@ class PipelineServiceContainer(apps.AnnotatedContainer):
         return dag._viz.pipeline_to_dot
 
     @apps.autoid_service
-    def executable_pipelines(self) -> list[PipelineRegistryEntry]:
-        return list(chain(*self._app.get_group(PipelineRegistryGroups.EXECUTABLE_PIPELINES)))
+    def executable_pipelines(self) -> tuple[PipelineRegistryEntry, ...]:
+        return tuple(chain(*self._app.get_group(PipelineRegistryGroups.EXECUTABLE_PIPELINES)))
 
 
 class PipelineServices:

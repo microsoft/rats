@@ -14,7 +14,7 @@ class TrainModelOutput(NamedTuple):
     length: int
 
 
-class ExamplePipelineContainer1(rpa.PipelineContainer):
+class ExampleSimpleUntypedPipelineBuilder(rpa.PipelineContainer):
     @rpa.task
     def load_data(self, url: str) -> LoadDataOutput:
         return LoadDataOutput(data=f"Data from {url}")
@@ -30,3 +30,7 @@ class ExamplePipelineContainer1(rpa.PipelineContainer):
         p2 = self.get(apps.method_service_id(self.train_model))
         p = self.combine([p1, p2], dependencies=[p1 >> p2])
         return p
+
+
+class ExampleSimpleUntypedPipelineServices:
+    P1 = apps.method_service_id(ExampleSimpleUntypedPipelineBuilder.p1)

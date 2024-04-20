@@ -1,4 +1,3 @@
-from collections.abc import Iterable
 from typing import TypedDict
 
 from rats import apps
@@ -12,4 +11,6 @@ class PipelineRegistryEntry(TypedDict):
 
 
 class PipelineRegistryGroups:
-    EXECUTABLE_PIPELINES = apps.ServiceId[Iterable[PipelineRegistryEntry]]("executable-pipelines")
+    EXECUTABLE_PIPELINES = apps.ServiceId[tuple[PipelineRegistryEntry, ...]](
+        "executable-pipelines"
+    )
