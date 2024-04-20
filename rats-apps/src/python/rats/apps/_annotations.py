@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Callable, Iterator
-from functools import cache
-from typing import Any, ParamSpec, cast
+from functools import cache, wraps
+from typing import Any, Concatenate, ParamSpec, TypeVar, cast
 
 from typing_extensions import NamedTuple
 
@@ -11,6 +11,22 @@ from ._namespaces import ProviderNamespaces
 from ._scoping import scope_service_name
 
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
+
+
+class _ServiceMethodArgArg:
+    """Dummy type to ensure that only here we can create a ServiceMethodArg object."""
+
+    pass
+
+
+class ServiceMethodArg:
+    """Dummy type to ensure that service methods are not called directly."""
+
+    def __init__(self, _: _ServiceMethodArgArg) -> None:
+        pass
+
+
+SERVICE_METHOD_ARG = ServiceMethodArg(_ServiceMethodArgArg())
 
 
 class GroupAnnotations(NamedTuple):
@@ -81,62 +97,87 @@ class AnnotatedContainer(Container):
         groups = annotations.group_in_namespace(namespace, group_id)
 
         for annotation in groups:
-            yield getattr(self, annotation.name)()
+            yield getattr(self, annotation.name)(SERVICE_METHOD_ARG)
 
         for container in containers:
-            c = getattr(self, container.name)()
+            c = getattr(self, container.name)(SERVICE_METHOD_ARG)
             yield from c.get_namespaced_group(namespace, group_id)
 
 
 P = ParamSpec("P")
+C = TypeVar("C", bound=AnnotatedContainer)
 
 
 def service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ServiceType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType],
+]:
     return fn_annotation_decorator(ProviderNamespaces.SERVICES, service_id)
 
 
-def autoid_service(fn: Callable[P, T_ServiceType]) -> Callable[P, T_ServiceType]:
+def autoid_service(
+    fn: Callable[Concatenate[C, P], T_ServiceType],
+) -> Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType]:
     _service_id = method_service_id(fn)
-    _add_annotation(ProviderNamespaces.SERVICES, fn, _service_id)
-    cached_fn = cache(fn)
-    return cast(Callable[P, T_ServiceType], cached_fn)
+    f = add_service_method_arg(fn)
+    _add_annotation(ProviderNamespaces.SERVICES, f, _service_id)
+    cached_f = cache(f)
+    return cast(Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType], cached_f)
 
 
 def group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ServiceType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType],
+]:
     return fn_annotation_decorator(ProviderNamespaces.GROUPS, group_id)
 
 
 def config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[P, T_ConfigType]], Callable[P, T_ConfigType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ConfigType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ConfigType],
+]:
     return fn_annotation_decorator(ProviderNamespaces.SERVICES, config_id)
 
 
 def fallback_service(
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ServiceType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType],
+]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, service_id)
 
 
 def fallback_group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ServiceType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType],
+]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_GROUPS, group_id)
 
 
 def fallback_config(
     config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[P, T_ConfigType]], Callable[P, T_ConfigType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ConfigType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ConfigType],
+]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, config_id)
 
 
 def container(
     group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ServiceType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType],
+]:
     return fn_annotation_decorator(ProviderNamespaces.CONTAINERS, group_id)
 
 
@@ -167,19 +208,35 @@ def method_service_id(method: Callable[..., T_ServiceType]) -> ServiceId[T_Servi
     return ServiceId[T_ServiceType](service_name)
 
 
+def add_service_method_arg(
+    fn: Callable[Concatenate[C, P], T_ServiceType],
+) -> Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType]:
+    @wraps(fn)
+    def f(container: C, _: ServiceMethodArg, *args: P.args, **kwargs: P.kwargs) -> T_ServiceType:
+        return fn(container, *args, **kwargs)
+
+    return f
+
+
 def fn_annotation_decorator(
     namespace: str,
     service_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[
+    [Callable[Concatenate[C, P], T_ServiceType]],
+    Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType],
+]:
     def wrapper(
-        fn: Callable[P, T_ServiceType],
-    ) -> Callable[P, T_ServiceType]:
+        fn: Callable[Concatenate[C, P], T_ServiceType],
+    ) -> Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType]:
         _service_id = service_id
-        _add_annotation(namespace, fn, _service_id)
-        cached_fn = cache(fn)
-        # The static type of cached_fn should be correct, but it does not maintain the param-spec,
+
+        f = add_service_method_arg(fn)
+
+        _add_annotation(namespace, f, _service_id)
+        cached_f = cache(f)
+        # The static type of cached_f should be correct, but it does not maintain the param-spec,
         # so we need to cast.
-        return cast(Callable[P, T_ServiceType], cached_fn)
+        return cast(Callable[Concatenate[C, ServiceMethodArg, P], T_ServiceType], cached_f)
 
     return wrapper
 

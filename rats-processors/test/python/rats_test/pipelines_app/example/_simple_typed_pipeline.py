@@ -120,14 +120,14 @@ class ExampleSimpleTypedPipelineBuilder(rpa.PipelineContainer):
 
     @rpa.pipeline
     def train_pipeline(self) -> TrainPipeline:
-        load = self.load_data()
+        load = self.get(apps.method_service_id(self.load_data))
         train = self.get(apps.method_service_id(self.train_model))
         p = self.combine([load, train], dependencies=[load.outputs.data >> train.inputs.data])
         return cast(TrainPipeline, p)
 
     @rpa.pipeline
     def test_pipeline(self) -> TestPipeline:
-        load = self.load_data()
+        load = self.get(apps.method_service_id(self.load_data))
         test = self.get(apps.method_service_id(self.test_model))
         p = self.combine([load, test], dependencies=[load.outputs.data >> test.inputs.data])
         return cast(TestPipeline, p)

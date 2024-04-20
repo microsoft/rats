@@ -28,12 +28,12 @@ class ExampleComplexPipelineBuilder(rpa.PipelineContainer):
     @rpa.pipeline
     def train_and_test_pipeline(self) -> ux.UPipeline:
         train = (
-            self.train_pipeline()
+            self.get(apps.method_service_id(self.train_pipeline))
             .rename_inputs(dict(url="url.train"))
             .rename_outputs(dict(message="message.train"))
         )
         test = (
-            self.test_pipeline()
+            self.get(apps.method_service_id(self.test_pipeline))
             .rename_inputs(dict(url="url.test"))
             .rename_outputs(dict(message="message.test"))
         )

@@ -1,4 +1,3 @@
-# type: ignore[reportUninitializedInstanceVariable]
 import pytest
 
 from rats import apps
@@ -6,12 +5,12 @@ from rats_test.apps import example
 
 
 class TestAnnotatedContainer:
-    _app_1: example.ExampleApp
-    _app_fallback_1: example.ExampleApp
-    _app_fallback_2: example.ExampleApp
-    _app_fallback_3: example.ExampleApp
-    _app_groups_1: example.ExampleApp
-    _app_groups_2: example.ExampleApp
+    _app_1: example.ExampleApp  # type: ignore[reportUninitializedInstanceVariable]
+    _app_fallback_1: example.ExampleApp  # type: ignore[reportUninitializedInstanceVariable]
+    _app_fallback_2: example.ExampleApp  # type: ignore[reportUninitializedInstanceVariable]
+    _app_fallback_3: example.ExampleApp  # type: ignore[reportUninitializedInstanceVariable]
+    _app_groups_1: example.ExampleApp  # type: ignore[reportUninitializedInstanceVariable]
+    _app_groups_2: example.ExampleApp  # type: ignore[reportUninitializedInstanceVariable]
 
     def setup_method(self) -> None:
         self._app_1 = example.ExampleApp()
@@ -37,14 +36,20 @@ class TestAnnotatedContainer:
     def test_service_retrieval_via_unnamed_services(self) -> None:
         c1t1 = self._app_1.get(example.DummyContainerServiceIds.C1T1)
         c1t2 = self._app_1.get(example.DummyContainerServiceIds.C1T2)
-        c1t2a = self._app_1.get(example.DummyContainerServiceIds.C1T2a)
         c1t1b = self._app_1.get(example.DummyContainerServiceIds.C1T1b)
         c2t1 = self._app_1.get(example.DummyContainerServiceIds.C2T1)
         assert c1t1.get_tag() == "c1.s1:t1"
         assert c1t2.get_tag() == "c1.s2:t2"
-        assert c1t2a is c1t2
         assert c2t1.get_tag() == "c2.s1:t1"
         assert c1t1b is c2t1
+
+    def test_cannot_call_service_methods_directly(self) -> None:
+        with pytest.raises(TypeError):
+            # Try to access the container method directly.
+            # Should fail because the method has been decorated with @container, which is a type
+            # of service decorator, and all those add a dummy argument to the method to prevent it
+            # from being called directly.
+            self._app_1.dummy()  # type: ignore[reportCallIssue]
 
     def test_service_retrieval(self) -> None:
         storage = self._app_1.get(example.ExampleIds.STORAGE)

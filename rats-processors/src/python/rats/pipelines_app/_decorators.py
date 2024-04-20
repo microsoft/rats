@@ -7,7 +7,7 @@ from rats.processors import ux
 
 T_ServiceType = TypeVar("T_ServiceType")
 P = ParamSpec("P")
-T_Container = TypeVar("T_Container", bound=apps.Container)
+T_Container = TypeVar("T_Container", bound=apps.AnnotatedContainer)
 TInputs = TypeVar("TInputs", bound=ux.Inputs, covariant=True)
 TOutputs = TypeVar("TOutputs", bound=ux.Outputs, covariant=True)
 
@@ -51,14 +51,14 @@ class task(Generic[TInputs, TOutputs]):
     def __new__(
         cls,
         method: Callable[Concatenate[T_Container, P], ux.ProcessorOutput],
-    ) -> Callable[[T_Container], ux.Pipeline[TInputs, TOutputs]]:
+    ) -> Callable[[T_Container, apps.ServiceMethodArg], ux.Pipeline[TInputs, TOutputs]]:
         task_method = _method_to_task_provider[TInputs, TOutputs](method)
         return apps.autoid_service(task_method)
 
 
 def pipeline(
     pipeline_method: Callable[[T_Container], ux.Pipeline[ux.TInputs, ux.TOutputs]],
-) -> Callable[[T_Container], ux.Pipeline[ux.TInputs, ux.TOutputs]]:
+) -> Callable[[T_Container, apps.ServiceMethodArg], ux.Pipeline[ux.TInputs, ux.TOutputs]]:
     """Decorator creating a pipeline service.
 
     The name of the pipeline will be name of the method.
