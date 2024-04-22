@@ -27,10 +27,10 @@ class ExampleSimpleUntypedPipelineBuilder(rpa.PipelineContainer):
     @rpa.pipeline
     def p1(self) -> ux.UPipeline:
         p1 = self.load_data()
-        p2 = self.get(apps.method_service_id(self.train_model))
+        p2 = self.get(apps.autoid(self.train_model))
         p = self.combine([p1, p2], dependencies=[p1 >> p2])
         return p
 
 
 class ExampleSimpleUntypedPipelineServices:
-    P1 = apps.method_service_id(ExampleSimpleUntypedPipelineBuilder.p1)
+    P1 = apps.autoid(ExampleSimpleUntypedPipelineBuilder.p1)

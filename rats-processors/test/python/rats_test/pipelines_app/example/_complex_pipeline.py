@@ -45,12 +45,10 @@ class ExampleComplexPipelineBuilder(rpa.PipelineContainer):
             dict(
                 name="train_and_test_pipeline",
                 doc="Example pipeline 3",
-                service_id=apps.method_service_id(self.train_and_test_pipeline),
+                service_id=apps.autoid(self.train_and_test_pipeline),
             ),
         )
 
 
 class ExampleComplexPipelineServices:
-    TRAIN_AND_TEST_PIPELINE = apps.method_service_id(
-        ExampleComplexPipelineBuilder.train_and_test_pipeline
-    )
+    TRAIN_AND_TEST_PIPELINE = apps.autoid(ExampleComplexPipelineBuilder.train_and_test_pipeline)
