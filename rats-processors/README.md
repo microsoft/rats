@@ -1,6 +1,6 @@
 # rats-processors
 
-A package to create and compose pipelines in a high level API, where _processors (classes
+A package to create and compose pipelines in a high level API, where _processors_ (classes
 or unbound methods) are mapped into _pipeline nodes_, _node ports_ are inferred from the
 _processors_ signature, and _edges_ are created by connecting _node ports_ inputs and outputs.
 Pipelines defined this way are immutable objects that can be reused and composed into larger
@@ -8,7 +8,7 @@ pipelines, facilitating reusability.
 
 ## Example
 
-In you python project or Jupyter notebook, you can compose a pipeline as follows:
+In your python project or Jupyter notebook, you can compose a pipeline as follows:
 
 ```python
 from typing import NamedTuple
@@ -24,7 +24,7 @@ class DataOut(NamedTuple):
     data: pd.DataFrame
 
 
-class DataOut(NamedTuple):
+class ModelOut(NamedTuple):
     model: BaseEstimator
 
 
