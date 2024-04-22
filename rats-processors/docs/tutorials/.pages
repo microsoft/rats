@@ -1,0 +1,5 @@
+nav:
+  - Beginners: beginners.md
+  - Intermediate: intermediate.md
+  - Advanced: advanced.md
+  - Contributor: contributor.md
