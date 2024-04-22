@@ -121,14 +121,14 @@ class ExampleSimpleTypedPipelineBuilder(rpa.PipelineContainer):
     @rpa.pipeline
     def train_pipeline(self) -> TrainPipeline:
         load = self.load_data()
-        train = self.get(apps.method_service_id(self.train_model))
+        train = self.get(apps.autoid(self.train_model))
         p = self.combine([load, train], dependencies=[load.outputs.data >> train.inputs.data])
         return cast(TrainPipeline, p)
 
     @rpa.pipeline
     def test_pipeline(self) -> TestPipeline:
         load = self.load_data()
-        test = self.get(apps.method_service_id(self.test_model))
+        test = self.get(apps.autoid(self.test_model))
         p = self.combine([load, test], dependencies=[load.outputs.data >> test.inputs.data])
         return cast(TestPipeline, p)
 
@@ -138,13 +138,13 @@ class ExampleSimpleTypedPipelineBuilder(rpa.PipelineContainer):
             dict(
                 name="train_pipeline",
                 doc="Example pipeline 2",
-                service_id=apps.method_service_id(self.train_pipeline),
+                service_id=apps.autoid(self.train_pipeline),
             ),
         )
 
 
 class ExampleSimpleTypedPipelineServices:
-    TRAIN_PIPELINE = apps.method_service_id(ExampleSimpleTypedPipelineBuilder.train_pipeline)
-    TEST_PIPELINE = apps.method_service_id(ExampleSimpleTypedPipelineBuilder.test_pipeline)
-    LOAD_DATA = apps.method_service_id(ExampleSimpleTypedPipelineBuilder.load_data)
-    TRAIN_MODEL = apps.method_service_id(ExampleSimpleTypedPipelineBuilder.train_model)
+    TRAIN_PIPELINE = apps.autoid(ExampleSimpleTypedPipelineBuilder.train_pipeline)
+    TEST_PIPELINE = apps.autoid(ExampleSimpleTypedPipelineBuilder.test_pipeline)
+    LOAD_DATA = apps.autoid(ExampleSimpleTypedPipelineBuilder.load_data)
+    TRAIN_MODEL = apps.autoid(ExampleSimpleTypedPipelineBuilder.train_model)

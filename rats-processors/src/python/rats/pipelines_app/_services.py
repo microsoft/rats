@@ -49,8 +49,6 @@ class PipelineServiceContainer(apps.AnnotatedContainer):
 
 
 class PipelineServices:
-    PIPELINE_RUNNER_FACTORY = apps.method_service_id(
-        PipelineServiceContainer.pipeline_runner_factory
-    )
-    PIPELINE_TO_DOT = apps.method_service_id(PipelineServiceContainer.pipeline_to_dot)
-    EXECUTABLE_PIPELINES = apps.method_service_id(PipelineServiceContainer.executable_pipelines)
+    PIPELINE_RUNNER_FACTORY = apps.autoid(PipelineServiceContainer.pipeline_runner_factory)
+    PIPELINE_TO_DOT = apps.autoid(PipelineServiceContainer.pipeline_to_dot)
+    EXECUTABLE_PIPELINES = apps.autoid(PipelineServiceContainer.executable_pipelines)
