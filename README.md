@@ -16,8 +16,6 @@ Rats is a collection of tools to help researchers define and run experiments.
 It is designed to be a modular and extensible framework currently supporting building and
 running pipelines, integrating configs and services.
 
-**NOTE**: This project is in the early stages of development and is not yet ready for use.
-
 
 ## Documentation
 https://microsoft.github.io/rats
