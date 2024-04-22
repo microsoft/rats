@@ -1,5 +1,9 @@
 from ._decorators import combine, dependencies, pipeline, task
 from ._pipeline_container import PipelineContainer
+from ._pipeline_registry import (
+    PipelineRegistryEntry,
+    PipelineRegistryGroups,
+)
 from ._services import (
     IPipelineRunner,
     IPipelineRunnerFactory,
@@ -19,4 +23,6 @@ __all__ = [
     "task",
     "combine",
     "dependencies",
+    "PipelineRegistryEntry",
+    "PipelineRegistryGroups",
 ]
