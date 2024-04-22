@@ -163,7 +163,7 @@ def dag_to_svg(dag: DAG, **kwds: Any) -> str:
 
 
 def display_dag(pipeline: UPipeline, format: str = "png", **kwds: Any) -> None:
-    from IPython.display import SVG, Image, display  # type: ignore
+    from IPython.display import SVG, Image, display
 
     if format == "png":
         display_class = Image
