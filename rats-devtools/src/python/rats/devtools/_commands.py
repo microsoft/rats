@@ -1,31 +1,12 @@
 import subprocess
 import sys
-from collections.abc import Iterable
 from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
 
 import click
 
-from rats.services import IExecutable, ServiceProvider
-
 from ._click import ClickCommandRegistry, command
-
-
-class RatsDevtoolsCli(IExecutable):
-    _registries_group_provider: ServiceProvider[Iterable[ClickCommandRegistry]]
-
-    def __init__(
-        self, registries_group_provider: ServiceProvider[Iterable[ClickCommandRegistry]]
-    ) -> None:
-        self._registries_group_provider = registries_group_provider
-
-    def execute(self) -> None:
-        cli = click.Group()
-        for registry in self._registries_group_provider():
-            registry.register(cli)
-
-        cli()
 
 
 class RatsDevtoolsCommands(ClickCommandRegistry):

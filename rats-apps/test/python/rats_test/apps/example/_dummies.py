@@ -1,8 +1,11 @@
+from abc import abstractmethod
 from typing import Protocol
 
 
 class ITag(Protocol):
-    def get_tag(self) -> str: ...
+    @abstractmethod
+    def get_tag(self) -> str:
+        """Get the tag."""
 
 
 class Tag1:

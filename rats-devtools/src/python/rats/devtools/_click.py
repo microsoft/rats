@@ -1,9 +1,10 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from functools import partial
 from typing import Any, Protocol
 
 import click
-from click import Command
+
+from rats import apps
 
 
 def command(f: Callable[..., None]) -> Callable[..., None]:
@@ -51,10 +52,24 @@ class ClickCommandRegistry(Protocol):
             params = list(reversed(getattr(method, "__click_params__", [])))
 
             group.add_command(
-                Command(
+                click.Command(
                     name=method_name.lower().replace("_", "-").strip("-"),
                     callback=partial(cb, method_name),
                     short_help=method.__doc__,
                     params=params,
                 )
             )
+
+
+class ClickCommandGroup(apps.Executable):
+    _registries: Callable[[], Iterator[ClickCommandRegistry]]
+
+    def __init__(self, registries: Callable[[], Iterator[ClickCommandRegistry]]) -> None:
+        self._registries = registries
+
+    def execute(self) -> None:
+        cli = click.Group()
+        for registry in self._registries():
+            registry.register(cli)
+
+        cli()
