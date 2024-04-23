@@ -1,3 +1,5 @@
+from typing import Any
+
 from rats import apps
 from rats import processors as rp
 from rats.processors import types as rpt
@@ -36,6 +38,20 @@ class ExampleComplexPipelineBuilder(rp.PipelineContainer):
             .rename_outputs(dict(message="message.test"))
         )
         return self.combine([train, test], dependencies=[train >> test])
+
+    @apps.group(rp.Services.Groups.EXECUTABLE_PIPELINES)
+    def executable_pipelines(self) -> Any:
+        return (
+            {
+                "name": "examples.complex_pipeline",
+                "doc": f"""
+Example of a pipeline incorporating pipelines defined elsewhere.
+
+Defined in `{__file__}`
+""",
+                "service_id": apps.method_service_id(self.train_and_test_pipeline),
+            },
+        )
 
 
 class ExampleComplexPipelineServices:

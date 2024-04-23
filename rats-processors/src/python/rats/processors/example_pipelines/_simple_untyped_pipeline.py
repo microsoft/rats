@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from rats import apps
 from rats import processors as rp
@@ -25,12 +25,26 @@ class ExampleSimpleUntypedPipelineBuilder(rp.PipelineContainer):
         return TrainModelOutput(message=message, length=len(message))
 
     @rp.pipeline
-    def p1(self) -> rpt.UPipeline:
+    def train_pipeline(self) -> rpt.UPipeline:
         p1 = self.load_data()
         p2 = self.get(apps.method_service_id(self.train_model))
         p = self.combine([p1, p2], dependencies=[p1 >> p2])
         return p
 
+    @apps.group(rp.Services.Groups.EXECUTABLE_PIPELINES)
+    def executable_pipelines(self) -> Any:
+        return (
+            {
+                "name": "examples.untyped_simple_pipeline",
+                "doc": f"""
+Example untyped simple pipeline.
+
+Defined in `{__file__}`
+""",
+                "service_id": apps.method_service_id(self.train_pipeline),
+            },
+        )
+
 
 class ExampleSimpleUntypedPipelineServices:
-    P1 = apps.method_service_id(ExampleSimpleUntypedPipelineBuilder.p1)
+    TRAIN_PIPELINE = apps.method_service_id(ExampleSimpleUntypedPipelineBuilder.train_pipeline)

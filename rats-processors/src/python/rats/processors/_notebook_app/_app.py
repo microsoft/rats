@@ -4,7 +4,8 @@ from typing import Any
 from rats import apps
 from rats.apps import Container
 from rats.processors import _types as rpt
-from rats.processors._services import Services
+
+from .._legacy_services_wrapper import Services
 
 
 class NotebookApp(apps.AnnotatedContainer):

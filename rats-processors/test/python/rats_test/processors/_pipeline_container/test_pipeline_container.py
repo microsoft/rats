@@ -1,9 +1,6 @@
 from rats import processors as rp
-from rats_test.processors._pipeline_container.example import (
-    ExamplePipelineServices,
-    Model,
-    SubModel,
-)
+from rats.processors.example_pipelines import Model, SubModel
+from rats.processors.example_pipelines import Services as ExamplePipelineServices
 
 
 class TestPipelineContainer:
@@ -12,9 +9,9 @@ class TestPipelineContainer:
     def setup_method(self) -> None:
         self._app = rp.NotebookApp()
 
-    def test_p1(self) -> None:
+    def test_untyped(self) -> None:
         prf = self._app.get(rp.Services.PIPELINE_RUNNER_FACTORY)
-        pipeline = self._app.get(ExamplePipelineServices.P1)
+        pipeline = self._app.get(ExamplePipelineServices.UNTYPED_TRAIN_PIPELINE)
         pr = prf(pipeline)
         inputs = dict(
             url="http://example.com",
@@ -106,3 +103,16 @@ class TestPipelineContainer:
         # verify typing of pipeline
         train_model.outputs.message >> train_pipeline.inputs.url  # ok
         train_pipeline.outputs.length >> train_pipeline.inputs.num_layers  # ok
+
+    def test_registry(self) -> None:
+        registry = self._app.get(rp.Services.EXECUTABLE_PIPELINES_REGISTRY)
+        assert len(registry) == 3
+        e1 = registry["examples.untyped_simple_pipeline"]
+        p1 = e1.provider()
+        assert p1 is self._app.get(ExamplePipelineServices.UNTYPED_TRAIN_PIPELINE)
+        e2 = registry["examples.typed_simple_pipeline"]
+        p2 = e2.provider()
+        assert p2 is self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
+        e3 = registry["examples.complex_pipeline"]
+        p3 = e3.provider()
+        assert p3 is self._app.get(ExamplePipelineServices.TRAIN_AND_TEST_PIPELINE)

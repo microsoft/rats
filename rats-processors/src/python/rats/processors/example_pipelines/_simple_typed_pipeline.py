@@ -1,5 +1,5 @@
 import copy
-from typing import NamedTuple, cast
+from typing import Any, NamedTuple, cast
 
 from rats import apps
 from rats import processors as rp
@@ -131,6 +131,20 @@ class ExampleSimpleTypedPipelineBuilder(rp.PipelineContainer):
         test = self.get(apps.method_service_id(self.test_model))
         p = self.combine([load, test], dependencies=[load.outputs.data >> test.inputs.data])
         return cast(TestPipeline, p)
+
+    @apps.group(rp.Services.Groups.EXECUTABLE_PIPELINES)
+    def executable_pipelines(self) -> Any:
+        return (
+            {
+                "name": "examples.typed_simple_pipeline",
+                "doc": f"""
+Example typed simple pipeline.
+
+Defined in `{__file__}`
+""",
+                "service_id": apps.method_service_id(self.train_pipeline),
+            },
+        )
 
 
 class ExampleSimpleTypedPipelineServices:
