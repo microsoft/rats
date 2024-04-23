@@ -2,7 +2,7 @@ exclude: (?x)(^.idea/)
 
 ci:
   autofix_prs: false
-  autoupdate_commit_msg: "dep-bump(pre-commit): update pre-commit hooks"
+  autoupdate_commit_msg: ":arrow-up: dep-bump(pre-commit): update pre-commit hooks"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
