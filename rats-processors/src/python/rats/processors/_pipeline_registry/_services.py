@@ -1,10 +1,10 @@
 from rats import apps
 
-from ._pipeline_registry import PipelineRegistry, PipelineRegistryEntry
+from ._pipeline_registry import IPipelineRegistry, PipelineRegistryEntry
 
 
 class Services:
-    EXECUTABLE_PIPELINES_REGISTRY = apps.ServiceId[PipelineRegistry](
+    EXECUTABLE_PIPELINES_REGISTRY = apps.ServiceId[IPipelineRegistry](
         "executable-pipelines-registry"
     )
 

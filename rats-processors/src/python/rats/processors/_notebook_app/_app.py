@@ -5,7 +5,9 @@ from rats import apps
 from rats.apps import Container
 from rats.processors import _types as rpt
 
-from .._legacy_services_wrapper import Services
+from .._legacy_services_wrapper import Services as LegacyServices
+from .._pipeline_registry import IPipelineRegistry
+from .._pipeline_registry import Services as PipelineRegistryServices
 
 
 class NotebookApp(apps.AnnotatedContainer):
@@ -17,7 +19,7 @@ class NotebookApp(apps.AnnotatedContainer):
         )
 
     def run(self, pipeline: rpt.UPipeline, inputs: Mapping[str, Any] = {}) -> Mapping[str, Any]:
-        runner_factory = self.get(Services.PIPELINE_RUNNER_FACTORY)
+        runner_factory = self.get(LegacyServices.PIPELINE_RUNNER_FACTORY)
         runner = runner_factory(pipeline)
         outputs = runner(inputs)
         return outputs
@@ -34,7 +36,10 @@ class NotebookApp(apps.AnnotatedContainer):
         else:
             raise ValueError(f"Unsupported format {format}. Supported formats are png and svg.")
 
-        pipeline_to_dot = self.get(Services.PIPELINE_TO_DOT)
+        pipeline_to_dot = self.get(LegacyServices.PIPELINE_TO_DOT)
         dot = pipeline_to_dot(pipeline, include_optional=include_optional)
 
         display(display_class(dot.create(format=format)))
+
+    def executable_pipelines(self) -> IPipelineRegistry:
+        return self.get(PipelineRegistryServices.EXECUTABLE_PIPELINES_REGISTRY)

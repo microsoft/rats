@@ -10,15 +10,13 @@ class TestPipelineContainer:
         self._app = rp.NotebookApp()
 
     def test_untyped(self) -> None:
-        prf = self._app.get(rp.Services.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.UNTYPED_TRAIN_PIPELINE)
-        pr = prf(pipeline)
         inputs = dict(
             url="http://example.com",
             model_type="linear",
             num_layers=2,
         )
-        outputs = pr(inputs)
+        outputs = self._app.run(pipeline, inputs)
         assert (
             outputs["message"]
             == "Training model with data: Data from http://example.com with config linear, 2"
@@ -26,9 +24,7 @@ class TestPipelineContainer:
         assert "length" in outputs
 
     def test_train_pipeline(self) -> None:
-        prf = self._app.get(rp.Services.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
-        pr = prf(pipeline)
         model = Model(
             model_name="linear",
             num_layers=21,
@@ -42,7 +38,7 @@ class TestPipelineContainer:
             epochs=2,
             model=model,
         )
-        outputs = pr(inputs)
+        outputs = self._app.run(pipeline, inputs)
         expected_message = (
             f"Training model\n\tdata: Data from blob://data\n\tepochs: {2}\n"
             f"\tmodel: Model(model_name=linear, num_layers=21, sub_model=SubModel(gamma=0.1), "
@@ -56,9 +52,7 @@ class TestPipelineContainer:
         assert model.trained
 
     def test_train_and_test_pipeline(self) -> None:
-        prf = self._app.get(rp.Services.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.TRAIN_AND_TEST_PIPELINE)
-        pr = prf(pipeline)
         model = Model(
             model_name="linear",
             num_layers=21,
@@ -73,7 +67,7 @@ class TestPipelineContainer:
             "epochs": 2,
             "model": model,
         }
-        outputs = pr(inputs)
+        outputs = self._app.run(pipeline, inputs)
         expected_train_message = (
             f"Training model\n\tdata: Data from blob://train_data\n\tepochs: {2}\n"
             f"\tmodel: Model(model_name=linear, num_layers=21, sub_model=SubModel(gamma=0.1), "
@@ -105,7 +99,7 @@ class TestPipelineContainer:
         train_pipeline.outputs.length >> train_pipeline.inputs.num_layers  # ok
 
     def test_registry(self) -> None:
-        registry = self._app.get(rp.Services.EXECUTABLE_PIPELINES_REGISTRY)
+        registry = self._app.executable_pipelines()
         assert len(registry) == 3
         e1 = registry["examples.untyped_simple_pipeline"]
         p1 = e1.provider()

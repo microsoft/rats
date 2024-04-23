@@ -1,5 +1,5 @@
 from ._container import Container
-from ._pipeline_registry import PipelineRegistry
+from ._pipeline_registry import IPipelineRegistry
 from ._services import Groups, Services
 
-__all__ = ["PipelineRegistry", "Container", "Services", "Groups"]
+__all__ = ["IPipelineRegistry", "Container", "Services", "Groups"]

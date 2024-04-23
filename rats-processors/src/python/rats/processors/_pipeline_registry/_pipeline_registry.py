@@ -17,6 +17,9 @@ class RegisteredPipeline(NamedTuple):
     provider: Callable[[], rpt.UPipeline]
 
 
+IPipelineRegistry = Mapping[str, RegisteredPipeline]
+
+
 class PipelineRegistry(Mapping[str, RegisteredPipeline]):
     _app: apps.Container
     _entries: dict[str, PipelineRegistryEntry]
