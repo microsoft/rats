@@ -33,6 +33,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
 
     def _sphinx_apidoc(self) -> None:
         components = [
+            "rats-apps",
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
@@ -68,6 +69,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
 
     def _sphinx_markdown(self) -> None:
         components = [
+            "rats-apps",
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
@@ -119,6 +121,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
         copytree(root_docs_path, mkdocs_staging_path)
 
         components = [
+            "rats-apps",
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
