@@ -7,7 +7,7 @@ import pydot
 
 from rats import apps
 from rats.app import RatsApp as LegacyApp
-from rats.processors import dag, ux
+from rats.processors._legacy import dag, ux
 
 from ._pipeline_registry import PipelineRegistryEntry, PipelineRegistryGroups
 

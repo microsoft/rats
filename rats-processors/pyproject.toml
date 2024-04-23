@@ -51,7 +51,7 @@ sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
 
 [tool.poetry.plugins."rats.app_plugins"]
-"rats.processors-plugin" = "rats.processors.plugin:RatsProcessorsPlugin"
+"rats.processors-plugin" = "rats.processors._legacy.plugin:RatsProcessorsPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

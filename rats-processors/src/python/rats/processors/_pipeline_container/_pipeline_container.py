@@ -3,7 +3,7 @@ from typing import Any
 from uuid import uuid4
 
 from rats import apps
-from rats.processors import ux
+from rats.processors._legacy import ux
 
 
 class PipelineContainer(apps.AnnotatedContainer):
