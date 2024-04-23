@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 import pydot
 
-from rats.processors._legacy_subpackages import ux
+from rats.processors import _types as rpt
 
 
 class IPipelineRunner(Protocol):
@@ -14,9 +14,9 @@ class IPipelineRunner(Protocol):
 
 class IPipelineRunnerFactory(Protocol):
     @abstractmethod
-    def __call__(self, pipeline: ux.UPipeline) -> IPipelineRunner: ...
+    def __call__(self, pipeline: rpt.UPipeline) -> IPipelineRunner: ...
 
 
 class IPipelineToDot(Protocol):
     @abstractmethod
-    def __call__(self, pipeline: ux.UPipeline, include_optional: bool = True) -> pydot.Dot: ...
+    def __call__(self, pipeline: rpt.UPipeline, include_optional: bool = True) -> pydot.Dot: ...

@@ -1,6 +1,6 @@
 from rats import apps
 from rats import processors as rp
-from rats.processors import ux
+from rats.processors import types as rpt
 
 from ._simple_typed_pipeline import (
     ExampleSimpleTypedPipelineServices,
@@ -24,7 +24,7 @@ class ExampleComplexPipelineBuilder(rp.PipelineContainer):
         return self._app.get(ExampleSimpleTypedPipelineServices.TEST_PIPELINE)
 
     @rp.pipeline
-    def train_and_test_pipeline(self) -> ux.UPipeline:
+    def train_and_test_pipeline(self) -> rpt.UPipeline:
         train = (
             self.train_pipeline()
             .rename_inputs(dict(url="url.train"))

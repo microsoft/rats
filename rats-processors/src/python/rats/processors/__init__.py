@@ -1,9 +1,9 @@
+from . import _types as types
 from ._legacy_services_wrapper import (
     IPipelineRunner,
     IPipelineRunnerFactory,
     IPipelineToDot,
 )
-from ._legacy_subpackages import ux
 from ._notebook_app import NotebookApp
 from ._pipeline_container import (
     PipelineContainer,
@@ -19,7 +19,7 @@ __all__ = [
     "NotebookApp",
     "PipelineContainer",
     "pipeline",
+    "types",
     "Services",
     "task",
-    "ux",
 ]

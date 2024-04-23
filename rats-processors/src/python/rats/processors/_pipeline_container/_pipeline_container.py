@@ -3,6 +3,7 @@ from typing import Any
 from uuid import uuid4
 
 from rats import apps
+from rats.processors import _types as rpt
 from rats.processors._legacy_subpackages import ux
 
 
@@ -14,12 +15,12 @@ class PipelineContainer(apps.AnnotatedContainer):
 
     def combine(
         self,
-        pipelines: Sequence[ux.UPipeline],
+        pipelines: Sequence[rpt.UPipeline],
         name: str | None = None,
-        dependencies: Sequence[ux.DependencyOp[Any]] | None = None,
-        inputs: ux.UserInput | None = None,
-        outputs: ux.UserOutput | None = None,
-    ) -> ux.UPipeline:
+        dependencies: Sequence[rpt.DependencyOp[Any]] | None = None,
+        inputs: rpt.UserInput | None = None,
+        outputs: rpt.UserOutput | None = None,
+    ) -> rpt.UPipeline:
         name = name or uuid4().hex
         return ux.CombinedPipeline(
             pipelines=pipelines,

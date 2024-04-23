@@ -2,7 +2,7 @@ from typing import NamedTuple
 
 from rats import apps
 from rats import processors as rp
-from rats.processors import ux
+from rats.processors import types as rpt
 
 
 class LoadDataOutput(NamedTuple):
@@ -25,7 +25,7 @@ class ExampleSimpleUntypedPipelineBuilder(rp.PipelineContainer):
         return TrainModelOutput(message=message, length=len(message))
 
     @rp.pipeline
-    def p1(self) -> ux.UPipeline:
+    def p1(self) -> rpt.UPipeline:
         p1 = self.load_data()
         p2 = self.get(apps.method_service_id(self.train_model))
         p = self.combine([p1, p2], dependencies=[p1 >> p2])

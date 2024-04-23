@@ -3,7 +3,7 @@ from typing import NamedTuple, cast
 
 from rats import apps
 from rats import processors as rp
-from rats.processors import ux
+from rats.processors import types as rpt
 
 
 class SubModel:
@@ -36,27 +36,27 @@ class Model:
         return f"Model(model_name={self.model_name}, num_layers={self.num_layers}, sub_model={self.sub_model}, status={status})"
 
 
-class LoadDataInputs(ux.Inputs):
-    url: ux.InPort[str]
+class LoadDataInputs(rpt.Inputs):
+    url: rpt.InPort[str]
 
 
-class LoadDataOutputs(ux.Outputs):
-    data: ux.OutPort[str]
+class LoadDataOutputs(rpt.Outputs):
+    data: rpt.OutPort[str]
 
 
 class LoadDataOutput(NamedTuple):
     data: str
 
 
-class TrainModelInputs(ux.Inputs):
-    model: ux.InPort[Model]
-    epochs: ux.InPort[int]
-    data: ux.InPort[str]
+class TrainModelInputs(rpt.Inputs):
+    model: rpt.InPort[Model]
+    epochs: rpt.InPort[int]
+    data: rpt.InPort[str]
 
 
-class TrainModelOutputs(ux.Outputs):
-    message: ux.OutPort[str]
-    length: ux.OutPort[int]
+class TrainModelOutputs(rpt.Outputs):
+    message: rpt.OutPort[str]
+    length: rpt.OutPort[int]
 
 
 class TrainModelOutput(NamedTuple):
@@ -67,38 +67,38 @@ class TrainModelOutput(NamedTuple):
 TestModelInputs = TrainModelInputs
 
 
-class TestModelOutputs(ux.Outputs):
-    message: ux.OutPort[str]
+class TestModelOutputs(rpt.Outputs):
+    message: rpt.OutPort[str]
 
 
 class TestModelOutput(NamedTuple):
     message: str
 
 
-class TrainPipelineInputs(ux.Inputs):
-    url: ux.InPort[str]
-    model: ux.InPort[Model]
-    epochs: ux.InPort[int]
+class TrainPipelineInputs(rpt.Inputs):
+    url: rpt.InPort[str]
+    model: rpt.InPort[Model]
+    epochs: rpt.InPort[int]
 
 
-class TrainPipelineOutputs(ux.Outputs):
-    message: ux.OutPort[str]
-    model: ux.OutPort[Model]
+class TrainPipelineOutputs(rpt.Outputs):
+    message: rpt.OutPort[str]
+    model: rpt.OutPort[Model]
 
 
-TrainPipeline = ux.Pipeline[TrainPipelineInputs, TrainPipelineOutputs]
+TrainPipeline = rpt.Pipeline[TrainPipelineInputs, TrainPipelineOutputs]
 
 
-class TestPipelineInputs(ux.Inputs):
-    url: ux.InPort[str]
-    model: ux.InPort[Model]
+class TestPipelineInputs(rpt.Inputs):
+    url: rpt.InPort[str]
+    model: rpt.InPort[Model]
 
 
-class TestPipelineOutputs(ux.Outputs):
-    message: ux.OutPort[str]
+class TestPipelineOutputs(rpt.Outputs):
+    message: rpt.OutPort[str]
 
 
-TestPipeline = ux.Pipeline[TestPipelineInputs, TestPipelineOutputs]
+TestPipeline = rpt.Pipeline[TestPipelineInputs, TestPipelineOutputs]
 
 
 class ExampleSimpleTypedPipelineBuilder(rp.PipelineContainer):

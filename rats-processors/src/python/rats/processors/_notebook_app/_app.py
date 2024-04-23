@@ -3,7 +3,7 @@ from typing import Any
 
 from rats import apps
 from rats.apps import Container
-from rats.processors._legacy_subpackages import ux
+from rats.processors import _types as rpt
 from rats.processors._services import Services
 
 
@@ -15,14 +15,14 @@ class NotebookApp(apps.AnnotatedContainer):
             group="rats.processors_app_plugins",
         )
 
-    def run(self, pipeline: ux.UPipeline, inputs: Mapping[str, Any] = {}) -> Mapping[str, Any]:
+    def run(self, pipeline: rpt.UPipeline, inputs: Mapping[str, Any] = {}) -> Mapping[str, Any]:
         runner_factory = self.get(Services.PIPELINE_RUNNER_FACTORY)
         runner = runner_factory(pipeline)
         outputs = runner(inputs)
         return outputs
 
     def display(
-        self, pipeline: ux.UPipeline, include_optional: bool = True, format: str = "png"
+        self, pipeline: rpt.UPipeline, include_optional: bool = True, format: str = "png"
     ) -> None:
         from IPython.display import SVG, Image, display
 
