@@ -41,6 +41,10 @@ updates:
     schedule:
       interval: weekly
     target-branch: main
+    groups:
+      package-dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: pip
     directory: /rats-processors/
     schedule:
