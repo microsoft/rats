@@ -1,5 +1,4 @@
 from rats import processors as rp
-from rats_test.processors._pipeline_container import example
 from rats_test.processors._pipeline_container.example import (
     ExamplePipelineServices,
     Model,
@@ -8,13 +7,13 @@ from rats_test.processors._pipeline_container.example import (
 
 
 class TestPipelineContainer:
-    _app: example.ExampleApp
+    _app: rp.NotebookApp
 
     def setup_method(self) -> None:
-        self._app = example.ExampleApp()
+        self._app = rp.NotebookApp()
 
     def test_p1(self) -> None:
-        prf = self._app.get(rp.ProcessorsServices.PIPELINE_RUNNER_FACTORY)
+        prf = self._app.get(rp.Services.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.P1)
         pr = prf(pipeline)
         inputs = dict(
@@ -30,7 +29,7 @@ class TestPipelineContainer:
         assert "length" in outputs
 
     def test_train_pipeline(self) -> None:
-        prf = self._app.get(rp.ProcessorsServices.PIPELINE_RUNNER_FACTORY)
+        prf = self._app.get(rp.Services.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
         pr = prf(pipeline)
         model = Model(
@@ -60,7 +59,7 @@ class TestPipelineContainer:
         assert model.trained
 
     def test_train_and_test_pipeline(self) -> None:
-        prf = self._app.get(rp.ProcessorsServices.PIPELINE_RUNNER_FACTORY)
+        prf = self._app.get(rp.Services.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.TRAIN_AND_TEST_PIPELINE)
         pr = prf(pipeline)
         model = Model(
@@ -107,16 +106,3 @@ class TestPipelineContainer:
         # verify typing of pipeline
         train_model.outputs.message >> train_pipeline.inputs.url  # ok
         train_pipeline.outputs.length >> train_pipeline.inputs.num_layers  # ok
-
-    def test_registry(self) -> None:
-        registered_pipelines = self._app.get(rp.ProcessorsServices.EXECUTABLE_PIPELINES)
-        assert len(registered_pipelines) == 2
-        registered_pipelines_dict = {p["name"]: p for p in registered_pipelines}
-        train_pipeline_1 = self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
-        train_pipeline_2 = self._app.get(registered_pipelines_dict["train_pipeline"]["service_id"])
-        assert train_pipeline_1 is train_pipeline_2
-        train_and_test_pipeline_1 = self._app.get(ExamplePipelineServices.TRAIN_AND_TEST_PIPELINE)
-        train_and_test_pipeline_2 = self._app.get(
-            registered_pipelines_dict["train_and_test_pipeline"]["service_id"]
-        )
-        assert train_and_test_pipeline_1 is train_and_test_pipeline_2

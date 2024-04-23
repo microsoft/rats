@@ -1,0 +1,27 @@
+from rats import apps
+from rats.app import RatsApp as LegacyApp
+from rats.processors._legacy import dag, ux
+
+from ._interfaces import IPipelineRunnerFactory, IPipelineToDot
+
+
+class LegacyServicesWrapperContainer(apps.AnnotatedContainer):
+    @apps.autoid_service
+    def legacy_app(self) -> LegacyApp:
+        return LegacyApp.default()
+
+    @apps.autoid_service
+    def pipeline_runner_factory(self) -> IPipelineRunnerFactory:
+        legacy_app = self.get(apps.method_service_id(self.legacy_app))
+        return legacy_app.get_service(ux.RatsProcessorsUxServices.PIPELINE_RUNNER_FACTORY)
+
+    @apps.autoid_service
+    def pipeline_to_dot(self) -> IPipelineToDot:
+        return dag._viz.pipeline_to_dot
+
+
+class Services:
+    PIPELINE_RUNNER_FACTORY = apps.method_service_id(
+        LegacyServicesWrapperContainer.pipeline_runner_factory
+    )
+    PIPELINE_TO_DOT = apps.method_service_id(LegacyServicesWrapperContainer.pipeline_to_dot)

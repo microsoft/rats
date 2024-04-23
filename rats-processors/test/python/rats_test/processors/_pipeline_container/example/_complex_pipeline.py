@@ -1,8 +1,6 @@
-from typing import Any
-
 from rats import apps
 from rats import processors as rp
-from rats.processors._legacy import ux
+from rats.processors import ux
 
 from ._simple_typed_pipeline import (
     ExampleSimpleTypedPipelineServices,
@@ -38,16 +36,6 @@ class ExampleComplexPipelineBuilder(rp.PipelineContainer):
             .rename_outputs(dict(message="message.test"))
         )
         return self.combine([train, test], dependencies=[train >> test])
-
-    @apps.group(rp.PipelineRegistryGroups.EXECUTABLE_PIPELINES)
-    def executable_pipeline(self) -> Any:
-        return (
-            dict(
-                name="train_and_test_pipeline",
-                doc="Example pipeline 3",
-                service_id=apps.method_service_id(self.train_and_test_pipeline),
-            ),
-        )
 
 
 class ExampleComplexPipelineServices:

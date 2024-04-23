@@ -2,7 +2,7 @@ from typing import NamedTuple
 
 from rats import apps
 from rats import processors as rp
-from rats.processors._legacy import ux
+from rats.processors import ux
 
 
 class LoadDataOutput(NamedTuple):

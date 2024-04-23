@@ -1,25 +1,25 @@
-from ._pipeline_container import (
+from ._legacy import ux
+from ._legacy_services_wrapper import (
     IPipelineRunner,
     IPipelineRunnerFactory,
     IPipelineToDot,
+)
+from ._notebook_app import NotebookApp
+from ._pipeline_container import (
     PipelineContainer,
-    PipelineRegistryEntry,
-    PipelineRegistryGroups,
-    PipelineServiceContainer,
     pipeline,
     task,
 )
-from ._pipeline_container import Services as ProcessorsServices
+from ._services import Services
 
 __all__ = [
     "IPipelineRunner",
     "IPipelineRunnerFactory",
     "IPipelineToDot",
+    "NotebookApp",
     "PipelineContainer",
-    "PipelineRegistryEntry",
-    "PipelineRegistryGroups",
-    "PipelineServiceContainer",
     "pipeline",
-    "ProcessorsServices",
+    "Services",
     "task",
+    "ux",
 ]
