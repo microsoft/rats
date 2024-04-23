@@ -48,7 +48,7 @@ class PipelineServiceContainer(apps.AnnotatedContainer):
         return tuple(chain(*self._app.get_group(PipelineRegistryGroups.EXECUTABLE_PIPELINES)))
 
 
-class PipelineServices:
+class Services:
     PIPELINE_RUNNER_FACTORY = apps.method_service_id(
         PipelineServiceContainer.pipeline_runner_factory
     )

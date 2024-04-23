@@ -1,7 +1,7 @@
 from rats import apps
 from rats.app import RatsApp as LegacyApp
 from rats.apps import Container
-from rats.pipelines_app import PipelineServiceContainer
+from rats.processors import PipelineServiceContainer
 
 from ._complex_pipeline import ExampleComplexPipelineBuilder
 from ._simple_typed_pipeline import ExampleSimpleTypedPipelineBuilder

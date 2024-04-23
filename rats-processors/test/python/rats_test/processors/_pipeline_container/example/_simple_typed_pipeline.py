@@ -2,7 +2,7 @@ import copy
 from typing import Any, NamedTuple, cast
 
 from rats import apps
-from rats import pipelines_app as rpa
+from rats import processors as rp
 from rats.processors import ux
 
 
@@ -101,38 +101,38 @@ class TestPipelineOutputs(ux.Outputs):
 TestPipeline = ux.Pipeline[TestPipelineInputs, TestPipelineOutputs]
 
 
-class ExampleSimpleTypedPipelineBuilder(rpa.PipelineContainer):
-    @rpa.task[LoadDataInputs, LoadDataOutputs]
+class ExampleSimpleTypedPipelineBuilder(rp.PipelineContainer):
+    @rp.task[LoadDataInputs, LoadDataOutputs]
     def load_data(self, url: str) -> LoadDataOutput:
         return LoadDataOutput(data=f"Data from {url}")
 
-    @rpa.task[TrainModelInputs, TrainModelOutputs]
+    @rp.task[TrainModelInputs, TrainModelOutputs]
     def train_model(self, model: Model, data: str, epochs: int = 10) -> TrainModelOutput:
         message = f"Training model\n\tdata: {data}\n\tepochs: {epochs}\n\tmodel: {model}"
         model = copy.deepcopy(model)
         model.train()
         return TrainModelOutput(message=message, model=model)
 
-    @rpa.task[TestModelInputs, TestModelOutputs]
+    @rp.task[TestModelInputs, TestModelOutputs]
     def test_model(self, model: Model, data: str) -> TestModelOutput:
         message = f"Testing model\n\tdata: {data}\n\tmodel: {model}"
         return TestModelOutput(message=message)
 
-    @rpa.pipeline
+    @rp.pipeline
     def train_pipeline(self) -> TrainPipeline:
         load = self.load_data()
         train = self.get(apps.method_service_id(self.train_model))
         p = self.combine([load, train], dependencies=[load.outputs.data >> train.inputs.data])
         return cast(TrainPipeline, p)
 
-    @rpa.pipeline
+    @rp.pipeline
     def test_pipeline(self) -> TestPipeline:
         load = self.load_data()
         test = self.get(apps.method_service_id(self.test_model))
         p = self.combine([load, test], dependencies=[load.outputs.data >> test.inputs.data])
         return cast(TestPipeline, p)
 
-    @apps.group(rpa.PipelineRegistryGroups.EXECUTABLE_PIPELINES)
+    @apps.group(rp.PipelineRegistryGroups.EXECUTABLE_PIPELINES)
     def executable_pipeline(self) -> Any:
         return (
             dict(

@@ -1,6 +1,10 @@
-from rats import pipelines_app as rpa
-from rats_test.pipelines_app import example
-from rats_test.pipelines_app.example import ExamplePipelineServices, Model, SubModel
+from rats import processors as rp
+from rats_test.processors._pipeline_container import example
+from rats_test.processors._pipeline_container.example import (
+    ExamplePipelineServices,
+    Model,
+    SubModel,
+)
 
 
 class TestPipelineContainer:
@@ -10,7 +14,7 @@ class TestPipelineContainer:
         self._app = example.ExampleApp()
 
     def test_p1(self) -> None:
-        prf = self._app.get(rpa.PipelineServices.PIPELINE_RUNNER_FACTORY)
+        prf = self._app.get(rp.ProcessorsServices.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.P1)
         pr = prf(pipeline)
         inputs = dict(
@@ -26,7 +30,7 @@ class TestPipelineContainer:
         assert "length" in outputs
 
     def test_train_pipeline(self) -> None:
-        prf = self._app.get(rpa.PipelineServices.PIPELINE_RUNNER_FACTORY)
+        prf = self._app.get(rp.ProcessorsServices.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
         pr = prf(pipeline)
         model = Model(
@@ -56,7 +60,7 @@ class TestPipelineContainer:
         assert model.trained
 
     def test_train_and_test_pipeline(self) -> None:
-        prf = self._app.get(rpa.PipelineServices.PIPELINE_RUNNER_FACTORY)
+        prf = self._app.get(rp.ProcessorsServices.PIPELINE_RUNNER_FACTORY)
         pipeline = self._app.get(ExamplePipelineServices.TRAIN_AND_TEST_PIPELINE)
         pr = prf(pipeline)
         model = Model(
@@ -105,7 +109,7 @@ class TestPipelineContainer:
         train_pipeline.outputs.length >> train_pipeline.inputs.num_layers  # ok
 
     def test_registry(self) -> None:
-        registered_pipelines = self._app.get(rpa.PipelineServices.EXECUTABLE_PIPELINES)
+        registered_pipelines = self._app.get(rp.ProcessorsServices.EXECUTABLE_PIPELINES)
         assert len(registered_pipelines) == 2
         registered_pipelines_dict = {p["name"]: p for p in registered_pipelines}
         train_pipeline_1 = self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)

@@ -9,13 +9,12 @@ from ._services import (
     IPipelineRunnerFactory,
     IPipelineToDot,
     PipelineServiceContainer,
-    PipelineServices,
+    Services,
 )
 
 __all__ = [
     "pipeline",
     "PipelineContainer",
-    "PipelineServices",
     "PipelineServiceContainer",
     "IPipelineRunner",
     "IPipelineRunnerFactory",
@@ -23,4 +22,5 @@ __all__ = [
     "task",
     "PipelineRegistryEntry",
     "PipelineRegistryGroups",
+    "Services",
 ]

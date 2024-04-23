@@ -1,7 +1,7 @@
 from typing import Any
 
 from rats import apps
-from rats import pipelines_app as rpa
+from rats import processors as rp
 from rats.processors import ux
 
 from ._simple_typed_pipeline import (
@@ -11,21 +11,21 @@ from ._simple_typed_pipeline import (
 )
 
 
-class ExampleComplexPipelineBuilder(rpa.PipelineContainer):
+class ExampleComplexPipelineBuilder(rp.PipelineContainer):
     _app: apps.Container
 
     def __init__(self, app: apps.Container):
         self._app = app
 
-    @rpa.pipeline
+    @rp.pipeline
     def train_pipeline(self) -> TrainPipeline:
         return self._app.get(ExampleSimpleTypedPipelineServices.TRAIN_PIPELINE)
 
-    @rpa.pipeline
+    @rp.pipeline
     def test_pipeline(self) -> TestPipeline:
         return self._app.get(ExampleSimpleTypedPipelineServices.TEST_PIPELINE)
 
-    @rpa.pipeline
+    @rp.pipeline
     def train_and_test_pipeline(self) -> ux.UPipeline:
         train = (
             self.train_pipeline()
@@ -39,7 +39,7 @@ class ExampleComplexPipelineBuilder(rpa.PipelineContainer):
         )
         return self.combine([train, test], dependencies=[train >> test])
 
-    @apps.group(rpa.PipelineRegistryGroups.EXECUTABLE_PIPELINES)
+    @apps.group(rp.PipelineRegistryGroups.EXECUTABLE_PIPELINES)
     def executable_pipeline(self) -> Any:
         return (
             dict(

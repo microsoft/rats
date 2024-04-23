@@ -1,7 +1,7 @@
 from typing import NamedTuple
 
 from rats import apps
-from rats import pipelines_app as rpa
+from rats import processors as rp
 from rats.processors import ux
 
 
@@ -14,17 +14,17 @@ class TrainModelOutput(NamedTuple):
     length: int
 
 
-class ExampleSimpleUntypedPipelineBuilder(rpa.PipelineContainer):
-    @rpa.task
+class ExampleSimpleUntypedPipelineBuilder(rp.PipelineContainer):
+    @rp.task
     def load_data(self, url: str) -> LoadDataOutput:
         return LoadDataOutput(data=f"Data from {url}")
 
-    @rpa.task
+    @rp.task
     def train_model(self, model_type: str, num_layers: int, data: str) -> TrainModelOutput:
         message = f"Training model with data: {data} with config {model_type}, {num_layers}"
         return TrainModelOutput(message=message, length=len(message))
 
-    @rpa.pipeline
+    @rp.pipeline
     def p1(self) -> ux.UPipeline:
         p1 = self.load_data()
         p2 = self.get(apps.method_service_id(self.train_model))
