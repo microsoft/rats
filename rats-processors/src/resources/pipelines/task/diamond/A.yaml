@@ -2,4 +2,4 @@ defaults:
   - /task/base@_here_
   - _self_
 
-processor_type: rats_test.processors._legacy.test_diamond_yaml.A
+processor_type: rats_test.processors._legacy_subpackages.test_diamond_yaml.A

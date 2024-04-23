@@ -1,4 +1,4 @@
-"""Exposes selected services from rats.processors._legacy."""
+"""Exposes selected services from rats.processors._legacy_subpackages."""
 
 from ._container import (
     LegacyServicesWrapperContainer,

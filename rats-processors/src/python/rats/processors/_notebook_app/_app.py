@@ -3,7 +3,7 @@ from typing import Any
 
 from rats import apps
 from rats.apps import Container
-from rats.processors._legacy import ux
+from rats.processors._legacy_subpackages import ux
 from rats.processors._services import Services
 
 

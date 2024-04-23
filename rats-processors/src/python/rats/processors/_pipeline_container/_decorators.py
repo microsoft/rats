@@ -3,7 +3,7 @@ from functools import wraps
 from typing import Concatenate, Generic, ParamSpec, TypeVar
 
 from rats import apps
-from rats.processors._legacy import ux
+from rats.processors._legacy_subpackages import ux
 
 T_ServiceType = TypeVar("T_ServiceType")
 P = ParamSpec("P")

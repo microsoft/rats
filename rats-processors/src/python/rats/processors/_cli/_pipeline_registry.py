@@ -1,7 +1,7 @@
 from typing import TypedDict
 
 from rats import apps
-from rats.processors._legacy import ux
+from rats.processors._legacy_subpackages import ux
 
 
 class PipelineRegistryEntry(TypedDict):

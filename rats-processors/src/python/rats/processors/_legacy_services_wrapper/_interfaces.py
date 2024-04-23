@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 import pydot
 
-from rats.processors._legacy import ux
+from rats.processors._legacy_subpackages import ux
 
 
 class IPipelineRunner(Protocol):

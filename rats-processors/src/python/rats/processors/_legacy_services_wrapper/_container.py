@@ -1,6 +1,6 @@
 from rats import apps
 from rats.app import RatsApp as LegacyApp
-from rats.processors._legacy import dag, ux
+from rats.processors._legacy_subpackages import dag, ux
 
 from ._interfaces import IPipelineRunnerFactory, IPipelineToDot
 
