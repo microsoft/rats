@@ -13,6 +13,8 @@ from typing import (
     overload,
 )
 
+from typing_extensions import Self
+
 if TYPE_CHECKING:
     from _typeshed import SupportsKeysAndGetItem
 
@@ -20,7 +22,6 @@ _KT = TypeVar("_KT")
 _VT = TypeVar("_VT")
 _VT_co = TypeVar("_VT_co", covariant=True)
 _VS_co = TypeVar("_VS_co", covariant=True)
-Self = TypeVar("Self", bound="frozendict[Any, Any]")
 
 
 class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
@@ -33,23 +34,19 @@ class frozendict(Mapping[_KT, _VT_co], Generic[_KT, _VT_co]):
     def __init__(self) -> None: ...
 
     @overload
-    def __init__(self: frozendict[str, _VT_co], **kwargs: _VT_co) -> None: ...
+    def __init__(self, **kwargs: _VT_co) -> None: ...
 
     @overload
     def __init__(self, __map: SupportsKeysAndGetItem[_KT, _VT_co]) -> None: ...
 
     @overload
-    def __init__(
-        self: frozendict[str, _VT_co], __map: SupportsKeysAndGetItem[str, _VT_co], **kwargs: _VT_co
-    ) -> None: ...
+    def __init__(self, __map: SupportsKeysAndGetItem[str, _VT_co], **kwargs: _VT_co) -> None: ...
 
     @overload
     def __init__(self, __iterable: Iterable[tuple[_KT, _VT_co]]) -> None: ...
 
     @overload
-    def __init__(
-        self: frozendict[str, _VT_co], __iterable: Iterable[tuple[str, _VT_co]], **kwargs: _VT_co
-    ) -> None: ...
+    def __init__(self, __iterable: Iterable[tuple[str, _VT_co]], **kwargs: _VT_co) -> None: ...
 
     @overload
     def __init__(self: frozendict[str, str], __iterable: Iterable[list[str]]) -> None: ...
