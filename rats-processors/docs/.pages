@@ -1,3 +1,6 @@
 nav:
-- ...
-- API Reference: api
+  - Index: index.md
+  - Tutorials: tutorials
+  - Terminology: terminology.md
+  - FAQ: faq.md
+  - API Reference: api

@@ -1,3 +1,1 @@
-# rats-processors
-
-Something about this component.
+../README.md
