@@ -132,7 +132,7 @@ class ExampleSimpleTypedPipelineBuilder(rp.PipelineContainer):
         p = self.combine([load, test], dependencies=[load.outputs.data >> test.inputs.data])
         return cast(TestPipeline, p)
 
-    @apps.group(rp.Services.Groups.EXECUTABLE_PIPELINES)
+    @apps.group(rp.Services.GROUPS.EXECUTABLE_PIPELINES)
     def executable_pipelines(self) -> Any:
         return (
             {

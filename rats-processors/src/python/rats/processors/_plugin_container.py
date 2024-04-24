@@ -8,8 +8,8 @@ from .example_pipelines import Container as ExamplePipelinesContainer
 class PluginContainer(apps.AnnotatedContainer):
     """rats.processors package top level container.
 
-    Registered as into rats.processors_app_plugins in pyprotject.toml, and hence will be
-    available in all apps that consume that plugin group.
+    Registered into rats.processors_app_plugins in pyproject.toml, and hence will be available in
+    all apps that consume that plugin group.
     """
 
     _app: apps.Container

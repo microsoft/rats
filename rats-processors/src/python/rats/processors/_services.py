@@ -6,4 +6,4 @@ class Groups:
 
 
 class Services:
-    Groups = Groups
+    GROUPS = Groups

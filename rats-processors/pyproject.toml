@@ -55,7 +55,6 @@ sphinx-markdown-builder = "*"
 
 [tool.poetry.plugins."rats.processors_app_plugins"]
 "rats.processors" = "rats.processors._plugin_container:PluginContainer"
-"rats_test.processors" = "rats_test.processors._plugin_container:PluginContainer"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]

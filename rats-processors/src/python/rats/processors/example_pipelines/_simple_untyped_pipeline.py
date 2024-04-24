@@ -31,7 +31,7 @@ class ExampleSimpleUntypedPipelineBuilder(rp.PipelineContainer):
         p = self.combine([p1, p2], dependencies=[p1 >> p2])
         return p
 
-    @apps.group(rp.Services.Groups.EXECUTABLE_PIPELINES)
+    @apps.group(rp.Services.GROUPS.EXECUTABLE_PIPELINES)
     def executable_pipelines(self) -> Any:
         return (
             {
