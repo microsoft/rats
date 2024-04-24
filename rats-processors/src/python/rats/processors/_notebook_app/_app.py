@@ -3,7 +3,7 @@ from typing import Any
 
 from rats import apps
 from rats.apps import Container
-from rats.processors import _types as rpt
+from rats.processors import _typing as rpt
 
 from .._legacy_services_wrapper import Services as LegacyServices
 from .._pipeline_registry import IPipelineRegistry

@@ -1,4 +1,4 @@
-from . import _types as types
+from . import _typing as typing
 from ._notebook_app import NotebookApp
 from ._pipeline_container import (
     PipelineContainer,
@@ -13,7 +13,7 @@ __all__ = [
     "NotebookApp",
     "PipelineContainer",
     "pipeline",
-    "types",
+    "typing",
     "Services",
     "task",
 ]

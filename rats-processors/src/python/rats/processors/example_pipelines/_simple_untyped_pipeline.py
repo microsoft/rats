@@ -2,7 +2,7 @@ from typing import Any, NamedTuple
 
 from rats import apps
 from rats import processors as rp
-from rats.processors import types as rpt
+from rats.processors import typing as rpt
 
 
 class LoadDataOutput(NamedTuple):

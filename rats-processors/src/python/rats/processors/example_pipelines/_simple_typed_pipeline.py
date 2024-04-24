@@ -3,7 +3,7 @@ from typing import Any, NamedTuple, cast
 
 from rats import apps
 from rats import processors as rp
-from rats.processors import types as rpt
+from rats.processors import typing as rpt
 
 
 class SubModel:

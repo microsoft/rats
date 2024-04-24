@@ -2,7 +2,7 @@ from typing import Any
 
 from rats import apps
 from rats import processors as rp
-from rats.processors import types as rpt
+from rats.processors import typing as rpt
 
 from ._simple_typed_pipeline import (
     ExampleSimpleTypedPipelineServices,

@@ -3,7 +3,7 @@ from typing import Any
 from uuid import uuid4
 
 from rats import apps
-from rats.processors import _types as rpt
+from rats.processors import _typing as rpt
 from rats.processors._legacy_subpackages import ux
 
 
