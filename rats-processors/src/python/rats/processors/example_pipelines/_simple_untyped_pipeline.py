@@ -27,7 +27,7 @@ class ExampleSimpleUntypedPipelineBuilder(rp.PipelineContainer):
     @rp.pipeline
     def train_pipeline(self) -> rpt.UPipeline:
         p1 = self.load_data()
-        p2 = self.get(apps.method_service_id(self.train_model))
+        p2 = self.get(apps.autoid(self.train_model))
         p = self.combine([p1, p2], dependencies=[p1 >> p2])
         return p
 
@@ -41,10 +41,10 @@ Example untyped simple pipeline.
 
 Defined in `{__file__}`
 """,
-                "service_id": apps.method_service_id(self.train_pipeline),
+                "service_id": apps.autoid(self.train_pipeline),
             },
         )
 
 
 class ExampleSimpleUntypedPipelineServices:
-    TRAIN_PIPELINE = apps.method_service_id(ExampleSimpleUntypedPipelineBuilder.train_pipeline)
+    TRAIN_PIPELINE = apps.autoid(ExampleSimpleUntypedPipelineBuilder.train_pipeline)

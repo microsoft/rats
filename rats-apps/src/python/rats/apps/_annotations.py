@@ -98,7 +98,7 @@ def service(
 
 
 def autoid_service(fn: Callable[P, T_ServiceType]) -> Callable[P, T_ServiceType]:
-    _service_id = method_service_id(fn)
+    _service_id = autoid(fn)
     _add_annotation(ProviderNamespaces.SERVICES, fn, _service_id)
     cached_fn = cache(fn)
     return cast(Callable[P, T_ServiceType], cached_fn)
@@ -153,7 +153,7 @@ def _get_method_service_id_name(method: Callable[..., Any]) -> str:
         return service_name
 
 
-def method_service_id(method: Callable[..., T_ServiceType]) -> ServiceId[T_ServiceType]:
+def autoid(method: Callable[..., T_ServiceType]) -> ServiceId[T_ServiceType]:
     """
     Get a service id for a method.
 

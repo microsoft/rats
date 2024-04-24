@@ -31,7 +31,7 @@ class DummyContainer1(apps.AnnotatedContainer):
     @apps.service(_PrivateIds.C1T1)
     def tag1(self) -> Tag1:
         # Calling a service by its method name.
-        return self._app.get(apps.method_service_id(self.unnamed_service1))
+        return self._app.get(apps.autoid(self.unnamed_service1))
 
     # Again without a service id, but this service will be made public below.
     @apps.autoid_service
@@ -64,7 +64,7 @@ class DummyContainer2(apps.AnnotatedContainer):
 
     @apps.autoid_service
     def tag1(self) -> Tag1:
-        return self._app.get(apps.method_service_id(self.unnamed_service1))
+        return self._app.get(apps.autoid(self.unnamed_service1))
 
 
 class DummyContainer(apps.CompositeContainer):
@@ -78,8 +78,8 @@ class DummyContainerServiceIds:
     # Take a private id and make it public.
     C1T1 = _PrivateIds.C1T1
     # Make public ids for a services with auto-generated ids.
-    C1T2 = apps.method_service_id(DummyContainer1.tag2)
-    C1T1b = apps.method_service_id(DummyContainer1.tag1b)
-    C2T1 = apps.method_service_id(DummyContainer2.tag1)
+    C1T2 = apps.autoid(DummyContainer1.tag2)
+    C1T1b = apps.autoid(DummyContainer1.tag1b)
+    C2T1 = apps.autoid(DummyContainer2.tag1)
     # The same mechanism can be used for services declared with service ids.
-    C1T2a = apps.method_service_id(DummyContainer1.tag2a)
+    C1T2a = apps.autoid(DummyContainer1.tag2a)
