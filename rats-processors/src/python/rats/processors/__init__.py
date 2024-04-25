@@ -1,11 +1,19 @@
-from .dag import display_dag
-from .training import ScatterGatherBuilders, TrainAndEvalBuilders
-from .ux import Pipeline, PipelineBuilder
+from ._legacy_subpackages import typing
+from ._notebook_app import NotebookApp
+from ._pipeline_container import (
+    PipelineContainer,
+    pipeline,
+    task,
+)
+from ._pipeline_registry import IPipelineRegistry
+from ._services import Services
 
 __all__ = [
-    "PipelineBuilder",
-    "display_dag",
-    "TrainAndEvalBuilders",
-    "ScatterGatherBuilders",
-    "Pipeline",
+    "IPipelineRegistry",
+    "NotebookApp",
+    "PipelineContainer",
+    "pipeline",
+    "typing",
+    "Services",
+    "task",
 ]
