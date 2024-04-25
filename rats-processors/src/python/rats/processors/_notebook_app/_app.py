@@ -5,6 +5,7 @@ from rats import apps
 from rats.apps import Container
 
 from .._legacy_subpackages import Services as LegacyServices
+from .._legacy_subpackages import pipeline_to_dot
 from .._legacy_subpackages import typing as rpt
 from .._pipeline_registry import IPipelineRegistry
 from .._pipeline_registry import Services as PipelineRegistryServices
@@ -36,7 +37,6 @@ class NotebookApp(apps.AnnotatedContainer):
         else:
             raise ValueError(f"Unsupported format {format}. Supported formats are png and svg.")
 
-        pipeline_to_dot = self.get(LegacyServices.PIPELINE_TO_DOT)
         dot = pipeline_to_dot(pipeline, include_optional=include_optional)
 
         display(display_class(dot.create(format=format)))

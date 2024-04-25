@@ -2,8 +2,6 @@ from abc import abstractmethod
 from collections.abc import Mapping
 from typing import Any, Protocol
 
-import pydot
-
 from . import _typing as rpt
 
 
@@ -15,8 +13,3 @@ class IPipelineRunner(Protocol):
 class IPipelineRunnerFactory(Protocol):
     @abstractmethod
     def __call__(self, pipeline: rpt.UPipeline) -> IPipelineRunner: ...
-
-
-class IPipelineToDot(Protocol):
-    @abstractmethod
-    def __call__(self, pipeline: rpt.UPipeline, include_optional: bool = True) -> pydot.Dot: ...

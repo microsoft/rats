@@ -6,7 +6,8 @@ from ._container import (
     LegacyServicesWrapperContainer,
     Services,
 )
-from ._interfaces import IPipelineRunner, IPipelineRunnerFactory, IPipelineToDot
+from ._interfaces import IPipelineRunner, IPipelineRunnerFactory
+from .dag._viz import pipeline_to_dot
 from .ux import CombinedPipeline, Task
 
 __all__ = [
@@ -15,7 +16,7 @@ __all__ = [
     "typing",
     "IPipelineRunner",
     "IPipelineRunnerFactory",
-    "IPipelineToDot",
     "LegacyServicesWrapperContainer",
     "Services",
+    "pipeline_to_dot",
 ]
