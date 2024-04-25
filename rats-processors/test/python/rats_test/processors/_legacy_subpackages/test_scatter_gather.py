@@ -1,6 +1,6 @@
 from typing import Any, TypedDict
 
-from rats.processors._legacy_subpackages import ScatterGatherBuilders
+from rats.processors._legacy_subpackages.training import ScatterGatherBuilders
 from rats.processors._legacy_subpackages.utils import frozendict
 from rats.processors._legacy_subpackages.ux import (
     PipelineRunnerFactory,

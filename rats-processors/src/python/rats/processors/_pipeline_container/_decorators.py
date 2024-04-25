@@ -3,8 +3,8 @@ from functools import wraps
 from typing import Concatenate, Generic, ParamSpec, TypeVar
 
 from rats import apps
-from rats.processors import _typing as rpt
-from rats.processors._legacy_subpackages import ux
+from rats.processors._legacy_subpackages import Task
+from rats.processors._legacy_subpackages import typing as rpt
 
 T_ServiceType = TypeVar("T_ServiceType")
 P = ParamSpec("P")
@@ -22,13 +22,13 @@ class _method_to_task_provider(Generic[TInputs, TOutputs]):
         cls,
         method: Callable[Concatenate[T_Container, P], rpt.ProcessorOutput],
     ) -> Callable[[T_Container], rpt.Pipeline[TInputs, TOutputs]]:
-        class _Processor(ux.IProcess):
+        class _Processor:
             process = method
 
         _Processor.__name__ = method.__name__
 
         def get_task(self: T_Container) -> rpt.Pipeline[TInputs, TOutputs]:
-            return ux.Task[TInputs, TOutputs](_Processor)
+            return Task[TInputs, TOutputs](_Processor)
 
         get_task.__name__ = method.__name__
         get_task.__module__ = method.__module__

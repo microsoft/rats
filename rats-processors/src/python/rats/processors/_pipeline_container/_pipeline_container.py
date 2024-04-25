@@ -3,8 +3,8 @@ from typing import Any
 from uuid import uuid4
 
 from rats import apps
-from rats.processors import _typing as rpt
-from rats.processors._legacy_subpackages import ux
+from rats.processors._legacy_subpackages import CombinedPipeline
+from rats.processors._legacy_subpackages import typing as rpt
 
 
 class PipelineContainer(apps.AnnotatedContainer):
@@ -22,7 +22,7 @@ class PipelineContainer(apps.AnnotatedContainer):
         outputs: rpt.UserOutput | None = None,
     ) -> rpt.UPipeline:
         name = name or uuid4().hex
-        return ux.CombinedPipeline(
+        return CombinedPipeline(
             pipelines=pipelines,
             name=name,
             dependencies=dependencies,

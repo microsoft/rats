@@ -3,9 +3,9 @@ from typing import Any
 
 from rats import apps
 from rats.apps import Container
-from rats.processors import _typing as rpt
 
-from .._legacy_services_wrapper import Services as LegacyServices
+from .._legacy_subpackages import Services as LegacyServices
+from .._legacy_subpackages import typing as rpt
 from .._pipeline_registry import IPipelineRegistry
 from .._pipeline_registry import Services as PipelineRegistryServices
 

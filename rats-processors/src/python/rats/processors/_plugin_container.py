@@ -1,6 +1,6 @@
 from rats import apps
 
-from ._legacy_services_wrapper import LegacyServicesWrapperContainer
+from ._legacy_subpackages import LegacyServicesWrapperContainer
 from ._pipeline_registry import Container as PipelineRegistryContainer
 from .example_pipelines import Container as ExamplePipelinesContainer
 

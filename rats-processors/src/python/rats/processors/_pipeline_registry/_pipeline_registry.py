@@ -2,7 +2,8 @@ from collections.abc import Callable, Iterable, Mapping
 from typing import NamedTuple, TypedDict
 
 from rats import apps
-from rats.processors import _typing as rpt
+
+from .._legacy_subpackages import typing as rpt
 
 
 class PipelineRegistryEntry(TypedDict):

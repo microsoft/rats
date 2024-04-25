@@ -1,4 +1,4 @@
-from ._legacy_subpackages.ux import (
+from .ux import (
     DependencyOp,
     InPort,
     InPorts,

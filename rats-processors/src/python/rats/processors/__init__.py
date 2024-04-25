@@ -1,4 +1,4 @@
-from . import _typing as typing
+from ._legacy_subpackages import typing
 from ._notebook_app import NotebookApp
 from ._pipeline_container import (
     PipelineContainer,
