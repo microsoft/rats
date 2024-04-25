@@ -38,7 +38,15 @@ class NotebookApp(apps.AnnotatedContainer):
 
         dot = pipeline_to_dot(pipeline, include_optional=include_optional)
 
-        display(display_class(dot.create(format=format)))
+        try:
+            image = dot.create(format=format)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                "Graphviz 'dot' command not found. Please install Graphviz "
+                + "(https://www.graphviz.org/) and ensure that the 'dot' command is in your PATH."
+            ) from e
+
+        display(display_class(image))
 
     def executable_pipelines(self) -> IPipelineRegistry:
         return self.get(PipelineRegistryServices.EXECUTABLE_PIPELINES_REGISTRY)

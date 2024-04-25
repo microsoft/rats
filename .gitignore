@@ -37,3 +37,6 @@
 
 # rats-devtools generates these files for us
 bin/*.pipx
+
+# ignore notebooks
+**/*.ipynb
