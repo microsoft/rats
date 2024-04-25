@@ -35,7 +35,7 @@ class AppEntryPointPluginRelay(AppPlugin):
         entries = entry_points(group=self._group)
         if len(entries) == 0:
             logger.warning(f"did not find any app plugins registered with group: {self._group}")
-            return tuple()
+            return ()
 
         for entry in entries:
             logger.debug(f"loading app plugin entry point: {entry.name}")
