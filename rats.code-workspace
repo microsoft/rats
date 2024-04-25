@@ -33,7 +33,8 @@
             "**/build": true,
             // other editor/ide settings
             "**/.idea": true,
-            "**/__pycache__": true
+            "**/__pycache__": true,
+            "**/.venv": true
         },
         // settings to apply to all workspace roots
         "debug.toolBarLocation": "commandCenter",
@@ -58,7 +59,6 @@
         "[yaml]": {
             "editor.autoIndent": "advanced"
         },
-        "jupyter.notebookFileRoot": "${workspaceFolder}",
         "markdown.validate.enabled": true,
         "notebook.formatOnSave.enabled": true,
         "notebook.codeActionsOnSave": {
@@ -81,7 +81,8 @@
             "**/build": true,
             "**/.tmp": true,
             "**/outputs": true,
-            "**/__pycache__": true
+            "**/__pycache__": true,
+            "**/.venv": true
         },
         "yaml.format.enable": true,
     },

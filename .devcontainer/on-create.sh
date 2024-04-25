@@ -14,6 +14,8 @@ cp /workspaces/rats/.devcontainer/direnvrc ~/.config/direnv/direnvrc
 echo "INSTALLING COMMITIZEN"
 pipx install commitizen
 pipx inject commitizen cz-conventional-gitmoji
+echo 'eval "$(register-python-argcomplete cz)"' >> ~/.zshrc
+echo 'eval "$(register-python-argcomplete cz)"' >> ~/.bashrc
 
 direnv allow .
 poetry config virtualenvs.in-project true
