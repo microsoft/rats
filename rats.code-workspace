@@ -93,6 +93,7 @@
             "charliermarsh.ruff",
             "eamodio.gitlens",
             "redhat.vscode-yaml",
+            "GitHub.copilot"
         ]
     }
 }

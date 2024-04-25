@@ -27,7 +27,7 @@ repos:
       - id: forbid-submodules
       - id: name-tests-test
       - id: pretty-format-json
-        args: ["--autofix", "--indent", "4"]
+        args: ["--autofix", "--indent", "4", "--no-sort-keys"]
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
