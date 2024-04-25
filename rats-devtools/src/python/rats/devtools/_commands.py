@@ -33,7 +33,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
 
     def _sphinx_apidoc(self) -> None:
         components = [
-            "rats-apps",
+            # "rats-apps",
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
@@ -69,7 +69,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
 
     def _sphinx_markdown(self) -> None:
         components = [
-            "rats-apps",
+            # "rats-apps",
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
