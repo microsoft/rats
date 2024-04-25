@@ -50,7 +50,7 @@ class ServiceFactory(IManageServices):
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
         # We do not validate that the user gave us a group id that is the right type.
         return tuple(
-            cast(Iterable[ServiceProvider[T_ServiceType]], self._groups.get(group_id, tuple())),
+            cast(Iterable[ServiceProvider[T_ServiceType]], self._groups.get(group_id, ())),
         )
 
     def add_service(
