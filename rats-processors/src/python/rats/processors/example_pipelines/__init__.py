@@ -1,9 +1,9 @@
-from ._container import Container
+from ._container import ExamplePipelinesContainer
 from ._service_ids import Services
 from ._simple_typed_pipeline import Model, SubModel
 
 __all__ = [
-    "Container",
+    "ExamplePipelinesContainer",
     "Services",
     "Model",
     "SubModel",

@@ -2,7 +2,6 @@ from collections.abc import Mapping
 from typing import Any
 
 from rats import apps
-from rats.apps import Container
 
 from .._legacy_subpackages import Services as LegacyServices
 from .._legacy_subpackages import pipeline_to_dot
@@ -13,7 +12,7 @@ from .._pipeline_registry import Services as PipelineRegistryServices
 
 class NotebookApp(apps.AnnotatedContainer):
     @apps.container()
-    def processors_app_plugins(self) -> Container:
+    def processors_app_plugins(self) -> apps.Container:
         return apps.PluginContainers(
             app=self,
             group="rats.processors_app_plugins",

@@ -1,8 +1,8 @@
 from rats import apps
 
 from ._legacy_subpackages import LegacyServicesWrapperContainer
-from ._pipeline_registry import Container as PipelineRegistryContainer
-from .example_pipelines import Container as ExamplePipelinesContainer
+from ._pipeline_registry import PipelineRegistryContainer
+from .example_pipelines import ExamplePipelinesContainer
 
 
 class PluginContainer(apps.AnnotatedContainer):

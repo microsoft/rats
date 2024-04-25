@@ -5,7 +5,7 @@ from ._simple_typed_pipeline import ExampleSimpleTypedPipelineBuilder
 from ._simple_untyped_pipeline import ExampleSimpleUntypedPipelineBuilder
 
 
-class Container(apps.AnnotatedContainer):
+class ExamplePipelinesContainer(apps.AnnotatedContainer):
     @apps.container()
     def example_pipeline1(self) -> ExampleSimpleUntypedPipelineBuilder:
         return ExampleSimpleUntypedPipelineBuilder()
