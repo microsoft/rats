@@ -3,7 +3,9 @@
     "features": {
         "ghcr.io/devcontainers/features/git": {},
         "ghcr.io/devcontainers/features/sshd": {},
-        "ghcr.io/devcontainers/features/common-utils": {},
+        "ghcr.io/devcontainers/features/common-utils": {
+            "configureZshAsDefaultShell": true
+        },
         "ghcr.io/devcontainers/features/docker-in-docker": {},
         "ghcr.io/devcontainers-contrib/features/fzf": {},
         "ghcr.io/devcontainers-contrib/features/pipx-package": {},
@@ -26,9 +28,5 @@
                 "GitHub.copilot"
             ]
         }
-    },
-    "containerEnv": {
-        "PYTHONDONTWRITEBYTECODE": "1",
-        "PIP_DISABLE_PIP_VERSION_CHECK": "1"
     }
 }
