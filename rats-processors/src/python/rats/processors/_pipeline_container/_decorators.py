@@ -22,12 +22,14 @@ class _method_to_task_provider(Generic[TInputs, TOutputs]):
         cls,
         method: Callable[Concatenate[T_Container, P], rpt.ProcessorOutput],
     ) -> Callable[[T_Container], rpt.Pipeline[TInputs, TOutputs]]:
-        class _Processor:
-            process = method
+        def get_task(container: T_Container) -> rpt.Pipeline[TInputs, TOutputs]:
+            class _Processor:
+                @wraps(method)
+                def process(self, *args: P.args, **kwargs: P.kwargs) -> rpt.ProcessorOutput:
+                    return method(container, *args, **kwargs)
 
-        _Processor.__name__ = method.__name__
+            _Processor.__name__ = method.__name__
 
-        def get_task(self: T_Container) -> rpt.Pipeline[TInputs, TOutputs]:
             return Task[TInputs, TOutputs](_Processor)
 
         get_task.__name__ = method.__name__

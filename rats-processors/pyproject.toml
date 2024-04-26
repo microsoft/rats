@@ -41,11 +41,13 @@ coverage = "*"
 ipykernel = "*"
 jupytext = "*"
 nbconvert = "*"
+pandas = "*"
 pyright = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+scikit-learn = "*"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "*"
@@ -144,7 +146,7 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
 "test/*" = ["F401"] # unused-import
-"test/python/jupytext/*" = [
+"docs/_jupytext_tutorials/*" = [
   "E402",  # E402: we want to allow imports anywhere because these are tutorials
 ]
 

@@ -37,8 +37,3 @@
 
 # rats-devtools generates these files for us
 bin/*.pipx
-
-# ignore everything except *.py and readme.md under tests/python/jupytext
-rats-processors/test/python/jupytext/**
-!rats-processors/test/python/jupytext/*py
-!rats-processors/test/python/jupytext/readme.md

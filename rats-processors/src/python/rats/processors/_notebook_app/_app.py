@@ -11,12 +11,22 @@ from .._pipeline_registry import Services as PipelineRegistryServices
 
 
 class NotebookApp(apps.AnnotatedContainer):
+    _notebook_containers: tuple[apps.Container, ...]
+
+    def __init__(self, *notebook_containers: apps.Container) -> None:
+        super().__init__()
+        self._notebook_containers = tuple(notebook_containers)
+
     @apps.container()
     def processors_app_plugins(self) -> apps.Container:
         return apps.PluginContainers(
             app=self,
             group="rats.processors_app_plugins",
         )
+
+    @apps.container()
+    def notebook_containers(self) -> apps.Container:
+        return apps.CompositeContainer(*self._notebook_containers)
 
     def run(self, pipeline: rpt.UPipeline, inputs: Mapping[str, Any] = {}) -> Mapping[str, Any]:
         runner_factory = self.get(LegacyServices.PIPELINE_RUNNER_FACTORY)

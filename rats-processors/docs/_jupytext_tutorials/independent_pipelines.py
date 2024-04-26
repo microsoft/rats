@@ -1,9 +1,6 @@
 # %% [markdown]
-
 # ## Tutorial: self-contained pipeline classes
-
 # %%
-
 import rats.processors as rp
 from rats import apps
 
@@ -25,17 +22,17 @@ app = rp.NotebookApp()
 from typing import NamedTuple
 
 
-class _SumOutputs(NamedTuple):
+class _SumOutput(NamedTuple):
     result: float
     log_message: str
 
 
 class SimplePipelineContainer(rp.PipelineContainer):
     @rp.task
-    def sum(self, a: float, b: float) -> _SumOutputs:
+    def sum(self, a: float, b: float) -> _SumOutput:
         result = a + b
         log_message = f"{a} + {b} = {result}"
-        return _SumOutputs(result=result, log_message=log_message)
+        return _SumOutput(result=result, log_message=log_message)
 
 
 spc = SimplePipelineContainer()
