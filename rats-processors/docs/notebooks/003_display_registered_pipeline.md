@@ -72,7 +72,7 @@ Pipeline output ports: OutPorts(message=OutPort[str], length=OutPort[int])
 ```
 
 
-![png](display_registered_pipeline_files/display_registered_pipeline_10_1.png)
+![png](003_display_registered_pipeline_files/003_display_registered_pipeline_10_1.png)
 
 
 

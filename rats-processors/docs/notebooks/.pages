@@ -1,4 +1,4 @@
 nav:
-  - display_registered_pipeline: display_registered_pipeline.md
-  - independent_pipelines: independent_pipelines.md
-  - lr_using_sklearn: lr_using_sklearn.md
+  - Independent pipelines: 001_independent_pipelines.md
+  - Lr using sklearn: 002_lr_using_sklearn.md
+  - Display registered pipeline: 003_display_registered_pipeline.md

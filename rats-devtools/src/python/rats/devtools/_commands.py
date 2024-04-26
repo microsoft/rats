@@ -118,15 +118,35 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             "poetry run jupytext --to ipynb *.py".split(),
             f"poetry run jupyter nbconvert *.ipynb --to markdown --execute --template=mdoutput --TemplateExporter.extra_template_basedirs={nb_convert_templates_path}".split(),
         ]
+
+        def find_jupytext_files(path: Path) -> list[tuple[str, str]]:
+            def file_name_to_order_and_title(file_name: str) -> tuple[int, str, str]:
+                tokens = file_name.split("_")
+                try:
+                    order = int(tokens[0])
+                except ValueError:
+                    raise ValueError(
+                        f"Expected the names files under {path} to start with an "
+                        + "integer.  Found file {file_name}.py."
+                    ) from None
+                title = " ".join(tokens[1:]).capitalize()
+                return order, file_name, title
+
+            files = sorted(
+                [file_name_to_order_and_title(f.stem) for f in path.glob("*.py")],
+                key=lambda x: x[0],
+            )
+            return [(f[1], f[2]) for f in files]
+
         for c in components:
             jupytext_sources_path = Path(f"{c}/docs/_jupytext_tutorials").resolve()
             notebooks_target_path = Path(f"{c}/docs/notebooks").resolve()
             rmtree(notebooks_target_path, ignore_errors=True)
             notebooks_target_path.mkdir(parents=True, exist_ok=True)
-            notebook_names = [f.stem for f in jupytext_sources_path.glob("*.py")]
+            jupytext_files = find_jupytext_files(jupytext_sources_path)
 
             # symlink the jupytext files to the target path
-            for n in notebook_names:
+            for n, _ in jupytext_files:
                 (jupytext_sources_path / f"{n}.py").link_to(notebooks_target_path / f"{n}.py")
 
             for cmd in commands:
@@ -136,13 +156,13 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
                     sys.exit(e.returncode)
 
             dotpages_lines = ["nav:"]
-            for n in notebook_names:
+            for n, title in jupytext_files:
                 # delete the .py symlink
                 (notebooks_target_path / f"{n}.py").unlink()
                 # delete the .ipynb file
                 (notebooks_target_path / f"{n}.ipynb").unlink()
                 # add the notebook to the .pages file
-                dotpages_lines.append(f"  - {n}: {n}.md")
+                dotpages_lines.append(f"  - {title}: {n}.md")
 
             # update the .pages file
             dotpages_path = notebooks_target_path / ".pages"
