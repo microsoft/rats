@@ -77,6 +77,7 @@ pipenv install rats-apps rats-apps rats-pipelines rats-processors
 ### Optional system dependencies
 
 We use the following optional dependencies for development:
+
 * [direnv](https://direnv.net/): To manage environment variables and load python virtual environments automatically.
 * [pyenv](https://github.com/pyenv/pyenv): To manage python versions.
 * [pipx](https://pipxproject.github.io/pipx/): To install python packages in isolated environments.

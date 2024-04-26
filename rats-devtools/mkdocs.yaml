@@ -78,8 +78,8 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - toc:
       permalink: true
-  # Allows us to make a Tasklist: [x] some checked thing
-  - pymdownx.tasklist:
+  - def_list # definition / description lists
+  - pymdownx.tasklist: # Allows us to make a Tasklist: [x] some checked thing
       custom_checkbox: true
   # removed because of codeql detection
   # https://github.com/microsoft/rats/security/code-scanning/3
