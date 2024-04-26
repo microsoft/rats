@@ -1,0 +1,4 @@
+nav:
+  - display_registered_pipeline: display_registered_pipeline.md
+  - independent_pipelines: independent_pipelines.md
+  - lr_using_sklearn: lr_using_sklearn.md
