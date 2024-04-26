@@ -309,39 +309,39 @@ prediction_outputs_train["logits"].join(labels_train).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.029167</td>
-      <td>0.014632</td>
-      <td>38</td>
-      <td>-3.679373</td>
-      <td>0.530728</td>
-      <td>38</td>
-      <td>-16.323838</td>
-      <td>1.035322</td>
-      <td>38</td>
+      <td>-0.026009</td>
+      <td>0.012493</td>
+      <td>41</td>
+      <td>-3.782484</td>
+      <td>0.514221</td>
+      <td>41</td>
+      <td>-15.625385</td>
+      <td>1.048863</td>
+      <td>41</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.414644</td>
-      <td>1.234595</td>
-      <td>41</td>
-      <td>-0.187421</td>
-      <td>0.190119</td>
-      <td>41</td>
-      <td>-2.727022</td>
-      <td>1.433685</td>
-      <td>41</td>
+      <td>-4.350082</td>
+      <td>1.426100</td>
+      <td>35</td>
+      <td>-0.228280</td>
+      <td>0.229649</td>
+      <td>35</td>
+      <td>-2.438972</td>
+      <td>1.233557</td>
+      <td>35</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.222809</td>
-      <td>2.974537</td>
-      <td>41</td>
-      <td>-2.796009</td>
-      <td>1.444409</td>
-      <td>41</td>
-      <td>-0.159872</td>
-      <td>0.204491</td>
-      <td>41</td>
+      <td>-9.987980</td>
+      <td>2.810939</td>
+      <td>44</td>
+      <td>-2.739795</td>
+      <td>1.306488</td>
+      <td>44</td>
+      <td>-0.147237</td>
+      <td>0.173997</td>
+      <td>44</td>
     </tr>
   </tbody>
 </table>
@@ -413,39 +413,39 @@ prediction_outputs_test["logits"].join(labels_test).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.029489</td>
-      <td>0.011857</td>
-      <td>12</td>
-      <td>-3.611825</td>
-      <td>0.400742</td>
-      <td>12</td>
-      <td>-16.308929</td>
-      <td>0.885561</td>
-      <td>12</td>
+      <td>-0.022868</td>
+      <td>0.009345</td>
+      <td>9</td>
+      <td>-3.862640</td>
+      <td>0.401797</td>
+      <td>9</td>
+      <td>-15.904206</td>
+      <td>0.528573</td>
+      <td>9</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.136277</td>
-      <td>1.563152</td>
-      <td>9</td>
-      <td>-0.199743</td>
-      <td>0.216873</td>
-      <td>9</td>
-      <td>-2.851417</td>
-      <td>1.525903</td>
-      <td>9</td>
+      <td>-4.422117</td>
+      <td>1.313203</td>
+      <td>15</td>
+      <td>-0.261216</td>
+      <td>0.243853</td>
+      <td>15</td>
+      <td>-2.372478</td>
+      <td>1.495974</td>
+      <td>15</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-9.119513</td>
-      <td>2.020051</td>
-      <td>9</td>
-      <td>-2.524568</td>
-      <td>1.596921</td>
-      <td>9</td>
-      <td>-0.237318</td>
-      <td>0.291015</td>
-      <td>9</td>
+      <td>-11.841923</td>
+      <td>2.448062</td>
+      <td>6</td>
+      <td>-3.709581</td>
+      <td>1.610865</td>
+      <td>6</td>
+      <td>-0.073812</td>
+      <td>0.100209</td>
+      <td>6</td>
     </tr>
   </tbody>
 </table>
