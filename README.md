@@ -1,4 +1,4 @@
-# Research Analysis Tools (rats)
+# :rat: Research Analysis Tools (rats)
 
 [![Main](https://github.com/microsoft/rats/actions/workflows/main.yaml/badge.svg)](https://github.com/microsoft/rats/actions/workflows/main.yaml)
 [![codecov](https://codecov.io/gh/microsoft/rats/graph/badge.svg?token=hcpBAa587E)](https://codecov.io/gh/microsoft/rats)
@@ -17,11 +17,11 @@ It is designed to be a modular and extensible framework currently supporting bui
 running pipelines, integrating configs and services.
 
 
-## Documentation
+## :notebook_with_decorative_cover: Documentation
 https://microsoft.github.io/rats
 
 
-## Components
+## :cheese: Components
 
 ### rats-apps
 A light package containing the interfaces and tools to organize your code in a modular way.
@@ -54,7 +54,7 @@ It provides a set of tools to generate documentation, run tests, format and lint
 in the release process.
 
 
-## Getting started
+## :feet: Getting started
 
 Install the latest version of rats from PyPI for any component you want:
 
@@ -72,7 +72,7 @@ uv pip install rats-apps rats-apps rats-pipelines rats-processors
 pipenv install rats-apps rats-apps rats-pipelines rats-processors
 ```
 
-## Development
+## :woman_technologist: Development
 
 ### Optional system dependencies
 
@@ -106,7 +106,7 @@ pipx install -e rats-devtools  # installs in local environment
 ```
 
 
-## Contributing
+## :mountain: Contributing
 
 This project welcomes contributions and suggestions. Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
@@ -120,7 +120,7 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-## Trademarks
+## :balance_scale: Trademarks
 
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
 trademarks or logos is subject to and must follow

@@ -1,0 +1,32 @@
+{
+    "image": "mcr.microsoft.com/devcontainers/python:3.10",
+    "features": {
+        "ghcr.io/devcontainers/features/git": {},
+        "ghcr.io/devcontainers/features/sshd": {},
+        "ghcr.io/devcontainers/features/common-utils": {
+            "configureZshAsDefaultShell": true
+        },
+        "ghcr.io/devcontainers/features/docker-in-docker": {},
+        "ghcr.io/devcontainers-contrib/features/fzf": {},
+        "ghcr.io/devcontainers-contrib/features/pipx-package": {},
+        "ghcr.io/devcontainers-contrib/features/poetry": {},
+        "ghcr.io/devcontainers-contrib/features/direnv": {},
+        "ghcr.io/devcontainers-contrib/features/pre-commit": {},
+        "ghcr.io/devcontainers-contrib/features/neovim-apt-get": {}
+    },
+    "onCreateCommand": ".devcontainer/on-create.sh",
+    "postCreateCommand": ".devcontainer/post-create.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.debugpy",
+                "charliermarsh.ruff",
+                "eamodio.gitlens",
+                "redhat.vscode-yaml",
+                "GitHub.copilot"
+            ]
+        }
+    }
+}
