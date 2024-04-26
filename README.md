@@ -105,6 +105,20 @@ cd rats-processors; poetry install; cd -
 pipx install -e rats-devtools  # installs in local environment
 ```
 
+### Devcontainer
+
+Learn about [Devcontainers](https://containers.dev/).
+Requires [Docker](https://www.docker.com/get-started/) installed on your local machine.
+
+:point_right: Follow instructions for [VSCode](https://code.visualstudio.com/docs/devcontainers/tutorial)
+and/or [PyCharm](https://www.jetbrains.com/help/pycharm/connect-to-devcontainer.html).
+
+
+### GitHub Codespaces
+
+Learn about [codespaces](https://docs.github.com/en/codespaces).
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/rats)
 
 ## :mountain: Contributing
 
