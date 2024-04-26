@@ -41,6 +41,15 @@ INFO    -  Cleaning site directory
 …
 ```
 
+## build-jupytext-notebooks
+
+Looks for *.py files under the components' docs/_jupytext_tutorials folders, and converts each one
+of them into a *.md notebook under the dos/notebooks.
+
+Currently enabled only for rats-processors.  To enable for other components, edit the components
+list in `rats.devtools._commands.build_jupytext_notebooks` and add `jupytext` and `nbconvert` to
+the component's `pyproject.toml` in section `tool.poetry.group.docs.dependencies`.
+
 ## build-api-docs
 
 Uses `sphinx` to generate the API Reference documentation for each component in this project,

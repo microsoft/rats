@@ -37,7 +37,8 @@ class ExampleSimpleUntypedPipelineBuilder(rp.PipelineContainer):
             {
                 "name": "examples.untyped_simple_pipeline",
                 "doc": f"""
-Example untyped simple pipeline.
+Example untyped simple pipeline.  Looks like a training pipeline, but does not really do anything
+besides some string manipulation to construct a message.
 
 Defined in `{__file__}`
 """,

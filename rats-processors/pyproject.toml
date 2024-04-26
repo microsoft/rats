@@ -39,16 +39,21 @@ python = "^3.10"
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
 ipykernel = "*"
+pandas = "*"
 pyright = "*"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
+scikit-learn = "*"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
+
+jupytext = "*"
+nbconvert = "*"
 
 [tool.poetry.plugins."rats.app_plugins"]
 "rats.processors-plugin" = "rats.processors._legacy_subpackages.plugin:RatsProcessorsPlugin"
@@ -142,6 +147,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
 "test/*" = ["F401"] # unused-import
+"docs/_jupytext_tutorials/*" = [
+  "E402",  # E402: we want to allow imports anywhere because these are tutorials
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
