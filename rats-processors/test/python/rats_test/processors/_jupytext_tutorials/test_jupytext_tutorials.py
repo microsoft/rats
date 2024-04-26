@@ -11,6 +11,7 @@ tutorial_files = tuple(tutorial_path.glob("*.py"))
 
 
 # Generate a test for each file
+@pytest.mark.skip_in_ci
 @pytest.mark.parametrize("tutorial_file", tutorial_files)
 def test_tutorial(tutorial_file: Path):
     # Import the tutorial file as a module
