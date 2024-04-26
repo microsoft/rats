@@ -162,7 +162,7 @@ Training pipeline:
 ```
 
 
-![png](lr_using_sklearn_files/lr_using_sklearn_9_1.png)
+![png](002_lr_using_sklearn_files/002_lr_using_sklearn_9_1.png)
 
 
 
@@ -182,7 +182,7 @@ Prediction pipeline:
 ```
 
 
-![png](lr_using_sklearn_files/lr_using_sklearn_10_1.png)
+![png](002_lr_using_sklearn_files/002_lr_using_sklearn_10_1.png)
 
 
 
@@ -309,38 +309,38 @@ prediction_outputs_train["logits"].join(labels_train).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.028816</td>
-      <td>0.013404</td>
-      <td>39</td>
-      <td>-3.678306</td>
-      <td>0.511105</td>
-      <td>39</td>
-      <td>-16.203267</td>
-      <td>1.027410</td>
-      <td>39</td>
+      <td>-0.029167</td>
+      <td>0.014632</td>
+      <td>38</td>
+      <td>-3.679373</td>
+      <td>0.530728</td>
+      <td>38</td>
+      <td>-16.323838</td>
+      <td>1.035322</td>
+      <td>38</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.530525</td>
-      <td>1.409147</td>
-      <td>40</td>
-      <td>-0.211417</td>
-      <td>0.218309</td>
-      <td>40</td>
-      <td>-2.577951</td>
-      <td>1.349122</td>
-      <td>40</td>
+      <td>-4.414644</td>
+      <td>1.234595</td>
+      <td>41</td>
+      <td>-0.187421</td>
+      <td>0.190119</td>
+      <td>41</td>
+      <td>-2.727022</td>
+      <td>1.433685</td>
+      <td>41</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.261770</td>
-      <td>3.004484</td>
+      <td>-10.222809</td>
+      <td>2.974537</td>
       <td>41</td>
-      <td>-2.682173</td>
-      <td>1.433396</td>
+      <td>-2.796009</td>
+      <td>1.444409</td>
       <td>41</td>
-      <td>-0.174503</td>
-      <td>0.210629</td>
+      <td>-0.159872</td>
+      <td>0.204491</td>
       <td>41</td>
     </tr>
   </tbody>
@@ -413,38 +413,38 @@ prediction_outputs_test["logits"].join(labels_test).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.026165</td>
-      <td>0.011916</td>
-      <td>11</td>
-      <td>-3.732637</td>
-      <td>0.385093</td>
-      <td>11</td>
-      <td>-16.298619</td>
-      <td>0.933422</td>
-      <td>11</td>
+      <td>-0.029489</td>
+      <td>0.011857</td>
+      <td>12</td>
+      <td>-3.611825</td>
+      <td>0.400742</td>
+      <td>12</td>
+      <td>-16.308929</td>
+      <td>0.885561</td>
+      <td>12</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.162033</td>
-      <td>1.126673</td>
-      <td>10</td>
-      <td>-0.147582</td>
-      <td>0.083114</td>
-      <td>10</td>
-      <td>-2.925414</td>
-      <td>1.521059</td>
-      <td>10</td>
+      <td>-4.136277</td>
+      <td>1.563152</td>
+      <td>9</td>
+      <td>-0.199743</td>
+      <td>0.216873</td>
+      <td>9</td>
+      <td>-2.851417</td>
+      <td>1.525903</td>
+      <td>9</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.198897</td>
-      <td>2.301786</td>
+      <td>-9.119513</td>
+      <td>2.020051</td>
       <td>9</td>
-      <td>-2.861008</td>
-      <td>1.326860</td>
+      <td>-2.524568</td>
+      <td>1.596921</td>
       <td>9</td>
-      <td>-0.132432</td>
-      <td>0.171354</td>
+      <td>-0.237318</td>
+      <td>0.291015</td>
       <td>9</td>
     </tr>
   </tbody>

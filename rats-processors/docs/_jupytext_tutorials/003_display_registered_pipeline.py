@@ -46,7 +46,6 @@ app.display(p)
 # (remember this is a fake training pipeline, it just constructs some message.)
 
 # %%
-
 outputs = app.run(
     p,
     inputs={

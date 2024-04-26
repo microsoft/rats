@@ -7,7 +7,6 @@
 # ## Tutorial: self-contained pipeline classes - Logistic Regression using sklearn
 
 # %%
-
 from collections.abc import Sequence
 from typing import NamedTuple
 
@@ -27,9 +26,8 @@ from rats import apps
 # First we'll create a `Model` class that will hold the bare sklearn LR model, but also the meta
 # information that verifies that a pandas dataframe can be used to predict with the model.
 
+
 # %%
-
-
 class Model(NamedTuple):
     bare_model: LR
     feature_names: tuple[str, ...]
@@ -40,8 +38,6 @@ class Model(NamedTuple):
 # Next, we'll build pipelines in a container class.
 # As before, we need to define NamedTuple classes for the output of each task.
 # %%
-
-
 class _SanitizeLabelsOutput(NamedTuple):
     y: pd.Series
     category_names: tuple[str, ...]
@@ -148,8 +144,6 @@ app = rp.NotebookApp()
 # Let's inspect the pipelines:
 
 # %%
-
-
 training_pipeline = lrpc.get(apps.autoid(lrpc.training_pipeline))
 print("Training pipeline input ports:", training_pipeline.inputs)
 print("Training pipeline output ports:", training_pipeline.outputs)
@@ -157,7 +151,6 @@ print("Training pipeline:")
 app.display(training_pipeline)
 
 # %%
-
 prediction_pipeline = lrpc.get(apps.autoid(lrpc.prediction_pipeline))
 print("Prediction pipeline input ports:", prediction_pipeline.inputs)
 print("Prediction pipeline output ports:", prediction_pipeline.outputs)
@@ -171,7 +164,6 @@ app.display(prediction_pipeline)
 # Let's use the Iris dataset, splitting to train/test randomly.
 
 # %%
-
 from sklearn import datasets
 
 iris = datasets.load_iris()
@@ -186,7 +178,6 @@ samples_test = samples.drop(train_indices)[iris["feature_names"][::-1]]  # Rever
 labels_test = labels.drop(train_indices)
 
 # %%
-
 training_outputs = app.run(
     training_pipeline,
     inputs=dict(
@@ -197,7 +188,6 @@ training_outputs = app.run(
 )
 
 # %%
-
 prediction_outputs_train = app.run(
     prediction_pipeline,
     inputs=dict(
@@ -207,7 +197,6 @@ prediction_outputs_train = app.run(
 )
 
 # %%
-
 prediction_outputs_test = app.run(
     prediction_pipeline,
     inputs=dict(

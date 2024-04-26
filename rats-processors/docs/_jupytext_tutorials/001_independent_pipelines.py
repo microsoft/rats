@@ -18,7 +18,6 @@ app = rp.NotebookApp()
 # annotate a method with the `task` decorator.
 
 # %%
-
 from typing import NamedTuple
 
 
@@ -52,7 +51,6 @@ print(inspect.signature(spc.sum))
 # instead you should get a service id and the service the container:
 
 # %%
-
 service_id = apps.autoid(spc.sum)  # or apps.autoid(SimplePipelineContainer.sum)
 p1 = spc.get(service_id)
 
@@ -71,7 +69,6 @@ app.display(p1)
 # Run the pipeline:
 
 # %%
-
 outputs = app.run(
     p1,
     inputs={
