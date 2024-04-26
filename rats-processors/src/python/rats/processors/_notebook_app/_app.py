@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from rats import apps
@@ -11,11 +11,11 @@ from .._pipeline_registry import Services as PipelineRegistryServices
 
 
 class NotebookApp(apps.AnnotatedContainer):
-    _notebook_containers: tuple[apps.Container, ...]
+    _container_providers: tuple[Callable[[apps.Container], apps.Container], ...]
 
-    def __init__(self, *notebook_containers: apps.Container) -> None:
+    def __init__(self, *container_providers: Callable[[apps.Container], apps.Container]) -> None:
         super().__init__()
-        self._notebook_containers = tuple(notebook_containers)
+        self._container_providers = tuple(container_providers)
 
     @apps.container()
     def processors_app_plugins(self) -> apps.Container:
@@ -26,7 +26,7 @@ class NotebookApp(apps.AnnotatedContainer):
 
     @apps.container()
     def notebook_containers(self) -> apps.Container:
-        return apps.CompositeContainer(*self._notebook_containers)
+        return apps.CompositeContainer(*(p(self) for p in self._container_providers))
 
     def run(self, pipeline: rpt.UPipeline, inputs: Mapping[str, Any] = {}) -> Mapping[str, Any]:
         runner_factory = self.get(LegacyServices.PIPELINE_RUNNER_FACTORY)

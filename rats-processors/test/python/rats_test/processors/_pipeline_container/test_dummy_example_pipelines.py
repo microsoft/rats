@@ -3,14 +3,14 @@ from rats.processors.example_pipelines import Model, SubModel
 from rats.processors.example_pipelines import Services as ExamplePipelineServices
 
 
-class TestPipelineContainer:
+class TestDummyExamplePipelines:
     _app: rp.NotebookApp
 
     def setup_method(self) -> None:
         self._app = rp.NotebookApp()
 
     def test_untyped(self) -> None:
-        pipeline = self._app.get(ExamplePipelineServices.UNTYPED_TRAIN_PIPELINE)
+        pipeline = self._app.get(ExamplePipelineServices.DUMMY_UNTYPED_TRAIN_PIPELINE)
         inputs = dict(
             url="http://example.com",
             model_type="linear",
@@ -24,7 +24,7 @@ class TestPipelineContainer:
         assert "length" in outputs
 
     def test_train_pipeline(self) -> None:
-        pipeline = self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
+        pipeline = self._app.get(ExamplePipelineServices.DUMMY_TRAIN_PIPELINE)
         model = Model(
             model_name="linear",
             num_layers=21,
@@ -52,7 +52,7 @@ class TestPipelineContainer:
         assert model.trained
 
     def test_train_and_test_pipeline(self) -> None:
-        pipeline = self._app.get(ExamplePipelineServices.TRAIN_AND_TEST_PIPELINE)
+        pipeline = self._app.get(ExamplePipelineServices.DUMMY_TRAIN_AND_TEST_PIPELINE)
         model = Model(
             model_name="linear",
             num_layers=21,
@@ -85,9 +85,9 @@ class TestPipelineContainer:
         # Does not run;
         # Static type checkers (mypy, pyright) will verify that static types of the pipelines
         # are correct.
-        load_data = self._app.get(ExamplePipelineServices.LOAD_DATA)
-        train_model = self._app.get(ExamplePipelineServices.TRAIN_MODEL)
-        train_pipeline = self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
+        load_data = self._app.get(ExamplePipelineServices.DUMMY_LOAD_DATA)
+        train_model = self._app.get(ExamplePipelineServices.DUMMY_TRAIN_MODEL)
+        train_pipeline = self._app.get(ExamplePipelineServices.DUMMY_TRAIN_PIPELINE)
 
         # verify typing of tasks
         load_data.outputs.data >> train_model.inputs.data  # ok
@@ -103,10 +103,10 @@ class TestPipelineContainer:
         assert len(registry) == 3
         e1 = registry["examples.untyped_simple_pipeline"]
         p1 = e1.provider()
-        assert p1 is self._app.get(ExamplePipelineServices.UNTYPED_TRAIN_PIPELINE)
+        assert p1 is self._app.get(ExamplePipelineServices.DUMMY_UNTYPED_TRAIN_PIPELINE)
         e2 = registry["examples.typed_simple_pipeline"]
         p2 = e2.provider()
-        assert p2 is self._app.get(ExamplePipelineServices.TRAIN_PIPELINE)
+        assert p2 is self._app.get(ExamplePipelineServices.DUMMY_TRAIN_PIPELINE)
         e3 = registry["examples.complex_pipeline"]
         p3 = e3.provider()
-        assert p3 is self._app.get(ExamplePipelineServices.TRAIN_AND_TEST_PIPELINE)
+        assert p3 is self._app.get(ExamplePipelineServices.DUMMY_TRAIN_AND_TEST_PIPELINE)
