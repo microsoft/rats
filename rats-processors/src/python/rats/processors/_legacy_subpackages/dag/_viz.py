@@ -1,24 +1,27 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
+from itertools import count
 from typing import TYPE_CHECKING, Any, Literal
 
 import pydot
 
 if TYPE_CHECKING:
     from ..ux._pipeline import InPort, Inputs, OutPort, Outputs, UPipeline
-    from ._dag import DAG
+    from ._dag import DAG, DagNode
 
 
 class DotBuilder:
     _g: pydot.Dot
     _node_name_mapping: dict[str, str]
     _include_optional: bool
+    _first_distinct_level: int
 
     def __init__(self, include_optional: bool = True) -> None:
         self._g = pydot.Dot("DAG", graph_type="digraph")
         self._node_name_mapping = {}
         self._include_optional = include_optional
+        self._first_distinct_level = 0
 
     def _get_io_tag(self, io: Literal["i", "o"], port_name: str) -> str:
         sanitized = port_name.replace("_", "__").replace(".", "_")
@@ -46,9 +49,15 @@ class DotBuilder:
         if name not in self._node_name_mapping:
             self._node_name_mapping[name] = str(len(self._node_name_mapping))
 
+    def _node_label(self, node: DagNode) -> str:
+        tokens = repr(node).split("/")
+        if self._first_distinct_level == len(tokens) - 1:
+            return tokens[-1]
+        return f"{tokens[self._first_distinct_level]}..{tokens[-1]}"
+
     def _add_pipeline(self, dag: DAG) -> None:
         for node in dag.nodes:
-            processor_name = node.name.split("/")[-1]
+            node_label = self._node_label(node)
             name = repr(node)
             self._add_name_to_mapping(name)
             in_arguments = tuple(k.name for k in dag.nodes[node].inputs.values())
@@ -56,7 +65,7 @@ class DotBuilder:
             out_arguments = tuple(k.name for k in dag.nodes[node].outputs.values())
             outputs = self._format_o_arguments(out_arguments)
 
-            label = f"{{{{{inputs}}}|{processor_name}|{{{outputs}}}}}"
+            label = f"{{{{{inputs}}}|{node_label}|{{{outputs}}}}}"
             node_name = self._node_name_mapping[name]
             self._g.add_node(
                 pydot.Node(name=node_name, label=label, shape="Mrecord", color="blue")
@@ -136,7 +145,18 @@ class DotBuilder:
                 target = self._get_i_port_tag(name, entry_name)
                 add_entry(entry, target)
 
+    def _find_first_distinct_level(self, dag: DAG) -> None:
+        if len(dag.nodes) <= 1:
+            return
+        node_name_tokens = [repr(node).split("/") for node in dag.nodes]
+        for i in count():
+            tokens_at_level = set([tokens[i] for tokens in node_name_tokens])
+            if len(tokens_at_level) > 1:
+                self._first_distinct_level = i
+                return
+
     def add_pipeline(self, pipeline: UPipeline) -> None:
+        self._find_first_distinct_level(pipeline._dag)
         self._add_pipeline(pipeline._dag)
         self._add_inputs(pipeline.inputs)
         self._add_outputs(pipeline.outputs)

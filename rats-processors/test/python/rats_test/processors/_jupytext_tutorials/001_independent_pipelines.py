@@ -1,6 +1,6 @@
-# %% [markdown]
-# ## Tutorial: self-contained pipeline classes
 # %%
+import inspect
+
 import rats.processors as rp
 from rats import apps
 
@@ -8,7 +8,6 @@ app = rp.NotebookApp()
 
 # %% [markdown]
 
-# # Single node pipeline
 # A pipeline node holds a reference to a processor, i.e. the function that will be executed when
 # the node is run.
 # The processor function is expected to take annotated arguments and return a NamedTuple.  The
@@ -39,16 +38,14 @@ spc = SimplePipelineContainer()
 
 # %% [markdown]
 
-# The `task` decorator converts the method into a method that takes nothing and returns a function:
+# The `task` decorator converts the method into a method that takes nothing and returns a pipeline:
 
 # %%
-import inspect
-
 print(inspect.signature(spc.sum))
 
 # %% [markdown]
 # It also registers the method as a service, which means you should not call the method directly.
-# instead you should get a service id and the service the container:
+# instead you should get a service id and then get the service from the container:
 
 # %%
 service_id = apps.autoid(spc.sum)  # or apps.autoid(SimplePipelineContainer.sum)

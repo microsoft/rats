@@ -5,9 +5,6 @@
 ```
 
 
-## Tutorial: self-contained pipeline classes - Logistic Regression using sklearn
-
-
 ```python
 from collections.abc import Sequence
 from typing import NamedTuple
@@ -15,8 +12,9 @@ from typing import NamedTuple
 import pandas as pd
 from sklearn.linear_model import LogisticRegression as LR
 
-import rats.processors as rp
 from rats import apps
+from rats import processors as rp
+from rats.processors import typing as rpt
 ```
 
 Let's build something a little more interesting - logistic regression using sklearn, with
@@ -28,7 +26,7 @@ information that verifies that a pandas dataframe can be used to predict with th
 
 
 ```python
-class Model(NamedTuple):
+class LRModel(NamedTuple):
     bare_model: LR
     feature_names: tuple[str, ...]
     category_names: tuple[str, ...]
@@ -40,24 +38,25 @@ As before, we need to define NamedTuple classes for the output of each task.
 
 ```python
 class _SanitizeLabelsOutput(NamedTuple):
-    y: pd.Series
-    category_names: tuple[str, ...]
+    y: pd.Series  # [int], contegory indices from [0, NumCategories)
     number_of_labels_in_training: int
 
 
 class _LRTrainOutput(NamedTuple):
-    model: Model
+    model: LRModel
     number_of_samples_in_training: int
 
 
 class _LRPredictOutput(NamedTuple):
-    logits: pd.DataFrame
+    logits: pd.DataFrame  # [float], columns are category names
 
 
 class LRPipelineContainer(rp.PipelineContainer):
     @rp.task
     def sanitize_labels(
-        self, category_names: Sequence[str], y: pd.Series
+        self,
+        category_names: Sequence[str],  # order will determine category index in output.
+        y: pd.Series,  # [str] category names.
     ) -> _SanitizeLabelsOutput:
         """Remove rows with NaN labels and verify that the remaining labels are expected categories."""
         category_names = tuple(category_names)
@@ -73,12 +72,14 @@ class LRPipelineContainer(rp.PipelineContainer):
         return _SanitizeLabelsOutput(
             y=y,
             number_of_labels_in_training=number_of_labels_in_training,
-            category_names=category_names,
         )
 
     @rp.task
     def train(
-        self, category_names: tuple[str, ...], x: pd.DataFrame, y: pd.Series
+        self,
+        category_names: tuple[str, ...],
+        x: pd.DataFrame,  # [float], column names become feature names
+        y: pd.Series,  # [int], category indices
     ) -> _LRTrainOutput:
         """Train a logistic regression model.
 
@@ -99,7 +100,7 @@ class LRPipelineContainer(rp.PipelineContainer):
         lr.fit(X=x.to_numpy(), y=y.to_numpy())
         feature_names = tuple(x.columns)
         return _LRTrainOutput(
-            Model(
+            LRModel(
                 bare_model=lr,
                 feature_names=feature_names,
                 category_names=category_names,
@@ -108,7 +109,7 @@ class LRPipelineContainer(rp.PipelineContainer):
         )
 
     @rp.pipeline
-    def training_pipeline(self) -> rp.typing.UPipeline:
+    def training_pipeline(self) -> rpt.UPipeline:
         """Train a binary logistic regression model.
 
         Samples not associated with labels or whose labels are NaN will be ignored.
@@ -127,7 +128,7 @@ class LRPipelineContainer(rp.PipelineContainer):
     @rp.task
     def prediction_pipeline(
         self,
-        model: Model,
+        model: LRModel,
         x: pd.DataFrame,
     ) -> _LRPredictOutput:
         # Reorder the columns by the order in which they were used in training.
@@ -144,52 +145,101 @@ app = rp.NotebookApp()
 ```
 
 
-Let's inspect the pipelines:
+The training pipeline is composed of a `sanitize_labels` task followed by a `train` task.
+Let's look at these sub-pipelines:
+
+
+```python
+sanitize_labels = lrpc.get(apps.autoid(lrpc.sanitize_labels))
+app.display(sanitize_labels)
+```
+
+
+
+![png](002_lr_using_sklearn_files/002_lr_using_sklearn_8_0.png)
+
+
+
+
+```python
+train = lrpc.get(apps.autoid(lrpc.train))
+app.display(train)
+```
+
+
+
+![png](002_lr_using_sklearn_files/002_lr_using_sklearn_9_0.png)
+
+
+
+Look at the `training_pipeline` method and observe:
+
+- The two sub-pipelines are created using by calling `self.get` with the reserpective service
+  ids. At this point, it does not matter that the sub-pipelines are tasks - any pipeline would
+  work. It is important that the sub-pipelines are defined by methods of this container, because
+  it ensures that they have distinct names.
+
+- The `combine` method is used to combine the sub-pipelines into a another pipeline.  The
+  argument `dependencies=(sanitize >> train,),` inspects the outputs of `sanitize` and the inputs
+  of `train`, matches them by name, and creates edges between matches.  Here this means that the
+  `y` output of `sanitize` will be connected to the `y` input of `train`.
+
+- Inputs of any sub-pipeline that are not matches with outputs of another sub-pipeline will
+  become inputs of the combined pipeline.  Here this means the `y` input of `sanitize`, and the
+  `x` input of `train`, and the `category_names` input of both will become inputs of the combined
+  pipeline.  The `category_names` input will flow to both `sanitize` and `train`, coupling them
+  to always take the same value.  There are ways to change that behaviour, but more on that in
+  other tutorials.
+
+- Outputs of any sub-pipeline that are not matches with inputs of another sub-pipeline will
+  become outputs of the combined pipeline.  There are ways to expose outputs of sub-pipelines
+  that are matched to inputs of other sub-pipelines, but more on that in other tutorials.
+
+Here's the combined training pipeline:
 
 
 ```python
 training_pipeline = lrpc.get(apps.autoid(lrpc.training_pipeline))
 print("Training pipeline input ports:", training_pipeline.inputs)
 print("Training pipeline output ports:", training_pipeline.outputs)
-print("Training pipeline:")
 app.display(training_pipeline)
 ```
 _cell output_:
 ```output
 Training pipeline input ports: InPorts(category_names=InPort[collections.abc.Sequence[str]], y=InPort[pandas.core.series.Series], x=InPort[pandas.core.frame.DataFrame])
-Training pipeline output ports: OutPorts(number_of_labels_in_training=OutPort[int], model=OutPort[__main__.Model], number_of_samples_in_training=OutPort[int])
-Training pipeline:
+Training pipeline output ports: OutPorts(number_of_labels_in_training=OutPort[int], model=OutPort[__main__.LRModel], number_of_samples_in_training=OutPort[int])
 ```
 
 
-![png](002_lr_using_sklearn_files/002_lr_using_sklearn_9_1.png)
+![png](002_lr_using_sklearn_files/002_lr_using_sklearn_11_1.png)
 
 
+
+The prediction pipeline is a single task:
 
 
 ```python
 prediction_pipeline = lrpc.get(apps.autoid(lrpc.prediction_pipeline))
 print("Prediction pipeline input ports:", prediction_pipeline.inputs)
 print("Prediction pipeline output ports:", prediction_pipeline.outputs)
-print("Prediction pipeline:")
 app.display(prediction_pipeline)
 ```
 _cell output_:
 ```output
-Prediction pipeline input ports: InPorts(model=InPort[__main__.Model], x=InPort[pandas.core.frame.DataFrame])
+Prediction pipeline input ports: InPorts(model=InPort[__main__.LRModel], x=InPort[pandas.core.frame.DataFrame])
 Prediction pipeline output ports: OutPorts(logits=OutPort[pandas.core.frame.DataFrame])
-Prediction pipeline:
 ```
 
 
-![png](002_lr_using_sklearn_files/002_lr_using_sklearn_10_1.png)
+![png](002_lr_using_sklearn_files/002_lr_using_sklearn_13_1.png)
 
 
 
 
 To run the training pipeline we'll need a samples dataframe and a labels series.
 We can then run the prediction pipeline with the trained model and a samples dataframe.
-Let's use the Iris dataset, splitting to train/test randomly.
+Let's use the Iris dataset, using category names rather than category indices for labels, and
+splitting to train/test randomly.
 
 
 ```python
@@ -243,7 +293,7 @@ prediction_outputs_test = app.run(
 )
 ```
 
-join predictions with labels to see how well the model did.
+Group logits by true label to see how the model is performing:
 
 
 ```python
@@ -309,39 +359,39 @@ prediction_outputs_train["logits"].join(labels_train).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.026009</td>
-      <td>0.012493</td>
-      <td>41</td>
-      <td>-3.782484</td>
-      <td>0.514221</td>
-      <td>41</td>
-      <td>-15.625385</td>
-      <td>1.048863</td>
-      <td>41</td>
+      <td>-0.025091</td>
+      <td>0.011335</td>
+      <td>42</td>
+      <td>-3.806565</td>
+      <td>0.492307</td>
+      <td>42</td>
+      <td>-16.429671</td>
+      <td>1.067718</td>
+      <td>42</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.350082</td>
-      <td>1.426100</td>
-      <td>35</td>
-      <td>-0.228280</td>
-      <td>0.229649</td>
-      <td>35</td>
-      <td>-2.438972</td>
-      <td>1.233557</td>
-      <td>35</td>
+      <td>-4.487598</td>
+      <td>1.337438</td>
+      <td>40</td>
+      <td>-0.209796</td>
+      <td>0.211489</td>
+      <td>40</td>
+      <td>-2.489450</td>
+      <td>1.242686</td>
+      <td>40</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-9.987980</td>
-      <td>2.810939</td>
-      <td>44</td>
-      <td>-2.739795</td>
-      <td>1.306488</td>
-      <td>44</td>
-      <td>-0.147237</td>
-      <td>0.173997</td>
-      <td>44</td>
+      <td>-9.950642</td>
+      <td>2.950157</td>
+      <td>38</td>
+      <td>-2.579245</td>
+      <td>1.435024</td>
+      <td>38</td>
+      <td>-0.191186</td>
+      <td>0.217830</td>
+      <td>38</td>
     </tr>
   </tbody>
 </table>
@@ -413,39 +463,39 @@ prediction_outputs_test["logits"].join(labels_test).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.022868</td>
-      <td>0.009345</td>
-      <td>9</td>
-      <td>-3.862640</td>
-      <td>0.401797</td>
-      <td>9</td>
-      <td>-15.904206</td>
-      <td>0.528573</td>
-      <td>9</td>
+      <td>-0.025273</td>
+      <td>0.013850</td>
+      <td>8</td>
+      <td>-3.793270</td>
+      <td>0.454108</td>
+      <td>8</td>
+      <td>-16.351338</td>
+      <td>0.645213</td>
+      <td>8</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.422117</td>
-      <td>1.313203</td>
-      <td>15</td>
-      <td>-0.261216</td>
-      <td>0.243853</td>
-      <td>15</td>
-      <td>-2.372478</td>
-      <td>1.495974</td>
-      <td>15</td>
+      <td>-3.737981</td>
+      <td>1.583909</td>
+      <td>10</td>
+      <td>-0.174760</td>
+      <td>0.116045</td>
+      <td>10</td>
+      <td>-3.199531</td>
+      <td>1.627358</td>
+      <td>10</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-11.841923</td>
-      <td>2.448062</td>
-      <td>6</td>
-      <td>-3.709581</td>
-      <td>1.610865</td>
-      <td>6</td>
-      <td>-0.073812</td>
-      <td>0.100209</td>
-      <td>6</td>
+      <td>-10.759607</td>
+      <td>2.805424</td>
+      <td>12</td>
+      <td>-2.856723</td>
+      <td>1.092426</td>
+      <td>12</td>
+      <td>-0.100183</td>
+      <td>0.094979</td>
+      <td>12</td>
     </tr>
   </tbody>
 </table>
