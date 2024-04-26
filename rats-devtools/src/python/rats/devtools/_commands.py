@@ -29,7 +29,6 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
     def build_api_docs(self) -> None:
         """Build the API documentation for each of the components."""
         self._sphinx_apidoc()
-        self._jupytext_to_markdown()
         self._sphinx_markdown()
 
     def _sphinx_apidoc(self) -> None:
@@ -98,7 +97,13 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
                 dirs_exist_ok=True,
             )
 
-    def _jupytext_to_markdown(self) -> None:
+    @command
+    def build_jupytext_notebooks(self) -> None:
+        """Build the notebooks section of each component's documentation.
+
+        Converts each *.py jupytext file in the components docs/_jupytext_tutorials directory into
+        a markdown notebook.
+        """
         components = [
             # "rats-apps",
             # "rats-devtools",
@@ -110,31 +115,32 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
         ).resolve()
 
         commands = [
-            "jupytext --to ipynb *.py",
-            f"jupyter nbconvert *.ipynb --to markdown --execute --template=mdoutput --TemplateExporter.extra_template_basedirs={nb_convert_templates_path}",
+            "poetry run jupytext --to ipynb *.py".split(),
+            f"poetry run jupyter nbconvert *.ipynb --to markdown --execute --template=mdoutput --TemplateExporter.extra_template_basedirs={nb_convert_templates_path}".split(),
         ]
         for c in components:
             jupytext_sources_path = Path(f"{c}/docs/_jupytext_tutorials").resolve()
             notebooks_target_path = Path(f"{c}/docs/notebooks").resolve()
             rmtree(notebooks_target_path, ignore_errors=True)
+            notebooks_target_path.mkdir(parents=True, exist_ok=True)
             notebook_names = [f.stem for f in jupytext_sources_path.glob("*.py")]
+
+            # symlink the jupytext files to the target path
+            for n in notebook_names:
+                (jupytext_sources_path / f"{n}.py").link_to(notebooks_target_path / f"{n}.py")
 
             for cmd in commands:
                 try:
-                    subprocess.run(cmd, cwd=jupytext_sources_path, check=True, shell=True)
+                    subprocess.run(cmd, cwd=notebooks_target_path, check=True)
                 except subprocess.CalledProcessError as e:
                     sys.exit(e.returncode)
 
-            dotpages_lines = ["nav"]
+            dotpages_lines = ["nav:"]
             for n in notebook_names:
+                # delete the .py symlink
+                (notebooks_target_path / f"{n}.py").unlink()
                 # delete the .ipynb file
-                (jupytext_sources_path / f"{n}.ipynb").unlink()
-                # move the notebook .md to the destination path
-                (jupytext_sources_path / f"{n}.md").rename(notebooks_target_path / f"{n}.md")
-                # if a *_files directory exists, move it to the destination path
-                files_dir = jupytext_sources_path / f"{n}_files"
-                if files_dir.exists():
-                    files_dir.rename(notebooks_target_path / f"{n}_files")
+                (notebooks_target_path / f"{n}.ipynb").unlink()
                 # add the notebook to the .pages file
                 dotpages_lines.append(f"  - {n}: {n}.md")
 

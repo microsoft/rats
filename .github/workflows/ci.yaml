@@ -3,32 +3,32 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: 'the git sha to checkout'
+        description: "the git sha to checkout"
         required: true
         type: string
       publish-wheels:
-        description: 'whether to publish wheels to the artifact repo'
+        description: "whether to publish wheels to the artifact repo"
         default: false
         required: true
         type: boolean
       publish-docs:
-        description: 'whether to publish docs to the github pages'
+        description: "whether to publish docs to the github pages"
         default: false
         required: true
         type: boolean
   workflow_call:
     inputs:
       sha:
-        description: 'the git sha to checkout'
+        description: "the git sha to checkout"
         required: true
         type: string
       publish-wheels:
-        description: 'whether to publish wheels to the artifact repo'
+        description: "whether to publish wheels to the artifact repo"
         default: false
         required: true
         type: boolean
       publish-docs:
-        description: 'whether to publish docs to the github pages'
+        description: "whether to publish docs to the github pages"
         default: false
         required: true
         type: boolean
@@ -160,6 +160,7 @@ jobs:
       - name: "build-docs"
         run: |
           rats-devtools build-api-docs
+          rats-devtools build-jupytext-notebooks
           rats-devtools mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3

@@ -39,8 +39,6 @@ python = "^3.10"
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
 ipykernel = "*"
-jupytext = "*"
-nbconvert = "*"
 pandas = "*"
 pyright = "*"
 pytest = "*"
@@ -53,6 +51,9 @@ scikit-learn = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
+
+jupytext = "*"
+nbconvert = "*"
 
 [tool.poetry.plugins."rats.app_plugins"]
 "rats.processors-plugin" = "rats.processors._legacy_subpackages.plugin:RatsProcessorsPlugin"
