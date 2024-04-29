@@ -76,7 +76,6 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
-            "rats-examples-sklearn",
         ]
 
         for c in components:
