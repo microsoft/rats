@@ -88,16 +88,8 @@ for k in outputs:
 # %% [markdown]
 # Let's build a slightly more interesting pipeline with a few nodes:
 
+
 # %%
-
-from typing import NamedTuple
-
-
-class _CalcOutput(NamedTuple):
-    result: float
-    log_message: str
-
-
 class _ConcateOutput(NamedTuple):
     log_message: str
 
