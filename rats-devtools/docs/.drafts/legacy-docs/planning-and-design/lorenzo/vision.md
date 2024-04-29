@@ -96,7 +96,7 @@ author terminal commands, and developed a library for doing just that.
             parser.add_argument("cluster-name")
 
         def execute(self, request: CliRequest) -> None:
-            print(f"creating cluster named: {request.get('cluster-name')")
+            print(f"creating cluster named: {request.get('cluster-name')}")
     ```
 
 After using this library successfully for a while, we defined a new persona. Sometimes, users
