@@ -1,3 +1,4 @@
+import logging
 import subprocess
 import sys
 from os import symlink
@@ -7,6 +8,8 @@ from shutil import copy, copytree, rmtree
 import click
 
 from ._click import ClickCommandRegistry, command
+
+logger = logging.getLogger(__name__)
 
 
 class RatsDevtoolsCommands(ClickCommandRegistry):
@@ -73,6 +76,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
+            "rats-examples-sklearn",
         ]
 
         for c in components:
@@ -109,6 +113,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             # "rats-devtools",
             # "rats-pipelines",
             "rats-processors",
+            "rats-examples-sklearn",
         ]
         nb_convert_templates_path = Path(
             "rats-devtools/src/resources/nbconvert-templates"
@@ -119,35 +124,19 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             f"poetry run jupyter nbconvert *.ipynb --to markdown --execute --template=mdoutput --TemplateExporter.extra_template_basedirs={nb_convert_templates_path}".split(),
         ]
 
-        def find_jupytext_files(path: Path) -> list[tuple[str, str]]:
-            def file_name_to_order_and_title(file_name: str) -> tuple[int, str, str]:
-                tokens = file_name.split("_")
-                try:
-                    order = int(tokens[0])
-                except ValueError:
-                    raise ValueError(
-                        f"Expected the names files under {path} to start with an "
-                        + "integer.  Found file {file_name}.py."
-                    ) from None
-                title = " ".join(tokens[1:]).capitalize()
-                return order, file_name, title
-
-            files = sorted(
-                [file_name_to_order_and_title(f.stem) for f in path.glob("*.py")],
-                key=lambda x: x[0],
-            )
-            return [(f[1], f[2]) for f in files]
-
         for c in components:
+            logger.info("Building notebooks for %s", c)
             jupytext_sources_path = Path(f"{c}/docs/_jupytext_tutorials").resolve()
             notebooks_target_path = Path(f"{c}/docs/notebooks").resolve()
             rmtree(notebooks_target_path, ignore_errors=True)
             notebooks_target_path.mkdir(parents=True, exist_ok=True)
-            jupytext_files = find_jupytext_files(jupytext_sources_path)
+            source_file_names = [f.stem for f in jupytext_sources_path.glob("*.py")]
 
             # symlink the jupytext files to the target path
-            for n, _ in jupytext_files:
-                (jupytext_sources_path / f"{n}.py").link_to(notebooks_target_path / f"{n}.py")
+            for file_name in source_file_names:
+                (jupytext_sources_path / f"{file_name}.py").link_to(
+                    notebooks_target_path / f"{file_name}.py"
+                )
 
             for cmd in commands:
                 try:
@@ -155,18 +144,12 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
                 except subprocess.CalledProcessError as e:
                     sys.exit(e.returncode)
 
-            dotpages_lines = ["nav:"]
-            for n, title in jupytext_files:
+            for file_name in source_file_names:
                 # delete the .py symlink
-                (notebooks_target_path / f"{n}.py").unlink()
+                (notebooks_target_path / f"{file_name}.py").unlink()
                 # delete the .ipynb file
-                (notebooks_target_path / f"{n}.ipynb").unlink()
+                (notebooks_target_path / f"{file_name}.ipynb").unlink()
                 # add the notebook to the .pages file
-                dotpages_lines.append(f"  - {title}: {n}.md")
-
-            # update the .pages file
-            dotpages_path = notebooks_target_path / ".pages"
-            dotpages_path.write_text("\n".join(dotpages_lines))
 
     @command
     def mkdocs_serve(self) -> None:
@@ -177,6 +160,39 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
     def mkdocs_build(self) -> None:
         """Combine our docs across components using mkdocs build."""
         self._do_mkdocs_things("build")
+
+    def _copy_notebooks_from_component(self, mkdocs_staging_path: Path, component: str) -> None:
+        source_path = mkdocs_staging_path / component / "notebooks"
+        target_path = mkdocs_staging_path / "tutorial_notebooks"
+        if (source_path).exists():
+            for file_path in (source_path).glob("*"):
+                symlink(file_path, target_path / file_path.name)
+
+    def _create_notebook_nav_page(self, mkdocs_staging_path: Path) -> None:
+        notebooks_path = mkdocs_staging_path / "tutorial_notebooks"
+
+        def file_name_to_order_and_title(file_name: str) -> tuple[int, str, str]:
+            tokens = file_name.split("_")
+            try:
+                order = int(tokens[0])
+            except ValueError:
+                raise ValueError(
+                    f"Expected the names files under {notebooks_path} to start with an "
+                    + "integer.  Found file {file_name}.md."
+                ) from None
+            title = " ".join(tokens[1:]).capitalize()
+            return order, file_name, title
+
+        notebooks = sorted(
+            [file_name_to_order_and_title(p.stem) for p in notebooks_path.glob("*.md")],
+            key=lambda t: t[0],
+        )
+        dotpages_lines = ["nav:"]
+        for _, file_name, title in notebooks:
+            dotpages_lines.append(f"  - {title}: {file_name}.md")
+            # update the .pages file
+        dotpages_path = notebooks_path / ".pages"
+        dotpages_path.write_text("\n".join(dotpages_lines))
 
     def _do_mkdocs_things(self, cmd: str) -> None:
         devtools_path = Path("rats-devtools").resolve()
@@ -196,11 +212,15 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
+            "rats-examples-sklearn",
         ]
 
         for c in components:
             component_docs_path = Path(c).resolve() / "docs"
             symlink(component_docs_path, mkdocs_staging_path / c)
+            self._copy_notebooks_from_component(mkdocs_staging_path, c)
+
+        self._create_notebook_nav_page(mkdocs_staging_path)
 
         # replace the mkdocs config with a fresh version
         mkdocs_staging_config.unlink(missing_ok=True)

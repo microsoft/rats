@@ -43,6 +43,7 @@ jobs:
           - rats-devtools
           - rats-pipelines
           - rats-processors
+          - rats-examples-sklearn
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "test: ${{ matrix.component }}"
     steps:
@@ -157,6 +158,7 @@ jobs:
           rats-devtools install rats-devtools/
           rats-devtools install rats-pipelines/
           rats-devtools install rats-processors/
+          rats-devtools install rats-examples-sklearn/
       - name: "build-docs"
         run: |
           rats-devtools build-api-docs

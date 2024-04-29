@@ -1,5 +1,6 @@
 nav:
   - Home: index.md
+  - Tutorial Notebooks: tutorial_notebooks
   - rats-apps: rats-apps
   - rats-pipelines: rats-pipelines
   - rats-processors: rats-processors

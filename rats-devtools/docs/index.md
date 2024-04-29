@@ -44,11 +44,18 @@ INFO    -  Cleaning site directory
 ## build-jupytext-notebooks
 
 Looks for *.py files under the components' docs/_jupytext_tutorials folders, and converts each one
-of them into a *.md notebook under the dos/notebooks.
+of them into a *.md notebook under the dos/notebooks.  The file names are expected to have the
+format `#_tutorial_title.py` where `#` is an integer, unique within the whole project.  For example
+`001_independent_pipelines.py`.
 
-Currently enabled only for rats-processors.  To enable for other components, edit the components
-list in `rats.devtools._commands.build_jupytext_notebooks` and add `jupytext` and `nbconvert` to
-the component's `pyproject.toml` in section `tool.poetry.group.docs.dependencies`.
+Currently enabled for rats-processors and rats-examples-sklearn.  To enable for other components,
+edit the components list in `rats.devtools._commands.build_jupytext_notebooks`. and add `jupytext`
+and `nbconvert` to the component's `pyproject.toml` in section
+`tool.poetry.group.docs.dependencies`.
+
+The notebooks from the different containers will be collected into a single project level
+`Tutorial Notebooks` section.  The order of the tutorials within the section will be determined by
+their original file names, hence the requirement for the file names to start with a unique integer.
 
 ## build-api-docs
 
