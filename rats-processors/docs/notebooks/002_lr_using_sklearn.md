@@ -270,7 +270,17 @@ training_outputs = app.run(
     ),
 )
 ```
+_cell output_:
+```output
+/home/bletchley/repos/rats/rats-processors/.venv/lib/python3.10/site-packages/sklearn/linear_model/_logistic.py:469: ConvergenceWarning: lbfgs failed to converge (status=1):
+STOP: TOTAL NO. of ITERATIONS REACHED LIMIT.
 
+Increase the number of iterations (max_iter) or scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+Please also refer to the documentation for alternative solver options:
+    https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+  n_iter_i = _check_optimize_result(
+```
 
 ```python
 prediction_outputs_train = app.run(
@@ -359,38 +369,38 @@ prediction_outputs_train["logits"].join(labels_train).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.025091</td>
-      <td>0.011335</td>
-      <td>42</td>
-      <td>-3.806565</td>
-      <td>0.492307</td>
-      <td>42</td>
-      <td>-16.429671</td>
-      <td>1.067718</td>
-      <td>42</td>
+      <td>-0.030338</td>
+      <td>0.015185</td>
+      <td>39</td>
+      <td>-3.636211</td>
+      <td>0.519049</td>
+      <td>39</td>
+      <td>-16.683234</td>
+      <td>1.137835</td>
+      <td>39</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.487598</td>
-      <td>1.337438</td>
-      <td>40</td>
-      <td>-0.209796</td>
-      <td>0.211489</td>
-      <td>40</td>
-      <td>-2.489450</td>
-      <td>1.242686</td>
-      <td>40</td>
+      <td>-4.527803</td>
+      <td>1.353503</td>
+      <td>43</td>
+      <td>-0.160763</td>
+      <td>0.144501</td>
+      <td>43</td>
+      <td>-2.846380</td>
+      <td>1.381668</td>
+      <td>43</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-9.950642</td>
-      <td>2.950157</td>
+      <td>-10.777591</td>
+      <td>3.051898</td>
       <td>38</td>
-      <td>-2.579245</td>
-      <td>1.435024</td>
+      <td>-2.759500</td>
+      <td>1.404555</td>
       <td>38</td>
-      <td>-0.191186</td>
-      <td>0.217830</td>
+      <td>-0.153978</td>
+      <td>0.192290</td>
       <td>38</td>
     </tr>
   </tbody>
@@ -463,38 +473,38 @@ prediction_outputs_test["logits"].join(labels_test).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.025273</td>
-      <td>0.013850</td>
-      <td>8</td>
-      <td>-3.793270</td>
-      <td>0.454108</td>
-      <td>8</td>
-      <td>-16.351338</td>
-      <td>0.645213</td>
-      <td>8</td>
+      <td>-0.031831</td>
+      <td>0.010908</td>
+      <td>11</td>
+      <td>-3.516667</td>
+      <td>0.343041</td>
+      <td>11</td>
+      <td>-16.710160</td>
+      <td>0.660896</td>
+      <td>11</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-3.737981</td>
-      <td>1.583909</td>
-      <td>10</td>
-      <td>-0.174760</td>
-      <td>0.116045</td>
-      <td>10</td>
-      <td>-3.199531</td>
-      <td>1.627358</td>
-      <td>10</td>
+      <td>-5.307032</td>
+      <td>1.496498</td>
+      <td>7</td>
+      <td>-0.281918</td>
+      <td>0.350106</td>
+      <td>7</td>
+      <td>-2.067811</td>
+      <td>0.986262</td>
+      <td>7</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.759607</td>
-      <td>2.805424</td>
+      <td>-9.431128</td>
+      <td>2.156189</td>
       <td>12</td>
-      <td>-2.856723</td>
-      <td>1.092426</td>
+      <td>-2.267468</td>
+      <td>1.279774</td>
       <td>12</td>
-      <td>-0.100183</td>
-      <td>0.094979</td>
+      <td>-0.239459</td>
+      <td>0.247368</td>
       <td>12</td>
     </tr>
   </tbody>
