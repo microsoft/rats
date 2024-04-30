@@ -18,7 +18,13 @@ from ._annotations import (
     service,
 )
 from ._composite_container import CompositeContainer
-from ._container import Container, DuplicateServiceError, ServiceNotFoundError
+from ._container import (
+    ConfigProvider,
+    Container,
+    DuplicateServiceError,
+    ServiceNotFoundError,
+    ServiceProvider,
+)
 from ._executables import App, AppContainer, Executable
 from ._ids import ConfigId, ServiceId
 from ._namespaces import ProviderNamespaces
@@ -36,6 +42,8 @@ __all__ = [
     "Executable",
     "PluginContainers",
     "ProviderNamespaces",
+    "ConfigProvider",
+    "ServiceProvider",
     "ServiceId",
     "ServiceNotFoundError",
     "autoid_service",
