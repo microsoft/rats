@@ -6,7 +6,8 @@ from pathlib import Path
 import pytest
 
 # Get a list of all .py files in the directory
-tutorial_path = (Path(__file__) / "../_jupytext_tutorials/").resolve()
+package_root = Path(__file__).parent.parent.parent.parent
+tutorial_path = (package_root / "docs/_jupytext_tutorials/").resolve()
 tutorial_file_names = tuple(f.name for f in tutorial_path.glob("*.py"))
 
 
