@@ -75,7 +75,7 @@ Pipeline output ports: OutPorts(result=OutPort[float], log_message=OutPort[str])
 ```
 
 
-![png](001_independent_pipelines_files/001_independent_pipelines_8_1.png)
+![png](independent_pipelines_files/independent_pipelines_8_1.png)
 
 
 
@@ -169,7 +169,7 @@ Pipeline output ports: OutPorts(result=OutPort[float], log_message=OutPort[str])
 ```
 
 
-![png](001_independent_pipelines_files/001_independent_pipelines_16_1.png)
+![png](independent_pipelines_files/independent_pipelines_16_1.png)
 
 
 

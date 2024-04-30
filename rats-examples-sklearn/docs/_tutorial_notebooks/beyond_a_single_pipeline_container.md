@@ -11,7 +11,7 @@ In this notebook we will learn how to expose and use pipelines across containers
 
 ### Using pipelines defined in installed packages.
 
-The LR pipelines we have defined in [the previous notebook](002_lr_using_sklearn.md) are also
+The LR pipelines we have defined in [the previous notebook](lr_using_sklearn.md) are also
 defined in `rats.examples-sklearn`.  We will start by showing how to access these
 pipelines from the app.
 
@@ -67,7 +67,7 @@ train pipeline output ports: OutPorts(number_of_labels_in_training=OutPort[int],
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_7_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_7_1.png)
 
 
 
@@ -212,7 +212,7 @@ split data pipeline output ports: OutPorts(train_samples=OutPort[pandas.core.fra
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_12_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_12_1.png)
 
 
 
@@ -353,7 +353,7 @@ train and predict pipeline output ports: OutPorts(number_of_labels_in_training=O
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_17_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_17_1.png)
 
 
 
@@ -639,7 +639,7 @@ train and predict pipeline output ports: OutPorts(number_of_labels_in_training=O
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_25_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_25_1.png)
 
 
 

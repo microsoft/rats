@@ -44,18 +44,18 @@ INFO    -  Cleaning site directory
 ## build-tutorial-notebooks
 
 Looks for *.py files under the components' docs/_tutorial_notebook_sources folders, and converts
-each one of them into a *.md notebook under the dos/tutorial_notebooks.  The file names are
-expected to have the format `#_tutorial_title.py` where `#` is an integer, unique within the whole
-project.  For example `001_independent_pipelines.py`.
+each one of them into a *.md notebook under the docs/_tutorial_notebooks.
+
+The generated notebooks are not automatically exposed by mkdocs.  A manually created and edited
+docs/tutorial_notebooks/.pages defines the contexts of the component's 'Tutorial Notebooks'
+section.  Note that it can contain links to notebooks generated in other components.  This is
+useful for notebooks that need external libraries, which should be generated under a
+rats-examples-* component.
 
 Currently enabled for rats-processors and rats-examples-sklearn.  To enable for other components,
 edit the components list in `rats.devtools._commands.build_tutorial_notebooks`. and add `jupytext`
 and `nbconvert` to the component's `pyproject.toml` in section
 `tool.poetry.group.docs.dependencies`.
-
-The notebooks from the different containers will be collected into a single project level
-`Tutorial Notebooks` section.  The order of the tutorials within the section will be determined by
-their original file names, hence the requirement for the file names to start with a unique integer.
 
 ## build-api-docs
 

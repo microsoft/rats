@@ -156,7 +156,7 @@ app.display(sanitize_labels)
 
 
 
-![png](002_lr_using_sklearn_files/002_lr_using_sklearn_8_0.png)
+![png](lr_using_sklearn_files/lr_using_sklearn_8_0.png)
 
 
 
@@ -168,7 +168,7 @@ app.display(train)
 
 
 
-![png](002_lr_using_sklearn_files/002_lr_using_sklearn_9_0.png)
+![png](lr_using_sklearn_files/lr_using_sklearn_9_0.png)
 
 
 
@@ -211,7 +211,7 @@ Training pipeline output ports: OutPorts(number_of_labels_in_training=OutPort[in
 ```
 
 
-![png](002_lr_using_sklearn_files/002_lr_using_sklearn_11_1.png)
+![png](lr_using_sklearn_files/lr_using_sklearn_11_1.png)
 
 
 
@@ -231,7 +231,7 @@ Prediction pipeline output ports: OutPorts(logits=OutPort[pandas.core.frame.Data
 ```
 
 
-![png](002_lr_using_sklearn_files/002_lr_using_sklearn_13_1.png)
+![png](lr_using_sklearn_files/lr_using_sklearn_13_1.png)
 
 
 
@@ -359,38 +359,38 @@ prediction_outputs_train["logits"].join(labels_train).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.027918</td>
-      <td>0.012662</td>
-      <td>41</td>
-      <td>-3.696703</td>
-      <td>0.476594</td>
-      <td>41</td>
-      <td>-16.110569</td>
-      <td>0.997031</td>
-      <td>41</td>
+      <td>-0.031478</td>
+      <td>0.013263</td>
+      <td>36</td>
+      <td>-3.556526</td>
+      <td>0.406177</td>
+      <td>36</td>
+      <td>-16.285066</td>
+      <td>0.890949</td>
+      <td>36</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.660151</td>
-      <td>1.487527</td>
-      <td>40</td>
-      <td>-0.203802</td>
-      <td>0.196573</td>
-      <td>40</td>
-      <td>-2.595645</td>
-      <td>1.377636</td>
-      <td>40</td>
+      <td>-4.591845</td>
+      <td>1.355207</td>
+      <td>45</td>
+      <td>-0.189052</td>
+      <td>0.195228</td>
+      <td>45</td>
+      <td>-2.740864</td>
+      <td>1.467433</td>
+      <td>45</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.261340</td>
-      <td>3.009721</td>
+      <td>-10.152281</td>
+      <td>3.017930</td>
       <td>39</td>
-      <td>-2.578514</td>
-      <td>1.334529</td>
+      <td>-2.642599</td>
+      <td>1.500786</td>
       <td>39</td>
-      <td>-0.176854</td>
-      <td>0.199263</td>
+      <td>-0.190569</td>
+      <td>0.223507</td>
       <td>39</td>
     </tr>
   </tbody>
@@ -463,38 +463,38 @@ prediction_outputs_test["logits"].join(labels_test).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.042245</td>
-      <td>0.016534</td>
-      <td>9</td>
-      <td>-3.263200</td>
-      <td>0.428959</td>
-      <td>9</td>
-      <td>-15.437630</td>
-      <td>0.883631</td>
-      <td>9</td>
+      <td>-0.034665</td>
+      <td>0.020585</td>
+      <td>14</td>
+      <td>-3.586270</td>
+      <td>0.712738</td>
+      <td>14</td>
+      <td>-16.429203</td>
+      <td>1.297275</td>
+      <td>14</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.156892</td>
-      <td>0.885502</td>
-      <td>10</td>
-      <td>-0.199167</td>
-      <td>0.259553</td>
-      <td>10</td>
-      <td>-2.470602</td>
-      <td>0.998552</td>
-      <td>10</td>
+      <td>-4.329499</td>
+      <td>0.786709</td>
+      <td>5</td>
+      <td>-0.077029</td>
+      <td>0.041809</td>
+      <td>5</td>
+      <td>-3.080079</td>
+      <td>0.727439</td>
+      <td>5</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.577803</td>
-      <td>2.142860</td>
+      <td>-10.491001</td>
+      <td>2.099366</td>
       <td>11</td>
-      <td>-3.114544</td>
-      <td>1.274231</td>
+      <td>-2.785970</td>
+      <td>1.125852</td>
       <td>11</td>
-      <td>-0.086649</td>
-      <td>0.084868</td>
+      <td>-0.135338</td>
+      <td>0.208902</td>
       <td>11</td>
     </tr>
   </tbody>
