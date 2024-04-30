@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 from rats import apps
@@ -37,5 +38,6 @@ class RatsDevtoolsAppContainer(apps.AnnotatedContainer):
 
 
 def run() -> None:
+    logging.basicConfig(level=logging.INFO)
     container = RatsDevtoolsAppContainer()
     container.get(RatsDevtoolsServices.CLI).execute()
