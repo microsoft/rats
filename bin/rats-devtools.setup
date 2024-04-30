@@ -2,11 +2,17 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 REPO_DIR="$SCRIPT_DIR/.."
-export PIPX_BIN_DIR="$SCRIPT_DIR"
-echo "In order to make sure that the pipx installation is correct, we will remove the pipx installation and reinstall it."
-echo "Executables will be installed in $PIPX_BIN_DIR."
-echo "Using a .pipx suffix on executables. These should be .gitignored because they are system specific."
-pipx uninstall rats-devtools.pipx
-pipx install -e $REPO_DIR/rats-devtools/ --suffix .pipx || exit $?
-echo "Installation complete. Run the below command to enable shell completions:"
-echo 'eval "$(_RATS_DEVTOOLS_PIPX_COMPLETE=zsh_source rats-devtools.pipx)"'
+LOCAL_SUFFIX="pipx"
+GLOBAL_SUFFIX=$(echo -n $SCRIPT_DIR | md5sum  | awk '{print $1}')
+LOCAL_PATH="$SCRIPT_DIR/rats-devtools.$LOCAL_SUFFIX"
+GLOBAL_PATH="$(pipx environment --value PIPX_BIN_DIR)/rats-devtools.$GLOBAL_SUFFIX"
+echo "Local Executable: $LOCAL_PATH"
+echo "Global Executable: $GLOBAL_PATH"
+pipx uninstall "rats-devtools.${GLOBAL_SUFFIX}"
+pipx install -e $REPO_DIR/rats-devtools/ --suffix .$GLOBAL_SUFFIX || exit $?
+rm $LOCAL_PATH || true
+ln -s $GLOBAL_PATH $LOCAL_PATH || exit $?
+# Disabled this prompt until I find a good way to do it.
+#echo "For shell autocompletion add this to your profile:"
+#echo "eval '\$(_RATS_DEVTOOLS_${GLOBAL_SUFFIX^^}_COMPLETE=zsh_source rats-devtools.${GLOBAL_SUFFIX})'"
+echo "Installation complete!"
