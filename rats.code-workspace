@@ -15,6 +15,9 @@
         {
             "path": "rats-processors"
         },
+        {
+            "path": "rats-examples-sklearn"
+        },
     ],
     "settings": {
         "files.exclude": {
@@ -23,6 +26,7 @@
             "rats-devtools": true,
             "rats-pipelines": true,
             "rats-processors": true,
+            "rats-examples-sklearn": true,
             // tool-generated dirs/files
             ".tox": true,
             ".tox.docker": true,
@@ -94,7 +98,9 @@
             "charliermarsh.ruff",
             "eamodio.gitlens",
             "redhat.vscode-yaml",
-            "GitHub.copilot"
+            "bierner.github-markdown-preview",
+            "GitHub.copilot",
+            "GitHub.vscode-pull-request-github"
         ]
     }
 }

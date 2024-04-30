@@ -20,6 +20,8 @@ running pipelines, integrating configs and services.
 ## :notebook_with_decorative_cover: Documentation
 https://microsoft.github.io/rats
 
+## :simple-github: Source Code
+https://github.com/microsoft/rats/
 
 ## :cheese: Components
 

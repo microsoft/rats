@@ -1,3 +1,5 @@
+import logging
+
 import click
 
 from rats import apps
@@ -33,5 +35,6 @@ class AppContainer(apps.AnnotatedContainer):
 
 
 def run() -> None:
+    logging.basicConfig(level=logging.INFO)
     container = AppContainer()
     container.get(AppServices.CLI_EXE).execute()

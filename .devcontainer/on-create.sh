@@ -11,6 +11,9 @@ eval "$(direnv hook bash)"
 mkdir -p ~/.config/direnv/
 cp /workspaces/rats/.devcontainer/direnvrc ~/.config/direnv/direnvrc
 
+echo "UPDATE PIP"
+pip install --upgrade pip
+
 echo "INSTALLING COMMITIZEN"
 pipx install commitizen
 pipx inject commitizen cz-conventional-gitmoji
@@ -20,7 +23,7 @@ echo 'eval "$(register-python-argcomplete cz)"' >> ~/.bashrc
 direnv allow .
 poetry config virtualenvs.in-project true
 
-directories=("rats-apps" "rats-devtools" "rats-pipelines" "rats-processors")
+directories=("rats-apps" "rats-devtools" "rats-pipelines" "rats-processors" "rats-examples-sklearn")
 # Loop through each directory
 for dir in "${directories[@]}"; do
     echo "POETRY INSTALL in $dir..."

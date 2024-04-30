@@ -1,7 +1,7 @@
 nav:
   - Index: index.md
+  - Tutorial Notebooks: tutorial_notebooks
   - Tutorials: tutorials
-  - Notebooks: notebooks
   - Terminology: terminology.md
   - FAQ: faq.md
   - API Reference: api

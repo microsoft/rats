@@ -3,6 +3,7 @@
     "features": {
         "ghcr.io/devcontainers/features/git": {},
         "ghcr.io/devcontainers/features/sshd": {},
+        "ghcr.io/devcontainers/features/github-cli": {},
         "ghcr.io/devcontainers/features/common-utils": {
             "configureZshAsDefaultShell": true
         },
@@ -22,10 +23,13 @@
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "ms-python.debugpy",
+                "ms-toolsai.jupyter",
                 "charliermarsh.ruff",
                 "eamodio.gitlens",
                 "redhat.vscode-yaml",
-                "GitHub.copilot"
+                "bierner.github-markdown-preview",
+                "GitHub.copilot",
+                "GitHub.vscode-pull-request-github"
             ]
         }
     }

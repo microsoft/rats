@@ -20,7 +20,7 @@ class RatsDocsPlugin(apps.AnnotatedContainer):
                     "mkdocs-serve",
                     "mkdocs-build",
                     "sphinx-build",
-                    "build-jupytext-notebooks",
+                    "build-tutorial-notebooks",
                 ]
             ),
             service_mapper=lambda name: PluginServices.GROUPS.command(name),

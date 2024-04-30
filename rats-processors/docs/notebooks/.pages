@@ -1,4 +1,0 @@
-nav:
-  - Independent pipelines: 001_independent_pipelines.md
-  - Lr using sklearn: 002_lr_using_sklearn.md
-  - Beyond a single pipeline container: 003_beyond_a_single_pipeline_container.md

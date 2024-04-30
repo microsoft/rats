@@ -1,3 +1,4 @@
+import logging
 import subprocess
 import sys
 from os import symlink
@@ -9,6 +10,8 @@ import click
 from rats import apps
 
 from ._ids import PluginServices
+
+logger = logging.getLogger(__name__)
 
 
 class RatsCiCommands(apps.AnnotatedContainer):
@@ -45,21 +48,22 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return mkdocs_build
 
-    @apps.service(PluginServices.GROUPS.command("build-jupytext-notebooks"))
-    def build_jupytext_notebooks_command(self) -> click.Command:
+    @apps.service(PluginServices.GROUPS.command("build-tutorial-notebooks"))
+    def build_tutorial_notebooks_command(self) -> click.Command:
         @click.command()
-        def build_jupytext_notebooks() -> None:
+        def build_tutorial_notebooks() -> None:
             """
-            Build the notebooks section of each component's documentation.
+            Build the tutorial notebooks section of each component's documentation.
 
-            Converts each *.py jupytext file in the components docs/_jupytext_tutorials directory into
-            a markdown notebook.
+            Converts each *.py jupytext file in the component's docs/_tutorial_notebook_sources
+            folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
             """
             components = [
                 # "rats-apps",
                 # "rats-devtools",
                 # "rats-pipelines",
                 "rats-processors",
+                "rats-examples-sklearn",
             ]
             nb_convert_templates_path = Path(
                 "rats-devtools/src/resources/nbconvert-templates"
@@ -70,35 +74,19 @@ class RatsCiCommands(apps.AnnotatedContainer):
                 f"poetry run jupyter nbconvert *.ipynb --to markdown --execute --template=mdoutput --TemplateExporter.extra_template_basedirs={nb_convert_templates_path}".split(),
             ]
 
-            def find_jupytext_files(path: Path) -> list[tuple[str, str]]:
-                def file_name_to_order_and_title(file_name: str) -> tuple[int, str, str]:
-                    tokens = file_name.split("_")
-                    try:
-                        order = int(tokens[0])
-                    except ValueError:
-                        raise ValueError(
-                            f"Expected the names files under {path} to start with an "
-                            + "integer.  Found file {file_name}.py."
-                        ) from None
-                    title = " ".join(tokens[1:]).capitalize()
-                    return order, file_name, title
-
-                files = sorted(
-                    [file_name_to_order_and_title(f.stem) for f in path.glob("*.py")],
-                    key=lambda x: x[0],
-                )
-                return [(f[1], f[2]) for f in files]
-
             for c in components:
-                jupytext_sources_path = Path(f"{c}/docs/_jupytext_tutorials").resolve()
-                notebooks_target_path = Path(f"{c}/docs/notebooks").resolve()
+                logger.info("Building notebooks for %s", c)
+                jupytext_sources_path = Path(f"{c}/docs/_tutorial_notebook_sources").resolve()
+                notebooks_target_path = Path(f"{c}/docs/_tutorial_notebooks").resolve()
                 rmtree(notebooks_target_path, ignore_errors=True)
                 notebooks_target_path.mkdir(parents=True, exist_ok=True)
-                jupytext_files = find_jupytext_files(jupytext_sources_path)
+                source_file_names = [f.stem for f in jupytext_sources_path.glob("*.py")]
 
                 # symlink the jupytext files to the target path
-                for n, _ in jupytext_files:
-                    (jupytext_sources_path / f"{n}.py").link_to(notebooks_target_path / f"{n}.py")
+                for file_name in source_file_names:
+                    (jupytext_sources_path / f"{file_name}.py").link_to(
+                        notebooks_target_path / f"{file_name}.py"
+                    )
 
                 for cmd in commands:
                     try:
@@ -106,20 +94,22 @@ class RatsCiCommands(apps.AnnotatedContainer):
                     except subprocess.CalledProcessError as e:
                         sys.exit(e.returncode)
 
-                dotpages_lines = ["nav:"]
-                for n, title in jupytext_files:
+                for file_name in source_file_names:
                     # delete the .py symlink
-                    (notebooks_target_path / f"{n}.py").unlink()
+                    (notebooks_target_path / f"{file_name}.py").unlink()
                     # delete the .ipynb file
-                    (notebooks_target_path / f"{n}.ipynb").unlink()
+                    (notebooks_target_path / f"{file_name}.ipynb").unlink()
                     # add the notebook to the .pages file
-                    dotpages_lines.append(f"  - {title}: {n}.md")
 
-                # update the .pages file
-                dotpages_path = notebooks_target_path / ".pages"
-                dotpages_path.write_text("\n".join(dotpages_lines))
+                # add a readmd.md file to the target path saying this folder is autogenerated
+                source_rel_to_target = "../_tutorial_notebook_sources"
+                with (notebooks_target_path / "readme.md").open("w") as f:
+                    f.write(
+                        f"This folder is autogenerated from the files in {source_rel_to_target} "
+                        + "using\n```bash\nrats-devtools.pipx build-tutorial-notebooks\n```\n"
+                    )
 
-        return build_jupytext_notebooks
+        return build_tutorial_notebooks
 
     def _do_mkdocs_things(self, cmd: str) -> None:
         devtools_path = Path("rats-devtools").resolve()
