@@ -72,3 +72,15 @@ updates:
     commit-message:
       prefix: ":arrow_up: dep-bump"
       include: scope
+  - package-ecosystem: pip
+    directory: /rats-examples-sklearn/
+    schedule:
+      interval: weekly
+    target-branch: main
+    groups:
+      package-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: ":arrow_up: dep-bump"
+      include: scope

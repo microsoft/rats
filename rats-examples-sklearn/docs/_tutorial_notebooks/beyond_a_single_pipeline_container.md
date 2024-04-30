@@ -11,8 +11,8 @@ In this notebook we will learn how to expose and use pipelines across containers
 
 ### Using pipelines defined in installed packages.
 
-The LR pipelines we have defined in [the previous notebook](002_lr_using_sklearn.md) are also
-defined in `rats.processors.example_pipelines`.  We will start by showing how to access these
+The LR pipelines we have defined in [the previous notebook](lr_using_sklearn.md) are also
+defined in `rats.examples-sklearn`.  We will start by showing how to access these
 pipelines from the app.
 
 
@@ -23,30 +23,24 @@ import pandas as pd
 
 from rats import apps
 from rats import processors as rp
-from rats.processors import example_pipelines as rpe
+from rats.examples_sklearn import Services as ExampleServices
 from rats.processors import typing as rpt
 ```
 
 As noted, the pipeline decorators `task` and `pipeline` register the methods as services.
 To access those services we need their service ids.  For public services, these are added to a
-`Services` class, such as `rpe.Services`.
+`Services` class, such as `ExampleServices`.
 
 
 ```python
-[p for p in dir(rpe.Services) if not p.startswith("_")]
+[p for p in dir(ExampleServices) if not p.startswith("_")]
 ```
 
 
 
 _cell output_:
 ```output
-['DUMMY_LOAD_DATA',
- 'DUMMY_TRAIN_AND_TEST_PIPELINE',
- 'DUMMY_TRAIN_MODEL',
- 'DUMMY_TRAIN_PIPELINE',
- 'DUMMY_UNTYPED_TRAIN_PIPELINE',
- 'LR_PREDICT_PIPELINE',
- 'LR_TRAIN_PIPELINE']
+['PREDICT_PIPELINE', 'TRAIN_PIPELINE']
 ```
 
 
@@ -61,7 +55,7 @@ service id.
 
 ```python
 app = rp.NotebookApp()
-train_pipeline = app.get(rpe.Services.LR_TRAIN_PIPELINE)
+train_pipeline = app.get(ExampleServices.TRAIN_PIPELINE)
 print("train pipeline input ports:", train_pipeline.inputs)
 print("train pipeline output ports:", train_pipeline.outputs)
 app.display(train_pipeline)
@@ -69,11 +63,11 @@ app.display(train_pipeline)
 _cell output_:
 ```output
 train pipeline input ports: InPorts(category_names=InPort[collections.abc.Sequence[str]], y=InPort[pandas.core.series.Series], x=InPort[pandas.core.frame.DataFrame])
-train pipeline output ports: OutPorts(number_of_labels_in_training=OutPort[int], model=OutPort[rats.processors.example_pipelines._lr_pipeline_container.LRModel], number_of_samples_in_training=OutPort[int])
+train pipeline output ports: OutPorts(number_of_labels_in_training=OutPort[int], model=OutPort[rats.examples_sklearn._lr_pipeline_container.LRModel], number_of_samples_in_training=OutPort[int])
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_7_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_7_1.png)
 
 
 
@@ -218,7 +212,7 @@ split data pipeline output ports: OutPorts(train_samples=OutPort[pandas.core.fra
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_12_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_12_1.png)
 
 
 
@@ -252,14 +246,14 @@ class TrainAndPredictPipelineContainer(rp.PipelineContainer):
 
     @rp.pipeline
     def train(self) -> rpt.UPipeline:
-        return self.app.get(rpe.Services.LR_TRAIN_PIPELINE).rename_inputs(
+        return self.app.get(ExampleServices.TRAIN_PIPELINE).rename_inputs(
             dict(x="train_samples", y="train_labels")
         )
 
     @rp.pipeline
     def predict_on_train(self) -> rpt.UPipeline:
         return (
-            self.app.get(rpe.Services.LR_PREDICT_PIPELINE)
+            self.app.get(ExampleServices.PREDICT_PIPELINE)
             .rename_inputs(dict(x="train_samples"))
             .rename_outputs(dict(logits="train_logits"))
         )
@@ -267,7 +261,7 @@ class TrainAndPredictPipelineContainer(rp.PipelineContainer):
     @rp.pipeline
     def predict_on_test(self) -> rpt.UPipeline:
         return (
-            self.app.get(rpe.Services.LR_PREDICT_PIPELINE)
+            self.app.get(ExampleServices.PREDICT_PIPELINE)
             .rename_inputs(dict(x="test_samples"))
             .rename_outputs(dict(logits="test_logits"))
         )
@@ -359,7 +353,7 @@ train and predict pipeline output ports: OutPorts(number_of_labels_in_training=O
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_17_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_17_1.png)
 
 
 
@@ -607,8 +601,8 @@ The `@container` decorator allows a container to include other containers as sub
 `.get(service_id)` call on the container will search it and all the containers it includes via a
 `@container` decorator.
 
-For example, we could create antoher container class that includes `SplitDataPipelineContainer` and
-`TrainAndPredictPipelineContainer` as sub-containers, and register that other container class
+For example, we could create antoher container class that includes `SplitDataPipelineContainer`
+and `TrainAndPredictPipelineContainer` as sub-containers, and register that other container class
 with the app.  Functionally, this is the same as what we did above:
 
 
@@ -645,14 +639,15 @@ train and predict pipeline output ports: OutPorts(number_of_labels_in_training=O
 ```
 
 
-![png](003_beyond_a_single_pipeline_container_files/003_beyond_a_single_pipeline_container_25_1.png)
+![png](beyond_a_single_pipeline_container_files/beyond_a_single_pipeline_container_25_1.png)
 
 
 
 We recommend using this mechanism to create a top level container for every package.
-For example, in the `rats.processors` package, we have a private
-`rats.processors._plugin_container.PluginContainer` that includes (directly or indirectly) all
-other containers in the package.
+For example, this tutorial is coded in a package rats.examples-sklearn (look for it in the RATS
+github page).  That package includes a private
+`rats.examples_sklearn._plugin_container.PluginContainer` that includes all other containers in
+the package.
 
 #### Registering containers to the app via the python `entry_points` mechanism.
 
@@ -674,9 +669,9 @@ The only two requirements are that `my_package.my_module:MyContainer` implements
 `rp.PipelineContainer`), and that it's constructor takes an `apps.Container` as its only
 argument.
 
-For example, in the `rats.processors` package, we self register our top level container like
-this:
+For example, in the `rats.examples-sklearn` package, we self register our top level container
+like this:
 ```
 [tool.poetry.plugins."rats.processors_app_plugins"]
-"rats.processors" = "rats.processors._plugin_container:PluginContainer"
+"rats.processors" = "rats.examples_sklearn._plugin_container:PluginContainer"
 ```

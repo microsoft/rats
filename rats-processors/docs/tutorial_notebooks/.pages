@@ -1,0 +1,4 @@
+nav:
+  - Independent Pipelines: independent_pipelines.md
+  - Logistic Regression using sklearn: lr_using_sklearn.md
+  - Beyond a Single Pipeline Container: beyond_a_single_pipeline_container.md

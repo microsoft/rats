@@ -148,8 +148,3 @@ class LRPipelineContainer(rp.PipelineContainer):
             columns=model.category_names,  # type: ignore[reportArgumentType]
         )
         return _LRPredictOutput(logits=logits)
-
-
-class LRPipelineServices:
-    TRAIN_PIPELINE = apps.autoid(LRPipelineContainer.training_pipeline)
-    PREDICT_PIPELINE = apps.autoid(LRPipelineContainer.prediction_pipeline)

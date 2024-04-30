@@ -23,7 +23,7 @@ echo 'eval "$(register-python-argcomplete cz)"' >> ~/.bashrc
 direnv allow .
 poetry config virtualenvs.in-project true
 
-directories=("rats-apps" "rats-devtools" "rats-pipelines" "rats-processors")
+directories=("rats-apps" "rats-devtools" "rats-pipelines" "rats-processors" "rats-examples-sklearn")
 # Loop through each directory
 for dir in "${directories[@]}"; do
     echo "POETRY INSTALL in $dir..."
