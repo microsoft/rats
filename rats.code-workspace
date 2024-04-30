@@ -94,7 +94,9 @@
             "charliermarsh.ruff",
             "eamodio.gitlens",
             "redhat.vscode-yaml",
-            "GitHub.copilot"
+            "bierner.github-markdown-preview",
+            "GitHub.copilot",
+            "GitHub.vscode-pull-request-github"
         ]
     }
 }

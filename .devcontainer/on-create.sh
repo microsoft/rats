@@ -11,6 +11,9 @@ eval "$(direnv hook bash)"
 mkdir -p ~/.config/direnv/
 cp /workspaces/rats/.devcontainer/direnvrc ~/.config/direnv/direnvrc
 
+echo "UPDATE PIP"
+pip install --upgrade pip
+
 echo "INSTALLING COMMITIZEN"
 pipx install commitizen
 pipx inject commitizen cz-conventional-gitmoji
