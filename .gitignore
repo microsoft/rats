@@ -37,4 +37,3 @@
 
 # rats-devtools generates these files for us
 bin/*.pipx
-*/docs/notebooks/
