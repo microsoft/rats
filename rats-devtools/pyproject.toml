@@ -60,8 +60,9 @@ sphinx-markdown-builder = "*"
 rats-devtools = "rats.devtools.__main__:run"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
-"rats-devtools.pycharm" = "rats.pycharm._app:RatsPycharmPlugin"
 "rats-devtools.ci" = "rats.ci._app:RatsCiPlugin"
+"rats-devtools.docs" = "rats.docs._app:RatsDocsPlugin"
+"rats-devtools.pycharm" = "rats.pycharm._app:RatsPycharmPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
@@ -154,7 +155,14 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
-"test/*" = ["F401"] # unused-import
+"test/*" = [
+    "F401", # Unused import
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

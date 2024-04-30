@@ -6,22 +6,21 @@ from ._commands import RatsCiCommands
 from ._ids import PluginServices
 
 
-class RatsCiPlugin(apps.AnnotatedContainer):
+class RatsDocsPlugin(apps.AnnotatedContainer):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_COMMANDS)
-    def ci_command(self) -> click.Command:
+    def docs_command(self) -> click.Command:
         provider = devtools.CommandProvider(
             command_names=frozenset(
                 [
-                    "poetry-install",
-                    "test",
-                    "build-wheel",
-                    "publish-wheel",
-                    "check-all",
+                    "mkdocs-serve",
+                    "mkdocs-build",
+                    "sphinx-build",
+                    "build-jupytext-notebooks",
                 ]
             ),
             service_mapper=lambda name: PluginServices.GROUPS.command(name),
@@ -29,7 +28,7 @@ class RatsCiPlugin(apps.AnnotatedContainer):
         )
 
         return devtools.LazyClickGroup(
-            name="ci",
+            name="docs",
             provider=provider,
         )
 
