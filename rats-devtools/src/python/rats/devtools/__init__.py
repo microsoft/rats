@@ -1,9 +1,10 @@
-from ._app import RatsDevtoolsGroups
-from ._click import ClickCommandGroup, ClickCommandRegistry, command
+"""Some utilities for developing the devtool cli commands."""
+
+from ._app import AppServices
+from ._groups import CommandProvider, LazyClickGroup
 
 __all__ = [
-    "ClickCommandGroup",
-    "ClickCommandRegistry",
-    "command",
-    "RatsDevtoolsGroups",
+    "AppServices",
+    "LazyClickGroup",
+    "CommandProvider",
 ]

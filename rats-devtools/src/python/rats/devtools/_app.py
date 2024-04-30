@@ -1,35 +1,31 @@
-from typing import Any
+import click
 
 from rats import apps
 
-from ._click import ClickCommandGroup, ClickCommandRegistry
-from ._commands import RatsDevtoolsCommands
+from ._groups import CommandGroup, CommandGroupPlugin, GroupCommands
+from ._plugins import PluginRunner
 
 
 @apps.autoscope
-class RatsDevtoolsServices:
-    CLI = apps.ServiceId[apps.Executable]("cli")
+class AppGroups:
+    CLI_ROOT_PLUGINS = apps.ServiceId[CommandGroupPlugin]("cli-plugins[root]")
+    CLI_ROOT_COMMANDS = apps.ServiceId[click.Command]("cli-commands[root]")
 
 
-class RatsDevtoolsGroups:
-    COMMANDS = apps.ServiceId[ClickCommandRegistry]("commands")
+@apps.autoscope
+class AppServices:
+    CLI_EXE = apps.ServiceId[apps.Executable]("cli-exe")
+    GROUPS = AppGroups
 
 
-class RatsDevtoolsAppContainer(apps.AnnotatedContainer):
-    def get_service_ids(self) -> Any:
-        raise RuntimeError("deprecated method added for backwards compatibility")
+class AppContainer(apps.AnnotatedContainer):
+    @apps.service(AppServices.CLI_EXE)
+    def cli_exe(self) -> CommandGroup:
+        return CommandGroup(PluginRunner(self.get_group(AppServices.GROUPS.CLI_ROOT_PLUGINS)))
 
-    @apps.service(RatsDevtoolsServices.CLI)
-    def cli(self) -> ClickCommandGroup:
-        return ClickCommandGroup(
-            lambda: self.get_group(
-                RatsDevtoolsGroups.COMMANDS,
-            )
-        )
-
-    @apps.group(RatsDevtoolsGroups.COMMANDS)
-    def commands(self) -> RatsDevtoolsCommands:
-        return RatsDevtoolsCommands()
+    @apps.group(AppServices.GROUPS.CLI_ROOT_PLUGINS)
+    def root_commands_plugin(self) -> GroupCommands:
+        return GroupCommands(self.get_group(AppServices.GROUPS.CLI_ROOT_COMMANDS))
 
     @apps.container()
     def plugins(self) -> apps.Container:
@@ -37,5 +33,5 @@ class RatsDevtoolsAppContainer(apps.AnnotatedContainer):
 
 
 def run() -> None:
-    container = RatsDevtoolsAppContainer()
-    container.get(RatsDevtoolsServices.CLI).execute()
+    container = AppContainer()
+    container.get(AppServices.CLI_EXE).execute()
