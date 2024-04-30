@@ -101,11 +101,11 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
             )
 
     @command
-    def build_jupytext_notebooks(self) -> None:
-        """Build the notebooks section of each component's documentation.
+    def build_tutorial_notebooks(self) -> None:
+        """Build the tutorial notebooks section of each component's documentation.
 
-        Converts each *.py jupytext file in the components docs/_jupytext_tutorials directory into
-        a markdown notebook.
+        Converts each *.py jupytext file in the component's docs/_tutorial_notebook_sources
+        folder into a markdown notebook in the component's docs/tutorial_notebooks folder.
         """
         components = [
             # "rats-apps",
@@ -125,8 +125,8 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
 
         for c in components:
             logger.info("Building notebooks for %s", c)
-            jupytext_sources_path = Path(f"{c}/docs/_jupytext_tutorials").resolve()
-            notebooks_target_path = Path(f"{c}/docs/notebooks").resolve()
+            jupytext_sources_path = Path(f"{c}/docs/_tutorial_notebook_sources").resolve()
+            notebooks_target_path = Path(f"{c}/docs/tutorial_notebooks").resolve()
             rmtree(notebooks_target_path, ignore_errors=True)
             notebooks_target_path.mkdir(parents=True, exist_ok=True)
             source_file_names = [f.stem for f in jupytext_sources_path.glob("*.py")]
@@ -161,7 +161,7 @@ class RatsDevtoolsCommands(ClickCommandRegistry):
         self._do_mkdocs_things("build")
 
     def _copy_notebooks_from_component(self, mkdocs_staging_path: Path, component: str) -> None:
-        source_path = mkdocs_staging_path / component / "notebooks"
+        source_path = mkdocs_staging_path / component / "tutorial_notebooks"
         target_path = mkdocs_staging_path / "tutorial_notebooks"
         if (source_path).exists():
             for file_path in (source_path).glob("*"):

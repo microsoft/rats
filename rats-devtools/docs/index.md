@@ -41,15 +41,15 @@ INFO    -  Cleaning site directory
 …
 ```
 
-## build-jupytext-notebooks
+## build-tutorial-notebooks
 
-Looks for *.py files under the components' docs/_jupytext_tutorials folders, and converts each one
-of them into a *.md notebook under the dos/notebooks.  The file names are expected to have the
-format `#_tutorial_title.py` where `#` is an integer, unique within the whole project.  For example
-`001_independent_pipelines.py`.
+Looks for *.py files under the components' docs/_tutorial_notebook_sources folders, and converts
+each one of them into a *.md notebook under the dos/tutorial_notebooks.  The file names are
+expected to have the format `#_tutorial_title.py` where `#` is an integer, unique within the whole
+project.  For example `001_independent_pipelines.py`.
 
 Currently enabled for rats-processors and rats-examples-sklearn.  To enable for other components,
-edit the components list in `rats.devtools._commands.build_jupytext_notebooks`. and add `jupytext`
+edit the components list in `rats.devtools._commands.build_tutorial_notebooks`. and add `jupytext`
 and `nbconvert` to the component's `pyproject.toml` in section
 `tool.poetry.group.docs.dependencies`.
 
