@@ -13,13 +13,7 @@ class PluginGroups:
 
 @apps.autoscope
 class PluginServices:
-    CLI = apps.ServiceId[apps.Executable]("cli")
     GROUPS = PluginGroups
-
-
-#
-# class RatsPycharmGroups:
-#     COMMANDS = apps.ServiceId[devtools.ClickCommandRegistry]("pycharm-commands")
 
 
 class RatsPycharmPlugin(apps.AnnotatedContainer):

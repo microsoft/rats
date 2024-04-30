@@ -60,9 +60,9 @@ sphinx-markdown-builder = "*"
 rats-devtools = "rats.devtools.__main__:run"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
-"rats-devtools.ci" = "rats.ci._app:RatsCiPlugin"
-"rats-devtools.docs" = "rats.docs._app:RatsDocsPlugin"
-"rats-devtools.pycharm" = "rats.pycharm._app:RatsPycharmPlugin"
+"rats-devtools.ci" = "rats.ci._plugin:RatsCiPlugin"
+"rats-devtools.docs" = "rats.docs._plugin:RatsDocsPlugin"
+"rats-devtools.pycharm" = "rats.pycharm._plugin:RatsPycharmPlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]

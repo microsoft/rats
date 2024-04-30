@@ -12,5 +12,4 @@ class PluginGroups:
 
 @apps.autoscope
 class PluginServices:
-    CLI = apps.ServiceId[apps.Executable]("cli")
     GROUPS = PluginGroups
