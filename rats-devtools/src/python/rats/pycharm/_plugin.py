@@ -5,15 +5,10 @@ from rats.pycharm._formatter import FileFormatter, FileFormatterRequest
 
 
 @apps.autoscope
-class PluginGroups:
+class PluginServices:
     @staticmethod
     def command(name: str) -> apps.ServiceId[click.Command]:
         return apps.ServiceId(f"cli-commands[{name}]")
-
-
-@apps.autoscope
-class PluginServices:
-    GROUPS = PluginGroups
 
 
 class RatsPycharmPlugin(apps.AnnotatedContainer):
@@ -26,7 +21,7 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
     def pycharm_command(self) -> click.Command:
         provider = devtools.CommandProvider(
             command_names=frozenset(["apply-auto-formatters"]),
-            service_mapper=lambda name: PluginServices.GROUPS.command(name),
+            service_mapper=lambda name: PluginServices.command(name),
             container=self,
         )
 
@@ -35,7 +30,7 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
             provider=provider,
         )
 
-    @apps.service(PluginServices.GROUPS.command("apply-auto-formatters"))
+    @apps.service(PluginServices.command("apply-auto-formatters"))
     def apply_auto_formatters(self) -> click.Command:
         @click.argument(
             "filename",

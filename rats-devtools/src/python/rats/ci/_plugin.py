@@ -24,7 +24,7 @@ class RatsCiPlugin(apps.AnnotatedContainer):
                     "check-all",
                 ]
             ),
-            service_mapper=lambda name: PluginServices.GROUPS.command(name),
+            service_mapper=lambda name: PluginServices.command(name),
             container=self,
         )
 

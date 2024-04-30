@@ -15,7 +15,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.service(PluginServices.GROUPS.command("poetry-install"))
+    @apps.service(PluginServices.command("poetry-install"))
     def poetry_install_command(self) -> click.Command:
         @click.command()
         @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
@@ -34,7 +34,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return poertry_install
 
-    @apps.service(PluginServices.GROUPS.command("test"))
+    @apps.service(PluginServices.command("test"))
     def test_command(self) -> click.Command:
         @click.command()
         @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
@@ -53,7 +53,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return test
 
-    @apps.service(PluginServices.GROUPS.command("check-all"))
+    @apps.service(PluginServices.command("check-all"))
     def check_all_command(self) -> click.Command:
         @click.command()
         @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
@@ -87,7 +87,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return check_all
 
-    @apps.service(PluginServices.GROUPS.command("build-wheel"))
+    @apps.service(PluginServices.command("build-wheel"))
     def build_wheel_command(self) -> click.Command:
         @click.command()
         @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
@@ -106,7 +106,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return build_wheel
 
-    @apps.service(PluginServices.GROUPS.command("publish-wheel"))
+    @apps.service(PluginServices.command("publish-wheel"))
     def publish_wheel_command(self) -> click.Command:
         @click.command()
         @click.argument("component_path", type=click.Path(exists=True, file_okay=False))

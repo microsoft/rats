@@ -20,7 +20,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.service(PluginServices.GROUPS.command("mkdocs-serve"))
+    @apps.service(PluginServices.command("mkdocs-serve"))
     def mkdocs_serve_command(self) -> click.Command:
         @click.command
         def mkdocs_serve() -> None:
@@ -29,7 +29,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return mkdocs_serve
 
-    @apps.service(PluginServices.GROUPS.command("sphinx-build"))
+    @apps.service(PluginServices.command("sphinx-build"))
     def sphinx_build_command(self) -> click.Command:
         @click.command()
         def sphinx_build() -> None:
@@ -39,7 +39,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return sphinx_build
 
-    @apps.service(PluginServices.GROUPS.command("mkdocs-build"))
+    @apps.service(PluginServices.command("mkdocs-build"))
     def mkdocs_build_command(self) -> click.Command:
         @click.command
         def mkdocs_build() -> None:
@@ -48,7 +48,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
         return mkdocs_build
 
-    @apps.service(PluginServices.GROUPS.command("build-tutorial-notebooks"))
+    @apps.service(PluginServices.command("build-tutorial-notebooks"))
     def build_tutorial_notebooks_command(self) -> click.Command:
         @click.command()
         def build_tutorial_notebooks() -> None:
