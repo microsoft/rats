@@ -1,6 +1,10 @@
 import click
 
-from rats import apps, devtools  # type: ignore[reportAttributeAccessIssue]
+from rats import apps
+
+# pyright seems to struggle with this namespace package
+# https://github.com/microsoft/pyright/issues/2882
+from rats import devtools as devtools
 
 from ._commands import RatsCiCommands
 from ._ids import PluginServices
