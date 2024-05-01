@@ -110,7 +110,7 @@ def test_to_click_commands_leaf_node():
         click.echo("Handler executed")
 
     command_tree = CommandTree(name="test", description="Test command", handler=test_handler)
-    click_command = to_click_commands(command_tree)
+    click_command = to_click_commands(command_tree, parent_kwarg_classes=())
     assert isinstance(
         click_command, click.Command
     ), "The result should be a click.Command instance"
@@ -130,7 +130,7 @@ def test_to_click_commands_with_children():
     parent_command_tree = CommandTree(
         name="parent", description="Parent command", children=(child_command_tree,)
     )
-    click_group = to_click_commands(parent_command_tree)
+    click_group = to_click_commands(parent_command_tree, parent_kwarg_classes=())
     assert isinstance(click_group, click.Group), "The result should be a click.Group instance"
     assert click_group.name == "parent", "The group name should be 'parent'"
     assert click_group.help == "Parent command", "The group help should be 'Parent command'"
@@ -153,7 +153,7 @@ def test_to_click_commands_with_arguments():
         kwargs_class=TestArguments,
         handler=test_handler,
     )
-    click_command = to_click_commands(command_tree)
+    click_command = to_click_commands(command_tree, parent_kwarg_classes=())
     assert isinstance(
         click_command, click.Command
     ), "The result should be a click.Command instance"
