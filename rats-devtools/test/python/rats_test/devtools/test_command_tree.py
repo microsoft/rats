@@ -25,6 +25,8 @@ def test_dataclass_to_click_arguments_nested_tuple():
     assert arguments[1].name == "arg1__arg2", "The nested tuple second argument name should be 'arg1__arg2'."
     assert isinstance(arguments[0].type, click.types.Tuple), "The nested tuple first argument should be of type click.types.Tuple."
     assert isinstance(arguments[1].type, click.types.Tuple), "The nested tuple second argument should be of type click.types.Tuple."
+    assert arguments[0].multiple is True, "The nested tuple first argument should have 'multiple' set to True."
+    assert arguments[1].multiple is True, "The nested tuple second argument should have 'multiple' set to True."
 
 @dataclass
 class MockTupleArguments:
@@ -38,6 +40,7 @@ def test_dataclass_to_click_arguments_tuple():
     assert len(arguments) == 1, "There should be one click argument for the tuple field."
     assert arguments[0].name == "arg1", "The tuple argument name should be 'arg1'."
     assert isinstance(arguments[0].type, click.types.Tuple), "The tuple argument should be of type click.types.Tuple."
+    assert arguments[0].multiple is True, "The tuple argument should have 'multiple' set to True."
 
 
 class ProgrammaticExecutionGroup(click.Group):
