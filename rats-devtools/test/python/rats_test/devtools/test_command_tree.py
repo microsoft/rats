@@ -8,6 +8,7 @@ from rats.devtools._command_tree import (
     CommandTree,
     dataclass_to_click_arguments,
     get_attribute_docstring,
+    to_click_commands,
 )
 
 
@@ -102,6 +103,50 @@ class ProgrammaticExecutionGroup(click.Group):
         """Alias for :meth:`main`."""
         return self.main(*args, standalone_mode=False, **kwargs)
 
+
+def test_to_click_commands_leaf_node():
+    @click.command()
+    def test_handler():
+        click.echo("Handler executed")
+
+    command_tree = CommandTree(name='test', description='Test command', handler=test_handler)
+    click_command = to_click_commands(command_tree)
+    assert isinstance(click_command, click.Command), "The result should be a click.Command instance"
+    assert click_command.name == 'test', "The command name should be 'test'"
+    assert click_command.help == 'Test command', "The command help should be 'Test command'"
+    assert click_command.callback == test_handler, "The command callback should be test_handler"
+
+def test_to_click_commands_with_children():
+    @click.command()
+    def test_handler():
+        click.echo("Handler executed")
+
+    child_command_tree = CommandTree(name='child', description='Child command', handler=test_handler)
+    parent_command_tree = CommandTree(name='parent', description='Parent command', children=(child_command_tree,))
+    click_group = to_click_commands(parent_command_tree)
+    assert isinstance(click_group, click.Group), "The result should be a click.Group instance"
+    assert click_group.name == 'parent', "The group name should be 'parent'"
+    assert click_group.help == 'Parent command', "The group help should be 'Parent command'"
+    assert 'child' in click_group.commands, "The group should contain the 'child' command"
+
+def test_to_click_commands_with_arguments():
+    @dataclass
+    class TestArguments:
+        arg1: str
+        arg2: int
+
+    @click.command()
+    def test_handler(arg1, arg2):
+        click.echo(f"Handler executed with arg1={arg1} and arg2={arg2}")
+
+    command_tree = CommandTree(name='test', description='Test command with arguments', kwargs_class=TestArguments, handler=test_handler)
+    click_command = to_click_commands(command_tree)
+    assert isinstance(click_command, click.Command), "The result should be a click.Command instance"
+    assert click_command.name == 'test', "The command name should be 'test'"
+    assert click_command.help == 'Test command with arguments', "The command help should be 'Test command with arguments'"
+    assert len(click_command.params) == 2, "The command should have two parameters"
+    assert click_command.params[0].name == 'arg1', "The first parameter should be 'arg1'"
+    assert click_command.params[1].name == 'arg2', "The second parameter should be 'arg2'"
 
 def test_composition() -> None:
     CommandTree("base", "The base command")
