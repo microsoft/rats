@@ -4,7 +4,11 @@ from typing import Any
 import click
 import pytest
 
-from rats.devtools._command_tree import CommandTree, get_attribute_docstring
+from rats.devtools._command_tree import (
+    CommandTree,
+    dataclass_to_click_arguments,
+    get_attribute_docstring,
+)
 
 
 class ProgrammaticExecutionGroup(click.Group):
@@ -12,8 +16,6 @@ class ProgrammaticExecutionGroup(click.Group):
         """Alias for :meth:`main`."""
         return self.main(*args, standalone_mode=False, **kwargs)
 
-
-from rats.devtools._command_tree import CommandTree, get_attribute_docstring, dataclass_to_click_arguments
 
 @dataclass
 class MockArguments:
@@ -25,6 +27,7 @@ class MockArguments:
     arg2: int
     """The second argument."""
 
+
 @dataclass
 class NestedMockArguments:
     """NestedMockArguments description."""
@@ -32,17 +35,24 @@ class NestedMockArguments:
     nested_arg: MockArguments
     """Nested argument dataclass."""
 
+
 def test_dataclass_to_click_arguments_flat():
     arguments = dataclass_to_click_arguments(MockArguments)
     assert len(arguments) == 2, "There should be two click arguments."
-    assert arguments[0].name == "--arg1", "The first argument name should be '--arg1'."
-    assert arguments[1].name == "--arg2", "The second argument name should be '--arg2'."
+    assert arguments[0].name == "arg1", "The first argument name should be 'arg1'."
+    assert arguments[1].name == "arg2", "The second argument name should be 'arg2'."
+
 
 def test_dataclass_to_click_arguments_nested():
     arguments = dataclass_to_click_arguments(NestedMockArguments)
     assert len(arguments) == 2, "There should be two click arguments for the nested dataclass."
-    assert arguments[0].name == "--nested_arg.arg1", "The nested first argument name should be '--nested_arg.arg1'."
-    assert arguments[1].name == "--nested_arg.arg2", "The nested second argument name should be '--nested_arg.arg2'."
+    assert (
+        arguments[0].name == "nested_arg__arg1"
+    ), "The nested first argument name should be 'nested_arg__arg1'."
+    assert (
+        arguments[1].name == "nested_arg__arg2"
+    ), "The nested second argument name should be 'nested_arg__arg2'."
+
 
 def test_composition() -> None:
     CommandTree("base", "The base command")
