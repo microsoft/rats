@@ -78,3 +78,38 @@ def test_command_service_tree_to_command_tree_with_kwargs_class():
     assert command_tree.children == ()
     assert command_tree.kwargs_class == kwargs_class
     assert command_tree.handler is None
+from unittest.mock import Mock, create_autospec
+from collections.abc import Callable
+
+
+def test_command_service_tree_to_command_tree_with_handler_executes_successfully():
+    # Create a CommandServiceTree with a non-None handler
+    handler_service_id = ServiceId("handler_service")
+    command_service_tree = CommandServiceTree(
+        name="command_with_handler",
+        description="Command with handler description",
+        handler=handler_service_id,
+    )
+
+    # Create a mock container
+    container = Mock(spec=Container)
+
+    # Create a mock handler function
+    mock_handler = create_autospec(Callable[..., None], return_value=None)
+    container.get.return_value = mock_handler
+
+    # Convert to CommandTree
+    command_tree = command_service_tree.to_command_tree(container)
+
+    # Execute the handler to verify it's callable and works
+    command_tree.handler()
+
+    # Assertions
+    mock_handler.assert_called_once()
+    assert isinstance(command_tree, CommandTree)
+    assert command_tree.name == "command_with_handler"
+    assert command_tree.description == "Command with handler description"
+    assert command_tree.children == ()
+    assert command_tree.kwargs_class is None
+    assert command_tree.handler is not None
+    assert callable(command_tree.handler)
