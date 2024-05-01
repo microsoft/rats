@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Any
-from typing import Any, Tuple
 
 import click
 import pytest
@@ -10,43 +9,6 @@ from rats.devtools._command_tree import (
     dataclass_to_click_arguments,
     get_attribute_docstring,
 )
-
-@dataclass
-class MockNestedTupleArguments:
-    """MockNestedTupleArguments description."""
-
-    arg1: Tuple[MockArguments, ...]
-    """A tuple of MockArguments."""
-
-def test_dataclass_to_click_arguments_nested_tuple():
-    arguments = dataclass_to_click_arguments(MockNestedTupleArguments)
-    assert len(arguments) == 2, "There should be two click arguments for the nested tuple field."
-    assert arguments[0].name == "arg1__arg1", "The nested tuple first argument name should be 'arg1__arg1'."
-    assert arguments[1].name == "arg1__arg2", "The nested tuple second argument name should be 'arg1__arg2'."
-    assert isinstance(arguments[0].type, click.types.Tuple), "The nested tuple first argument should be of type click.types.Tuple."
-    assert isinstance(arguments[1].type, click.types.Tuple), "The nested tuple second argument should be of type click.types.Tuple."
-    assert arguments[0].multiple is True, "The nested tuple first argument should have 'multiple' set to True."
-    assert arguments[1].multiple is True, "The nested tuple second argument should have 'multiple' set to True."
-
-@dataclass
-class MockTupleArguments:
-    """MockTupleArguments description."""
-
-    arg1: Tuple[int, ...]
-    """A tuple argument."""
-
-def test_dataclass_to_click_arguments_tuple():
-    arguments = dataclass_to_click_arguments(MockTupleArguments)
-    assert len(arguments) == 1, "There should be one click argument for the tuple field."
-    assert arguments[0].name == "arg1", "The tuple argument name should be 'arg1'."
-    assert isinstance(arguments[0].type, click.types.Tuple), "The tuple argument should be of type click.types.Tuple."
-    assert arguments[0].multiple is True, "The tuple argument should have 'multiple' set to True."
-
-
-class ProgrammaticExecutionGroup(click.Group):
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        """Alias for :meth:`main`."""
-        return self.main(*args, standalone_mode=False, **kwargs)
 
 
 @dataclass
@@ -84,6 +46,61 @@ def test_dataclass_to_click_arguments_nested():
     assert (
         arguments[1].name == "nested_arg__arg2"
     ), "The nested second argument name should be 'nested_arg__arg2'."
+
+
+@dataclass
+class MockTupleArguments:
+    """MockTupleArguments description."""
+
+    arg1: tuple[int, ...]
+    """A tuple argument."""
+
+
+def test_dataclass_to_click_arguments_tuple():
+    arguments = dataclass_to_click_arguments(MockTupleArguments)
+    assert len(arguments) == 1, "There should be one click argument for the tuple field."
+    assert arguments[0].name == "arg1", "The tuple argument name should be 'arg1'."
+    assert (
+        arguments[0].type is click.INT
+    ), "The tuple argument should be of type click.types.Tuple."
+    assert arguments[0].multiple is True, "The tuple argument should have 'multiple' set to True."
+
+
+@dataclass
+class MockNestedTupleArguments:
+    """MockNestedTupleArguments description."""
+
+    arg1: tuple[MockArguments, ...]
+    """A tuple of MockArguments."""
+
+
+def test_dataclass_to_click_arguments_nested_tuple():
+    arguments = dataclass_to_click_arguments(MockNestedTupleArguments)
+    assert len(arguments) == 2, "There should be two click arguments for the nested tuple field."
+    assert (
+        arguments[0].name == "arg1__arg1"
+    ), "The nested tuple first argument name should be 'arg1__arg1'."
+    assert (
+        arguments[1].name == "arg1__arg2"
+    ), "The nested tuple second argument name should be 'arg1__arg2'."
+    assert (
+        arguments[0].type is click.STRING
+    ), "The nested tuple first argument should be of type click.types.Tuple."
+    assert (
+        arguments[1].type is click.INT
+    ), "The nested tuple second argument should be of type click.types.Tuple."
+    assert (
+        arguments[0].multiple is True
+    ), "The nested tuple first argument should have 'multiple' set to True."
+    assert (
+        arguments[1].multiple is True
+    ), "The nested tuple second argument should have 'multiple' set to True."
+
+
+class ProgrammaticExecutionGroup(click.Group):
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Alias for :meth:`main`."""
+        return self.main(*args, standalone_mode=False, **kwargs)
 
 
 def test_composition() -> None:
