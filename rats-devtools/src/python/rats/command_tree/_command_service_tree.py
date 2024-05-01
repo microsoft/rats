@@ -17,7 +17,7 @@ class CommandServiceTree:
     description: str
     """The description of the command service."""
 
-    children: ServiceId["CommandServiceTree"] | None = None
+    children: "ServiceId[CommandServiceTree | CommandTree] | None" = None
     """The children of the command service."""
 
     kwargs_class: type | None = None
@@ -44,6 +44,8 @@ class CommandServiceTree:
             children=(
                 tuple(
                     child.to_command_tree(container)
+                    if isinstance(child, CommandServiceTree)
+                    else child
                     for child in container.get_group(self.children)
                 )
                 if self.children is not None

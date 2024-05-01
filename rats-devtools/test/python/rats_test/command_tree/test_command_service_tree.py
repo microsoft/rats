@@ -1,4 +1,5 @@
-from unittest.mock import Mock
+from collections.abc import Callable
+from unittest.mock import Mock, create_autospec
 
 from rats.apps import Container, ServiceId
 from rats.command_tree import CommandServiceTree, CommandTree
@@ -78,8 +79,6 @@ def test_command_service_tree_to_command_tree_with_kwargs_class():
     assert command_tree.children == ()
     assert command_tree.kwargs_class == kwargs_class
     assert command_tree.handler is None
-from unittest.mock import Mock, create_autospec
-from collections.abc import Callable
 
 
 def test_command_service_tree_to_command_tree_with_handler_executes_successfully():
@@ -101,11 +100,7 @@ def test_command_service_tree_to_command_tree_with_handler_executes_successfully
     # Convert to CommandTree
     command_tree = command_service_tree.to_command_tree(container)
 
-    # Execute the handler to verify it's callable and works
-    command_tree.handler()
-
     # Assertions
-    mock_handler.assert_called_once()
     assert isinstance(command_tree, CommandTree)
     assert command_tree.name == "command_with_handler"
     assert command_tree.description == "Command with handler description"
@@ -113,3 +108,9 @@ def test_command_service_tree_to_command_tree_with_handler_executes_successfully
     assert command_tree.kwargs_class is None
     assert command_tree.handler is not None
     assert callable(command_tree.handler)
+
+    # Execute the handler to verify it's callable and works
+    command_tree.handler()
+
+    # Ensure the provided handler was called
+    mock_handler.assert_called_once()

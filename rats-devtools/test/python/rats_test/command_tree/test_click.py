@@ -113,7 +113,7 @@ def test_to_click_commands_leaf_node():
         == "test_to_click_commands_leaf_node.<locals>.test_handler"
     ), "The callback should have the same name as the wrapped function"
     assert (
-        click_command.callback.__wrapped__ == test_handler
+        click_command.callback.__wrapped__ == test_handler  # type: ignore
     ), "The command callback should wrap the test_handler function"
 
 
@@ -171,7 +171,7 @@ def test_to_click_commands_with_arguments():
         == "test_to_click_commands_with_arguments.<locals>.test_handler"
     ), "The callback should have the same name as the wrapped function"
     assert (
-        click_command.callback.__wrapped__ == test_handler
+        click_command.callback.__wrapped__ == test_handler  # type: ignore
     ), "The command callback should wrap the test_handler function"
 
     with mock.patch("sys.argv", ["test", "--arg1", "test-str", "--arg2", "2"]):
