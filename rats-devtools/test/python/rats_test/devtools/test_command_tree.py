@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
+from typing import Any, Tuple
 
 import click
 import pytest
@@ -9,6 +10,19 @@ from rats.devtools._command_tree import (
     dataclass_to_click_arguments,
     get_attribute_docstring,
 )
+
+@dataclass
+class MockTupleArguments:
+    """MockTupleArguments description."""
+
+    arg1: Tuple[int, ...]
+    """A tuple argument."""
+
+def test_dataclass_to_click_arguments_tuple():
+    arguments = dataclass_to_click_arguments(MockTupleArguments)
+    assert len(arguments) == 1, "There should be one click argument for the tuple field."
+    assert arguments[0].name == "arg1", "The tuple argument name should be 'arg1'."
+    assert isinstance(arguments[0].type, click.types.Tuple), "The tuple argument should be of type click.types.Tuple."
 
 
 class ProgrammaticExecutionGroup(click.Group):
