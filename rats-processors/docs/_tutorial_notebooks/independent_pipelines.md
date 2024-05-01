@@ -1,9 +1,7 @@
 ```python
-import inspect
 from typing import NamedTuple
 
 import rats.processors as rp
-from rats import apps
 from rats.processors import typing as rpt
 
 app = rp.NotebookApp()
@@ -39,30 +37,17 @@ spc1 = SimplePipelineContainer1()
 ```
 
 
-The `task` decorator converts the method into a method that takes nothing and returns a pipeline:
+The `task` decorator converts the method into a method that takes nothing and returns a pipeline.
+
+Let's create the pipeline, and then inspect it.
+
+We could graphically display the pipeline using `app.display`, however, displaying the pipeline
+in a notebook requires a pre-installed `graphviz` package.  If it is not available on your
+system, the following will result in an error message asking you to install it.
 
 
 ```python
-print(inspect.signature(spc1.sum))
-```
-_cell output_:
-```output
-() -> rats.processors._legacy_subpackages.ux._pipeline.Pipeline[+TInputs, +TOutputs]
-```
-It also registers the method as a service, which means you should not call the method directly.
-instead you should get a service id and then get the service from the container:
-
-
-```python
-service_id = apps.autoid(spc1.sum)  # or apps.autoid(SimplePipelineContainer.sum)
-sum_pipeline = spc1.get(service_id)
-```
-
-
-Let's look at the pipeline:
-
-
-```python
+sum_pipeline = spc1.sum()
 print("Pipeline input ports:", sum_pipeline.inputs)
 print("Pipeline output ports:", sum_pipeline.outputs)
 
@@ -75,12 +60,12 @@ Pipeline output ports: OutPorts(result=OutPort[float], log_message=OutPort[str])
 ```
 
 
-![png](independent_pipelines_files/independent_pipelines_8_1.png)
+![png](independent_pipelines_files/independent_pipelines_4_1.png)
 
 
 
 
-Run the pipeline:
+To run the pipeline, call `app.run` with the pipeline and its inputs:
 
 
 ```python
@@ -134,8 +119,8 @@ class SimplePipelineContainer2(rp.PipelineContainer):
 
     @rp.pipeline
     def p1(self) -> rpt.UPipeline:
-        sum = self.get(apps.autoid(self.sum))
-        prod = self.get(apps.autoid(self.prod))
+        sum = self.sum()
+        prod = self.prod()
         concate = self.concate()
         p = self.combine(
             pipelines=[sum, prod, concate],
@@ -156,7 +141,7 @@ Let's look at the pipeline:
 
 
 ```python
-p1 = spc2.get(apps.autoid(spc2.p1))
+p1 = spc2.p1()
 print("Pipeline input ports:", p1.inputs)
 print("Pipeline output ports:", p1.outputs)
 
@@ -169,7 +154,7 @@ Pipeline output ports: OutPorts(result=OutPort[float], log_message=OutPort[str])
 ```
 
 
-![png](independent_pipelines_files/independent_pipelines_16_1.png)
+![png](independent_pipelines_files/independent_pipelines_12_1.png)
 
 
 
@@ -180,10 +165,10 @@ Using the `@pipeline` decorator, we created a pipeline `p1` that combines the th
 
 Look at the `p1` method and observe:
 
-- The three sub-pipelines are created using by calling `self.get` with the reserpective service
-  ids. At this point, it does not matter that the sub-pipelines are tasks - any pipeline would
-  work. It is important that the sub-pipelines are defined by methods of this container, because
-  it ensures that they have distinct names.
+- The three sub-pipelines are created using by calling the respective methods. At this point, it
+  does not matter that the sub-pipelines are tasks - any pipeline would work. It is important
+  that the sub-pipelines are defined by methods of this container, because it ensures that they
+  have distinct names.
 
 - The `combine` method is used to combine the sub-pipelines into a another pipeline.  The
   argument `dependencies` connects an output of one sub-pipeline to an input of another.  Here we
