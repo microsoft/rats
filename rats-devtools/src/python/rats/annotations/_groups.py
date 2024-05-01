@@ -1,11 +1,11 @@
-from typing import Generic, TypeVar
-
-from typing_extensions import NamedTuple
+from dataclasses import dataclass
+from typing import Generic, NamedTuple, TypeVar
 
 T_GroupType = TypeVar("T_GroupType", bound=NamedTuple)
 
 
-class GroupAnnotations(NamedTuple, Generic[T_GroupType]):
+@dataclass(frozen=True)
+class GroupAnnotations(Generic[T_GroupType]):
     """The list of T_GroupType objects identified by a given name in a namespace."""
 
     name: str
