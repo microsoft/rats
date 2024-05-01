@@ -12,6 +12,21 @@ from rats.devtools._command_tree import (
 )
 
 @dataclass
+class MockNestedTupleArguments:
+    """MockNestedTupleArguments description."""
+
+    arg1: Tuple[MockArguments, ...]
+    """A tuple of MockArguments."""
+
+def test_dataclass_to_click_arguments_nested_tuple():
+    arguments = dataclass_to_click_arguments(MockNestedTupleArguments)
+    assert len(arguments) == 2, "There should be two click arguments for the nested tuple field."
+    assert arguments[0].name == "arg1__arg1", "The nested tuple first argument name should be 'arg1__arg1'."
+    assert arguments[1].name == "arg1__arg2", "The nested tuple second argument name should be 'arg1__arg2'."
+    assert isinstance(arguments[0].type, click.types.Tuple), "The nested tuple first argument should be of type click.types.Tuple."
+    assert isinstance(arguments[1].type, click.types.Tuple), "The nested tuple second argument should be of type click.types.Tuple."
+
+@dataclass
 class MockTupleArguments:
     """MockTupleArguments description."""
 
