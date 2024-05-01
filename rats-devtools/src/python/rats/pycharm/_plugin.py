@@ -1,4 +1,6 @@
 from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Annotated
 
 import click
 
@@ -6,8 +8,15 @@ import click
 # https://github.com/microsoft/pyright/issues/2882
 from rats import apps as apps
 from rats import cli as cli
+from rats import command_tree as command_tree
 from rats import devtools as devtools
-from rats.pycharm._formatter import FileFormatter, FileFormatterRequest
+
+from ._formatter import FileFormatter, FileFormatterRequest
+
+
+@dataclass(frozen=True)
+class AutoformatterArgs:
+    filename: Annotated[str, command_tree.ClickConversion(argument=True)]
 
 
 @apps.autoscope
@@ -23,6 +32,23 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
+    @apps.group(command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools"))
+    def pycharm_command_tree(self) -> command_tree.CommandTree:
+        return command_tree.CommandTree(
+            name="pycharm",
+            description="Commands for managing PyCharm configuration.",
+            children=tuple(
+                (
+                    child.to_command_tree(self)
+                    if isinstance(child, command_tree.CommandServiceTree)
+                    else child
+                )
+                for child in self._app.get_group(
+                    command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools pycharm")
+                )
+            ),
+        )
+
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_COMMANDS)
     def pycharm_command(self) -> click.Command:
         cmds = [
@@ -37,6 +63,20 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
             provider=cli.CommandProvider(
                 commands={name: get(name) for name in cmds},
             ),
+        )
+
+    @apps.group(command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools pycharm"))
+    def apply_auto_formatters_command_tree(self) -> command_tree.CommandTree:
+        def handler(autoformatter_args: AutoformatterArgs) -> None:
+            formatter = FileFormatter(
+                request=lambda: FileFormatterRequest(autoformatter_args.filename)
+            )
+            formatter.execute()
+
+        return command_tree.CommandTree(
+            name="apply-auto-formatters",
+            description="Apply auto formatters to a file.",
+            handler=handler,
         )
 
     @apps.service(PluginServices.command("apply-auto-formatters"))

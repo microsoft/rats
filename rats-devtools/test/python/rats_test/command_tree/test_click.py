@@ -5,7 +5,7 @@ import click
 
 from rats.command_tree import (
     CommandTree,
-    dataclass_to_click_arguments,
+    dataclass_to_click_parameters,
     to_click_commands,
 )
 
@@ -30,14 +30,14 @@ class NestedMockArguments:
 
 
 def test_dataclass_to_click_arguments_flat():
-    arguments = dataclass_to_click_arguments(MockArguments)
+    arguments = dataclass_to_click_parameters(MockArguments)
     assert len(arguments) == 2, "There should be two click arguments."
     assert arguments[0].name == "arg1", "The first argument name should be 'arg1'."
     assert arguments[1].name == "arg2", "The second argument name should be 'arg2'."
 
 
 def test_dataclass_to_click_arguments_nested():
-    arguments = dataclass_to_click_arguments(NestedMockArguments)
+    arguments = dataclass_to_click_parameters(NestedMockArguments)
     assert len(arguments) == 2, "There should be two click arguments for the nested dataclass."
     assert (
         arguments[0].name == "nested_arg__arg1"
@@ -56,7 +56,7 @@ class MockTupleArguments:
 
 
 def test_dataclass_to_click_arguments_tuple():
-    arguments = dataclass_to_click_arguments(MockTupleArguments)
+    arguments = dataclass_to_click_parameters(MockTupleArguments)
     assert len(arguments) == 1, "There should be one click argument for the tuple field."
     assert arguments[0].name == "arg1", "The tuple argument name should be 'arg1'."
     assert (
@@ -74,7 +74,7 @@ class MockNestedTupleArguments:
 
 
 def test_dataclass_to_click_arguments_nested_tuple():
-    arguments = dataclass_to_click_arguments(MockNestedTupleArguments)
+    arguments = dataclass_to_click_parameters(MockNestedTupleArguments)
     assert len(arguments) == 2, "There should be two click arguments for the nested tuple field."
     assert (
         arguments[0].name == "arg1__arg1"

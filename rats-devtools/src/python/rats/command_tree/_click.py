@@ -2,14 +2,24 @@ import functools
 import itertools
 import uuid
 from collections.abc import Callable
-from dataclasses import fields, is_dataclass
-from typing import Any, get_args, get_origin
+from dataclasses import MISSING, dataclass, fields, is_dataclass
+from typing import Annotated, Any, get_args, get_origin
 
 import click
 from click import Command, Group
 
+from rats.apps import Executable
+
 from ._command_tree import CommandTree
 from ._docstring import get_attribute_docstring
+
+
+@dataclass(frozen=True)
+class ClickConversion:
+    """Type annotations for the click conversion."""
+
+    argument: bool = False
+    """Whether the field is an argument."""
 
 
 def to_click_commands(
@@ -35,7 +45,7 @@ def to_click_commands(
         parent_kwarg_classes = (*parent_kwarg_classes, command.kwargs_class)
 
     click_options_by_dataclass = {
-        kwargs_class: dataclass_to_click_arguments(kwargs_class)
+        kwargs_class: dataclass_to_click_parameters(kwargs_class)
         for kwargs_class in parent_kwarg_classes
     }
 
@@ -66,7 +76,7 @@ def to_click_commands(
     # if we're on a leaf node, we need to generate a click command
     if not command.children:
         if command.handler is None:
-            raise ValueError("Command has no handler")
+            raise ValueError(f"Command {command.name} has no handler")
 
         return Command(
             name=command.name,
@@ -92,8 +102,8 @@ CLICK_TYPE_MAPPING = {
 }
 
 
-def dataclass_to_click_arguments(
-    dataclass: type[Any], parent_field_name: str | None = None, parent_is_multiple: bool = False
+def dataclass_to_click_parameters(
+    dataclass: type[Any], parent_field_name: str | None = None, parent_nargs: int | None = None
 ) -> tuple[click.Option, ...]:
     """
     Convert a dataclass to a list of click arguments.
@@ -105,7 +115,7 @@ def dataclass_to_click_arguments(
     Args:
         dataclass: The dataclass to convert to click arguments.
         parent_field_name: The name of the parent field, if any.
-        parent_is_multiple: Whether the parent field is multiple.
+        parent_nargs: The number of arguments for the parent field, if any.
 
     Returns:
         A tuple of click options.
@@ -115,39 +125,83 @@ def dataclass_to_click_arguments(
     """
     assert is_dataclass(dataclass)
 
-    arguments = []
+    parameters = []
     for field in fields(dataclass):
-        if get_origin(field.type) is tuple:
-            inner_type = get_args(field.type)[0]
+        option_name = field.name.replace("_", "-")
+        if parent_field_name is not None:
+            option_name = f"{parent_field_name}__{option_name}"
+
+        if get_origin(field.type) is Annotated:
+            base_field_type = get_args(field.type)[0]
+            click_conversion_options = next(
+                (
+                    annotation
+                    for annotation in get_args(field.type)
+                    if isinstance(annotation, ClickConversion)
+                ),
+                ClickConversion(),
+            )
+        else:
+            base_field_type = field.type
+            click_conversion_options = ClickConversion()
+
+        if get_origin(base_field_type) is tuple:
+            inner_type = get_args(base_field_type)[0]
+
+            if get_args(base_field_type) == (inner_type, ...):
+                multiple = True
+                nargs = -1
+            else:
+                multiple = False
+                nargs = len(get_args(base_field_type))
 
             if is_dataclass(inner_type):
-                arguments.extend(
-                    dataclass_to_click_arguments(inner_type, field.name, parent_is_multiple=True)
+                parameters.extend(
+                    dataclass_to_click_parameters(inner_type, option_name, parent_nargs=True)
                 )
                 continue
 
             field_type = CLICK_TYPE_MAPPING[inner_type]
-            multiple = True
         else:
-            if is_dataclass(field.type):
-                arguments.extend(dataclass_to_click_arguments(field.type, field.name))
+            if is_dataclass(base_field_type):
+                parameters.extend(dataclass_to_click_parameters(base_field_type, option_name))
                 continue
 
-            field_type = CLICK_TYPE_MAPPING[field.type]
-            multiple = parent_is_multiple
+            field_type = CLICK_TYPE_MAPPING[base_field_type]
+            if parent_nargs is not None:
+                nargs = parent_nargs
+                multiple = True
+            else:
+                nargs = 1
+                multiple = False
 
-        if parent_field_name is not None:
-            param_decls = [f"--{parent_field_name}__{field.name}"]
+        required = field.default is MISSING and field.default_factory is MISSING
+        help_str = get_attribute_docstring(dataclass, field.name)
+        if click_conversion_options.argument:
+            parameter = click.Argument(
+                param_decls=[option_name],
+                type=field_type,
+                nargs=nargs,
+                required=required,
+            )
         else:
-            param_decls = [f"--{field.name}"]
-
-        arguments.append(
-            click.Option(
-                param_decls=param_decls,
+            parameter = click.Option(
+                param_decls=[f"--{option_name}"],
                 type=field_type,
                 multiple=multiple,
-                help=get_attribute_docstring(dataclass, field.name),
+                required=required,
+                help=help_str,
             )
-        )
+        parameters.append(parameter)
 
-    return tuple(arguments)
+    return tuple(parameters)
+
+
+class CommandTreeClickExecutable(Executable):
+    def __init__(self, command_tree: CommandTree, standalone_mode: bool = True) -> None:
+        self._command_tree = command_tree
+        self._standalone_mode = standalone_mode
+
+    def execute(self) -> None:
+        cli = to_click_commands(self._command_tree)
+        cli(standalone_mode=self._standalone_mode)
