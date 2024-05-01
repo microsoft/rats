@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import click
 
 from rats import apps, devtools  # type: ignore[reportAttributeAccessIssue]
@@ -19,15 +21,18 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
 
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_COMMANDS)
     def pycharm_command(self) -> click.Command:
-        provider = devtools.CommandProvider(
-            command_names=frozenset(["apply-auto-formatters"]),
-            service_mapper=lambda name: PluginServices.command(name),
-            container=self,
-        )
+        cmds = [
+            "apply-auto-formatters",
+        ]
+
+        def get(name: str) -> Callable[[], click.Command]:
+            return lambda: self._app.get(PluginServices.command(name))
 
         return devtools.LazyClickGroup(
             name="pycharm",
-            provider=provider,
+            provider=devtools.CommandProvider(
+                commands={name: get(name) for name in cmds},
+            ),
         )
 
     @apps.service(PluginServices.command("apply-auto-formatters"))

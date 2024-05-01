@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import click
 
 from rats import apps, devtools  # type: ignore[reportAttributeAccessIssue]
@@ -14,22 +16,21 @@ class RatsDocsPlugin(apps.AnnotatedContainer):
 
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_COMMANDS)
     def docs_command(self) -> click.Command:
-        provider = devtools.CommandProvider(
-            command_names=frozenset(
-                [
-                    "mkdocs-serve",
-                    "mkdocs-build",
-                    "sphinx-build",
-                    "build-tutorial-notebooks",
-                ]
-            ),
-            service_mapper=lambda name: PluginServices.command(name),
-            container=self,
-        )
+        cmds = [
+            "mkdocs-serve",
+            "mkdocs-build",
+            "sphinx-build",
+            "build-tutorial-notebooks",
+        ]
+
+        def get(name: str) -> Callable[[], click.Command]:
+            return lambda: self._app.get(PluginServices.command(name))
 
         return devtools.LazyClickGroup(
             name="docs",
-            provider=provider,
+            provider=devtools.CommandProvider(
+                commands={name: get(name) for name in cmds},
+            ),
         )
 
     @apps.container()

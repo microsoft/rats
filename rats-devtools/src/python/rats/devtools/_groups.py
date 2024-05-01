@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from typing import Protocol
 
 import click
@@ -28,28 +28,22 @@ class CommandGroup(apps.Executable):
 
 
 class CommandProvider:
-    _command_names: frozenset[str]
-    _service_mapper: Callable[[str], apps.ServiceId[click.Command]]
-    _container: apps.Container
+    _commands: Mapping[str, Callable[[], click.Command]]
 
     def __init__(
         self,
-        command_names: frozenset[str],
-        service_mapper: Callable[[str], apps.ServiceId[click.Command]],
-        container: apps.Container,
+        commands: Mapping[str, Callable[[], click.Command]],
     ) -> None:
-        self._container = container
-        self._service_mapper = service_mapper
-        self._command_names = command_names
+        self._commands = commands
 
     def list(self) -> frozenset[str]:
-        return self._command_names
+        return frozenset(self._commands.keys())
 
     def get(self, name: str) -> click.Command:
-        if name not in self._command_names:
+        if name not in self._commands:
             raise ValueError(f"Command {name} not found")
 
-        return self._container.get(self._service_mapper(name))
+        return self._commands[name]()
 
 
 class LazyClickGroup(click.Group):

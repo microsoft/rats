@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import click
 
 from rats import apps
@@ -18,23 +20,22 @@ class RatsCiPlugin(apps.AnnotatedContainer):
 
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_COMMANDS)
     def ci_command(self) -> click.Command:
-        provider = devtools.CommandProvider(
-            command_names=frozenset(
-                [
-                    "poetry-install",
-                    "test",
-                    "build-wheel",
-                    "publish-wheel",
-                    "check-all",
-                ]
-            ),
-            service_mapper=lambda name: PluginServices.command(name),
-            container=self,
-        )
+        cmds = [
+            "poetry-install",
+            "test",
+            "build-wheel",
+            "publish-wheel",
+            "check-all",
+        ]
+
+        def get(name: str) -> Callable[[], click.Command]:
+            return lambda: self._app.get(PluginServices.command(name))
 
         return devtools.LazyClickGroup(
             name="ci",
-            provider=provider,
+            provider=devtools.CommandProvider(
+                commands={name: get(name) for name in cmds},
+            ),
         )
 
     @apps.container()
