@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from rats.annotations import FunctionAnnotations, FunctionAnnotationsBuilder, GroupAnnotations
+from rats.annotations import AnnotationsContainer, AnnotationsBuilder, GroupAnnotations
 
 
 class SimpleTuple(NamedTuple):
@@ -26,8 +26,8 @@ def test_with_namespace():
     group_annotations2 = GroupAnnotations(
         name="test_function2", namespace="ns2", groups=(SimpleTuple("group2"),)
     )
-    function_annotations = FunctionAnnotations(providers=(group_annotations1, group_annotations2))
-    filtered_annotations = function_annotations.with_namespace("ns1")
+    annotations_container = AnnotationsContainer(annotations=(group_annotations1, group_annotations2))
+    filtered_annotations = annotations_container.with_namespace("ns1").annotations
 
     assert len(filtered_annotations) == 1
     assert filtered_annotations[0].namespace == "ns1"
@@ -51,10 +51,10 @@ def test_group_in_namespace():
         namespace="ns2",
         groups=(SimpleTuple("group2"),),
     )
-    function_annotations = FunctionAnnotations(
-        providers=(group_annotations1, group_annotations2, group_annotations3)
+    annotations_container = AnnotationsContainer(
+        annotations=(group_annotations1, group_annotations2, group_annotations3)
     )
-    filtered_annotations = function_annotations.group_in_namespace("ns1", SimpleTuple("group1"))
+    filtered_annotations = annotations_container.with_group("ns1", SimpleTuple("group1")).annotations
 
     assert len(filtered_annotations) == 1
     assert filtered_annotations[0].groups == (SimpleTuple("group1"),)
