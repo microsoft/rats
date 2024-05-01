@@ -21,6 +21,9 @@ class ClickConversion:
     argument: bool = False
     """Whether the field is an argument."""
 
+    explicit_click_type: click.ParamType | None = None
+    """The explicit click type to use for the field."""
+
 
 def to_click_commands(
     command: CommandTree,
@@ -174,6 +177,9 @@ def dataclass_to_click_parameters(
             else:
                 nargs = 1
                 multiple = False
+
+        if click_conversion_options.explicit_click_type is not None:
+            field_type = click_conversion_options.explicit_click_type
 
         required = field.default is MISSING and field.default_factory is MISSING
         help_str = get_attribute_docstring(dataclass, field.name)

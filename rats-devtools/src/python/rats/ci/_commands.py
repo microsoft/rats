@@ -17,12 +17,21 @@ from ._ids import PluginServices
 
 @dataclass(frozen=True)
 class ComponentArgs:
-    component_path: Annotated[str, command_tree.ClickConversion(argument=True)]
+    """Arguments for selecting the component to run commands against."""
+
+    component_path: Annotated[
+        str,
+        command_tree.ClickConversion(
+            argument=True, explicit_click_type=click.Path(exists=True, file_okay=False)
+        ),
+    ]
     """The path to the component to operate on."""
 
 
 @dataclass(frozen=True)
 class PublishWheelsArgs:
+    """Arguments for publishing wheels."""
+
     repository_name: Annotated[str, command_tree.ClickConversion(argument=True)]
     """The name of the repository to publish to."""
 

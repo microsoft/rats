@@ -16,7 +16,16 @@ from ._formatter import FileFormatter, FileFormatterRequest
 
 @dataclass(frozen=True)
 class AutoformatterArgs:
-    filename: Annotated[str, command_tree.ClickConversion(argument=True)]
+    """Arguments for the autoformatter command."""
+
+    filename: Annotated[
+        str,
+        command_tree.ClickConversion(
+            argument=True,
+            explicit_click_type=click.Path(exists=True, file_okay=True, dir_okay=False),
+        ),
+    ]
+    """The filename to format."""
 
 
 @apps.autoscope
