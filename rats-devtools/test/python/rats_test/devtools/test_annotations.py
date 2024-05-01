@@ -1,33 +1,38 @@
 from typing import NamedTuple
 
-from rats.annotations import AnnotationsContainer, AnnotationsBuilder, GroupAnnotations
+from rats.annotations import get_annotations, annotation, GroupAnnotations
 
 
 class SimpleTuple(NamedTuple):
     name: str
 
 
+@annotation(namespace="test_namespace", group_id=SimpleTuple("group1"))
+@annotation(namespace="test_namespace", group_id=SimpleTuple("group2"))
+def test_function():
+    pass
+
 def test_group_annotations():
-    group_annotations = GroupAnnotations(
-        name="test_function",
-        namespace="test_namespace",
-        groups=(SimpleTuple("group1"), SimpleTuple("group2")),
-    )
+    group_annotations = get_annotations(test_function).annotations[0]
 
     assert group_annotations.name == "test_function"
     assert group_annotations.namespace == "test_namespace"
     assert group_annotations.groups == (SimpleTuple("group1"), SimpleTuple("group2"))
 
 
+@annotation(namespace="ns1", group_id=SimpleTuple("group1"))
+def test_function1():
+    pass
+
+@annotation(namespace="ns2", group_id=SimpleTuple("group2"))
+def test_function2():
+    pass
+
 def test_with_namespace():
-    group_annotations1 = GroupAnnotations(
-        name="test_function1", namespace="ns1", groups=(SimpleTuple("group1"),)
+    annotations_container = AnnotationsContainer(
+        annotations=(get_annotations(test_function1).annotations[0], get_annotations(test_function2).annotations[0])
     )
-    group_annotations2 = GroupAnnotations(
-        name="test_function2", namespace="ns2", groups=(SimpleTuple("group2"),)
-    )
-    annotations_container = AnnotationsContainer(annotations=(group_annotations1, group_annotations2))
-    filtered_annotations = annotations_container.with_namespace("ns1").annotations
+    filtered_annotations = annotations_container.with_namespace("ns1")
 
     assert len(filtered_annotations) == 1
     assert filtered_annotations[0].namespace == "ns1"
@@ -35,36 +40,27 @@ def test_with_namespace():
     assert filtered_annotations[0].name == "test_function1"
 
 
+@annotation(namespace="ns1", group_id=SimpleTuple("group1"))
+def test_function3():
+    pass
+
 def test_group_in_namespace():
-    group_annotations1 = GroupAnnotations(
-        name="test_function1",
-        namespace="ns1",
-        groups=(SimpleTuple("group1"),),
-    )
-    group_annotations2 = GroupAnnotations(
-        name="test_function2",
-        namespace="ns1",
-        groups=(SimpleTuple("group2"),),
-    )
-    group_annotations3 = GroupAnnotations(
-        name="test_function3",
-        namespace="ns2",
-        groups=(SimpleTuple("group2"),),
-    )
     annotations_container = AnnotationsContainer(
-        annotations=(group_annotations1, group_annotations2, group_annotations3)
+        annotations=(get_annotations(test_function1).annotations[0], get_annotations(test_function2).annotations[0], get_annotations(test_function3).annotations[0])
     )
-    filtered_annotations = annotations_container.with_group("ns1", SimpleTuple("group1")).annotations
+    filtered_annotations = annotations_container.with_group("ns1", SimpleTuple("group1"))
 
     assert len(filtered_annotations) == 1
     assert filtered_annotations[0].groups == (SimpleTuple("group1"),)
 
 
+@annotation(namespace="ns1", group_id=SimpleTuple("group1"))
+@annotation(namespace="ns1", group_id=SimpleTuple("group2"))
+def test_function4():
+    pass
+
 def test_add_and_make():
-    builder = FunctionAnnotationsBuilder[SimpleTuple]()
-    builder.add("ns1", SimpleTuple("group1"))
-    builder.add("ns1", SimpleTuple("group2"))
-    annotations = builder.make("test_function")
+    annotations = get_annotations(test_function4)
 
     assert len(annotations) == 1
     assert annotations[0].name == "test_function"
