@@ -12,7 +12,6 @@ from typing import NamedTuple
 import pandas as pd
 from sklearn.linear_model import LogisticRegression as LR
 
-from rats import apps
 from rats import processors as rp
 from rats.processors import typing as rpt
 ```
@@ -115,8 +114,8 @@ class LRPipelineContainer(rp.PipelineContainer):
         Samples not associated with labels or whose labels are NaN will be ignored.
         Non-binary labels will raise an error.
         """
-        sanitize = self.get(apps.autoid(self.sanitize_labels))
-        train = self.get(apps.autoid(self.train))
+        sanitize = self.sanitize_labels()
+        train = self.train()
         return self.combine(
             pipelines=(
                 sanitize,
@@ -150,7 +149,7 @@ Let's look at these sub-pipelines:
 
 
 ```python
-sanitize_labels = lrpc.get(apps.autoid(lrpc.sanitize_labels))
+sanitize_labels = lrpc.sanitize_labels()
 app.display(sanitize_labels)
 ```
 
@@ -162,7 +161,7 @@ app.display(sanitize_labels)
 
 
 ```python
-train = lrpc.get(apps.autoid(lrpc.train))
+train = lrpc.train()
 app.display(train)
 ```
 
@@ -174,10 +173,10 @@ app.display(train)
 
 Look at the `training_pipeline` method and observe:
 
-- The two sub-pipelines are created using by calling `self.get` with the reserpective service
-  ids. At this point, it does not matter that the sub-pipelines are tasks - any pipeline would
-  work. It is important that the sub-pipelines are defined by methods of this container, because
-  it ensures that they have distinct names.
+- The two sub-pipelines are created using by calling the reserpective methods. At this point, it
+  does not matter that the sub-pipelines are tasks - any pipeline would work. It is important
+  that the sub-pipelines are defined by methods of this container, because it ensures that they
+  have distinct names.
 
 - The `combine` method is used to combine the sub-pipelines into a another pipeline.  The
   argument `dependencies=(sanitize >> train,),` inspects the outputs of `sanitize` and the inputs
@@ -199,7 +198,7 @@ Here's the combined training pipeline:
 
 
 ```python
-training_pipeline = lrpc.get(apps.autoid(lrpc.training_pipeline))
+training_pipeline = lrpc.training_pipeline()
 print("Training pipeline input ports:", training_pipeline.inputs)
 print("Training pipeline output ports:", training_pipeline.outputs)
 app.display(training_pipeline)
@@ -219,7 +218,7 @@ The prediction pipeline is a single task:
 
 
 ```python
-prediction_pipeline = lrpc.get(apps.autoid(lrpc.prediction_pipeline))
+prediction_pipeline = lrpc.prediction_pipeline()
 print("Prediction pipeline input ports:", prediction_pipeline.inputs)
 print("Prediction pipeline output ports:", prediction_pipeline.outputs)
 app.display(prediction_pipeline)
@@ -359,38 +358,38 @@ prediction_outputs_train["logits"].join(labels_train).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.031478</td>
-      <td>0.013263</td>
-      <td>36</td>
-      <td>-3.556526</td>
-      <td>0.406177</td>
-      <td>36</td>
-      <td>-16.285066</td>
-      <td>0.890949</td>
-      <td>36</td>
+      <td>-0.024784</td>
+      <td>0.012254</td>
+      <td>44</td>
+      <td>-3.830012</td>
+      <td>0.503206</td>
+      <td>44</td>
+      <td>-16.085735</td>
+      <td>0.993230</td>
+      <td>44</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.591845</td>
-      <td>1.355207</td>
-      <td>45</td>
-      <td>-0.189052</td>
-      <td>0.195228</td>
-      <td>45</td>
-      <td>-2.740864</td>
-      <td>1.467433</td>
-      <td>45</td>
+      <td>-4.437794</td>
+      <td>1.343680</td>
+      <td>37</td>
+      <td>-0.212645</td>
+      <td>0.204093</td>
+      <td>37</td>
+      <td>-2.533020</td>
+      <td>1.345161</td>
+      <td>37</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.152281</td>
-      <td>3.017930</td>
+      <td>-10.097900</td>
+      <td>2.877340</td>
       <td>39</td>
-      <td>-2.642599</td>
-      <td>1.500786</td>
+      <td>-2.691922</td>
+      <td>1.403706</td>
       <td>39</td>
-      <td>-0.190569</td>
-      <td>0.223507</td>
+      <td>-0.171744</td>
+      <td>0.213766</td>
       <td>39</td>
     </tr>
   </tbody>
@@ -463,38 +462,38 @@ prediction_outputs_test["logits"].join(labels_test).groupby("label").agg(
   <tbody>
     <tr>
       <th>setosa</th>
-      <td>-0.034665</td>
-      <td>0.020585</td>
-      <td>14</td>
-      <td>-3.586270</td>
-      <td>0.712738</td>
-      <td>14</td>
-      <td>-16.429203</td>
-      <td>1.297275</td>
-      <td>14</td>
+      <td>-0.031355</td>
+      <td>0.007162</td>
+      <td>6</td>
+      <td>-3.498385</td>
+      <td>0.213893</td>
+      <td>6</td>
+      <td>-15.448952</td>
+      <td>0.625208</td>
+      <td>6</td>
     </tr>
     <tr>
       <th>versicolor</th>
-      <td>-4.329499</td>
-      <td>0.786709</td>
-      <td>5</td>
-      <td>-0.077029</td>
-      <td>0.041809</td>
-      <td>5</td>
-      <td>-3.080079</td>
-      <td>0.727439</td>
-      <td>5</td>
+      <td>-4.030292</td>
+      <td>1.248497</td>
+      <td>13</td>
+      <td>-0.133180</td>
+      <td>0.090179</td>
+      <td>13</td>
+      <td>-3.150326</td>
+      <td>1.414878</td>
+      <td>13</td>
     </tr>
     <tr>
       <th>virginica</th>
-      <td>-10.491001</td>
-      <td>2.099366</td>
+      <td>-9.550154</td>
+      <td>2.666712</td>
       <td>11</td>
-      <td>-2.785970</td>
-      <td>1.125852</td>
+      <td>-2.322399</td>
+      <td>1.333171</td>
       <td>11</td>
-      <td>-0.135338</td>
-      <td>0.208902</td>
+      <td>-0.236352</td>
+      <td>0.272456</td>
       <td>11</td>
     </tr>
   </tbody>

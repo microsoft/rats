@@ -9,7 +9,6 @@ from typing import NamedTuple
 import pandas as pd
 from sklearn.linear_model import LogisticRegression as LR
 
-from rats import apps
 from rats import processors as rp
 from rats.processors import typing as rpt
 
@@ -113,8 +112,8 @@ class LRPipelineContainer(rp.PipelineContainer):
         Samples not associated with labels or whose labels are NaN will be ignored.
         Non-binary labels will raise an error.
         """
-        sanitize = self.get(apps.autoid(self.sanitize_labels))
-        train = self.get(apps.autoid(self.train))
+        sanitize = self.sanitize_labels()
+        train = self.train()
         return self.combine(
             pipelines=(
                 sanitize,
@@ -145,20 +144,20 @@ app = rp.NotebookApp()
 # Let's look at these sub-pipelines:
 
 # %%
-sanitize_labels = lrpc.get(apps.autoid(lrpc.sanitize_labels))
+sanitize_labels = lrpc.sanitize_labels()
 app.display(sanitize_labels)
 
 # %%
-train = lrpc.get(apps.autoid(lrpc.train))
+train = lrpc.train()
 app.display(train)
 
 # %% [markdown]
 # Look at the `training_pipeline` method and observe:
 #
-# - The two sub-pipelines are created using by calling `self.get` with the reserpective service
-#   ids. At this point, it does not matter that the sub-pipelines are tasks - any pipeline would
-#   work. It is important that the sub-pipelines are defined by methods of this container, because
-#   it ensures that they have distinct names.
+# - The two sub-pipelines are created using by calling the reserpective methods. At this point, it
+#   does not matter that the sub-pipelines are tasks - any pipeline would work. It is important
+#   that the sub-pipelines are defined by methods of this container, because it ensures that they
+#   have distinct names.
 #
 # - The `combine` method is used to combine the sub-pipelines into a another pipeline.  The
 #   argument `dependencies=(sanitize >> train,),` inspects the outputs of `sanitize` and the inputs
@@ -179,7 +178,7 @@ app.display(train)
 # Here's the combined training pipeline:
 
 # %%
-training_pipeline = lrpc.get(apps.autoid(lrpc.training_pipeline))
+training_pipeline = lrpc.training_pipeline()
 print("Training pipeline input ports:", training_pipeline.inputs)
 print("Training pipeline output ports:", training_pipeline.outputs)
 app.display(training_pipeline)
@@ -188,7 +187,7 @@ app.display(training_pipeline)
 # The prediction pipeline is a single task:
 
 # %%
-prediction_pipeline = lrpc.get(apps.autoid(lrpc.prediction_pipeline))
+prediction_pipeline = lrpc.prediction_pipeline()
 print("Prediction pipeline input ports:", prediction_pipeline.inputs)
 print("Prediction pipeline output ports:", prediction_pipeline.outputs)
 app.display(prediction_pipeline)

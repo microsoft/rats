@@ -11,8 +11,13 @@
 # ### Using pipelines defined in installed packages.
 #
 # The LR pipelines we have defined in [the previous notebook](lr_using_sklearn.md) are also
-# defined in `rats.examples-sklearn`.  We will start by showing how to access these
-# pipelines from the app.
+# defined in `rats.examples-sklearn`, and exposed as `rats.apps` *Services*.  We will start by
+# showing how to access these pipelines from the app.  For an e2e documentation of `rats.apps` and
+# its concept of *Services* see [The `rats.apps` documentation](../../../rats-apps/).
+#
+# Here we will show how to access the pipelines exposed as services by `rats.examples-sklearn`,
+# how to integrate them as sub-pipelines of a new pipeline, and how to expose other pipelines as
+# services.
 # %%
 from typing import NamedTuple, cast
 
@@ -24,21 +29,20 @@ from rats.examples_sklearn import Services as ExampleServices
 from rats.processors import typing as rpt
 
 # %% [markdown]
-# As noted, the pipeline decorators `task` and `pipeline` register the methods as services.
-# To access those services we need their service ids.  For public services, these are added to a
-# `Services` class, such as `ExampleServices`.
+# To expose a service using the `rats.apps`, the service author creates a service id and exposes it
+# in a public class.  In the case of `rats.examples-sklearn`, that class is `ExampleServices`
+# imported above.  A recommended pattern is to include the service ids as class properties,
+# using CAPS_WITH_UNDERSCORES for the property names.
 
 # %%
 [p for p in dir(ExampleServices) if not p.startswith("_")]
 
 # %% [markdown]
 # All of these properties are `ServiceId` instances, which can be used to get services from
-# containers.
+# service containers and apps.
 #
-# Recall that before, to get a pipeline, we used the `get` method of the container. The containers
-# that create these pipelines in `example_pipelines` are registered with the notebook app (more on
-# that below), so we can access these pipeline by calling the `get` method of the app with their
-# service id.
+# We get the pipelines by passing the relevant service id to `app.get`.  This is possible because
+# the containers that define these services are registered with the app.  More on that later.
 # %%
 app = rp.NotebookApp()
 train_pipeline = app.get(ExampleServices.TRAIN_PIPELINE)
@@ -61,9 +65,9 @@ app.display(train_pipeline)
 # To illustrate registering a container to an app in a notebook we will create a new container
 # with a pipeline for splitting a dataframe into training and testing sets.
 #
-# To illustrate using registered pipeline services as sub-pipelines, we will create another
-# container using the new `split_data` pipeline, as well as `train_pipeline` and `predict_pipeline`
-# into a `train_and_predict_pipeline`.
+# To illustrate using registered pipeline services as sub-pipelines, we will create yet another
+# container that combines the new `split_data` pipeline, as well as `train_pipeline` and
+# `predict_pipeline` into a `train_and_predict_pipeline`.
 #
 # But first the `split_data` pipeline container:
 # %%
@@ -113,7 +117,7 @@ class SplitDataPipelineContainer(rp.PipelineContainer):
         # create a copy of limit_samples with inputs and outputs renamed to indicated that it is
         # to be used for train.
         return (
-            self.get(apps.autoid(self.limit_samples))
+            self.limit_samples()
             .rename_inputs(dict(labels="train_labels"))
             .rename_outputs(dict(samples="train_samples"))
         )
@@ -123,16 +127,16 @@ class SplitDataPipelineContainer(rp.PipelineContainer):
         # create a copy of limit_samples with inputs and outputs renamed to indicated that it is
         # to be used for test.
         return (
-            self.get(apps.autoid(self.limit_samples))
+            self.limit_samples()
             .rename_inputs(dict(labels="test_labels"))
             .rename_outputs(dict(samples="test_samples"))
         )
 
     @rp.pipeline
     def split_data(self) -> SplitDataPl:
-        split_labels = self.get(apps.autoid(self.split_labels))
-        limit_train_samples = self.get(apps.autoid(self.limit_train_samples))
-        limit_test_samples = self.get(apps.autoid(self.limit_test_samples))
+        split_labels = self.split_labels()
+        limit_train_samples = self.limit_train_samples()
+        limit_test_samples = self.limit_test_samples()
         return cast(
             SplitDataPl,
             self.combine(
@@ -154,20 +158,21 @@ class SplitDataPipelineContainer(rp.PipelineContainer):
         )
 
 
+# %% [markdown]
+# We want to make the split-data pipeline available to other containers. To that end, we need to
+# expose a service id for the pipeline in public class:
+# %%
 class SplitDataServices:
     LR_SPLIT_DATA_PIPELINE = apps.autoid(SplitDataPipelineContainer.split_data)
 
 
 # %% [markdown]
-# We want to make the split-data pipeline available to other containers. To that end, we need to
-# expose a service id for the pipeline in public class - `SplitDataServices` above.
-#
 # We also need to register `SplitDataPipelineContainer` with the app. In a notebook, registering a
 # pipeline container with the app requires re-creating the app instance, passing a callable taking
 # a container and returning a container to its constructor.  The app will pass itself to that
 # callable, and register the returned container with itself.
 #
-# Much easier understand from code:
+# Much easier to understand from code:
 # %%
 app = rp.NotebookApp(lambda app: SplitDataPipelineContainer())
 split_data_pipeline = app.get(SplitDataServices.LR_SPLIT_DATA_PIPELINE)
@@ -235,7 +240,7 @@ class TrainAndPredictPipelineContainer(rp.PipelineContainer):
     @rp.pipeline
     def evaluate_on_train(self) -> rpt.UPipeline:
         return (
-            self.get(apps.autoid(self.evaluate))
+            self.evaluate()
             .rename_inputs(dict(logits="train_logits", labels="train_labels"))
             .rename_outputs(dict(evaluation="train_evaluation"))
         )
@@ -243,19 +248,19 @@ class TrainAndPredictPipelineContainer(rp.PipelineContainer):
     @rp.pipeline
     def evaluate_on_test(self) -> rpt.UPipeline:
         return (
-            self.get(apps.autoid(self.evaluate))
+            self.evaluate()
             .rename_inputs(dict(logits="test_logits", labels="test_labels"))
             .rename_outputs(dict(evaluation="test_evaluation"))
         )
 
     @rp.pipeline
     def train_and_predict_pipeline(self) -> rpt.UPipeline:
-        split_data = self.get(apps.autoid(self.split_data))
-        train = self.get(apps.autoid(self.train))
-        predict_on_train = self.get(apps.autoid(self.predict_on_train))
-        predict_on_test = self.get(apps.autoid(self.predict_on_test))
-        evaluate_on_train = self.get(apps.autoid(self.evaluate_on_train))
-        evaluate_on_test = self.get(apps.autoid(self.evaluate_on_test))
+        split_data = self.split_data()
+        train = self.train()
+        predict_on_train = self.predict_on_train()
+        predict_on_test = self.predict_on_test()
+        evaluate_on_train = self.evaluate_on_train()
+        evaluate_on_test = self.evaluate_on_test()
         return self.combine(
             pipelines=[
                 split_data,
@@ -279,6 +284,9 @@ class TrainAndPredictPipelineContainer(rp.PipelineContainer):
         )
 
 
+# %% [markdown]
+# Again, we create a service id for the pipeline we want to expose:
+# %%
 class TrainAndPredictPipelineServices:
     LR_TRAIN_AND_PREDICT_PIPELINE = apps.autoid(
         TrainAndPredictPipelineContainer.train_and_predict_pipeline
@@ -332,12 +340,9 @@ train_and_predict_outputs["test_evaluation"]
 
 
 # %% [markdown]
-# ### Registering containers in panckages.
-# As mentioned above, the mechanism for registering containers defined in a package (i.e.) in your
-# repo with the `rats.processors` apps is different.
-#
-# We will explain them here, but cannot demonstrate them in a notebook.  There are two parts to the
-# mechanism:
+# ### Registering containers in packages.
+# As mentioned above, the mechanism for registering containers defined in a package (i.e. in your
+# repo) with the `rats.processors` apps is different.
 #
 # #### Registering a container within another container using the `@container` decorator.
 # The `@container` decorator allows a container to include other containers as sub-containers. A
@@ -372,17 +377,20 @@ print("train and predict pipeline output ports:", train_and_predict_pipeline.out
 app.display(train_and_predict_pipeline)
 # %% [markdown]
 # We recommend using this mechanism to create a top level container for every package.
-# For example, this tutorial is coded in a package rats.examples-sklearn (look for it in the RATS
-# github page).  That package includes a private
+# For example, this tutorial is coded in a package rats.examples-sklearn (look for it in the [RATS
+# github repo](https://github.com/microsoft/rats/)).  That package includes a private
 # `rats.examples_sklearn._plugin_container.PluginContainer` that includes all other containers in
 # the package.
 #
 # #### Registering containers to the app via the python `entry_points` mechanism.
 #
 # We want to enable client packages (like yours) to register their services with the
-# `rats.processors` app classes (`NotebookApp`, `CliApp`).  Obviously, the app classes cannot know
-# about client package container.  Instead, the app classes interact with the python entry point
-# mechanism to discover import paths of container classes that want to register with them.
+# `rats.processors` app classes (`NotebookApp`, `CliApp`).  Obviously, the app classes in
+# `rats.processors` cannot know of specific client packages.  Instead, `rats.processors` exposes a
+# python [entry point](https://docs.python.org/3/library/importlib.metadata.html#entry-points)
+# group for client packages to register their containers with. The `rats.processors` app classes
+# interact with the python entry point mechanism to discover these container classes and register
+# them as sub-containers of the app.
 #
 # The entry point group used by `rats.processors` apps is "rats.processors_app_plugins".
 #
@@ -392,10 +400,9 @@ app.display(train_and_predict_pipeline)
 # [tool.poetry.plugins."rats.processors_app_plugins"]
 # "my_package" = "my_package.my_module:MyContainer"
 # ```
-# The only two requirements are that `my_package.my_module:MyContainer` implements the
+# The only two requirements are that `my_package.my_module.MyContainer` implements the
 # `apps.Container` interface (e.g. by inheriting from `apps.AnnotatedContainer` or
-# `rp.PipelineContainer`), and that it's constructor takes an `apps.Container` as its only
-# argument.
+# `rp.PipelineContainer`), and that its constructor takes an `apps.Container` as its only argument.
 #
 # For example, in the `rats.examples-sklearn` package, we self register our top level container
 # like this:
