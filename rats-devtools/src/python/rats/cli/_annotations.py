@@ -9,7 +9,7 @@ import click
 
 from rats import annotations
 
-from ..annotations import AnnotationDecorator, AnnotationsContainer
+from ..annotations import AnnotationsContainer, DecoratorType
 from ._groups import CommandGroupPlugin
 
 
@@ -24,7 +24,7 @@ class CommandId(NamedTuple):
 T = TypeVar("T", bound=Callable)
 
 
-def command(command_id: CommandId) -> AnnotationDecorator:
+def command(command_id: CommandId) -> DecoratorType:
     def decorator(fn: T) -> T:
         if command_id == CommandId.auto():
             return annotations.annotation("commands", CommandId(fn.__name__.replace("_", "-")))(fn)
