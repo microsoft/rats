@@ -44,3 +44,36 @@ def test_plugin_runner_no_plugins() -> None:
 
     # Assert that the handler was never called
     assert not handler_called, "Handler was called on an empty iterator of plugins"
+from rats.devtools._command_tree import get_attribute_docstring
+
+
+def test_get_attribute_docstring():
+    @dataclass
+    class MockDataclass:
+        """
+        MockDataclass description.
+        """
+        field: int
+        """The field's docstring."""
+
+    docstring = get_attribute_docstring(MockDataclass, 'field')
+    assert docstring == "The field's docstring.", "The docstring did not match the expected value"
+
+
+def test_get_attribute_docstring_no_docstring():
+    @dataclass
+    class MockDataclass:
+        field: int
+
+    docstring = get_attribute_docstring(MockDataclass, 'field')
+    assert docstring == "", "The docstring should be empty for a field without a docstring"
+
+
+def test_get_attribute_docstring_nonexistent_field():
+    @dataclass
+    class MockDataclass:
+        field: int
+
+    with pytest.raises(ValueError) as exc_info:
+        get_attribute_docstring(MockDataclass, 'nonexistent_field')
+    assert "Attribute nonexistent_field not found in dataclass MockDataclass" in str(exc_info.value), "The error message did not match the expected value"
