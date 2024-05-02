@@ -171,10 +171,10 @@ jobs:
     # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
     needs: ["test-components", "build-docs"]
     # this one can run anywhere
-    runs-on: "ubuntu-latest"
-    name: "deploy-docs"
+    runs-on: ubuntu-latest
+    name: deploy-docs
     steps:
-      - name: "deploy-gh-pages"
+      - name: deploy-gh-pages
         if: "${{ inputs.publish-docs }}"
         id: deployment
         uses: actions/deploy-pages@v4

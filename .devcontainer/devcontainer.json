@@ -4,6 +4,7 @@
         "ghcr.io/devcontainers/features/git": {},
         "ghcr.io/devcontainers/features/sshd": {},
         "ghcr.io/devcontainers/features/github-cli": {},
+        "ghcr.io/devcontainers-contrib/features/tmux-apt-get": {},
         "ghcr.io/devcontainers/features/common-utils": {
             "configureZshAsDefaultShell": true
         },
