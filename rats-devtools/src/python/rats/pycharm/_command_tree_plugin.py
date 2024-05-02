@@ -1,4 +1,3 @@
-from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -28,14 +27,7 @@ class AutoformatterArgs:
     """The filename to format."""
 
 
-@apps.autoscope
-class PluginServices:
-    @staticmethod
-    def command(name: str) -> apps.ServiceId[click.Command]:
-        return apps.ServiceId(f"cli-commands[{name}]")
-
-
-class RatsPycharmPlugin(apps.AnnotatedContainer):
+class RatsPycharmCommandTreePlugin(apps.AnnotatedContainer):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -58,22 +50,6 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
             ),
         )
 
-    @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_COMMANDS)
-    def pycharm_command(self) -> click.Command:
-        cmds = [
-            "apply-auto-formatters",
-        ]
-
-        def get(name: str) -> Callable[[], click.Command]:
-            return lambda: self._app.get(PluginServices.command(name))
-
-        return cli.DeferredCommandGroup(
-            name="pycharm",
-            provider=cli.CommandProvider(
-                commands={name: get(name) for name in cmds},
-            ),
-        )
-
     @apps.group(command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools pycharm"))
     def apply_auto_formatters_command_tree(self) -> command_tree.CommandTree:
         def handler(autoformatter_args: AutoformatterArgs) -> None:
@@ -86,22 +62,4 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
             name="apply-auto-formatters",
             description="Apply auto formatters to a file.",
             handler=handler,
-        )
-
-    @apps.service(PluginServices.command("apply-auto-formatters"))
-    def apply_auto_formatters(self) -> click.Command:
-        @click.argument(
-            "filename",
-            type=click.Path(exists=True, file_okay=True, dir_okay=False),
-        )
-        def run(filename: str) -> None:
-            formatter = FileFormatter(request=lambda: FileFormatterRequest(filename))
-            formatter.execute()
-
-        return click.Command(
-            name="apply-auto-formatters",
-            callback=run,
-            params=list(reversed(getattr(run, "__click_params__", []))),
-            help="Help for apply-auto-formatters",
-            short_help="Short help for apply-auto-formatters",
         )

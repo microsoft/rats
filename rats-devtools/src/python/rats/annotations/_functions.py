@@ -4,7 +4,9 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 from functools import cache
-from typing import Any, NamedTuple, ParamSpec, T
+from typing import Any, ParamSpec, TypeVar
+
+from typing_extensions import NamedTuple
 
 from rats.annotations._groups import GroupAnnotations, T_GroupType
 
@@ -28,7 +30,14 @@ class AnnotationsContainer(NamedTuple):
         group_id: T_GroupType,
     ) -> AnnotationsContainer:
         return AnnotationsContainer(
-            annotations=tuple([x for x in self.with_namespace(namespace) if group_id in x.groups]),
+            annotations=tuple(
+                [
+                    annotation_group
+                    for x in self.with_namespace(namespace)
+                    for annotation_group in x
+                    if group_id in annotation_group.groups
+                ]
+            ),
         )
 
     def with_namespace(
@@ -60,11 +69,11 @@ class AnnotationsBuilder:
         )
 
 
-AnnotationDecorator = Callable[[T], T]
+DecoratorType = TypeVar("DecoratorType", bound=Callable[..., Any])
 
 
-def annotation(namespace: str, group_id: NamedTuple) -> AnnotationDecorator:
-    def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+def annotation(namespace: str, group_id: NamedTuple) -> Callable[[DecoratorType], DecoratorType]:
+    def decorator(fn: DecoratorType) -> DecoratorType:
         if not hasattr(fn, "__rats_annotations__"):
             fn.__rats_annotations__ = AnnotationsBuilder()  # type: ignore[reportFunctionMemberAccess]
 

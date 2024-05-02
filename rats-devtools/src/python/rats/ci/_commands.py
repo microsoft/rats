@@ -4,7 +4,9 @@ from pathlib import Path
 
 import click
 
-from rats import apps
+# pyright seems to struggle with this namespace package
+# https://github.com/microsoft/pyright/issues/2882
+from rats import apps as apps
 
 from ._ids import PluginServices
 
@@ -19,7 +21,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
     def poetry_install_command(self) -> click.Command:
         @click.command()
         @click.argument("component_path", type=click.Path(exists=True, file_okay=False))
-        def poertry_install(component_path: str) -> None:
+        def poetry_install(component_path: str) -> None:
             """Build the documentation site for one of the components in this project."""
             p = Path(component_path)
             pyproject_path = p / "pyproject.toml"
@@ -32,7 +34,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
             except subprocess.CalledProcessError as e:
                 sys.exit(e.returncode)
 
-        return poertry_install
+        return poetry_install
 
     @apps.service(PluginServices.command("test"))
     def test_command(self) -> click.Command:

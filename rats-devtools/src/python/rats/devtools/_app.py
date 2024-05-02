@@ -6,6 +6,7 @@ import click
 # https://github.com/microsoft/pyright/issues/2882
 from rats import apps as apps
 from rats import cli as cli
+from rats import command_tree as command_tree
 
 from ._groups import CommandGroup, GroupCommands
 from ._plugins import PluginRunner
@@ -20,10 +21,32 @@ class AppGroups:
 @apps.autoscope
 class AppServices:
     CLI_EXE = apps.ServiceId[apps.Executable]("cli-exe")
+    CLI_COMMAND_TREE = apps.ServiceId[command_tree.CommandTree]("cli-command-tree")
     GROUPS = AppGroups
 
 
 class AppContainer(apps.AnnotatedContainer):
+    # @apps.service(AppServices.CLI_EXE)
+    def command_tree_cli_exe(self) -> apps.Executable:
+        return command_tree.CommandTreeClickExecutable(self.get(AppServices.CLI_COMMAND_TREE))
+
+    @apps.service(AppServices.CLI_COMMAND_TREE)
+    def cli_command_tree(self) -> command_tree.CommandTree:
+        return command_tree.CommandTree(
+            name="rats-devtools",
+            description="",
+            children=tuple(
+                (
+                    child.to_command_tree(self)
+                    if isinstance(child, command_tree.CommandServiceTree)
+                    else child
+                )
+                for child in self.get_group(
+                    command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools")
+                )
+            ),
+        )
+
     @apps.service(AppServices.CLI_EXE)
     def cli_exe(self) -> CommandGroup:
         return CommandGroup(PluginRunner(self.get_group(AppServices.GROUPS.CLI_ROOT_PLUGINS)))
