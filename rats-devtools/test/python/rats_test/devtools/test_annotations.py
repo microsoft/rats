@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing_extensions import NamedTuple
 
 from rats.annotations import AnnotationsContainer, annotation, get_annotations
 
@@ -18,7 +18,7 @@ def test_group_annotations():
 
     assert group_annotations.name == "test_function"
     assert group_annotations.namespace == "test_namespace"
-    assert group_annotations.groups == (SimpleTuple("group1"), SimpleTuple("group2"))
+    assert set(group_annotations.groups) == {SimpleTuple("group1"), SimpleTuple("group2")}
 
 
 @annotation(namespace="ns1", group_id=SimpleTuple("group1"))

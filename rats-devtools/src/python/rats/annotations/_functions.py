@@ -4,7 +4,9 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 from functools import cache
-from typing import Any, NamedTuple, ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
+
+from typing_extensions import NamedTuple
 
 from rats.annotations._groups import GroupAnnotations, T_GroupType
 
