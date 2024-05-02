@@ -5,64 +5,55 @@ from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
 
-import click
-
 # pyright seems to struggle with this namespace package
 # https://github.com/microsoft/pyright/issues/2882
 from rats import apps as apps
-
-from ._ids import PluginServices
+from rats import command_tree as command_tree
 
 logger = logging.getLogger(__name__)
 
 
-class RatsCiCommands(apps.AnnotatedContainer):
+class RatsCiCommandTrees(apps.AnnotatedContainer):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.service(PluginServices.command("mkdocs-serve"))
-    def mkdocs_serve_command(self) -> click.Command:
-        @click.command()
-        def mkdocs_serve() -> None:
-            """Combine our docs across components and run the mkdocs serve command."""
-            self._do_mkdocs_things("serve")
+    @apps.group(command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools docs"))
+    def mkdocs_serve_command_tree(self) -> command_tree.CommandTree:
+        return command_tree.CommandTree(
+            name="mkdocs-serve",
+            description="Combine our docs across components and run the mkdocs serve command.",
+            handler=lambda: self._do_mkdocs_things("serve"),
+        )
 
-        return mkdocs_serve
-
-    @apps.service(PluginServices.command("sphinx-build"))
-    def sphinx_build_command(self) -> click.Command:
-        @click.command()
+    @apps.group(command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools docs"))
+    def sphinx_build_command_tree(self) -> command_tree.CommandTree:
         def sphinx_build() -> None:
-            """Build the API documentation for each of the components."""
             self._sphinx_apidoc()
             self._sphinx_markdown()
 
-        return sphinx_build
+        return command_tree.CommandTree(
+            name="sphinx-build",
+            description="Build the API documentation for each of the components.",
+            handler=sphinx_build,
+        )
 
-    @apps.service(PluginServices.command("mkdocs-build"))
-    def mkdocs_build_command(self) -> click.Command:
-        @click.command
-        def mkdocs_build() -> None:
-            """Combine our docs across components using mkdocs build."""
-            self._do_mkdocs_things("build")
+    @apps.group(command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools docs"))
+    def mkdocs_build_command_tree(self) -> command_tree.CommandTree:
+        return command_tree.CommandTree(
+            name="mkdocs-build",
+            description="Combine our docs across components using mkdocs build.",
+            handler=lambda: self._do_mkdocs_things("build"),
+        )
 
-        return mkdocs_build
-
-    @apps.service(PluginServices.command("build-tutorial-notebooks"))
-    def build_tutorial_notebooks_command(self) -> click.Command:
-        @click.command()
-        def build_tutorial_notebooks() -> None:
-            """
-            Build the tutorial notebooks section of each component's documentation.
-
-            Converts each *.py jupytext file in the component's docs/_tutorial_notebook_sources
-            folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
-            """
-            self._build_tutorial_notebooks()
-
-        return build_tutorial_notebooks
+    @apps.group(command_tree.CommandTreeServices.GROUPS.subcommands("rats-devtools docs"))
+    def build_tutorial_notebooks_command_tree(self) -> command_tree.CommandTree:
+        return command_tree.CommandTree(
+            name="build-tutorial-notebooks",
+            description="Build the tutorial notebooks section of each component's documentation.",
+            handler=self._build_tutorial_notebooks,
+        )
 
     def _do_mkdocs_things(self, cmd: str) -> None:
         devtools_path = Path("rats-devtools").resolve()

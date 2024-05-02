@@ -26,7 +26,7 @@ class AppServices:
 
 
 class AppContainer(apps.AnnotatedContainer):
-    @apps.service(AppServices.CLI_EXE)
+    # @apps.service(AppServices.CLI_EXE)
     def command_tree_cli_exe(self) -> apps.Executable:
         return command_tree.CommandTreeClickExecutable(self.get(AppServices.CLI_COMMAND_TREE))
 
@@ -47,7 +47,7 @@ class AppContainer(apps.AnnotatedContainer):
             ),
         )
 
-    # @apps.service(AppServices.CLI_EXE)
+    @apps.service(AppServices.CLI_EXE)
     def cli_exe(self) -> CommandGroup:
         return CommandGroup(PluginRunner(self.get_group(AppServices.GROUPS.CLI_ROOT_PLUGINS)))
 
