@@ -2,15 +2,18 @@ import logging
 
 import click
 
-from rats import apps
+# pyright seems to struggle with this namespace package
+# https://github.com/microsoft/pyright/issues/2882
+from rats import apps as apps
+from rats import cli as cli
 
-from ._groups import CommandGroup, CommandGroupPlugin, GroupCommands
+from ._groups import CommandGroup, GroupCommands
 from ._plugins import PluginRunner
 
 
 @apps.autoscope
 class AppGroups:
-    CLI_ROOT_PLUGINS = apps.ServiceId[CommandGroupPlugin]("cli-plugins[root]")
+    CLI_ROOT_PLUGINS = apps.ServiceId[cli.CommandGroupPlugin]("cli-plugins[root]")
     CLI_ROOT_COMMANDS = apps.ServiceId[click.Command]("cli-commands[root]")
 
 

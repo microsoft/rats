@@ -2,7 +2,11 @@ from collections.abc import Callable
 
 import click
 
-from rats import apps, devtools  # type: ignore[reportAttributeAccessIssue]
+# pyright seems to struggle with this namespace package
+# https://github.com/microsoft/pyright/issues/2882
+from rats import apps as apps
+from rats import cli as cli
+from rats import devtools as devtools
 from rats.pycharm._formatter import FileFormatter, FileFormatterRequest
 
 
@@ -28,9 +32,9 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
         def get(name: str) -> Callable[[], click.Command]:
             return lambda: self._app.get(PluginServices.command(name))
 
-        return devtools.LazyClickGroup(
+        return cli.DeferredCommandGroup(
             name="pycharm",
-            provider=devtools.CommandProvider(
+            provider=cli.CommandProvider(
                 commands={name: get(name) for name in cmds},
             ),
         )
