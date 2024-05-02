@@ -4,7 +4,6 @@ from typing import NamedTuple, cast
 import pandas as pd
 from sklearn.linear_model import LogisticRegression as LR
 
-from rats import apps
 from rats import processors as rp
 from rats.processors import typing as rpt
 
@@ -120,8 +119,8 @@ class LRPipelineContainer(rp.PipelineContainer):
         Samples not associated with labels or whose labels are NaN will be ignored.
         Non-binary labels will raise an error.
         """
-        sanitize = self.get(apps.autoid(self.sanitize_labels))
-        train = self.get(apps.autoid(self.train))
+        sanitize = self.sanitize_labels()
+        train = self.train()
         return cast(
             TrainPl,
             self.combine(

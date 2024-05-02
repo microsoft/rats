@@ -63,6 +63,8 @@
         "[yaml]": {
             "editor.autoIndent": "advanced"
         },
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
         "markdown.validate.enabled": true,
         "notebook.formatOnSave.enabled": true,
         "notebook.codeActionsOnSave": {
@@ -79,6 +81,7 @@
             "${workspaceFolder}/src/python"
         ],
         "python.analysis.inlayHints.pytestParameters": true,
+        "python.defaultInterpreterPath": ".venv/bin/python",
         "python.envFile": "${workspaceFolder}/.envrc",
         "redhat.telemetry.enabled": false,
         "search.exclude": {

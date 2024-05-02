@@ -117,11 +117,13 @@ Requires [Docker](https://www.docker.com/get-started/) installed on your local m
 and/or [PyCharm](https://www.jetbrains.com/help/pycharm/connect-to-devcontainer.html).
 
 
-### GitHub Codespaces
+### Codespaces
 
-Learn about [codespaces](https://docs.github.com/en/codespaces).
+Learn about [GitHub Codespaces](https://docs.github.com/en/codespaces) and/or [DevPod](https://devpod.sh/).
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/rats)
+
+[![Open in DevPod!](https://devpod.sh/assets/open-in-devpod.svg)](https://devpod.sh/open#https://github.com/microsoft/rats)
 
 ## :mountain: Contributing
 

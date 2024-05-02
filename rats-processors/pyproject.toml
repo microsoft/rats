@@ -65,7 +65,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
 pythonVersion = "3.10"
-include = ["src/python", "test/python"]
+include = ["src/python", "test/python", "docs/_tutorial_notebook_sources"]
 exclude = ["**/__pycache__"]
 deprecateTypingAliases = true
 reportPropertyTypeMismatch = true
@@ -114,7 +114,12 @@ reportIncompatibleMethodOverride = false
 
 [tool.ruff]
 cache-dir = "../.tmp/rats-processors/.ruff_cache"
-include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
+include = [
+  "src/python/**/*.py",
+  "test/python/**/*.py",
+  "docs/_tutorial_notebook_sources/*.py",
+  "pyproject.toml"
+]
 line-length = 99
 indent-width = 4
 target-version = "py310"
