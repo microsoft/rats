@@ -10,6 +10,7 @@ repos:
       - id: ruff-format
         name: ruff-format
         entry: "bin/ruff-format"
+        require_serial: true
         language: script
         pass_filenames: true
         files: "src/python/|test/python/"
@@ -17,6 +18,7 @@ repos:
       - id: ruff-check
         name: ruff-check
         entry: "bin/ruff-check"
+        require_serial: true
         language: script
         pass_filenames: true
         files: "src/python/|test/python/"
