@@ -9,60 +9,39 @@ import click
 
 # pyright seems to struggle with this namespace package
 # https://github.com/microsoft/pyright/issues/2882
-from rats import apps as apps
+from rats import apps as apps, cli
 
 from ._ids import PluginServices
 
 logger = logging.getLogger(__name__)
 
 
-class RatsCiCommands(apps.AnnotatedContainer):
-    _app: apps.Container
+class RatsCiCommands(cli.CommandContainer):
+    @cli.command(cli.CommandId.auto())
+    def mkdocs_serve(self) -> None:
+        """Combine our docs across components and run the mkdocs serve command."""
+        self._do_mkdocs_things("serve")
 
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+    @cli.command(cli.CommandId.auto())
+    def sphinx_build(self) -> None:
+        """Build the API documentation for each of the components."""
+        self._sphinx_apidoc()
+        self._sphinx_markdown()
 
-    @apps.service(PluginServices.command("mkdocs-serve"))
-    def mkdocs_serve_command(self) -> click.Command:
-        @click.command()
-        def mkdocs_serve() -> None:
-            """Combine our docs across components and run the mkdocs serve command."""
-            self._do_mkdocs_things("serve")
+    @cli.command(cli.CommandId.auto())
+    def mkdocs_build(self) -> None:
+        """Combine our docs across components using mkdocs build."""
+        self._do_mkdocs_things("build")
 
-        return mkdocs_serve
+    @cli.command(cli.CommandId.auto())
+    def build_tutorial_notebooks(self) -> None:
+        """
+        Build the tutorial notebooks section of each component's documentation.
 
-    @apps.service(PluginServices.command("sphinx-build"))
-    def sphinx_build_command(self) -> click.Command:
-        @click.command()
-        def sphinx_build() -> None:
-            """Build the API documentation for each of the components."""
-            self._sphinx_apidoc()
-            self._sphinx_markdown()
-
-        return sphinx_build
-
-    @apps.service(PluginServices.command("mkdocs-build"))
-    def mkdocs_build_command(self) -> click.Command:
-        @click.command
-        def mkdocs_build() -> None:
-            """Combine our docs across components using mkdocs build."""
-            self._do_mkdocs_things("build")
-
-        return mkdocs_build
-
-    @apps.service(PluginServices.command("build-tutorial-notebooks"))
-    def build_tutorial_notebooks_command(self) -> click.Command:
-        @click.command()
-        def build_tutorial_notebooks() -> None:
-            """
-            Build the tutorial notebooks section of each component's documentation.
-
-            Converts each *.py jupytext file in the component's docs/_tutorial_notebook_sources
-            folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
-            """
-            self._build_tutorial_notebooks()
-
-        return build_tutorial_notebooks
+        Converts each *.py jupytext file in the component's docs/_tutorial_notebook_sources
+        folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
+        """
+        self._build_tutorial_notebooks()
 
     def _do_mkdocs_things(self, cmd: str) -> None:
         devtools_path = Path("rats-devtools").resolve()
