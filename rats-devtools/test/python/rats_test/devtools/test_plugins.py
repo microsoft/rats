@@ -1,6 +1,6 @@
 from typing import Any
 
-from rats.devtools._plugins import PluginRunner
+from rats.apps import PluginRunner
 
 
 def test_plugin_runner_apply() -> None:

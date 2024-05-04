@@ -3,11 +3,8 @@ from unittest.mock import MagicMock, create_autospec
 
 import click
 
-from rats.devtools._groups import (
-    CommandGroup,
-    GroupCommands,
-    PluginRunner,
-)
+from rats.apps import PluginRunner
+from rats.cli import ClickExecutable, GroupCommands
 
 
 @mock.patch("click.Group")
@@ -23,13 +20,15 @@ def test_command_group_execute_registers_commands(m_click_group: MagicMock):
 
     m_group_instance = m_click_group.return_value
 
-    command_group = CommandGroup(plugins=PluginRunner(iter([plugin1, plugin2])))
+    command_group = ClickExecutable(
+        command=lambda: m_group_instance,
+        plugins=PluginRunner(iter([plugin1, plugin2])),
+    )
     command_group.execute()
 
     assert len(registered_plugins) == 2
     assert plugin1 in registered_plugins
     assert plugin2 in registered_plugins
-    m_click_group.assert_called_once()
     m_group_instance.assert_called_once()
 
 

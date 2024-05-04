@@ -1,4 +1,3 @@
-# type: ignore
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -9,13 +8,13 @@ import click
 
 from rats import annotations
 
-from ..annotations import AnnotationsContainer, DecoratorType
-from ._groups import CommandGroupPlugin
+from ._groups import ClickGroupPlugin
 
 
 class CommandId(NamedTuple):
     name: str
 
+    # does this api make it impossible to reference a given command that was auto generated?
     @staticmethod
     def auto() -> CommandId:
         return CommandId(name=f"{__name__}:auto")
@@ -24,7 +23,7 @@ class CommandId(NamedTuple):
 T = TypeVar("T", bound=Callable)
 
 
-def command(command_id: CommandId) -> DecoratorType:
+def command(command_id: CommandId) -> annotations.DecoratorType:
     def decorator(fn: T) -> T:
         if command_id == CommandId.auto():
             return annotations.annotation("commands", CommandId(fn.__name__.replace("_", "-")))(fn)
@@ -33,11 +32,22 @@ def command(command_id: CommandId) -> DecoratorType:
     return decorator
 
 
-def get_class_commands(cls: type) -> AnnotationsContainer:
+def group(command_id: CommandId) -> annotations.DecoratorType:
+    def decorator(fn: T) -> T:
+        if command_id == CommandId.auto():
+            return annotations.annotation(
+                "command-groups", CommandId(fn.__name__.replace("_", "-"))
+            )(fn)
+        return annotations.annotation("commands", command_id)(fn)
+
+    return decorator
+
+
+def get_class_commands(cls: type) -> annotations.AnnotationsContainer:
     return annotations.get_class_annotations(cls).with_namespace("commands")
 
 
-class CommandContainer(CommandGroupPlugin):
+class CommandContainer(ClickGroupPlugin):
     def on_group_open(self, group: click.Group) -> None:
         def cb(_method: Callable[[Any], Any], *args: Any, **kwargs: Any) -> None:
             """

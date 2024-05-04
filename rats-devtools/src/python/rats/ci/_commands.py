@@ -72,7 +72,7 @@ class RatsCiCommands(apps.AnnotatedContainer):
 
             poetry_commands = [
                 ["ruff", "check", "--fix", "--unsafe-fixes"],
-                ["ruff", "format", "--check"],
+                ["ruff", "format"],
                 ["pyright"],
                 ["pytest"],
             ]

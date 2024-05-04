@@ -8,14 +8,15 @@ from rats import apps as apps
 from rats import cli as cli
 from rats import command_tree as command_tree
 
-from ._groups import CommandGroup, GroupCommands
-from ._plugins import PluginRunner
-
 
 @apps.autoscope
 class AppGroups:
-    CLI_ROOT_PLUGINS = apps.ServiceId[cli.CommandGroupPlugin]("cli-plugins[root]")
+    CLI_ROOT_PLUGINS = apps.ServiceId[cli.ClickGroupPlugin]("cli-plugins[root]")
     CLI_ROOT_COMMANDS = apps.ServiceId[click.Command]("cli-commands[root]")
+
+    @staticmethod
+    def commands(group: click.Group) -> apps.ServiceId[cli.ClickGroupPlugin]:
+        return apps.ServiceId[cli.ClickGroupPlugin](f"cli-plugins[{group.name}]")
 
 
 @apps.autoscope
@@ -48,12 +49,15 @@ class AppContainer(apps.AnnotatedContainer):
         )
 
     @apps.service(AppServices.CLI_EXE)
-    def cli_exe(self) -> CommandGroup:
-        return CommandGroup(PluginRunner(self.get_group(AppServices.GROUPS.CLI_ROOT_PLUGINS)))
+    def cli_exe(self) -> apps.Executable:
+        return cli.ClickExecutable(
+            command=lambda: click.Group(),
+            plugins=apps.PluginRunner(self.get_group(AppServices.GROUPS.CLI_ROOT_PLUGINS)),
+        )
 
     @apps.group(AppServices.GROUPS.CLI_ROOT_PLUGINS)
-    def root_commands_plugin(self) -> GroupCommands:
-        return GroupCommands(self.get_group(AppServices.GROUPS.CLI_ROOT_COMMANDS))
+    def root_commands_plugin(self) -> cli.GroupCommands:
+        return cli.GroupCommands(self.get_group(AppServices.GROUPS.CLI_ROOT_COMMANDS))
 
     @apps.container()
     def plugins(self) -> apps.Container:

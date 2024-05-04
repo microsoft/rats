@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Protocol, final
+from typing import Iterator, Protocol, final
 
 import click
 
@@ -21,7 +21,18 @@ class DeferredCommandGroup(click.Group):
         return list(self._provider.list())
 
 
-class CommandGroupPlugin(Protocol):
+class ClickGroupPlugin(Protocol):
     @abstractmethod
     def on_group_open(self, group: click.Group) -> None:
         pass
+
+
+class GroupCommands(ClickGroupPlugin):
+    _commands: Iterator[click.Command]
+
+    def __init__(self, commands: Iterator[click.Command]) -> None:
+        self._commands = commands
+
+    def on_group_open(self, group: click.Group) -> None:
+        for command in self._commands:
+            group.add_command(command)

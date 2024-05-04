@@ -29,6 +29,7 @@ from ._executables import App, AppContainer, Executable
 from ._ids import ConfigId, ServiceId
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
+from ._plugins import PluginRunner
 from ._scoping import autoscope
 
 __all__ = [
@@ -50,6 +51,7 @@ __all__ = [
     "autoscope",
     "config",
     "container",
+    "PluginRunner",
     "fallback_config",
     "fallback_group",
     "fallback_service",
