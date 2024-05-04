@@ -11,7 +11,10 @@ class ClickGroupPlugin(Protocol):
         pass
 
 
-class GroupCommands(ClickGroupPlugin):
+class AttachGroupCommands(ClickGroupPlugin):
+    """
+    When a group is opened, attach a set of commands to it.
+    """
     _commands: Iterator[click.Command]
 
     def __init__(self, commands: Iterator[click.Command]) -> None:

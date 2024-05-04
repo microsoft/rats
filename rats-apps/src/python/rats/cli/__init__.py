@@ -3,7 +3,7 @@
 from ._annotations import CommandContainer, CommandId, command, group
 from ._click import ClickCommandGroup, ClickCommandMapper
 from ._executable import ClickExecutable, ClickGroup
-from ._groups import ClickGroupPlugin, GroupCommands
+from ._groups import ClickGroupPlugin, AttachGroupCommands
 
 __all__ = [
     "CommandId",
@@ -14,6 +14,6 @@ __all__ = [
     "ClickExecutable",
     "ClickGroupPlugin",
     "ClickCommandGroup",
-    "GroupCommands",
+    "AttachGroupCommands",
     "ClickGroup",
 ]

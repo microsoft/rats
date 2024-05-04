@@ -3,7 +3,7 @@ from unittest.mock import create_autospec
 import click
 import pytest
 
-from rats.cli import ClickCommandGroup, ClickCommandMapper
+from rats.cli import ClickCommandMapper
 
 
 def test_command_provider_get_command():

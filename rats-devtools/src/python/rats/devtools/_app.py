@@ -56,8 +56,8 @@ class AppContainer(apps.AnnotatedContainer):
         )
 
     @apps.group(AppServices.GROUPS.CLI_ROOT_PLUGINS)
-    def root_commands_plugin(self) -> cli.GroupCommands:
-        return cli.GroupCommands(self.get_group(AppServices.GROUPS.CLI_ROOT_COMMANDS))
+    def root_commands_plugin(self) -> cli.AttachGroupCommands:
+        return cli.AttachGroupCommands(self.get_group(AppServices.GROUPS.CLI_ROOT_COMMANDS))
 
     @apps.container()
     def plugins(self) -> apps.Container:
