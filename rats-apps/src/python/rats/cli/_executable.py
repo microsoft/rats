@@ -21,21 +21,3 @@ class ClickExecutable(apps.Executable):
         cmd = self._command()
         self._plugins.apply(lambda plugin: plugin.on_group_open(cmd))
         cmd()
-
-
-class ClickGroup(ClickGroupPlugin):
-    _group: apps.ServiceProvider[click.Group]
-    _plugins: apps.PluginRunner[ClickGroupPlugin]
-
-    def __init__(
-        self,
-        group: apps.ServiceProvider[click.Group],
-        plugins: apps.PluginRunner[ClickGroupPlugin],
-    ) -> None:
-        self._group = group
-        self._plugins = plugins
-
-    def on_group_open(self, group: click.Group) -> None:
-        cmd = self._group()
-        self._plugins.apply(lambda plugin: plugin.on_group_open(cmd))
-        group.add_command(cmd)

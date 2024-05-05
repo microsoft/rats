@@ -16,8 +16,8 @@ class RatsCiPlugin(apps.AnnotatedContainer):
         self._app = app
 
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_PLUGINS)
-    def ci_command(self) -> cli.ClickGroup:
-        return cli.ClickGroup(
+    def ci_command(self) -> cli.AttachClickGroup:
+        return cli.AttachClickGroup(
             group=lambda: click.Group("ci"),
             plugins=apps.PluginRunner(
                 iter([RatsCiCommands()]),

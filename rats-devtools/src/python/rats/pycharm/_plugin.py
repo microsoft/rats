@@ -31,7 +31,7 @@ class RatsPycharmPlugin(apps.AnnotatedContainer):
 
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_PLUGINS)
     def pycharm_command(self) -> cli.ClickGroupPlugin:
-        return cli.ClickGroup(
+        return cli.AttachClickGroup(
             group=lambda: click.Group("pycharm"),
             plugins=apps.PluginRunner(
                 iter([PycharmCommands()]),

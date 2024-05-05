@@ -16,8 +16,8 @@ class RatsDocsPlugin(apps.AnnotatedContainer):
         self._app = app
 
     @apps.group(devtools.AppServices.GROUPS.CLI_ROOT_PLUGINS)
-    def docs_command(self) -> cli.ClickGroup:
-        return cli.ClickGroup(
+    def docs_command(self) -> cli.AttachClickGroup:
+        return cli.AttachClickGroup(
             group=lambda: click.Group("docs"),
             plugins=apps.PluginRunner(
                 iter([RatsCiCommands()]),
