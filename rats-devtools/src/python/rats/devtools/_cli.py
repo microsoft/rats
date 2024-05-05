@@ -6,6 +6,13 @@ from ._ids import AppServices
 
 
 class DevtoolsCliPlugin(apps.AnnotatedContainer):
+    """
+    Plugin that provides the root cli experience for rats-devtools.
+
+    This package doesn't include any commands on its own, but it provides a plugin for others to
+    create and attach subcommands to the `rats-devtools` command.
+    """
+
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -19,5 +26,5 @@ class DevtoolsCliPlugin(apps.AnnotatedContainer):
         )
 
     @apps.group(AppServices.GROUPS.CLI_ROOT_PLUGINS)
-    def root_commands_plugin(self) -> cli.AttachGroupCommands:
-        return cli.AttachGroupCommands(self._app.get_group(AppServices.GROUPS.CLI_ROOT_COMMANDS))
+    def root_commands_plugin(self) -> cli.AttachClickCommands:
+        return cli.AttachClickCommands(self._app.get_group(AppServices.GROUPS.CLI_ROOT_COMMANDS))

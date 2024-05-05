@@ -8,7 +8,7 @@ import click
 
 from rats import annotations
 
-from ._groups import ClickGroupPlugin
+from ._plugins import ClickGroupPlugin
 
 
 class CommandId(NamedTuple):

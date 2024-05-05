@@ -1,7 +1,8 @@
 import click
 
 from rats import apps
-from ._groups import ClickGroupPlugin
+
+from ._plugins import ClickGroupPlugin
 
 
 class ClickExecutable(apps.Executable):
