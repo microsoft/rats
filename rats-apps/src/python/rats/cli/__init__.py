@@ -14,4 +14,6 @@ __all__ = [
     "ClickGroupPlugin",
     "ClickCommandGroup",
     "AttachClickCommands",
+    "AttachClickGroup",
+    "CommandContainer",
 ]

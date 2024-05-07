@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from functools import partial
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
 import click
 
 from rats import apps
-from rats.cli._annotations import get_class_commands
+
+from ._annotations import get_class_commands
 
 
 class ClickGroupPlugin(Protocol):
@@ -63,7 +64,10 @@ class CommandContainer(ClickGroupPlugin):
             """
             _method(*args, **kwargs)
 
-        for tate in get_class_commands(type(self)).annotations:
+        commands = get_class_commands(type(self))
+        tates = commands.annotations
+
+        for tate in tates:
             method = getattr(self, tate.name)
             params = list(reversed(getattr(method, "__click_params__", [])))
             for command in tate.groups:

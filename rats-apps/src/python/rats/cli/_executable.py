@@ -6,12 +6,12 @@ from ._plugins import ClickGroupPlugin
 
 
 class ClickExecutable(apps.Executable):
-    _command: apps.ServiceProvider[click.Command]
+    _command: apps.ServiceProvider[click.Group]
     _plugins: apps.PluginRunner[ClickGroupPlugin]
 
     def __init__(
         self,
-        command: apps.ServiceProvider[click.Command],
+        command: apps.ServiceProvider[click.Group],
         plugins: apps.PluginRunner[ClickGroupPlugin],
     ) -> None:
         self._command = command
