@@ -1,3 +1,4 @@
+import abc
 from collections import defaultdict
 from collections.abc import Callable, Iterator
 from functools import cache
@@ -70,7 +71,7 @@ class FunctionAnnotationsBuilder:
         )
 
 
-class AnnotatedContainer(Container):
+class AnnotatedContainer(Container, abc.ABC):
     def get_namespaced_group(
         self,
         namespace: str,

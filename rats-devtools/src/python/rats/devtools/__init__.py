@@ -1,9 +1,5 @@
-from ._app import RatsDevtoolsGroups
-from ._click import ClickCommandGroup, ClickCommandRegistry, command
+"""Some utilities for developing the devtool cli commands."""
 
-__all__ = [
-    "ClickCommandGroup",
-    "ClickCommandRegistry",
-    "command",
-    "RatsDevtoolsGroups",
-]
+from ._ids import AppServices
+
+__all__ = ["AppServices"]

@@ -1,43 +1,25 @@
 import logging
-from typing import Any
 
-from rats import apps
+# pyright seems to struggle with this namespace package
+# https://github.com/microsoft/pyright/issues/2882
+from rats import apps as apps
 
-from ._click import ClickCommandGroup, ClickCommandRegistry
-from ._commands import RatsDevtoolsCommands
-
-
-@apps.autoscope
-class RatsDevtoolsServices:
-    CLI = apps.ServiceId[apps.Executable]("cli")
+from ._cli import DevtoolsCliPlugin
+from ._cli_tree import DevtoolsCliTreePlugin
+from ._ids import AppServices
 
 
-class RatsDevtoolsGroups:
-    COMMANDS = apps.ServiceId[ClickCommandRegistry]("commands")
-
-
-class RatsDevtoolsAppContainer(apps.AnnotatedContainer):
-    def get_service_ids(self) -> Any:
-        raise RuntimeError("deprecated method added for backwards compatibility")
-
-    @apps.service(RatsDevtoolsServices.CLI)
-    def cli(self) -> ClickCommandGroup:
-        return ClickCommandGroup(
-            lambda: self.get_group(
-                RatsDevtoolsGroups.COMMANDS,
-            )
-        )
-
-    @apps.group(RatsDevtoolsGroups.COMMANDS)
-    def commands(self) -> RatsDevtoolsCommands:
-        return RatsDevtoolsCommands()
-
+class AppContainer(apps.AnnotatedContainer):
     @apps.container()
     def plugins(self) -> apps.Container:
-        return apps.PluginContainers(self, "rats.devtools.plugins")
+        return apps.CompositeContainer(
+            apps.PluginContainers(self, "rats.devtools.plugins"),
+            DevtoolsCliPlugin(self),
+            DevtoolsCliTreePlugin(self),
+        )
 
 
 def run() -> None:
     logging.basicConfig(level=logging.INFO)
-    container = RatsDevtoolsAppContainer()
-    container.get(RatsDevtoolsServices.CLI).execute()
+    container = AppContainer()
+    container.get(AppServices.CLI_EXE).execute()

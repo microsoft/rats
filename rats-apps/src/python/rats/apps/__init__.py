@@ -18,11 +18,18 @@ from ._annotations import (
     service,
 )
 from ._composite_container import CompositeContainer
-from ._container import Container, DuplicateServiceError, ServiceNotFoundError
+from ._container import (
+    ConfigProvider,
+    Container,
+    DuplicateServiceError,
+    ServiceNotFoundError,
+    ServiceProvider,
+)
 from ._executables import App, AppContainer, Executable
 from ._ids import ConfigId, ServiceId
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
+from ._plugins import PluginRunner
 from ._scoping import autoscope
 
 __all__ = [
@@ -36,12 +43,15 @@ __all__ = [
     "Executable",
     "PluginContainers",
     "ProviderNamespaces",
+    "ConfigProvider",
+    "ServiceProvider",
     "ServiceId",
     "ServiceNotFoundError",
     "autoid_service",
     "autoscope",
     "config",
     "container",
+    "PluginRunner",
     "fallback_config",
     "fallback_group",
     "fallback_service",

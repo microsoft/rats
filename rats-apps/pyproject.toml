@@ -28,6 +28,7 @@ version-pinning-strategy = "semver"
 [tool.poetry.dependencies]
 python = "^3.10"
 typing_extensions = "*"
+click = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"

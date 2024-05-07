@@ -62,7 +62,7 @@ jobs:
           pipx install -e rats-devtools/
       - name: "poetry-install"
         run: |
-          rats-devtools install ${{ matrix.component }}/
+          rats-devtools ci poetry-install ${{ matrix.component }}/
       - id: package-info
         name: package-info
         run: |
@@ -155,14 +155,15 @@ jobs:
       - name: "poetry-install"
         run: |
           # I would like to optimize this soon before these steps become too slow
-          rats-devtools install rats-devtools/
-          rats-devtools install rats-pipelines/
-          rats-devtools install rats-processors/
-          rats-devtools install rats-examples-sklearn/
+          rats-devtools ci poetry-install rats-apps/
+          rats-devtools ci poetry-install rats-devtools/
+          rats-devtools ci poetry-install rats-pipelines/
+          rats-devtools ci poetry-install rats-processors/
+          rats-devtools ci poetry-install rats-examples-sklearn/
       - name: "build-docs"
         run: |
-          rats-devtools build-api-docs
-          rats-devtools mkdocs-build
+          rats-devtools docs sphinx-build
+          rats-devtools docs mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3
         with:

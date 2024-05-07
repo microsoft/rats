@@ -60,8 +60,12 @@ sphinx-markdown-builder = "*"
 rats-devtools = "rats.devtools.__main__:run"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
-"rats-devtools.pycharm" = "rats.pycharm._app:RatsPycharmPlugin"
-"rats-devtools.ci" = "rats.ci._app:RatsCiPlugin"
+"rats-devtools.ci" = "rats.ci._plugin:RatsCiPlugin"
+"rats-devtools.docs" = "rats.docs._plugin:RatsDocsPlugin"
+"rats-devtools.pycharm" = "rats.pycharm._plugin:RatsPycharmPlugin"
+"rats-devtools-ct.ci" = "rats.ci._command_tree_plugin:RatsCiCommandTreePlugin"
+"rats-devtools-ct.docs" = "rats.docs._command_tree_plugin:RatsDocsCommandTreePlugin"
+"rats-devtools-ct.pycharm" = "rats.pycharm._command_tree_plugin:RatsPycharmCommandTreePlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
@@ -124,19 +128,26 @@ target-version = "py310"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
-select = ["B", "D", "E", "F", "I", "Q", "W", "NPY", "PD", "PTH", "RUF", "UP"]
+select = [
+    "B",    # Bugbear
+    "D",    # Docstring
+    "E",    # Pycodestyle
+    "F",    # Pyflakes
+    "I",    # Import
+    "Q",    # Quotes
+    "W",    # PEP8 warnings
+    "NPY",  # Numpy
+    "PD",   # Pydocstyle
+    "PTH",  # Path
+    "RUF",  # Ruff
+    "UP",   # Unittest
+    "D213", # D213: Multi-line docstring summary should start at the second line
+]
 ignore = [
-    "B026", # B026: Star-arg unpacking after a keyword argument is strongly discouraged
-    "D100", # D100: Missing docstring in public module
-    "D101", # D101: Missing docstring in public class
-    "D102", # D102: Missing docstring in public method
-    "D103", # D103: Missing docstring in public function
-    "D104", # D104: Missing docstring in public package
-    "D105", # D105: Missing docstring in magic method
-    "D107", # D107: Missing docstring in __init__
-    "D417", # D417: Missing argument descriptions in Docstrings
-    "E203", # E203: Whitespace before ':'
     "E501", # E501: Line too long ({width} > {limit})
+    "D212", # D212: Multi-line docstring summary should start at the second line
+    # This rule seems buggy: https://github.com/astral-sh/ruff/issues/2480
+    "PD011", # PD011: Use `.to_numpy()` instead of `.values`
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -147,7 +158,14 @@ unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
-"test/*" = ["F401"] # unused-import
+"test/*" = [
+    "F401", # Unused import
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
