@@ -5,6 +5,7 @@ on:
 permissions:
   contents: read
   actions: read
+  checks: write
   id-token: write
   pages: write
   security-events: write
