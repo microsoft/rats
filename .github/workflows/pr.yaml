@@ -1,12 +1,10 @@
 name: PR
 on:
-  push:
-    branches-ignore: ["main"]
+  pull_request:
+    branches: [ main ]
 permissions:
   contents: read
   actions: read
-#  pull-requests: write
-  checks: write
   id-token: write
   pages: write
   security-events: write
