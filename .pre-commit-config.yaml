@@ -47,7 +47,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.25.0
+    rev: v3.27.0
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
@@ -56,7 +56,7 @@ repos:
         stages: [push]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
-    rev: v0.3.1
+    rev: v0.3.2
     hooks:
       - id: conventional-gitmoji
 
@@ -67,7 +67,7 @@ repos:
         additional_dependencies: [black]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         name: Run codespell to check for common misspellings in files
