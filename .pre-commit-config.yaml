@@ -1,8 +1,8 @@
-exclude: (?x)(^.idea/)
-
 ci:
   autofix_prs: false
   autoupdate_commit_msg: ":arrow-up: dep-bump(pre-commit): update pre-commit hooks"
+
+default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
   - repo: local
@@ -37,6 +37,7 @@ repos:
       - id: check-symlinks
       - id: check-toml
       - id: check-xml
+        exclude: (?x)(^.idea/)
       - id: check-yaml
         args: ["--unsafe"]
       - id: debug-statements
