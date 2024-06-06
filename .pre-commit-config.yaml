@@ -14,7 +14,7 @@ repos:
         language: script
         pass_filenames: true
         files: "src/python/|test/python/"
-        types: [ python ]
+        types: [python]
       - id: ruff-check
         name: ruff-check
         entry: "bin/ruff-check"
@@ -22,7 +22,7 @@ repos:
         language: script
         pass_filenames: true
         files: "src/python/|test/python/"
-        types: [ python ]
+        types: [python]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
@@ -51,9 +51,6 @@ repos:
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
-      - id: commitizen-branch
-        additional_dependencies: [cz-conventional-gitmoji]
-        stages: [push]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
     rev: v0.3.2
