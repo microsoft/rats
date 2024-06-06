@@ -204,7 +204,7 @@ class RatsCiCommandTrees(apps.AnnotatedContainer):
 
             # symlink the jupytext files to the target path
             for file_name in source_file_names:
-                (jupytext_sources_path / f"{file_name}.py").link_to(
+                (jupytext_sources_path / f"{file_name}.py").hardlink_to(
                     notebooks_target_path / f"{file_name}.py"
                 )
 
