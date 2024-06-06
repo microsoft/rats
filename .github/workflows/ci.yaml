@@ -44,9 +44,6 @@ jobs:
           pipx inject poetry "poetry-dynamic-versioning[plugin]"
           pipx inject poetry "poetry-monorepo-dependency-plugin"
           pipx install -e rats-devtools/
-      - name: test-root-permissions
-        run: |
-          sudo apt-get install -y tmux
       - name: "poetry-install"
         run: |
           rats-devtools ci poetry-install ${{ matrix.component }}/
