@@ -131,14 +131,14 @@ class RatsApp(App, IManageServices, IManageContexts):
         group_id: ServiceId[T_ServiceType],
     ) -> ServiceProvider[Iterable[T_ServiceType]]:
         # pyright issue: https://github.com/microsoft/pyright/issues/6953
-        return self._app_container.get_service_group_provider(group_id)  # pyright: ignore
+        return self._app_container.get_service_group_provider(group_id)
 
     def get_service_group_providers(
         self,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterable[ServiceProvider[T_ServiceType]]:
         # pyright issue: https://github.com/microsoft/pyright/issues/6953
-        return self._app_container.get_service_group_providers(group_id)  # pyright: ignore
+        return self._app_container.get_service_group_providers(group_id)
 
     def add_service(
         self,

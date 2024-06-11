@@ -1,34 +1,18 @@
 name: CI
 on:
-  workflow_dispatch:
-    inputs:
-      sha:
-        description: "the git sha to checkout"
-        required: true
-        type: string
-      publish-wheels:
-        description: "whether to publish wheels to the artifact repo"
-        default: false
-        required: true
-        type: boolean
-      publish-docs:
-        description: "whether to publish docs to the github pages"
-        default: false
-        required: true
-        type: boolean
   workflow_call:
     inputs:
       sha:
-        description: "the git sha to checkout"
+        description: the git sha to checkout
         required: true
         type: string
       publish-wheels:
-        description: "whether to publish wheels to the artifact repo"
+        description: whether to publish wheels to the artifact repo
         default: false
         required: true
         type: boolean
       publish-docs:
-        description: "whether to publish docs to the github pages"
+        description: whether to publish docs to the github pages
         default: false
         required: true
         type: boolean
@@ -92,7 +76,7 @@ jobs:
           cd ${{ matrix.component }}/
           poetry run pytest --cov -m "not skip_in_ci"
       - name: upload-coverage
-        uses: codecov/codecov-action@v4.3.0
+        uses: codecov/codecov-action@v4.4.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: microsoft/rats

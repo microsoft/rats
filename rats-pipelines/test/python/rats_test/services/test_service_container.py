@@ -26,7 +26,7 @@ class TestServiceContainer:
         cats = container.get_service_group_providers(ExampleServiceGroups.CAT)
         for cp in cats:
             c = cp()
-            assert c.speak() == "meow"  # type: ignore
+            assert c.speak() == "meow"
 
     def test_service_inheritance(self) -> None:
         factory = ServiceFactory()

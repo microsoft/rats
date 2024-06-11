@@ -4,6 +4,8 @@ ci:
   autofix_prs: false
   autoupdate_commit_msg: ":arrow-up: dep-bump(pre-commit): update pre-commit hooks"
 
+default_install_hook_types: [pre-commit, commit-msg]
+
 repos:
   - repo: local
     hooks:
@@ -14,7 +16,7 @@ repos:
         language: script
         pass_filenames: true
         files: "src/python/|test/python/"
-        types: [ python ]
+        types: [python]
       - id: ruff-check
         name: ruff-check
         entry: "bin/ruff-check"
@@ -22,7 +24,7 @@ repos:
         language: script
         pass_filenames: true
         files: "src/python/|test/python/"
-        types: [ python ]
+        types: [python]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
@@ -47,16 +49,13 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.25.0
+    rev: v3.27.0
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
-      - id: commitizen-branch
-        additional_dependencies: [cz-conventional-gitmoji]
-        stages: [push]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
-    rev: v0.3.1
+    rev: v0.3.2
     hooks:
       - id: conventional-gitmoji
 
@@ -67,7 +66,7 @@ repos:
         additional_dependencies: [black]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         name: Run codespell to check for common misspellings in files
