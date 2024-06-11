@@ -189,10 +189,12 @@ def fn_annotation_decorator(
 def _extract_class_annotations(cls: Any) -> FunctionAnnotations:
     function_annotations: list[GroupAnnotations] = []
     for method_name in dir(cls):
-        if method_name.startswith("_"):
+        try:
+            builder = _get_annotations_builder(getattr(cls, method_name))
+        except AttributeError:
+            # this is not a method that supports annotation builders
             continue
 
-        builder = _get_annotations_builder(getattr(cls, method_name))
         function_annotations.extend(list(builder.make(method_name)))
 
     return FunctionAnnotations(tuple(function_annotations))
