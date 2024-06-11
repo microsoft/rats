@@ -25,17 +25,17 @@ from ._container import (
     ServiceNotFoundError,
     ServiceProvider,
 )
-from ._executables import App, AppContainer, Executable
+from ._executables import App, Executable
 from ._ids import ConfigId, ServiceId
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
 from ._plugins import PluginRunner
+from ._runtimes import AppRuntime, SimpleRuntime, T_ExecutableType
 from ._scoping import autoscope
 
 __all__ = [
     "AnnotatedContainer",
     "App",
-    "AppContainer",
     "CompositeContainer",
     "ConfigId",
     "Container",
@@ -58,4 +58,7 @@ __all__ = [
     "group",
     "autoid",
     "service",
+    "T_ExecutableType",
+    "AppRuntime",
+    "SimpleRuntime",
 ]
