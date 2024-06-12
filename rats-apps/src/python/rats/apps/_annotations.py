@@ -158,7 +158,7 @@ def fn_annotation_decorator(
 
 
 @cache
-def _extract_class_annotations(cls: Any) -> FunctionAnnotations:
+def extract_class_annotations(cls: Any) -> FunctionAnnotations:
     function_annotations: list[GroupAnnotations] = []
     for method_name in dir(cls):
         try:

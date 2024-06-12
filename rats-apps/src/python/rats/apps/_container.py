@@ -4,7 +4,7 @@ from abc import abstractmethod
 from collections.abc import Callable, Iterator
 from typing import Generic, ParamSpec, Protocol
 
-from ._annotations import _extract_class_annotations, fn_annotation_decorator
+from ._annotations import extract_class_annotations, fn_annotation_decorator
 from ._ids import ServiceId, T_ServiceType, Tco_ConfigType, Tco_ServiceType
 from ._namespaces import ProviderNamespaces
 
@@ -73,7 +73,7 @@ class Container(Protocol):
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service namespace."""
-        annotations = _extract_class_annotations(type(self))
+        annotations = extract_class_annotations(type(self))
         containers = annotations.with_namespace(ProviderNamespaces.CONTAINERS)
         groups = annotations.group_in_namespace(namespace, group_id)
 
@@ -92,10 +92,15 @@ class AnnotatedContainer(Container, abc.ABC):
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         warnings.warn(
-            "AnnotatedContainer.get_namespaced_group is deprecated and will be removed in the next major release. "
-            "AnnotatedContainer functionality has been moved into the apps.Container protocol. "
-            "Please extend apps.Container directly.",
+            " ".join(
+                [
+                    "AnnotatedContainer.get_namespaced_group is deprecated and will be removed in the next major release.",
+                    "AnnotatedContainer functionality has been moved into the apps.Container protocol.",
+                    "Please extend apps.Container directly.",
+                ]
+            ),
             DeprecationWarning,
+            stacklevel=2,
         )
         return super().get_namespaced_group(namespace, group_id)
 

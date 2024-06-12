@@ -29,11 +29,11 @@ class SimpleRuntime(Runtime):
 
     _app: Container
 
-    def execute(self, *exe_ids: ServiceId[Executable]) -> None:
+    def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
         for exe_id in exe_ids:
             self._app.get(exe_id).execute()
 
-    def execute_group(self, *exe_group_ids: ServiceId[Executable]) -> None:
+    def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
         for exe_group_id in exe_group_ids:
             for exe in self._app.get_group(exe_group_id):
                 exe.execute()
