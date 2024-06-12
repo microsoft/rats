@@ -94,8 +94,8 @@ class AnnotatedContainer(Container, abc.ABC):
         warnings.warn(
             " ".join(
                 [
-                    "AnnotatedContainer.get_namespaced_group is deprecated and will be removed in the next major release.",
-                    "AnnotatedContainer functionality has been moved into the apps.Container protocol.",
+                    "AnnotatedContainer is deprecated and will be removed in the next major release.",
+                    "The functionality has been moved into the apps.Container protocol.",
                     "Please extend apps.Container directly.",
                 ]
             ),
