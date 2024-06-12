@@ -5,7 +5,7 @@ from rats import apps, cli
 from ._ids import AppServices
 
 
-class DevtoolsCliPlugin(apps.AnnotatedContainer):
+class DevtoolsCliPlugin(apps.Container):
     """
     Plugin that provides the root cli experience for rats-devtools.
 

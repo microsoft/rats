@@ -13,7 +13,7 @@ from rats import command_tree as command_tree
 logger = logging.getLogger(__name__)
 
 
-class RatsCiCommandTrees(apps.AnnotatedContainer):
+class RatsCiCommandTrees(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

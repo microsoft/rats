@@ -10,7 +10,7 @@ class _PrivateIds:
     C1T2a = apps.ServiceId[Tag2]("c1t2a")
 
 
-class DummyContainer1(apps.AnnotatedContainer):
+class DummyContainer1(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -50,7 +50,7 @@ class DummyContainer1(apps.AnnotatedContainer):
         return self._app.get(DummyContainerServiceIds.C2T1)
 
 
-class DummyContainer2(apps.AnnotatedContainer):
+class DummyContainer2(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

@@ -9,7 +9,7 @@ from ._cli_tree import DevtoolsCliTreePlugin
 from ._ids import AppServices
 
 
-class AppContainer(apps.AnnotatedContainer):
+class AppContainer(apps.Container):
     @apps.container()
     def plugins(self) -> apps.Container:
         return apps.CompositeContainer(

@@ -9,7 +9,7 @@ from rats import devtools as devtools
 from ._commands import RatsCiCommands
 
 
-class RatsDocsPlugin(apps.AnnotatedContainer):
+class RatsDocsPlugin(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

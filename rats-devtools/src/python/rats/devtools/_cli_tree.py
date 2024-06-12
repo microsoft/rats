@@ -4,7 +4,7 @@ from rats import command_tree as command_tree
 from ._ids import AppServices
 
 
-class DevtoolsCliTreePlugin(apps.AnnotatedContainer):
+class DevtoolsCliTreePlugin(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 

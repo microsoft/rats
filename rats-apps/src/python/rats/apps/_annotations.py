@@ -1,17 +1,13 @@
-import abc
 from collections import defaultdict
-from collections.abc import Callable, Iterator
+from collections.abc import Callable
 from functools import cache
 from typing import Any, ParamSpec, cast
 
 from typing_extensions import NamedTuple
 
-from ._container import Container
 from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
 from ._namespaces import ProviderNamespaces
 from ._scoping import scope_service_name
-
-DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
 
 
 class GroupAnnotations(NamedTuple):
@@ -71,24 +67,6 @@ class FunctionAnnotationsBuilder:
         )
 
 
-class AnnotatedContainer(Container, abc.ABC):
-    def get_namespaced_group(
-        self,
-        namespace: str,
-        group_id: ServiceId[T_ServiceType],
-    ) -> Iterator[T_ServiceType]:
-        annotations = _extract_class_annotations(type(self))
-        containers = annotations.with_namespace(ProviderNamespaces.CONTAINERS)
-        groups = annotations.group_in_namespace(namespace, group_id)
-
-        for annotation in groups:
-            yield getattr(self, annotation.name)()
-
-        for container in containers:
-            c = getattr(self, container.name)()
-            yield from c.get_namespaced_group(namespace, group_id)
-
-
 P = ParamSpec("P")
 
 
@@ -133,12 +111,6 @@ def fallback_config(
     config_id: ConfigId[T_ConfigType],
 ) -> Callable[[Callable[P, T_ConfigType]], Callable[P, T_ConfigType]]:
     return fn_annotation_decorator(ProviderNamespaces.FALLBACK_SERVICES, config_id)
-
-
-def container(
-    group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
-    return fn_annotation_decorator(ProviderNamespaces.CONTAINERS, group_id)
 
 
 def _get_method_service_id_name(method: Callable[..., Any]) -> str:

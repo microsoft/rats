@@ -6,7 +6,7 @@ from ._ids import ExampleIds
 from ._storage import StorageClient, StorageSettings
 
 
-class ExampleStoragePlugin(apps.AnnotatedContainer):
+class ExampleStoragePlugin(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

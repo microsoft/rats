@@ -5,7 +5,7 @@ from . import ux
 from ._interfaces import IPipelineRunnerFactory
 
 
-class LegacyServicesWrapperContainer(apps.AnnotatedContainer):
+class LegacyServicesWrapperContainer(apps.Container):
     @apps.autoid_service
     def legacy_app(self) -> LegacyApp:
         return LegacyApp.default()

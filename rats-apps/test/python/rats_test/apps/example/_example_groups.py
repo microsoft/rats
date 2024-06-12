@@ -4,7 +4,7 @@ from ._ids import ExampleIds
 from ._storage import StorageClient
 
 
-class ExampleGroupsPlugin1(apps.AnnotatedContainer):
+class ExampleGroupsPlugin1(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -19,7 +19,7 @@ class ExampleGroupsPlugin1(apps.AnnotatedContainer):
         return StorageClient(self._app.get(ExampleIds.CONFIGS.STORAGE))
 
 
-class ExampleGroupsPlugin2(apps.AnnotatedContainer):
+class ExampleGroupsPlugin2(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

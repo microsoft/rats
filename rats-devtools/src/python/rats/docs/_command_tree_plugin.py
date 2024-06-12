@@ -8,7 +8,7 @@ from rats import devtools as devtools
 from ._command_trees import RatsCiCommandTrees
 
 
-class RatsDocsCommandTreePlugin(apps.AnnotatedContainer):
+class RatsDocsCommandTreePlugin(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

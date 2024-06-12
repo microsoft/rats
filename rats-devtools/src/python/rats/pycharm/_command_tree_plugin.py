@@ -27,7 +27,7 @@ class AutoformatterArgs:
     """The filename to format."""
 
 
-class RatsPycharmCommandTreePlugin(apps.AnnotatedContainer):
+class RatsPycharmCommandTreePlugin(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

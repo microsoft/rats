@@ -7,7 +7,7 @@ from rats.processors._legacy_subpackages import CombinedPipeline
 from rats.processors._legacy_subpackages import typing as rpt
 
 
-class PipelineContainer(apps.AnnotatedContainer):
+class PipelineContainer(apps.Container):
     """Specialized container for defining pipelines.
 
     Exposes functionality for defining tasks and pipelines.

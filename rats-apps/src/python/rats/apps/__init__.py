@@ -6,11 +6,9 @@ domain.
 """
 
 from ._annotations import (
-    AnnotatedContainer,
     autoid,
     autoid_service,
     config,
-    container,
     fallback_config,
     fallback_group,
     fallback_service,
@@ -19,11 +17,13 @@ from ._annotations import (
 )
 from ._composite_container import CompositeContainer
 from ._container import (
+    AnnotatedContainer,
     ConfigProvider,
     Container,
     DuplicateServiceError,
     ServiceNotFoundError,
     ServiceProvider,
+    container,
 )
 from ._executables import App, Executable
 from ._ids import ConfigId, ServiceId

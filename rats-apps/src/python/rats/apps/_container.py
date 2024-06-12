@@ -1,7 +1,10 @@
+import abc
+import warnings
 from abc import abstractmethod
-from collections.abc import Iterator
-from typing import Generic, Protocol
+from collections.abc import Callable, Iterator
+from typing import Generic, ParamSpec, Protocol
 
+from ._annotations import _extract_class_annotations, fn_annotation_decorator
 from ._ids import ServiceId, T_ServiceType, Tco_ConfigType, Tco_ServiceType
 from ._namespaces import ProviderNamespaces
 
@@ -64,13 +67,47 @@ class Container(Protocol):
 
         yield from self.get_namespaced_group(ProviderNamespaces.GROUPS, group_id)
 
-    @abstractmethod
     def get_namespaced_group(
         self,
         namespace: str,
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service namespace."""
+        annotations = _extract_class_annotations(type(self))
+        containers = annotations.with_namespace(ProviderNamespaces.CONTAINERS)
+        groups = annotations.group_in_namespace(namespace, group_id)
+
+        for annotation in groups:
+            yield getattr(self, annotation.name)()
+
+        for container in containers:
+            c = getattr(self, container.name)()
+            yield from c.get_namespaced_group(namespace, group_id)
+
+
+class AnnotatedContainer(Container, abc.ABC):
+    def get_namespaced_group(
+        self,
+        namespace: str,
+        group_id: ServiceId[T_ServiceType],
+    ) -> Iterator[T_ServiceType]:
+        warnings.warn(
+            "AnnotatedContainer.get_namespaced_group is deprecated and will be removed in the next major release. "
+            "AnnotatedContainer functionality has been moved into the apps.Container protocol. "
+            "Please extend apps.Container directly.",
+            DeprecationWarning,
+        )
+        return super().get_namespaced_group(namespace, group_id)
+
+
+DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
+P = ParamSpec("P")
+
+
+def container(
+    group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+    return fn_annotation_decorator(ProviderNamespaces.CONTAINERS, group_id)
 
 
 class ServiceNotFoundError(RuntimeError, Generic[T_ServiceType]):

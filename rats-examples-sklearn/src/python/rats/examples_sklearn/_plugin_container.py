@@ -3,7 +3,7 @@ from rats import apps
 from ._lr_pipeline_container import LRPipelineContainer
 
 
-class PluginContainer(apps.AnnotatedContainer):
+class PluginContainer(apps.Container):
     """rats.processors package top level container.
 
     Registered into rats.processors_app_plugins in pyproject.toml, and hence will be available in

@@ -4,7 +4,7 @@ from ._ids import ExampleIds
 from ._storage import StorageClient, StorageSettings
 
 
-class ExampleFallbackPlugin1(apps.AnnotatedContainer):
+class ExampleFallbackPlugin1(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -19,7 +19,7 @@ class ExampleFallbackPlugin1(apps.AnnotatedContainer):
         return StorageSettings("other[fallback]", "thing")
 
 
-class ExampleFallbackPlugin2(apps.AnnotatedContainer):
+class ExampleFallbackPlugin2(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -30,7 +30,7 @@ class ExampleFallbackPlugin2(apps.AnnotatedContainer):
         return StorageClient(StorageSettings("other", "thing"))
 
 
-class ExampleFallbackPlugin3(apps.AnnotatedContainer):
+class ExampleFallbackPlugin3(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
