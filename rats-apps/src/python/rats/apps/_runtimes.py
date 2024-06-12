@@ -8,7 +8,7 @@ from ._ids import ServiceId
 T_ExecutableType = TypeVar("T_ExecutableType", bound=Executable)
 
 
-class AppRuntime(Protocol):
+class Runtime(Protocol):
     @abstractmethod
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
         """Execute a list of executables sequentially."""
@@ -24,7 +24,7 @@ class AppRuntime(Protocol):
         """
 
 
-class SimpleRuntime(AppRuntime):
+class SimpleRuntime(Runtime):
     """A simple runtime that executes sequentially and in a single thread."""
 
     _app: Container

@@ -30,7 +30,7 @@ from ._ids import ConfigId, ServiceId
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
 from ._plugins import PluginRunner
-from ._runtimes import AppRuntime, SimpleRuntime, T_ExecutableType
+from ._runtimes import Runtime, SimpleRuntime, T_ExecutableType
 from ._scoping import autoscope
 
 __all__ = [
@@ -59,6 +59,6 @@ __all__ = [
     "autoid",
     "service",
     "T_ExecutableType",
-    "AppRuntime",
+    "Runtime",
     "SimpleRuntime",
 ]
