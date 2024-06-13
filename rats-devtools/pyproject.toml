@@ -60,12 +60,13 @@ sphinx-markdown-builder = "*"
 rats-devtools = "rats.devtools.__main__:run"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
-"rats-devtools.ci" = "rats.ci._plugin:RatsCiPlugin"
-"rats-devtools.docs" = "rats.docs._plugin:RatsDocsPlugin"
-"rats-devtools.pycharm" = "rats.pycharm._plugin:RatsPycharmPlugin"
-"rats-devtools-ct.ci" = "rats.ci._command_tree_plugin:RatsCiCommandTreePlugin"
-"rats-devtools-ct.docs" = "rats.docs._command_tree_plugin:RatsDocsCommandTreePlugin"
-"rats-devtools-ct.pycharm" = "rats.pycharm._command_tree_plugin:RatsPycharmCommandTreePlugin"
+"rats.devtools" = "rats.devtools:PluginContainer"
+#"rats-devtools.ci" = "rats.ci._plugin:RatsCiPlugin"
+#"rats-devtools.docs" = "rats.docs._plugin:RatsDocsPlugin"
+#"rats-devtools.pycharm" = "rats.pycharm._plugin:RatsPycharmPlugin"
+#"rats-devtools-ct.ci" = "rats.ci._command_tree_plugin:RatsCiCommandTreePlugin"
+#"rats-devtools-ct.docs" = "rats.docs._command_tree_plugin:RatsDocsCommandTreePlugin"
+#"rats-devtools-ct.pycharm" = "rats.pycharm._command_tree_plugin:RatsPycharmCommandTreePlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]

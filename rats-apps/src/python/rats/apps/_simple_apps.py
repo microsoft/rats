@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from typing import final
 
+from . import autoscope
 from ._annotations import fallback_service
 from ._composite_container import CompositeContainer
 from ._container import Container, container
@@ -8,8 +9,16 @@ from ._ids import ServiceId
 from ._plugin_container import PluginContainers
 from ._runtimes import Runtime, T_ExecutableType
 
-DEFAULT_APP_CONTAINER = ServiceId[Container]("app-container")
-DEFAULT_APP_RUNTIME = ServiceId[Runtime]("app-runtime")
+@autoscope
+class AppServices:
+    """
+    Services used by simple apps that can generally be used anywhere.
+
+    Owners of applications can decide not to use or not to make these services available to plugin
+    authors.
+    """
+    RUNTIME = ServiceId[Runtime]("app-container")
+    CONTAINER = ServiceId[Container]("app-runtime")
 
 
 @final
@@ -37,7 +46,7 @@ class SimpleApplication(Runtime, Container):
 
     _plugin_groups: Iterable[str]
 
-    def __init__(self, plugin_groups: Iterable[str]) -> None:
+    def __init__(self, *plugin_groups: str) -> None:
         self._plugin_groups = plugin_groups
 
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
@@ -46,7 +55,7 @@ class SimpleApplication(Runtime, Container):
     def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
         self._runtime().execute_group(*exe_group_ids)
 
-    @fallback_service(DEFAULT_APP_RUNTIME)
+    @fallback_service(AppServices.RUNTIME)
     def _runtime(self) -> Runtime:
         """
         The default runtime is an instance of SimpleRuntime.
@@ -55,7 +64,7 @@ class SimpleApplication(Runtime, Container):
         """
         return SimpleRuntime(self)
 
-    @fallback_service(DEFAULT_APP_CONTAINER)
+    @fallback_service(AppServices.CONTAINER)
     def _container(self) -> Container:
         """
         The default container is the root application instance.

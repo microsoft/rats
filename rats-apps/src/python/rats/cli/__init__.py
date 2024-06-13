@@ -1,4 +1,4 @@
-"""Uses `rats.annotations` to streamline the creation of CLI commands written with Click."""
+"""Uses `rats.cli` to streamline the creation of CLI commands written with Click."""
 
 from ._annotations import CommandId, command, group
 from ._click import ClickCommandGroup, ClickCommandMapper

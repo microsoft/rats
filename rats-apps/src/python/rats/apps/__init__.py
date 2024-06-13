@@ -32,7 +32,7 @@ from ._plugin_container import PluginContainers
 from ._plugins import PluginRunner
 from ._runtimes import Runtime, T_ExecutableType
 from ._scoping import autoscope
-from ._simple_apps import SimpleApplication, SimpleRuntime
+from ._simple_apps import AppServices, SimpleApplication, SimpleRuntime
 
 __all__ = [
     "AnnotatedContainer",
@@ -61,6 +61,7 @@ __all__ = [
     "service",
     "T_ExecutableType",
     "Runtime",
+    "AppServices",
     "SimpleRuntime",
     "SimpleRuntime",
     "SimpleApplication",

@@ -1,5 +1,8 @@
 """Some utilities for developing the devtool cli commands."""
 
-from ._ids import AppServices
+from ._plugin import PluginServices, PluginContainer
 
-__all__ = ["AppServices"]
+__all__ = [
+    "PluginServices",
+    "PluginContainer",
+]

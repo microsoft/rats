@@ -29,6 +29,7 @@ version-pinning-strategy = "semver"
 python = "^3.10"
 typing_extensions = "*"
 click = "*"
+colorlog = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -43,6 +44,9 @@ types-urllib3 = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
+
+[tool.poetry.plugins."rats.apps.plugins"]
+"rats.logs" = "rats.logs:PluginContainer"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
