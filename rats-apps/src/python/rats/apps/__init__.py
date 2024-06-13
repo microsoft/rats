@@ -30,8 +30,9 @@ from ._ids import ConfigId, ServiceId
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
 from ._plugins import PluginRunner
-from ._runtimes import Runtime, SimpleRuntime, T_ExecutableType
+from ._runtimes import Runtime, T_ExecutableType
 from ._scoping import autoscope
+from ._simple_apps import SimpleApplication, SimpleRuntime
 
 __all__ = [
     "AnnotatedContainer",
@@ -61,4 +62,6 @@ __all__ = [
     "T_ExecutableType",
     "Runtime",
     "SimpleRuntime",
+    "SimpleRuntime",
+    "SimpleApplication",
 ]

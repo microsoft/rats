@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import Protocol, TypeVar
 
-from ._container import Container
 from ._executables import Executable
 from ._ids import ServiceId
 
@@ -20,20 +19,5 @@ class Runtime(Protocol):
 
         Although each group is expected to be executed sequentially, the groups themselves are not
         executed in a deterministic order. Runtime implementations are free to execute groups in
-        parallel or in any other order that is convenient.
+        parallel or in any order that is convenient.
         """
-
-
-class SimpleRuntime(Runtime):
-    """A simple runtime that executes sequentially and in a single thread."""
-
-    _app: Container
-
-    def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
-        for exe_id in exe_ids:
-            self._app.get(exe_id).execute()
-
-    def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
-        for exe_group_id in exe_group_ids:
-            for exe in self._app.get_group(exe_group_id):
-                exe.execute()
