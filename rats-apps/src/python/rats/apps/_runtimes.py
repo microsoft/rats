@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from collections.abc import Callable
 from typing import Protocol, TypeVar
 
 from ._executables import Executable
@@ -20,4 +21,12 @@ class Runtime(Protocol):
         Although each group is expected to be executed sequentially, the groups themselves are not
         executed in a deterministic order. Runtime implementations are free to execute groups in
         parallel or in any order that is convenient.
+        """
+
+    @abstractmethod
+    def execute_raw(self, callable: Callable[[], None]) -> None:
+        """
+        Execute provided callables by automatically turning them into apps.Executable objects.
+
+        The used ServiceId is determined by the Runtime implementation.
         """

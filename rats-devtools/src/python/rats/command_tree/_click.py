@@ -32,10 +32,11 @@ def to_click_commands(
     """
     Recursively generate click commands and groups from the command tree.
 
-    Traverse down the CommandTree until we hit a leaf node, collecting the argument groups along the way.
-    Then, create a click command with the collected argument groups and the handler.
-    Nodes traversed along the way are wrapped in a click group, and the click command is added to the group.
-    Nested CommandTree handlers are expected to take the argument groups, in nesting order, as positional arguments.
+    Traverse down the CommandTree until we hit a leaf node, collecting the argument groups along
+    the way. Then, create a click command with the collected argument groups and the handler. Nodes
+    traversed along the way are wrapped in a click group, and the click command is added to the
+    group. Nested CommandTree handlers are expected to take the argument groups, in nesting order,
+    as positional arguments.
 
     Args:
         command: The command tree to convert to click commands.
@@ -61,7 +62,8 @@ def to_click_commands(
             for kwargs_class, click_options in click_options_by_dataclass.items():
                 kwargs_class_init = {}
                 for option in click_options:
-                    # We shouldn't be able to get here, but just in case we do, we should raise an error
+                    # We shouldn't be able to get here
+                    # but just in case we do, we should raise an error
                     if option.name is None:
                         raise ValueError("Option name cannot be None")
 
@@ -106,7 +108,9 @@ CLICK_TYPE_MAPPING = {
 
 
 def dataclass_to_click_parameters(
-    dataclass: type[Any], parent_field_name: str | None = None, parent_nargs: int | None = None
+    dataclass: type[Any],
+    parent_field_name: str | None = None,
+    parent_nargs: int | None = None,
 ) -> tuple[click.Option, ...]:
     """
     Convert a dataclass to a list of click arguments.

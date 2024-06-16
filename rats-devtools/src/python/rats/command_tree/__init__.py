@@ -1,5 +1,5 @@
 """
-This module provides a way to define a tree of commands that can be used to generate a command-line interface using Click.
+Provides a way to define a tree of commands, used to generate a command-line interface using Click.
 
 The `CommandTree` class is used to define the tree of commands. Each leaf in the tree represents a
 command that can be executed. The nodes can have children, which represent subcommands that can be

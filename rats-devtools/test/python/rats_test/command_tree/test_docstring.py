@@ -36,6 +36,6 @@ def test_get_attribute_docstring_nonexistent_field():
     with pytest.raises(ValueError) as exc_info:
         get_attribute_docstring(MockDataclass, "nonexistent_field")
     assert (
-        f"Attribute nonexistent_field not found in dataclass {__name__}.test_get_attribute_docstring_nonexistent_field.<locals>.MockDataclass"
+        f"Attribute nonexistent_field not found in dataclass {__name__}.test_get_attribute_docstring_nonexistent_field.<locals>.MockDataclass"  # noqa: E501
         in str(exc_info.value)
     ), "The error message did not match the expected value"
