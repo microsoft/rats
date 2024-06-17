@@ -169,6 +169,7 @@ class PluginCommands(cli.CommandContainer):
 
         # TODO: swap with config in di container
         components = [
+            "rats-apps",
             "rats-devtools",
             "rats-pipelines",
             "rats-processors",
