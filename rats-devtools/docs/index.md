@@ -35,7 +35,7 @@ documentation should be available at http://localhost:8000/. Changes to any mark
 auto detected, and your local site will be updates with the latest build.
 
 ```bash
-rats-devtools.pipx mkdocs-serve
+rats-devtools.pipx ci mkdocs-serve
 INFO    -  Building documentation...
 INFO    -  Cleaning site directory
 …
@@ -65,7 +65,7 @@ occasionally when working on docstrings in code, and your local documentation si
 kept up to date for you to review.
 
 ```bash
-rats-devtools.pipx build-api-docs
+rats-devtools.pipx ci build-api-docs
 Creating file /rats/rats-pipelines/dist/sphinx-apidoc/rats.app.rst.
 Creating file /rats/rats-pipelines/dist/sphinx-apidoc/rats.app_api.rst.
 Creating file /rats/rats-pipelines/dist/sphinx-apidoc/rats.examples.rst.
