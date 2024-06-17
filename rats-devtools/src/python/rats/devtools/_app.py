@@ -12,4 +12,4 @@ def run() -> None:
     def _main() -> None:
         app.execute(PluginServices.MAIN)
 
-    app.execute_raw(_main)
+    app.execute_callable(_main)

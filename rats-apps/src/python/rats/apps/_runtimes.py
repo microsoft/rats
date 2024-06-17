@@ -24,7 +24,7 @@ class Runtime(Protocol):
         """
 
     @abstractmethod
-    def execute_raw(self, callable: Callable[[], None]) -> None:
+    def execute_callable(self, *callables: Callable[[], None]) -> None:
         """
         Execute provided callables by automatically turning them into apps.Executable objects.
 

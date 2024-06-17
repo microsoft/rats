@@ -60,7 +60,7 @@ class SimpleRuntime(Runtime):
     def __init__(self, app: Container) -> None:
         self._app = app
 
-    def execute_raw(self, callable: Callable[[], None]) -> None:
+    def execute_callable(self, callable: Callable[[], None]) -> None:
         ctx = self._app.get(AppServices.RAW_EXE_CTX)
         with ctx.open(callable) as exe:
             exe.execute()
@@ -84,8 +84,9 @@ class SimpleApplication(Runtime, Container):
     def __init__(self, *plugin_groups: str) -> None:
         self._plugin_groups = plugin_groups
 
-    def execute_raw(self, callable: Callable[[], None]) -> None:
-        self._runtime().execute_raw(callable)
+    def execute_callable(self, *callables: Callable[[], None]) -> None:
+        for cb in callables:
+            self._runtime().execute_callable(cb)
 
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
         self._runtime().execute(*exe_ids)
