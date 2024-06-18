@@ -5,7 +5,12 @@ description = "research analysis tools for building applications"
 version = "0.1.2"
 readme = "README.md"
 authors = []
-packages = [{ include = "rats", from = "src/python" }]
+packages = [
+    { include = "rats/apps", from = "src/python" },
+    { include = "rats/annotations", from = "src/python" },
+    { include = "rats/cli", from = "src/python" },
+    { include = "rats/logs", from = "src/python" },
+]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]

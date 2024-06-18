@@ -1,6 +1,8 @@
-from collections.abc import Generator, Iterable, Iterator
-from contextlib import contextmanager
-from typing import Callable, final
+from collections.abc import Callable, Iterable
+from contextlib import AbstractContextManager, contextmanager
+from typing import final
+
+from rats import apps
 
 from ._annotations import fallback_service
 from ._composite_container import CompositeContainer
@@ -9,10 +11,16 @@ from ._ids import ServiceId
 from ._plugin_container import PluginContainers
 from ._runtimes import Runtime, T_ExecutableType
 from ._scoping import autoscope
-from rats import apps
 
 
-class ExecutableContextClient(apps.Executable):
+class ExecutableCallableContext(apps.Executable):
+    """
+    An executable that can be set dynamically with a callable.
+
+    We use this class to support the use of `rats.apps` with a plain callable, like is expected of
+    standard python scripts. We give this class a service id, and set the callable before using
+    `apps.Runtime` to execute the chosen service id.
+    """
 
     _exe_id: apps.ServiceId[apps.Executable]
     _callables = list[Callable[[], None]]
@@ -28,9 +36,12 @@ class ExecutableContextClient(apps.Executable):
         self._callables[-1]()
 
     @contextmanager
-    def open(self, callable: Callable[[], None]) -> Iterator[apps.Executable, None, None]:
+    def open_callable(
+        self,
+        callable: Callable[[], None],
+    ) -> AbstractContextManager[apps.Executable]:
+        self._callables.append(callable)
         try:
-            self._callables.append(callable)
             yield apps.App(callable)
         finally:
             self._callables.pop()
@@ -47,8 +58,8 @@ class AppServices:
 
     RUNTIME = ServiceId[Runtime]("app-runtime")
     CONTAINER = ServiceId[Container]("app-container")
-    RAW_EXE_CTX = ServiceId[ExecutableContextClient]("raw-exe-ctx")
-    RAW_EXE = ServiceId[apps.Executable]("raw-exe")
+    CALLABLE_EXE_CTX = ServiceId[ExecutableCallableContext]("callable-exe-ctx")
+    CALLABLE_EXE = ServiceId[apps.Executable]("callable-exe")
 
 
 @final
@@ -60,11 +71,6 @@ class SimpleRuntime(Runtime):
     def __init__(self, app: Container) -> None:
         self._app = app
 
-    def execute_callable(self, callable: Callable[[], None]) -> None:
-        ctx = self._app.get(AppServices.RAW_EXE_CTX)
-        with ctx.open(callable) as exe:
-            exe.execute()
-
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
         for exe_id in exe_ids:
             self._app.get(exe_id).execute()
@@ -72,6 +78,12 @@ class SimpleRuntime(Runtime):
     def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
         for exe_group_id in exe_group_ids:
             for exe in self._app.get_group(exe_group_id):
+                exe.execute()
+
+    def execute_callable(self, *callables: Callable[[], None]) -> None:
+        ctx: ExecutableCallableContext = self._app.get(AppServices.CALLABLE_EXE_CTX)
+        for cb in callables:
+            with ctx.open_callable(cb) as exe:
                 exe.execute()
 
 
@@ -84,15 +96,15 @@ class SimpleApplication(Runtime, Container):
     def __init__(self, *plugin_groups: str) -> None:
         self._plugin_groups = plugin_groups
 
-    def execute_callable(self, *callables: Callable[[], None]) -> None:
-        for cb in callables:
-            self._runtime().execute_callable(cb)
-
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
         self._runtime().execute(*exe_ids)
 
     def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
         self._runtime().execute_group(*exe_group_ids)
+
+    def execute_callable(self, *callables: Callable[[], None]) -> None:
+        for cb in callables:
+            self._runtime().execute_callable(cb)
 
     @fallback_service(AppServices.RUNTIME)
     def _runtime(self) -> Runtime:
@@ -103,18 +115,19 @@ class SimpleApplication(Runtime, Container):
         """
         return SimpleRuntime(self)
 
-    @fallback_service(AppServices.RAW_EXE)
-    def _raw_exe(self) -> apps.Executable:
-        return self.get(AppServices.RAW_EXE_CTX)
+    @fallback_service(AppServices.CALLABLE_EXE)
+    def _callable_exe(self) -> apps.Executable:
+        """We use the callable exe ctx here, so we can treat it like any other app downstream."""
+        return self.get(AppServices.CALLABLE_EXE_CTX)
 
-    @fallback_service(AppServices.RAW_EXE_CTX)
-    def _raw_exe_ctx(self) -> ExecutableContextClient:
+    @fallback_service(AppServices.CALLABLE_EXE_CTX)
+    def _callable_exe_ctx(self) -> ExecutableCallableContext:
         """
         The default executable context client for executing raw callables.
 
         Define a non-fallback service to override this default implementation.
         """
-        return ExecutableContextClient(AppServices.RAW_EXE)
+        return ExecutableCallableContext(AppServices.CALLABLE_EXE)
 
     @fallback_service(AppServices.CONTAINER)
     def _container(self) -> Container:

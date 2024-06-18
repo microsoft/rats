@@ -1,6 +1,7 @@
 # type: ignore[reportUntypedFunctionDecorator]
 
 import logging
+from collections.abc import Iterable
 
 import click
 
@@ -54,10 +55,11 @@ class PluginCommands(cli.CommandContainer):
         self._selected_component.ruff("check")
 
     @cli.command(cli.CommandId.auto())
-    def fix(self) -> None:
+    @click.argument("files", nargs=-1, type=click.Path(exists=True))
+    def fix(self, files: Iterable[str]) -> None:
         """Run any configured auto-formatters for the component."""
-        self._selected_component.run("ruff", "format")
-        self._selected_component.run("ruff", "check", "--fix", "--unsafe-fixes")
+        self._selected_component.run("ruff", "format", *files)
+        self._selected_component.run("ruff", "check", "--fix", "--unsafe-fixes", *files)
 
     @cli.command(cli.CommandId.auto())
     def sphinx_apidoc(self) -> None:

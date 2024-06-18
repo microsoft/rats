@@ -17,6 +17,7 @@ class PluginRunner(Generic[T_PluginType]):
         warnings.warn(
             "PluginRunner is deprecated. Use PluginContainer instances instead.",
             DeprecationWarning,
+            stacklevel=2,
         )
         for plugin in self._plugins:
             handler(plugin)

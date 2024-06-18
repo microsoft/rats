@@ -1,12 +1,16 @@
 import abc
+import logging
 import warnings
 from abc import abstractmethod
 from collections.abc import Callable, Iterator
 from typing import Generic, ParamSpec, Protocol
 
-from ._annotations import extract_class_annotations, fn_annotation_decorator
+from rats import annotations
+
 from ._ids import ServiceId, T_ServiceType, Tco_ConfigType, Tco_ServiceType
 from ._namespaces import ProviderNamespaces
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceProvider(Protocol[Tco_ServiceType]):
@@ -73,15 +77,25 @@ class Container(Protocol):
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service namespace."""
-        annotations = extract_class_annotations(type(self))
-        containers = annotations.with_namespace(ProviderNamespaces.CONTAINERS)
-        groups = annotations.group_in_namespace(namespace, group_id)
+        tates = annotations.get_class_annotations(type(self))
+        containers = tates.with_namespace(ProviderNamespaces.CONTAINERS)
+        groups = tates.with_group(namespace, group_id)
 
-        for annotation in groups:
-            yield getattr(self, annotation.name)()
+        for annotation in groups.annotations:
+            if not hasattr(self, f"__rats_cache_{annotation.name}"):
+                setattr(self, f"__rats_cache_{annotation.name}", getattr(self, annotation.name)())
 
-        for container in containers:
-            c = getattr(self, container.name)()
+            yield getattr(self, f"__rats_cache_{annotation.name}")
+
+        for annotation in containers.annotations:
+            if not hasattr(self, f"__rats_container_cache_{annotation.name}"):
+                setattr(
+                    self,
+                    f"__rats_container_cache_{annotation.name}",
+                    getattr(self, annotation.name)(),
+                )
+
+            c = getattr(self, f"__rats_container_cache_{annotation.name}")
             yield from c.get_namespaced_group(namespace, group_id)
 
 
@@ -112,7 +126,7 @@ P = ParamSpec("P")
 def container(
     group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
-    return fn_annotation_decorator(ProviderNamespaces.CONTAINERS, group_id)
+    return annotations.annotation(ProviderNamespaces.CONTAINERS, group_id)
 
 
 class ServiceNotFoundError(RuntimeError, Generic[T_ServiceType]):
