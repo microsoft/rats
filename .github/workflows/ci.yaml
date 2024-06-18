@@ -46,7 +46,8 @@ jobs:
           pipx install -e rats-devtools/
       - name: "poetry-install"
         run: |
-          rats-devtools ci poetry-install ${{ matrix.component }}/
+          cd ${{ matrix.component }}/
+          rats-devtools ci install
       - id: package-info
         name: package-info
         run: |
@@ -91,7 +92,6 @@ jobs:
         with:
           name: "wheels.${{ matrix.component }}"
           path: "${{ matrix.component }}/dist/${{ steps.package-info.outputs.package-wheel }}"
-
   publish-pypi-pkg:
     if: "${{ inputs.publish-wheels }}"
     strategy:
@@ -139,15 +139,26 @@ jobs:
       - name: "poetry-install"
         run: |
           # I would like to optimize this soon before these steps become too slow
-          rats-devtools ci poetry-install rats-apps/
-          rats-devtools ci poetry-install rats-devtools/
-          rats-devtools ci poetry-install rats-pipelines/
-          rats-devtools ci poetry-install rats-processors/
-          rats-devtools ci poetry-install rats-examples-sklearn/
+          cd rats-apps/
+          rats-devtools ci install
+          cd ..
+          cd rats-devtools/
+          rats-devtools ci install
+          cd ..
+          cd rats-pipelines/
+          rats-devtools ci install
+          cd ..
+          cd rats-processors/
+          rats-devtools ci install
+          cd ..
+          cd rats-examples-sklearn/
+          rats-devtools ci install
+          cd ..
       - name: "build-docs"
         run: |
-          rats-devtools docs sphinx-build
-          rats-devtools docs mkdocs-build
+          cd rats-devtools/
+          rats-devtools ci sphinx-build
+          rats-devtools ci mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3
         with:
