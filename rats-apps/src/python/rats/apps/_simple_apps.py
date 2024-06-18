@@ -1,19 +1,18 @@
-from collections.abc import Callable, Iterable
-from contextlib import AbstractContextManager, contextmanager
+from collections.abc import Callable, Iterable, Iterator
+from contextlib import contextmanager
 from typing import final
-
-from rats import apps
 
 from ._annotations import fallback_service
 from ._composite_container import CompositeContainer
 from ._container import Container, container
+from ._executables import App, Executable
 from ._ids import ServiceId
 from ._plugin_container import PluginContainers
 from ._runtimes import Runtime, T_ExecutableType
 from ._scoping import autoscope
 
 
-class ExecutableCallableContext(apps.Executable):
+class ExecutableCallableContext(Executable):
     """
     An executable that can be set dynamically with a callable.
 
@@ -22,10 +21,10 @@ class ExecutableCallableContext(apps.Executable):
     `apps.Runtime` to execute the chosen service id.
     """
 
-    _exe_id: apps.ServiceId[apps.Executable]
-    _callables = list[Callable[[], None]]
+    _exe_id: ServiceId[Executable]
+    _callables: list[Callable[[], None]]
 
-    def __init__(self, exe_id: apps.ServiceId[apps.Executable]) -> None:
+    def __init__(self, exe_id: ServiceId[Executable]) -> None:
         self._exe_id = exe_id
         self._callables = []
 
@@ -39,10 +38,10 @@ class ExecutableCallableContext(apps.Executable):
     def open_callable(
         self,
         callable: Callable[[], None],
-    ) -> AbstractContextManager[apps.Executable]:
+    ) -> Iterator[Executable]:
         self._callables.append(callable)
         try:
-            yield apps.App(callable)
+            yield App(callable)
         finally:
             self._callables.pop()
 
@@ -59,7 +58,7 @@ class AppServices:
     RUNTIME = ServiceId[Runtime]("app-runtime")
     CONTAINER = ServiceId[Container]("app-container")
     CALLABLE_EXE_CTX = ServiceId[ExecutableCallableContext]("callable-exe-ctx")
-    CALLABLE_EXE = ServiceId[apps.Executable]("callable-exe")
+    CALLABLE_EXE = ServiceId[Executable]("callable-exe")
 
 
 @final
@@ -116,7 +115,7 @@ class SimpleApplication(Runtime, Container):
         return SimpleRuntime(self)
 
     @fallback_service(AppServices.CALLABLE_EXE)
-    def _callable_exe(self) -> apps.Executable:
+    def _callable_exe(self) -> Executable:
         """We use the callable exe ctx here, so we can treat it like any other app downstream."""
         return self.get(AppServices.CALLABLE_EXE_CTX)
 

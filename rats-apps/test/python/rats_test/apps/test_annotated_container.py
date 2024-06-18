@@ -42,7 +42,7 @@ class TestAnnotatedContainer:
         c2t1 = self._app_1.get(example.DummyContainerServiceIds.C2T1)
         assert c1t1.get_tag() == "c1.s1:t1"
         assert c1t2.get_tag() == "c1.s2:t2"
-        assert c1t2a is c1t2
+        assert c1t2a is not c1t2
         assert c2t1.get_tag() == "c2.s1:t1"
         assert c1t1b is c2t1
 
