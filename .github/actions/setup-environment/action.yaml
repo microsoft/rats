@@ -28,7 +28,7 @@ runs:
       shell: bash
       env:
         COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
-        COMMIT_REF: "${{ github.event.ref }}"
+        COMMIT_REF: "${{ github.event.pull_request.head.ref }}"
         RUN_ID: "${{ github.run_id }}"
       run: |
         # make sure people are able to use packages installed with pipx
