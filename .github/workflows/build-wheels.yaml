@@ -35,8 +35,8 @@ jobs:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd ${{ matrix.component }}
-          nexus-devtools ci install
-          nexus-devtools ci build-wheel
+          rats-devtools ci install
+          rats-devtools ci build-wheel
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
