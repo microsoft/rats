@@ -28,8 +28,7 @@ runs:
       shell: bash
       env:
         COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
-        # this is definitely breaking main branch builds
-        COMMIT_REF: "refs/heads/${{ github.event.pull_request.head.ref }}"
+        COMMIT_REF: "refs/heads/${{ github.head_ref || github.ref_name }}"
         RUN_ID: "${{ github.run_id }}"
       run: |
         # make sure people are able to use packages installed with pipx
