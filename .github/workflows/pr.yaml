@@ -22,11 +22,6 @@ jobs:
     secrets: inherit
     with:
       sha: ${{ github.sha }}
-  build-images:
-    uses: ./.github/workflows/build-images.yaml
-    secrets: inherit
-    with:
-      sha: ${{ github.sha }}
   build-docs:
     uses: ./.github/workflows/build-docs.yaml
     secrets: inherit
@@ -42,7 +37,6 @@ jobs:
     secrets: inherit
     needs:
       - build-docs
-      - build-images
       - build-wheels
       - checks
       - codeql
