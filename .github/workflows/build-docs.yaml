@@ -29,13 +29,12 @@ jobs:
         with:
           install-poetry: true
           install-devtools: true
-      - name: something-simple
-        env:
-          PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
+      - name: build-api-docs
         run: |
           cd ${{ matrix.component }}
           rats-devtools ci install
-          rats-devtools ci build-wheel
+          rats-devtools ci sphinx-apidoc
+          rats-devtools ci sphinx-markdown
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
