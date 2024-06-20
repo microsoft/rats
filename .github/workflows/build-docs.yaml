@@ -6,11 +6,6 @@ on:
         description: 'the git sha to checkout'
         required: true
         type: string
-      publish-docs:
-        description: 'whether to publish docs to the github pages'
-        default: false
-        required: true
-        type: boolean
 jobs:
   build-api-docs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
@@ -86,15 +81,3 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: "rats-devtools/dist/site"
-#  deploy-docs:
-#    # temporarily slowing down builds to make sure we avoid deploying docs from a failed build
-#    needs: ["generate-docs"]
-#    # this one can run anywhere
-#    runs-on: "ubuntu-latest"
-#    name: "deploy-docs"
-#    steps:
-#      # let us reach things installed by pipx
-#      - name: "deploy-gh-pages"
-#        if: "${{ inputs.publish-docs }}"
-#        id: deployment
-#        uses: actions/deploy-pages@v4
