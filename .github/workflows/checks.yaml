@@ -1,0 +1,46 @@
+name: Check
+on:
+  workflow_call:
+    inputs:
+      sha:
+        description: 'the git sha to checkout'
+        required: true
+        type: string
+jobs:
+  check-components:
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - rats-devtools
+          - rats-apps
+          - rats-pipelines
+          - rats-processors
+          - rats-examples-sklearn
+    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
+    name: "check: ${{ matrix.component }}"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+          fetch-depth: 0
+          fetch-tags: true
+      - uses: ./.github/actions/setup-environment
+        id: runner-context
+        with:
+          install-poetry: true
+          install-devtools: true
+      - name: check
+        env:
+          PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
+        run: |
+          cd ${{ matrix.component }}
+          rats-devtools ci install
+          rats-devtools ci all-checks
+      - name: upload-coverage
+        uses: codecov/codecov-action@v4.4.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: microsoft/rats
+          name: ${{ matrix.component }}
+          verbose: true
