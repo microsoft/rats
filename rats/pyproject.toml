@@ -1,8 +1,7 @@
 [tool.poetry]
 name = "rats"
 description = "Package for the bundled rats components."
-# Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.1.2"
+version = "0.1.3"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]

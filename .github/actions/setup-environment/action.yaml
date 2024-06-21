@@ -51,8 +51,7 @@ runs:
             echo "tag version $TAG_VERSION does not match toml version $TOML_VERSION"
             echo "please update the toml version to match the tag"
             echo "expected tag version: v$TOML_VERSION"
-            # we don't fail the build since we don't use the version yet
-            # exit 1
+            exit 1
           fi
           PACKAGE_VERSION=$TOML_VERSION
         elif [[ $COMMIT_REF == "refs/heads/main" ]] ;
@@ -61,14 +60,14 @@ runs:
           RELEASE_ENVIRONMENT=production
           echo "detected main branch build"
           echo "will generate a release candidate"
-          PACKAGE_VERSION="$(date --date "$COMMIT_TIMESTAMP" "+$TOML_VERSION.pre%Y%m%d%H%M%S")"
+          PACKAGE_VERSION="$(date --date "$COMMIT_TIMESTAMP" "+$TOML_VERSION.dev%Y%m%d%H%M%S")"
         elif [[ $COMMIT_REF == refs/heads/* ]] ;
         then
           RELEASE_GROUP="${COMMIT_REF/refs\/heads\//}"
           RELEASE_ENVIRONMENT=development
           echo "detected branch build"
           echo "will generate a dev version"
-          PACKAGE_VERSION="$(date --date "$COMMIT_TIMESTAMP" "+$TOML_VERSION.pre%Y%m%d%H%M%S.dev$RUN_ID")"
+          PACKAGE_VERSION="$(date --date "$COMMIT_TIMESTAMP" "+$TOML_VERSION.dev%Y%m%d%H%M%S")"
         else
           echo "detected unknown build ref: $COMMIT_REF"
           exit 1
