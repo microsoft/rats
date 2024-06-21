@@ -35,6 +35,7 @@ jobs:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd ${{ matrix.component }}
+          rats-devtools ci update-version "$PACKAGE_VERSION"
           rats-devtools ci install
           rats-devtools ci build-wheel
       - name: "upload-artifacts"

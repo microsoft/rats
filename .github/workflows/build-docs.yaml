@@ -31,6 +31,7 @@ jobs:
       - name: build-api-docs
         run: |
           cd ${{ matrix.component }}
+          rats-devtools ci update-version "$PACKAGE_VERSION"
           rats-devtools ci install
           rats-devtools ci sphinx-apidoc
           rats-devtools ci sphinx-markdown
@@ -71,8 +72,7 @@ jobs:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd rats-devtools
-          # disabled for now
-          # rats-devtools ci update-version "$PACKAGE_VERSION"
+          rats-devtools ci update-version "$PACKAGE_VERSION"
           rats-devtools ci install
           rats-devtools ci mkdocs-build
       - name: "upload-gh-pages"
