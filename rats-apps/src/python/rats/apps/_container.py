@@ -1,9 +1,10 @@
 import abc
 import logging
-import warnings
 from abc import abstractmethod
 from collections.abc import Callable, Iterator
 from typing import Generic, ParamSpec, Protocol
+
+from typing_extensions import deprecated
 
 from rats import annotations
 
@@ -26,15 +27,55 @@ class ConfigProvider(ServiceProvider[Tco_ConfigType], Protocol[Tco_ConfigType]):
 
 
 class Container(Protocol):
-    """Main interface for service containers."""
+    """
+    Main interface for service containers.
+
+    The default methods in this protocol  attempt to find service providers that have been
+    annotated.
+
+    Example:
+        .. code-block:: python
+
+            from rats import apps
+
+
+            class MyStorageClient:
+                def save(self, data: str) -> None:
+                    print(f"Saving data: {data}")
+
+
+            class MyPluginServices:
+                STORAGE_CLIENT = ServiceId[MyStorageClient]("storage-client")
+
+
+            class MyPluginContainer(apps.Container):
+                @apps.service(MyPluginServices.STORAGE_CLIENT)
+                def _storage_client() -> MyStorageClient:
+                    return MyStorageClient()
+
+
+            container = MyPluginContainer()
+            storage_client = container.get(MyPluginServices.STORAGE_CLIENT)
+            storage_client.save("Hello, world!")
+    """
 
     def has(self, service_id: ServiceId[T_ServiceType]) -> bool:
+        """
+        Check if a service is provided by this container.
+
+        Example:
+            .. code-block:: python
+
+                if not container.has(MyPluginServices.STORAGE_CLIENT):
+                    print("Did you forget to configure a storage client?")
+        """
         try:
             return self.get(service_id) is not None
         except ServiceNotFoundError:
             return False
 
     def has_group(self, group_id: ServiceId[T_ServiceType]) -> bool:
+        """Check if a service group has at least one provider in the container."""
         try:
             return next(self.get_group(group_id)) is not None
         except StopIteration:
@@ -99,24 +140,23 @@ class Container(Protocol):
             yield from c.get_namespaced_group(namespace, group_id)
 
 
+@deprecated(
+    " ".join(
+        [
+            "AnnotatedContainer is deprecated and will be removed in the next major release.",
+            "The functionality has been moved into the apps.Container protocol.",
+            "Please extend apps.Container directly.",
+        ]
+    ),
+    stacklevel=2,
+)
 class AnnotatedContainer(Container, abc.ABC):
-    def get_namespaced_group(
-        self,
-        namespace: str,
-        group_id: ServiceId[T_ServiceType],
-    ) -> Iterator[T_ServiceType]:
-        warnings.warn(
-            " ".join(
-                [
-                    "AnnotatedContainer is deprecated and will be removed in the next major release.",
-                    "The functionality has been moved into the apps.Container protocol.",
-                    "Please extend apps.Container directly.",
-                ]
-            ),
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return super().get_namespaced_group(namespace, group_id)
+    """
+    A Container implementation that extracts providers from its annotated methods.
+
+    .. deprecated:: 0.1.3
+    The behavior of this class has been made the default within ``Container``.
+    """
 
 
 DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")

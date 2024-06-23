@@ -1,5 +1,5 @@
 """
-Provides a small set of libraries to help create new applications.
+Libraries to help create applications with a strong focus on composability and testability.
 
 Applications give you the ability to define a development experience to match your project's
 domain.
@@ -17,7 +17,7 @@ from ._annotations import (
 )
 from ._composite_container import CompositeContainer
 from ._container import (
-    AnnotatedContainer,
+    AnnotatedContainer,  # type: ignore[reportDeprecated]
     ConfigProvider,
     Container,
     DuplicateServiceError,
