@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 from functools import cache
-from typing import Any, Generic, ParamSpec, Self, TypeVar
+from typing import Any, Generic, ParamSpec, TypeVar
 from typing import NamedTuple as tNamedTuple
 
 from typing_extensions import NamedTuple
@@ -28,7 +28,7 @@ class AnnotationsContainer(tNamedTuple):
     Loosely inspired by: https://peps.python.org/pep-3107/.
     """
 
-    annotations: tuple[GroupAnnotations[...], ...]
+    annotations: tuple[GroupAnnotations[Any], ...]
 
     @staticmethod
     def empty() -> AnnotationsContainer:
@@ -37,7 +37,7 @@ class AnnotationsContainer(tNamedTuple):
     def with_group(
         self,
         namespace: str,
-        group_id: T_GroupType,
+        group_id: NamedTuple,
     ) -> AnnotationsContainer:
         return AnnotationsContainer(
             annotations=tuple(
@@ -113,14 +113,15 @@ def get_class_annotations(cls: type) -> AnnotationsContainer:
     an instance of AnnotationsContainer. This function tries to cache the results to avoid any
     expensive parsing of the class methods.
     """
-    tates = []
+    tates: list[GroupAnnotations[Any]] = []
 
     for method_name in dir(cls):
         method = getattr(cls, method_name)
         if not hasattr(method, "__rats_annotations__"):
             continue
 
-        tates.extend(method.__rats_annotations__.make(method_name).annotations)
+        builder: AnnotationsBuilder = method.__rats_annotations__
+        tates.extend(builder.make(method_name).annotations)
 
     return AnnotationsContainer(annotations=tuple(tates))
 
