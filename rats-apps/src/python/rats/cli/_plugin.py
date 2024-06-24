@@ -28,6 +28,13 @@ class PluginServices:
     EVENTS = _PluginEvents
 
     @staticmethod
+    def sub_command(
+        parent: apps.ServiceId[apps.Executable],
+        name: str,
+    ) -> apps.ServiceId[apps.Executable]:
+        return apps.ServiceId(f"{parent.name}[{name}]")
+
+    @staticmethod
     def click_command(cmd_id: apps.ServiceId[apps.Executable]) -> apps.ServiceId[click.Group]:
         # autowrapped!
         return cast(apps.ServiceId[click.Group], cmd_id)
