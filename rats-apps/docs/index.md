@@ -92,7 +92,7 @@ the functionality of the application. We've already registered `foo.PluginContai
     ]
     ```
 
-=== ":material-console:mn b ~/code"
+=== ":material-console: ~/code"
     ```bash
     poetry install
     python -m foo
@@ -142,19 +142,32 @@ function into our plugin container and use `apps.SimpleApplication` to run it.
             return Path(mkdtemp(dir=Path(".tmp")))
     ```
 
-=== ":material-language-python: ~/code/src/python/foo/__main__.py"
+=== ":material-language-python: ~/code/src/python/foo/\_\_main\_\_.py"
     ```python
     from rats import apps
     from ._plugin import PluginServices
 
-    if __name__ == "__main__":
+
+    def run() -> None:
         app = apps.SimpleApplication("foo.plugins")
         app.execute(PluginServices.MAIN)
+
+
+    if __name__ == "__main__":
+        run()
     ```
 
 !!! success
     We used `rats.app` to define a container with a couple services, and make a small
     `__main__.py` file to allow us to run the service defined by `PluginServices.MAIN`.
+
+    You can create a script entry in your `pyproject.toml` file to expose your application through
+    a terminal command:
+
+    ```toml
+    [tool.poetry.scripts]
+    foo = "foo.__main__:run"
+    ```
 
 ## rats.annotations
 
