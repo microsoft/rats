@@ -14,15 +14,35 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  ci-workflow:
-    uses: ./.github/workflows/ci.yaml
+  checks:
+    uses: ./.github/workflows/checks.yaml
     secrets: inherit
     with:
-      publish-wheels: true
-      publish-docs: true
       sha: ${{ github.sha }}
-  codeql-workflow:
+  build-wheels:
+    uses: ./.github/workflows/build-wheels.yaml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}
+  build-docs:
+    uses: ./.github/workflows/build-docs.yaml
+    secrets: inherit
+    with:
+      sha: ${{ github.sha }}
+  codeql:
     uses: ./.github/workflows/codeql.yaml
     secrets: inherit
     with:
       sha: ${{ github.sha }}
+  release:
+    uses: ./.github/workflows/release.yaml
+    secrets: inherit
+    needs:
+      - build-docs
+      - build-wheels
+      - checks
+      - codeql
+    with:
+      sha: ${{ github.sha }}
+      publish-docs: true
+      publish-wheels: true

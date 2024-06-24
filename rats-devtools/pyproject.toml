@@ -1,25 +1,17 @@
 [tool.poetry]
 name = "rats-devtools"
 description = "Rats Development Tools"
-# Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.1.3.dev18"
+version = "0.1.3"
 readme = "README.md"
 authors = []
-packages = [{ include = "rats", from = "src/python" }]
+packages = [
+    { include = "rats/ci", from = "src/python" },
+    { include = "rats/devtools", from = "src/python" },
+]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "pep440"
-bump = true
-dirty = false
-# This would allow us to publish from PR builds but Azure Devops artifacts lack support:
-# https://developercommunity.visualstudio.com/t/local-version-segments-for-python-package-feeds/892057
-metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
 enable = true
@@ -60,12 +52,8 @@ sphinx-markdown-builder = "*"
 rats-devtools = "rats.devtools.__main__:run"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
-"rats-devtools.ci" = "rats.ci._plugin:RatsCiPlugin"
-"rats-devtools.docs" = "rats.docs._plugin:RatsDocsPlugin"
-"rats-devtools.pycharm" = "rats.pycharm._plugin:RatsPycharmPlugin"
-"rats-devtools-ct.ci" = "rats.ci._command_tree_plugin:RatsCiCommandTreePlugin"
-"rats-devtools-ct.docs" = "rats.docs._command_tree_plugin:RatsDocsCommandTreePlugin"
-"rats-devtools-ct.pycharm" = "rats.pycharm._command_tree_plugin:RatsPycharmCommandTreePlugin"
+"rats.devtools" = "rats.devtools:PluginContainer"
+"rats.ci" = "rats.ci:PluginContainer"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
@@ -120,8 +108,12 @@ reportIncompatibleVariableOverride = false
 reportIncompatibleMethodOverride = false
 
 [tool.ruff]
-cache-dir = "../.tmp/rats-devtools/.ruff_cache"
+cache-dir = ".tmp/.ruff_cache"
 include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
+fix = true
+show-fixes = true
+output-format = "full"
+namespace-packages = ["rats"]
 line-length = 99
 indent-width = 4
 target-version = "py310"
@@ -144,7 +136,6 @@ select = [
     "D213", # D213: Multi-line docstring summary should start at the second line
 ]
 ignore = [
-    "E501", # E501: Line too long ({width} > {limit})
     "D212", # D212: Multi-line docstring summary should start at the second line
     # This rule seems buggy: https://github.com/astral-sh/ruff/issues/2480
     "PD011", # PD011: Use `.to_numpy()` instead of `.values`
@@ -159,7 +150,6 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
 "test/*" = [
-    "F401", # Unused import
     "D100", # Missing docstring in public module
     "D101", # Missing docstring in public class
     "D102", # Missing docstring in public method

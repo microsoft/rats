@@ -10,7 +10,7 @@ from .._pipeline_registry import IPipelineRegistry
 from .._pipeline_registry import Services as PipelineRegistryServices
 
 
-class NotebookApp(apps.AnnotatedContainer):
+class NotebookApp(apps.Container):
     _container_providers: tuple[Callable[[apps.Container], apps.Container], ...]
 
     def __init__(self, *container_providers: Callable[[apps.Container], apps.Container]) -> None:

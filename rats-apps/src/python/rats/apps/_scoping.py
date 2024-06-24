@@ -8,10 +8,6 @@ T = TypeVar("T")
 P = ParamSpec("P")
 
 
-def scope_service_name(module_name: str, cls_name: str, name: str) -> str:
-    return f"{module_name}:{cls_name}[{name}]"
-
-
 def autoscope(cls: type[T]) -> type[T]:
     """
     Decorator that replaces all ServiceId instances in the class with scoped ServiceId instances.
@@ -45,3 +41,7 @@ def autoscope(cls: type[T]) -> type[T]:
             setattr(cls, prop_name, prop)
 
     return cls
+
+
+def scope_service_name(module_name: str, cls_name: str, name: str) -> str:
+    return f"{module_name}:{cls_name}[{name}]"

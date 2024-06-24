@@ -1,25 +1,19 @@
 [tool.poetry]
 name = "rats-apps"
 description = "research analysis tools for building applications"
-# Handled by `poetry-dynamic-versioning` plugin below.
-version = "0.1.2"
+version = "0.1.3"
 readme = "README.md"
 authors = []
-packages = [{ include = "rats", from = "src/python" }]
+packages = [
+    { include = "rats/apps", from = "src/python" },
+    { include = "rats/annotations", from = "src/python" },
+    { include = "rats/cli", from = "src/python" },
+    { include = "rats/logs", from = "src/python" },
+]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "pep440"
-bump = true
-dirty = false
-# This would allow us to publish from PR builds but Azure Devops artifacts lack support:
-# https://developercommunity.visualstudio.com/t/local-version-segments-for-python-package-feeds/892057
-metadata = false
 
 [tool.poetry-monorepo-dependency-plugin]
 enable = true
@@ -29,6 +23,7 @@ version-pinning-strategy = "semver"
 python = "^3.10"
 typing_extensions = "*"
 click = "*"
+colorlog = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -44,8 +39,12 @@ sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
 
+[tool.poetry.plugins."rats.apps.plugins"]
+"rats.logs" = "rats.logs:PluginContainer"
+"rats.cli" = "rats.cli:PluginContainer"
+
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]

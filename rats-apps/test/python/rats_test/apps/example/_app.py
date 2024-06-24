@@ -7,7 +7,7 @@ from ._dummy_containers import DummyContainer
 from ._storage_plugin import ExampleStoragePlugin
 
 
-class ExampleApp(apps.AnnotatedContainer):
+class ExampleApp(apps.Container):
     _plugins: tuple[Callable[[Container], Container], ...]
 
     def __init__(self, *plugins: Callable[[Container], Container]):

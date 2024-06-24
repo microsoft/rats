@@ -9,10 +9,12 @@ from ._ids import ServiceId, T_ServiceType
 class PluginContainers(Container):
     _app: Container
     _group: str
+    _names: tuple[str, ...]
 
-    def __init__(self, app: Container, group: str) -> None:
+    def __init__(self, app: Container, group: str, *names: str) -> None:
         self._app = app
         self._group = group
+        self._names = names
 
     def get_namespaced_group(
         self,
@@ -25,4 +27,7 @@ class PluginContainers(Container):
     @cache  # noqa: B019
     def _load_containers(self) -> Iterable[Container]:
         entries = entry_points(group=self._group)
-        return tuple(entry.load()(self._app) for entry in entries)
+        return tuple(entry.load()(self._app) for entry in entries if self._is_enabled(entry.name))
+
+    def _is_enabled(self, plugin_name: str) -> bool:
+        return len(self._names) == 0 or plugin_name in self._names

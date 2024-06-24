@@ -10,7 +10,7 @@ class _PrivateIds:
     C1T2a = apps.ServiceId[Tag2]("c1t2a")
 
 
-class DummyContainer1(apps.AnnotatedContainer):
+class DummyContainer1(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:
@@ -21,11 +21,6 @@ class DummyContainer1(apps.AnnotatedContainer):
     @apps.autoid_service
     def unnamed_service1(self) -> Tag1:
         return Tag1("c1.s1")
-
-    # Declaring a service with a private service id.
-    @apps.service(_PrivateIds.SERVICE2)
-    def unnamed_service2(self) -> Tag2:
-        return Tag2("c1.s2")
 
     # Declaring a service with a private service id.  Will be made public below.
     @apps.service(_PrivateIds.C1T1)
@@ -42,7 +37,13 @@ class DummyContainer1(apps.AnnotatedContainer):
     @apps.service(_PrivateIds.C1T2a)
     def tag2a(self) -> Tag2:
         # Within a container, you can also directly call the service method.
+        # But this version is not cached by apps.Container
         return self.unnamed_service2()
+
+    # Declaring a service with a private service id.
+    @apps.service(_PrivateIds.SERVICE2)
+    def unnamed_service2(self) -> Tag2:
+        return Tag2("c1.s2")
 
     @apps.autoid_service
     def tag1b(self) -> Tag1:
@@ -50,7 +51,7 @@ class DummyContainer1(apps.AnnotatedContainer):
         return self._app.get(DummyContainerServiceIds.C2T1)
 
 
-class DummyContainer2(apps.AnnotatedContainer):
+class DummyContainer2(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

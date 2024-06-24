@@ -1,0 +1,53 @@
+name: Release
+on:
+  workflow_call:
+    inputs:
+      sha:
+        description: 'the git sha to checkout'
+        required: true
+        type: string
+      publish-docs:
+        description: 'whether to publish docs to the github pages'
+        required: true
+        type: boolean
+      publish-wheels:
+        description: 'whether to publish wheels to the configured feed'
+        required: true
+        type: boolean
+jobs:
+  publish-wheels:
+    name: "publish-wheels"
+    runs-on: "ubuntu-latest"
+    if: "${{ inputs.publish-wheels }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - rats-apps
+          - rats-pipelines
+          - rats-processors
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ matrix.component }}
+    permissions:
+      id-token: write
+    steps:
+      - name: download-wheels
+        uses: actions/download-artifact@v4
+        with:
+          name: "wheels.${{ matrix.component }}"
+          path: dist/
+      - name: publish-wheels
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+  publish-docs:
+    name: "deploy-docs"
+    runs-on: "ubuntu-latest"
+    if: "${{ inputs.publish-docs }}"
+    timeout-minutes: 10
+    steps:
+      - name: "deploy-gh-pages"
+        id: deployment
+        uses: actions/deploy-pages@v4

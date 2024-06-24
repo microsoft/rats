@@ -1,4 +1,3 @@
-# type: ignore
 from __future__ import annotations
 
 from collections import defaultdict
@@ -22,14 +21,14 @@ class GroupAnnotations(NamedTuple, Generic[T_GroupType]):
     groups: tuple[T_GroupType, ...]
 
 
-class AnnotationsContainer(NamedTuple):
+class AnnotationsContainer(tNamedTuple):
     """
-    Holds metadata about the annotated service provider.
+    Holds metadata about the annotated functions or class methods.
 
     Loosely inspired by: https://peps.python.org/pep-3107/.
     """
 
-    annotations: tuple[GroupAnnotations[...], ...]
+    annotations: tuple[GroupAnnotations[Any], ...]
 
     @staticmethod
     def empty() -> AnnotationsContainer:
@@ -38,7 +37,7 @@ class AnnotationsContainer(NamedTuple):
     def with_group(
         self,
         namespace: str,
-        group_id: T_GroupType,
+        group_id: NamedTuple,
     ) -> AnnotationsContainer:
         return AnnotationsContainer(
             annotations=tuple(
@@ -87,6 +86,13 @@ def annotation(
     namespace: str,
     group_id: NamedTuple | tNamedTuple,
 ) -> Callable[[DecoratorType], DecoratorType]:
+    """
+    Decorator to add an annotation to a function.
+
+    Typically used to create domain-specific annotation functions for things like DI Containers.
+    For examples, see the rats.apps annotations, like service() and group().
+    """
+
     def decorator(fn: DecoratorType) -> DecoratorType:
         if not hasattr(fn, "__rats_annotations__"):
             fn.__rats_annotations__ = AnnotationsBuilder()  # type: ignore[reportFunctionMemberAccess]
@@ -100,14 +106,22 @@ def annotation(
 
 @cache
 def get_class_annotations(cls: type) -> AnnotationsContainer:
-    tates = []
+    """
+    Get all annotations for a class.
+
+    Traverses the class methods looking for any annotated with "__rats_annotations__" and returns
+    an instance of AnnotationsContainer. This function tries to cache the results to avoid any
+    expensive parsing of the class methods.
+    """
+    tates: list[GroupAnnotations[Any]] = []
 
     for method_name in dir(cls):
         method = getattr(cls, method_name)
         if not hasattr(method, "__rats_annotations__"):
             continue
 
-        tates.extend(method.__rats_annotations__.make(method_name).annotations)
+        builder: AnnotationsBuilder = method.__rats_annotations__
+        tates.extend(builder.make(method_name).annotations)
 
     return AnnotationsContainer(annotations=tuple(tates))
 
@@ -116,6 +130,12 @@ P = ParamSpec("P")
 
 
 def get_annotations(fn: Callable[..., Any]) -> AnnotationsContainer:
+    """
+    Get all annotations for a function or class method.
+
+    Builds an instance of AnnotationsContainer from the annotations found in the object's
+    "__rats_annotations__" attribute.
+    """
     builder: AnnotationsBuilder = getattr(
         fn,
         "__rats_annotations__",

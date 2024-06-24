@@ -1,0 +1,69 @@
+name: "Setup Environment"
+description: |
+  Install development tools and define common variables.
+inputs:
+  install-poetry:
+    description: install the global poetry cli command
+    required: true
+    default: ""
+  install-devtools:
+    description: install the global rats-devtools cli command
+    required: true
+    default: ""
+outputs:
+  package-version:
+    description: "a generated version usable for publishing packages and containers"
+    value: ${{ steps.runner-context.outputs.package-version }}
+runs:
+  using: "composite"
+  steps:
+    - id: runner-context
+      name: runner-context
+      shell: bash
+      env:
+        COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
+        COMMIT_REF: "${{ github.head_ref || github.ref_name }}"
+        RUN_ID: "${{ github.run_id }}"
+      run: |
+        # make sure people are able to use packages installed with pipx
+        export PATH="${HOME}/.local/bin:$PATH"
+        echo "${HOME}/.local/bin" >> $GITHUB_PATH
+
+        TOML_VERSION=$(grep -m 1 version rats-devtools/pyproject.toml | tr -s " " | tr -d '"' | tr -d "'" | cut -d" " -f3)
+        echo "timestamp: $COMMIT_TIMESTAMP"
+        echo "commit ref: $COMMIT_REF"
+        echo "version found in devtools toml: $TOML_VERSION"
+        echo "runid: $RUN_ID"
+
+        if  [[ $COMMIT_REF == "v$TOML_VERSION" ]] ;
+        then
+          echo "detected tag build: $COMMIT_REF"
+          PACKAGE_VERSION=$TOML_VERSION
+        elif [[ $COMMIT_REF == "main" ]] ;
+        then
+          echo "detected main branch build"
+          echo "will generate a release candidate"
+          PACKAGE_VERSION="$(date --date "$COMMIT_TIMESTAMP" "+$TOML_VERSION.dev%Y%m%d%H%M%S")"
+        else
+          echo "detected branch build"
+          echo "will generate a dev version"
+          PACKAGE_VERSION="$(date --date "$COMMIT_TIMESTAMP" "+$TOML_VERSION.dev%Y%m%d%H%M%S")"
+        fi
+
+        echo "generating context for version: $PACKAGE_VERSION"
+        echo "package-version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+        # slash to dash just to simplify
+        echo "release-group=${RELEASE_GROUP//[\/]/-}" >> $GITHUB_OUTPUT
+        echo "release-environment=$RELEASE_ENVIRONMENT" >> $GITHUB_OUTPUT
+    - id: "install-poetry"
+      if: ${{ inputs.install-poetry }}
+      name: "install-poetry"
+      shell: bash
+      run: |
+        pipx install poetry
+    - id: "install-devtools"
+      if: ${{ inputs.install-devtools }}
+      name: "install-devtools"
+      shell: bash
+      run: |
+        pipx install rats-devtools/

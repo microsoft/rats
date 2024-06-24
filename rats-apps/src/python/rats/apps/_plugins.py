@@ -1,3 +1,4 @@
+import warnings
 from collections.abc import Callable, Iterator
 from typing import Generic, TypeVar
 
@@ -13,5 +14,10 @@ class PluginRunner(Generic[T_PluginType]):
         self._plugins = plugins
 
     def apply(self, handler: Callable[[T_PluginType], None]) -> None:
+        warnings.warn(
+            "PluginRunner is deprecated. Use PluginContainer instances instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         for plugin in self._plugins:
             handler(plugin)

@@ -353,7 +353,7 @@ train_and_predict_outputs["test_evaluation"]
 # and `TrainAndPredictPipelineContainer` as sub-containers, and register that other container class
 # with the app.  Functionally, this is the same as what we did above:
 # %%
-class C1(apps.AnnotatedContainer):
+class C1(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

@@ -17,7 +17,7 @@ class CommandTree:
     """The children of the command."""
 
     kwargs_class: type | None = None
-    """The class that represents the arguments of the command. If None, the command has no arguments. Arguments are available to the handler and children."""
+    """The class that represents the arguments of the command. If None, the command has no arguments. Arguments are available to the handler and children."""  # noqa: E501
 
     handler: Callable[..., None] | Callable[..., AbstractContextManager[None]] | None = None
-    """The handler for the command. If there are children, the ContextManager wraps their execution, otherwise, the Callable is executed before the children are executed."""
+    """The handler for the command. If there are children, the ContextManager wraps their execution, otherwise, the Callable is executed before the children are executed."""  # noqa: E501

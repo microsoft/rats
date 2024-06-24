@@ -6,7 +6,7 @@ from ._pipeline_registry import PipelineRegistry
 from ._services import Groups, Services
 
 
-class PipelineRegistryContainer(apps.AnnotatedContainer):
+class PipelineRegistryContainer(apps.Container):
     _app: apps.Container
 
     def __init__(self, app: apps.Container) -> None:

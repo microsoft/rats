@@ -40,5 +40,5 @@ def get_attribute_docstring(dataclass_tpe: type, field_name: str) -> str:
                         return ""
 
     raise ValueError(
-        f"Attribute {field_name} not found in dataclass {dataclass_tpe.__module__}.{dataclass_tpe.__qualname__}"
+        f"Attribute {field_name} not found in dataclass {dataclass_tpe.__module__}.{dataclass_tpe.__qualname__}"  # noqa: E501
     )
