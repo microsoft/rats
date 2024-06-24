@@ -4,7 +4,10 @@ description = "Rats Development Tools"
 version = "0.1.3"
 readme = "README.md"
 authors = []
-packages = [{ include = "rats", from = "src/python" }]
+packages = [
+    { include = "rats/ci", from = "src/python" },
+    { include = "rats/devtools", from = "src/python" },
+]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]

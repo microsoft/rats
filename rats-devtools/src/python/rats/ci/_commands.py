@@ -5,9 +5,6 @@ from collections.abc import Iterable
 
 import click
 
-# pyright seems to struggle with this namespace package
-# https://github.com/microsoft/pyright/issues/2882
-from rats import apps as apps
 from rats import cli, devtools
 
 logger = logging.getLogger(__name__)

@@ -4,7 +4,7 @@ import click
 
 from rats import apps as apps
 from rats import cli as cli
-from rats import devtools as devtools
+from rats import devtools
 
 from ._commands import PluginCommands
 

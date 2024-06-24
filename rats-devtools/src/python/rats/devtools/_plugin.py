@@ -1,10 +1,7 @@
-# pyright seems to struggle with this namespace package
-# https://github.com/microsoft/pyright/issues/2882
 import logging
 from pathlib import Path
 
-from rats import apps as apps
-from rats import cli, logs
+from rats import apps, cli, logs
 
 from ._component_operations import ComponentOperations, UnsetComponentOperations
 from ._project_tools import ComponentNotFoundError, ProjectTools
