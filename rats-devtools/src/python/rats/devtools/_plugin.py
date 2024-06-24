@@ -35,7 +35,7 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.service(PluginServices.MAIN)
-    def main(self) -> apps.Executable:
+    def _main(self) -> apps.Executable:
         runtime = self._app.get(apps.AppServices.RUNTIME)
         return apps.App(
             lambda: runtime.execute_group(
@@ -47,19 +47,19 @@ class PluginContainer(apps.Container):
         )
 
     @apps.group(PluginServices.EVENTS.APP_OPEN)
-    def on_app_open(self) -> apps.Executable:
+    def _on_app_open(self) -> apps.Executable:
         return apps.App(lambda: logger.debug("Opening app"))
 
     @apps.group(PluginServices.EVENTS.APP_RUN)
-    def on_app_run(self) -> apps.Executable:
+    def _on_app_run(self) -> apps.Executable:
         return self._app.get(cli.PluginServices.ROOT_COMMAND)
 
     @apps.group(PluginServices.EVENTS.APP_CLOSE)
-    def on_app_close(self) -> apps.Executable:
-        return apps.App(lambda: logger.info("Closing app"))
+    def _on_app_close(self) -> apps.Executable:
+        return apps.App(lambda: logger.debug("Closing app"))
 
     @apps.service(PluginServices.ACTIVE_COMPONENT_OPS)
-    def active_component_ops(self) -> ComponentOperations:
+    def _active_component_ops(self) -> ComponentOperations:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
         try:
             return ptools.get_component(Path().resolve().name)
@@ -67,10 +67,10 @@ class PluginContainer(apps.Container):
             return UnsetComponentOperations(Path())
 
     @apps.service(PluginServices.DEVTOOLS_COMPONENT_OPS)
-    def devtools_component_ops(self) -> ComponentOperations:
+    def _devtools_component_ops(self) -> ComponentOperations:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
         return ptools.get_component("rats-devtools")
 
     @apps.service(PluginServices.PROJECT_TOOLS)
-    def project_tools(self) -> ProjectTools:
+    def _project_tools(self) -> ProjectTools:
         return ProjectTools(Path().resolve())
