@@ -171,6 +171,29 @@ function into our plugin container and use `apps.SimpleApplication` to run it.
 
 ## rats.annotations
 
+This package helps create decorators meant to attach annotations to functions or methods. The
+annotation functions in `rats.apps` are a good example of using this package to create a friendly
+developer experience in your own domains.
+
+```python
+from collections.abc import Callable
+from typing import ParamSpec
+
+from rats import annotations
+
+from ._ids import ServiceId, T_ServiceType
+from ._namespaces import ProviderNamespaces
+
+P = ParamSpec("P")
+
+
+def service(
+    service_id: ServiceId[T_ServiceType],
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+    """A service is anything you would create instances of?"""
+    return annotations.annotation(ProviderNamespaces.SERVICES, service_id)
+```
+
 ## rats.cli
 
 ## rats.logs
