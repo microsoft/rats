@@ -61,6 +61,7 @@ runs:
       shell: bash
       run: |
         pipx install poetry
+        poetry self add poetry-monorepo-dependency-plugin
     - id: "install-devtools"
       if: ${{ inputs.install-devtools }}
       name: "install-devtools"
