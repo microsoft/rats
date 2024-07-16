@@ -5,7 +5,7 @@ from pathlib import Path
 from rats import apps, cli, logs
 
 from ._component_operations import ComponentOperations, UnsetComponentOperations
-from ._project_tools import ComponentNotFoundError, ProjectTools
+from ._project_tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
 from ._runtime import K8sRuntime, K8sRuntimeContext
 
 logger = logging.getLogger(__name__)
@@ -74,11 +74,19 @@ class PluginContainer(apps.Container):
             return ptools.get_component(Path().resolve().name)
         except ComponentNotFoundError:
             return UnsetComponentOperations(Path())
+        except ProjectNotFoundError:
+            return UnsetComponentOperations(Path())
 
     @apps.service(PluginServices.DEVTOOLS_COMPONENT_OPS)
     def _devtools_component_ops(self) -> ComponentOperations:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
-        return ptools.get_component("rats-devtools")
+
+        try:
+            return ptools.get_component("rats-devtools")
+        except ComponentNotFoundError:
+            return UnsetComponentOperations(Path())
+        except ProjectNotFoundError:
+            return UnsetComponentOperations(Path())
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:
@@ -89,7 +97,8 @@ class PluginContainer(apps.Container):
         return K8sRuntime(
             lambda: K8sRuntimeContext(
                 image=os.environ.get("K8S_RUNTIME_IMAGE", "rats-devtools.default:0.0.0"),
-                command=("rats-devtools", "worker-node"),
+                command=("rats-devtools", "ci", "worker-node"),
+                k8s_config_ctx=os.environ.get("K8S_CONFIG_CTX", "default"),
             ),
             self._app.get(apps.AppServices.STANDARD_RUNTIME),
         )

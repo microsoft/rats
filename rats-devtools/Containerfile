@@ -1,9 +1,12 @@
 FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
 
 # pipx is going to install things here for us
-ENV PATH="/root/.local/bin:${PATH}"
+ENV PIPX_BIN_DIR="/usr/local/bin"
+ENV PIPX_HOME=/opt/pipx
+ENV PATH="${PIPX_BIN_DIR}:${PATH}"
 
 RUN <<HEREDOC
+useradd -u 1001 -m nonroot
 
 apt-get update
 

@@ -27,10 +27,14 @@ class ProjectTools:
 
             guess = guess.parent
 
-        raise ValueError(
+        raise ProjectNotFoundError(
             "could not find the root of the repository. rats-devtools must be used from a repo."
         )
 
 
 class ComponentNotFoundError(ValueError):
+    pass
+
+
+class ProjectNotFoundError(ValueError):
     pass

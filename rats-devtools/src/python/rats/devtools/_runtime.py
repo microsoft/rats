@@ -5,6 +5,7 @@ from collections.abc import Callable
 from typing import NamedTuple
 
 import kubernetes
+from kubernetes.client import V1Job, V1ObjectMeta
 
 from rats import apps
 
@@ -12,6 +13,7 @@ from rats import apps
 class K8sRuntimeContext(NamedTuple):
     image: str
     command: tuple[str, ...]
+    k8s_config_ctx: str
 
 
 class K8sRuntime(apps.Runtime):
@@ -24,44 +26,7 @@ class K8sRuntime(apps.Runtime):
 
     def execute(self, *exe_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
         """Execute a list of executables sequentially."""
-        kubernetes.config.load_kube_config()
-        new_id = self._make_ctx_id()
-        remote_ctx = self._ctx()
-        with kubernetes.client.ApiClient() as api_client:
-            # Create an instance of the API class
-            api_instance = kubernetes.client.BatchV1Api(api_client)
-            namespace = "default"
-            body = kubernetes.client.V1Job(
-                metadata=kubernetes.client.V1ObjectMeta(
-                    name=f"rats-devtools-{new_id[2:5]}",
-                ),
-                spec=kubernetes.client.V1JobSpec(
-                    template=kubernetes.client.V1PodTemplateSpec(
-                        spec=kubernetes.client.V1PodSpec(
-                            containers=[
-                                kubernetes.client.V1Container(
-                                    name="worker",
-                                    image=remote_ctx.image,
-                                    command=remote_ctx.command,
-                                    env=[
-                                        kubernetes.client.V1EnvVar("K8S_RUNTIME_CTX_ID", new_id),
-                                        kubernetes.client.V1EnvVar(
-                                            "K8S_RUNTIME_EXES", json.dumps(exe_ids)
-                                        ),
-                                    ],
-                                    image_pull_policy="Always",
-                                ),
-                            ],
-                            restart_policy="Never",
-                        ),
-                    ),
-                ),
-            )
-            api_response = api_instance.create_namespaced_job(
-                namespace=namespace,
-                body=body,
-            )
-            print(f"job created: {api_response.metadata.name}")
+        self._exe_remote(exe_ids, ())
 
     def execute_group(self, *exe_group_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
         """
@@ -71,9 +36,21 @@ class K8sRuntime(apps.Runtime):
         executed in a deterministic order. Runtime implementations are free to execute groups in
         parallel or in any order that is convenient.
         """
-        kubernetes.config.load_kube_config()
-        new_id = self._make_ctx_id()
+        self._exe_remote((), exe_group_ids)
+
+    def execute_callable(self, *callables: Callable[[], None]) -> None:
+        raise RuntimeError("K8sRuntime does not support executing callables")
+
+    def _exe_remote(
+        self,
+        exe_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
+        group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
+    ) -> None:
         remote_ctx = self._ctx()
+        kubernetes.config.load_kube_config(context=remote_ctx.k8s_config_ctx)
+        new_id = self._make_ctx_id()
+        exes = json.dumps([exe._asdict() for exe in exe_ids])
+        groups = json.dumps([group._asdict() for group in group_ids])
         with kubernetes.client.ApiClient() as api_client:
             # Create an instance of the API class
             api_instance = kubernetes.client.BatchV1Api(api_client)
@@ -92,9 +69,8 @@ class K8sRuntime(apps.Runtime):
                                     command=remote_ctx.command,
                                     env=[
                                         kubernetes.client.V1EnvVar("K8S_RUNTIME_CTX_ID", new_id),
-                                        kubernetes.client.V1EnvVar(
-                                            "K8S_RUNTIME_GROUPS", json.dumps(exe_group_ids)
-                                        ),
+                                        kubernetes.client.V1EnvVar("K8S_RUNTIME_EXES", exes),
+                                        kubernetes.client.V1EnvVar("K8S_RUNTIME_GROUPS", groups),
                                     ],
                                     image_pull_policy="Always",
                                 ),
@@ -104,14 +80,12 @@ class K8sRuntime(apps.Runtime):
                     ),
                 ),
             )
-            api_response = api_instance.create_namespaced_job(
+            api_response: V1Job = api_instance.create_namespaced_job(  # type: ignore
                 namespace=namespace,
                 body=body,
             )
-            print(f"job created: {api_response.metadata.name}")
-
-    def execute_callable(self, *callables: Callable[[], None]) -> None:
-        raise RuntimeError("K8sRuntime does not support executing callables")
+            meta: V1ObjectMeta = api_response.metadata  # type: ignore
+            print(f"job created: {meta.name}")
 
     def _make_ctx_id(self) -> str:
         return f"{self._ctx_id()}/{uuid.uuid4()!s}"
