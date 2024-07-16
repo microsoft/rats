@@ -24,6 +24,7 @@ click = "*"
 python = "^3.10"
 toml = "*"
 twine = "*"
+kubernetes = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
