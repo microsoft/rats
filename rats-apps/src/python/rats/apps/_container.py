@@ -26,6 +26,12 @@ class ConfigProvider(ServiceProvider[Tco_ConfigType], Protocol[Tco_ConfigType]):
         """Return the config instance."""
 
 
+class GroupProvider(Protocol[Tco_ServiceType]):
+    @abstractmethod
+    def __call__(self) -> Iterator[Tco_ServiceType]:
+        """Return the group instances."""
+
+
 class Container(Protocol):
     """
     Main interface for service containers.

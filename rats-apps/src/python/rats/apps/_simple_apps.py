@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from typing import final
 
-from ._annotations import fallback_service
+from ._annotations import fallback_service, service
 from ._composite_container import CompositeContainer
 from ._container import Container, container
 from ._executables import App, Executable
@@ -56,13 +56,14 @@ class AppServices:
     """
 
     RUNTIME = ServiceId[Runtime]("app-runtime")
+    STANDARD_RUNTIME = ServiceId[Runtime]("standard-runtime")
     CONTAINER = ServiceId[Container]("app-container")
     CALLABLE_EXE_CTX = ServiceId[ExecutableCallableContext]("callable-exe-ctx")
     CALLABLE_EXE = ServiceId[Executable]("callable-exe")
 
 
 @final
-class SimpleRuntime(Runtime):
+class StandardRuntime(Runtime):
     """A simple runtime that executes sequentially and in a single thread."""
 
     _app: Container
@@ -108,11 +109,21 @@ class SimpleApplication(Runtime, Container):
     @fallback_service(AppServices.RUNTIME)
     def _runtime(self) -> Runtime:
         """
-        The default runtime is an instance of SimpleRuntime.
+        The default runtime defers to AppServices.STANDARD_RUNTIME.
 
         Define a non-fallback service to override this default implementation.
         """
-        return SimpleRuntime(self)
+        return self.get(AppServices.STANDARD_RUNTIME)
+
+    @service(AppServices.STANDARD_RUNTIME)
+    def _std_runtime(self) -> Runtime:
+        """
+        The standard locally executed runtime.
+
+        Regardless of the configured AppServices.RUNTIME provider, everyone has access to this
+        class for plugin development.
+        """
+        return StandardRuntime(self)
 
     @fallback_service(AppServices.CALLABLE_EXE)
     def _callable_exe(self) -> Executable:
