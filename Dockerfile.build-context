@@ -1,4 +1,0 @@
-ARG REGISTRY=mcr.microsoft.com/mirror/docker/library
-FROM ${REGISTRY}/ubuntu:22.04
-
-COPY . /code

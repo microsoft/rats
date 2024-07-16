@@ -1,6 +1,4 @@
 **/.venv
-**/.tox
-**/.tox.docker
 **/.tmp
 **/.mypy_cache
 **/.pytest_cache
@@ -11,7 +9,8 @@
 
 */src/python/*.egg-info
 */build/
-*/dist/*.whl
+*/dist/
 
+bin/*.pipx
 .git
 .coverage

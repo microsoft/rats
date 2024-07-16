@@ -1,0 +1,31 @@
+FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
+
+# ENV LC_ALL=C.UTF-8
+# ENV LANG=C.UTF-8
+# pipx is going to install things here for us
+ENV PATH "/root/.local/bin:${PATH}"
+
+RUN <<HEREDOC
+
+apt-get update
+
+apt-get install -yqq --no-install-recommends \
+    python3-minimal \
+    python3-pip \
+    pipx
+
+pipx install poetry
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+rm -rf /tmp/*
+rm -rf /root/.cache
+HEREDOC
+
+COPY . /opt/rats
+WORKDIR /opt/rats/rats-devtools
+RUN <<HEREDOC
+pipx install .
+
+rm -rf /root/.cache
+HEREDOC
