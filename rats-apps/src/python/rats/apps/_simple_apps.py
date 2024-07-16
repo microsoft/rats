@@ -54,7 +54,6 @@ class AppServices:
     Owners of applications can decide not to use or not to make these services available to plugin
     authors.
     """
-
     RUNTIME = ServiceId[Runtime]("app-runtime")
     STANDARD_RUNTIME = ServiceId[Runtime]("standard-runtime")
     CONTAINER = ServiceId[Container]("app-container")

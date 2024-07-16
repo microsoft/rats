@@ -21,7 +21,12 @@ rm -rf /root/.cache
 HEREDOC
 
 COPY . /opt/rats
-WORKDIR /opt/rats
+WORKDIR /opt/rats/rats-devtools
+RUN <<HEREDOC
+pipx install .
+
+rm -rf /root/.cache
+HEREDOC
 
 # nothing should be installed after this step
 USER nonroot

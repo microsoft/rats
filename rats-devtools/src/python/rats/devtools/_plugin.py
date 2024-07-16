@@ -1,10 +1,12 @@
 import logging
+import os
 from pathlib import Path
 
 from rats import apps, cli, logs
 
 from ._component_operations import ComponentOperations, UnsetComponentOperations
 from ._project_tools import ComponentNotFoundError, ProjectTools
+from ._runtime import K8sRuntime, K8sRuntimeContext
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ class PluginServices:
     ACTIVE_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("active-component-ops")
     DEVTOOLS_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("devtools-component-ops")
     PROJECT_TOOLS = apps.ServiceId[ProjectTools]("project-tools")
+    K8S_RUNTIME = apps.ServiceId[K8sRuntime]("k8s-runtime")
     EVENTS = _PluginEvents
 
 
@@ -57,6 +60,7 @@ class PluginContainer(apps.Container):
 
     @apps.group(PluginServices.EVENTS.app_run(PluginServices.MAIN))
     def _on_app_run(self) -> apps.Executable:
+        # our main app here runs a cli command, but it can also directly do something useful
         return self._app.get(cli.PluginServices.ROOT_COMMAND)
 
     @apps.group(PluginServices.EVENTS.app_run(PluginServices.MAIN))
@@ -79,3 +83,13 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:
         return ProjectTools(Path().resolve())
+
+    @apps.service(PluginServices.K8S_RUNTIME)
+    def _k8s_runtime(self) -> K8sRuntime:
+        return K8sRuntime(
+            lambda: K8sRuntimeContext(
+                image=os.environ.get("K8S_RUNTIME_IMAGE", "rats-devtools.default:0.0.0"),
+                command=("rats-devtools", "worker-node"),
+            ),
+            self._app.get(apps.AppServices.STANDARD_RUNTIME),
+        )
