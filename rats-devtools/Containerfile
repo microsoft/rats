@@ -1,9 +1,7 @@
 FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
 
-# ENV LC_ALL=C.UTF-8
-# ENV LANG=C.UTF-8
 # pipx is going to install things here for us
-ENV PATH "/root/.local/bin:${PATH}"
+ENV PATH="/root/.local/bin:${PATH}"
 
 RUN <<HEREDOC
 
@@ -23,9 +21,7 @@ rm -rf /root/.cache
 HEREDOC
 
 COPY . /opt/rats
-WORKDIR /opt/rats/rats-devtools
-RUN <<HEREDOC
-pipx install .
+WORKDIR /opt/rats
 
-rm -rf /root/.cache
-HEREDOC
+# nothing should be installed after this step
+USER nonroot
