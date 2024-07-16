@@ -1,5 +1,7 @@
 # pyright seems to struggle with this namespace package
 # https://github.com/microsoft/pyright/issues/2882
+import os
+
 import click
 
 from rats import apps as apps
@@ -44,6 +46,9 @@ class PluginContainer(apps.Container):
             project_tools=self._app.get(devtools.PluginServices.PROJECT_TOOLS),
             selected_component=self._app.get(devtools.PluginServices.ACTIVE_COMPONENT_OPS),
             devtools_component=self._app.get(devtools.PluginServices.DEVTOOLS_COMPONENT_OPS),
+            container_registry=os.environ.get(
+                "DEVTOOLS_CONTAINER_REGISTRY", "rats-devtools.default"
+            ),
         )
 
     @apps.service(PluginServices.CLICK.GROUP)

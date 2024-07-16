@@ -14,16 +14,19 @@ class PluginCommands(cli.CommandContainer):
     _project_tools: devtools.ProjectTools
     _selected_component: devtools.ComponentOperations
     _devtools_component: devtools.ComponentOperations
+    _container_registry: str
 
     def __init__(
         self,
         project_tools: devtools.ProjectTools,
         selected_component: devtools.ComponentOperations,
         devtools_component: devtools.ComponentOperations,
+        container_registry: str,
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
         self._devtools_component = devtools_component
+        self._container_registry = container_registry
 
     @cli.command(cli.CommandId.auto())
     def install(self) -> None:
@@ -136,6 +139,24 @@ class PluginCommands(cli.CommandContainer):
     def build_wheel(self) -> None:
         """Build a wheel for the package."""
         self._selected_component.poetry("build", "-f", "wheel")
+
+    @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
+    @click.argument("tag")
+    def build_image(self, tag: str) -> None:
+        """Update the version of the package found in pyproject.toml."""
+        file = self._selected_component.find_path("Containerfile")
+        if not file.exists():
+            raise FileNotFoundError("Containerfile not found in component")
+
+        image_tag = f"{self._container_registry}:{tag}"
+        self._selected_component.exe(
+            "docker", "build", "-t", image_tag, "--file", str(file), "../"
+        )
+        if ".azurecr.io/" in self._container_registry:
+            acr_registry = self._container_registry.split(".")[0]
+            self._selected_component.exe("az", "acr", "login", "--name", acr_registry)
+            # for now only pushing automatically if the registry is ACR
+            self._selected_component.exe("docker", "push", image_tag)
 
     @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
     @click.argument("repository_name")
