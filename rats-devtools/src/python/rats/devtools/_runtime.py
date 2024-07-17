@@ -2,6 +2,7 @@ import json
 import uuid
 from collections.abc import Callable
 from typing import NamedTuple
+from urllib.parse import urlparse
 
 import kubernetes
 from kubernetes.client import V1Job, V1ObjectMeta
@@ -21,7 +22,8 @@ class K8sRuntimeContext(NamedTuple):
 
     @property
     def is_acr(self) -> bool:
-        return ".azurecr.io/" in self.image_name
+        parts = urlparse(f"//{self.image_name}")
+        return ".".join(parts[1:]) == "azurecr.io"
 
 
 class K8sRuntime(apps.Runtime):
