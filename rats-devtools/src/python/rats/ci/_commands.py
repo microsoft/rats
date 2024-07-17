@@ -7,6 +7,7 @@ from collections.abc import Iterable
 import click
 
 from rats import apps, cli, devtools
+from rats.devtools._runtime import K8sRuntimeContext
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class PluginCommands(cli.CommandContainer):
     _devtools_component: devtools.ComponentOperations
     _worker_node_runtime: apps.Runtime
     _k8s_runtime: apps.Runtime
-    _container_registry: str
+    _k8s_ctx: apps.ConfigProvider[K8sRuntimeContext]
 
     def __init__(
         self,
@@ -26,14 +27,14 @@ class PluginCommands(cli.CommandContainer):
         devtools_component: devtools.ComponentOperations,
         worker_node_runtime: apps.Runtime,
         k8s_runtime: apps.Runtime,
-        container_registry: str,
+        k8s_ctx: apps.ConfigProvider[K8sRuntimeContext],
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
         self._devtools_component = devtools_component
         self._worker_node_runtime = worker_node_runtime
         self._k8s_runtime = k8s_runtime
-        self._container_registry = container_registry
+        self._k8s_ctx = k8s_ctx
 
     @cli.command(cli.CommandId.auto())
     def install(self) -> None:
@@ -148,22 +149,21 @@ class PluginCommands(cli.CommandContainer):
         self._selected_component.poetry("build", "-f", "wheel")
 
     @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
-    @click.argument("tag")
-    def build_image(self, tag: str) -> None:
+    def build_image(self) -> None:
         """Update the version of the package found in pyproject.toml."""
+        config = self._k8s_ctx()
         file = self._selected_component.find_path("Containerfile")
         if not file.exists():
             raise FileNotFoundError("Containerfile not found in component")
 
-        image_tag = f"{self._container_registry}:{tag}"
         self._selected_component.exe(
-            "docker", "build", "-t", image_tag, "--file", str(file), "../"
+            "docker", "build", "-t", config.image, "--file", str(file), "../"
         )
-        if ".azurecr.io/" in self._container_registry:
-            acr_registry = self._container_registry.split(".")[0]
+        if config.is_acr:
+            acr_registry = config.image_name.split(".")[0]
             self._selected_component.exe("az", "acr", "login", "--name", acr_registry)
             # for now only pushing automatically if the registry is ACR
-            self._selected_component.exe("docker", "push", image_tag)
+            self._selected_component.exe("docker", "push", config.image)
 
     @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
     @click.argument("repository_name")
@@ -285,6 +285,8 @@ class PluginCommands(cli.CommandContainer):
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 
+        self.build_image()
+
         exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
         groups = [apps.ServiceId[apps.Executable](group) for group in group_id]
         if len(exes):
@@ -302,17 +304,16 @@ class PluginCommands(cli.CommandContainer):
         that are passed to it by the kubernetes job. Currently, the exes and groups are passed as
         environment variables until a proper mechanism is implemented.
         """
-        exes = json.loads(
-            os.environ.get("DEVTOOLS_K8S_RUNTIME_EXES", "[]"),
-            object_hook=lambda obj: apps.ServiceId[apps.Executable](**obj),
+        exe_ids = json.loads(
+            os.environ.get("DEVTOOLS_K8S_EXES", "[]"),
+            object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
         )
-        groups = json.loads(
-            os.environ.get("DEVTOOLS_K8S_RUNTIME_GROUPS", "[]"),
-            object_hook=lambda obj: apps.ServiceId[apps.Executable](**obj),
+        group_ids = json.loads(
+            os.environ.get("DEVTOOLS_K8S_GROUPS", "[]"),
+            object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
         )
-
-        self._worker_node_runtime.execute(*exes)
-        self._worker_node_runtime.execute_group(*groups)
+        self._worker_node_runtime.execute(*exe_ids)
+        self._worker_node_runtime.execute_group(*group_ids)
 
     @cli.command(cli.CommandId.auto())
     def image_context_hash(self) -> None:

@@ -1,6 +1,5 @@
 # pyright seems to struggle with this namespace package
 # https://github.com/microsoft/pyright/issues/2882
-import os
 import uuid
 
 import click
@@ -57,9 +56,7 @@ class PluginContainer(apps.Container):
             # on worker nodes, we always want the simple local runtime, for now.
             worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             k8s_runtime=self._app.get(devtools.PluginServices.K8S_RUNTIME),
-            container_registry=os.environ.get(
-                "DEVTOOLS_CONTAINER_REGISTRY", "rats-devtools.default"
-            ),
+            k8s_ctx=lambda: self._app.get(devtools.PluginServices.CONFIGS.K8S_RUNTIME_CTX),
         )
 
     @apps.service(PluginServices.CLICK.GROUP)

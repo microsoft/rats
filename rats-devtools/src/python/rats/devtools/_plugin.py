@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from pathlib import Path
@@ -9,6 +10,11 @@ from ._project_tools import ComponentNotFoundError, ProjectNotFoundError, Projec
 from ._runtime import K8sRuntime, K8sRuntimeContext
 
 logger = logging.getLogger(__name__)
+
+
+@apps.autoscope
+class _PluginConfigs:
+    K8S_RUNTIME_CTX = apps.ConfigId[K8sRuntimeContext]("k8s-runtime-ctx")
 
 
 @apps.autoscope
@@ -34,6 +40,7 @@ class PluginServices:
     PROJECT_TOOLS = apps.ServiceId[ProjectTools]("project-tools")
     K8S_RUNTIME = apps.ServiceId[K8sRuntime]("k8s-runtime")
     EVENTS = _PluginEvents
+    CONFIGS = _PluginConfigs
 
 
 class PluginContainer(apps.Container):
@@ -95,10 +102,17 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.K8S_RUNTIME)
     def _k8s_runtime(self) -> K8sRuntime:
         return K8sRuntime(
-            lambda: K8sRuntimeContext(
-                image=os.environ.get("DEVTOOLS_K8S_RUNTIME_IMAGE", "rats-devtools.default:0.0.0"),
-                command=("rats-devtools", "ci", "worker-node"),
-                k8s_config_ctx=os.environ.get("DEVTOOLS_K8S_CONFIG_CTX", "default"),
-            ),
-            self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            ctx_name=os.environ.get("DEVTOOLS_K8S_CTX_NAME", "default"),
+            config=lambda: self._app.get(PluginServices.CONFIGS.K8S_RUNTIME_CTX),
+            runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
+        )
+
+    @apps.config(PluginServices.CONFIGS.K8S_RUNTIME_CTX)
+    def _k8s_runtime_ctx(self) -> K8sRuntimeContext:
+        project_tools = self._app.get(PluginServices.PROJECT_TOOLS)
+        return K8sRuntimeContext(
+            id=os.environ.get("DEVTOOLS_K8S_CTX_ID", "/"),
+            image_name=os.environ.get("DEVTOOLS_K8S_IMAGE_NAME", "rats-devtools.default"),
+            image_tag=os.environ.get("DEVTOOLS_K8S_IMAGE_TAG", project_tools.image_context_hash()),
+            command=("rats-devtools", "ci", "worker-node"),
         )

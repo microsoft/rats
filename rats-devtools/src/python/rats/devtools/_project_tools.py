@@ -47,6 +47,8 @@ class ProjectTools:
             ["docker", "build", "-t", "image-context-hasher", "--file", str(containerfile), "."],
             check=True,
             cwd=self.repo_root(),
+            capture_output=True,
+            text=True,
         )
 
         output = subprocess.run(

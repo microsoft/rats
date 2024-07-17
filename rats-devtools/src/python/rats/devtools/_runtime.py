@@ -1,5 +1,4 @@
 import json
-import os
 import uuid
 from collections.abc import Callable
 from typing import NamedTuple
@@ -11,17 +10,30 @@ from rats import apps
 
 
 class K8sRuntimeContext(NamedTuple):
-    image: str
+    id: str
+    image_name: str
+    image_tag: str
     command: tuple[str, ...]
-    k8s_config_ctx: str
+
+    @property
+    def image(self) -> str:
+        return f"{self.image_name}:{self.image_tag}"
+
+    @property
+    def is_acr(self) -> bool:
+        return ".azurecr.io/" in self.image_name
 
 
 class K8sRuntime(apps.Runtime):
-    _ctx: apps.ConfigProvider[K8sRuntimeContext]
+    _ctx_name: str
+    _config: apps.ConfigProvider[K8sRuntimeContext]
     _runtime: apps.Runtime
 
-    def __init__(self, ctx: apps.ConfigProvider[K8sRuntimeContext], runtime: apps.Runtime) -> None:
-        self._ctx = ctx
+    def __init__(
+        self, ctx_name: str, config: apps.ConfigProvider[K8sRuntimeContext], runtime: apps.Runtime
+    ) -> None:
+        self._ctx_name = ctx_name
+        self._config = config
         self._runtime = runtime
 
     def execute(self, *exe_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
@@ -46,8 +58,8 @@ class K8sRuntime(apps.Runtime):
         exe_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
         group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
     ) -> None:
-        remote_ctx = self._ctx()
-        kubernetes.config.load_kube_config(context=remote_ctx.k8s_config_ctx)
+        remote_ctx = self._config()
+        kubernetes.config.load_kube_config(context=self._ctx_name)
         new_id = self._make_ctx_id()
         exes = json.dumps([exe._asdict() for exe in exe_ids])
         groups = json.dumps([group._asdict() for group in group_ids])
@@ -68,9 +80,9 @@ class K8sRuntime(apps.Runtime):
                                     image=remote_ctx.image,
                                     command=remote_ctx.command,
                                     env=[
-                                        kubernetes.client.V1EnvVar("K8S_RUNTIME_CTX_ID", new_id),
-                                        kubernetes.client.V1EnvVar("K8S_RUNTIME_EXES", exes),
-                                        kubernetes.client.V1EnvVar("K8S_RUNTIME_GROUPS", groups),
+                                        kubernetes.client.V1EnvVar("DEVTOOLS_K8S_CTX_ID", new_id),
+                                        kubernetes.client.V1EnvVar("DEVTOOLS_K8S_EXES", exes),
+                                        kubernetes.client.V1EnvVar("DEVTOOLS_K8S_GROUPS", groups),
                                     ],
                                     image_pull_policy="Always",
                                 ),
@@ -91,4 +103,4 @@ class K8sRuntime(apps.Runtime):
         return f"{self._ctx_id()}/{uuid.uuid4()!s}"
 
     def _ctx_id(self) -> str:
-        return os.environ.get("K8S_RUNTIME_CTX_ID", "/")
+        return self._config().id
