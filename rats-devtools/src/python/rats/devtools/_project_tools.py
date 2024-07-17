@@ -64,7 +64,7 @@ class ProjectTools:
             capture_output=True,
             text=True,
         ).stdout
-        lines = sorted(output.strip().split("\n"))
+        lines = [l[2:] for l in sorted(output.strip().split("\n"))]
 
         return subprocess.run(
             ["sha256sum", *lines],
