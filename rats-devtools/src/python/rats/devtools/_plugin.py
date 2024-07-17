@@ -96,9 +96,9 @@ class PluginContainer(apps.Container):
     def _k8s_runtime(self) -> K8sRuntime:
         return K8sRuntime(
             lambda: K8sRuntimeContext(
-                image=os.environ.get("K8S_RUNTIME_IMAGE", "rats-devtools.default:0.0.0"),
+                image=os.environ.get("DEVTOOLS_K8S_RUNTIME_IMAGE", "rats-devtools.default:0.0.0"),
                 command=("rats-devtools", "ci", "worker-node"),
-                k8s_config_ctx=os.environ.get("K8S_CONFIG_CTX", "default"),
+                k8s_config_ctx=os.environ.get("DEVTOOLS_K8S_CONFIG_CTX", "default"),
             ),
             self._app.get(apps.AppServices.STANDARD_RUNTIME),
         )

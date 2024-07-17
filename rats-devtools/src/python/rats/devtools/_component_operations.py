@@ -93,7 +93,7 @@ class ComponentOperations:
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
 
     def exe(self, *cmd: str) -> None:
-        logger.info(f"executing in {self._path}/: {' '.join(cmd)}")
+        logger.debug(f"executing in {self._path}/: {' '.join(cmd)}")
         try:
             subprocess.run(cmd, cwd=self._path, check=True)
         except subprocess.CalledProcessError as e:
