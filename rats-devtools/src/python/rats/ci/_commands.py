@@ -153,7 +153,7 @@ class PluginCommands(cli.CommandContainer):
         """Update the version of the package found in pyproject.toml."""
         config = self._k8s_ctx()
         if config.image_tag == self._read_image_context_hash_marker():
-            print("image context has not changed. skipping image build.")
+            print(f"image context has not changed. skipping image build: {config.image_tag}")
             return
         else:
             print(f"image context has changed. building image: {config.image_tag}")

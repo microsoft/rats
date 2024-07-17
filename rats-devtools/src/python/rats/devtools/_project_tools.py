@@ -67,7 +67,7 @@ class ProjectTools:
         lines = sorted(output.strip().split("\n"))
 
         return subprocess.run(
-            ["git", "ls-tree", "-r", "--full-tree", "HEAD", *lines],
+            ["sha256sum", *lines],
             check=True,
             cwd=self.repo_root(),
             capture_output=True,
