@@ -152,6 +152,12 @@ class PluginCommands(cli.CommandContainer):
     def build_image(self) -> None:
         """Update the version of the package found in pyproject.toml."""
         config = self._k8s_ctx()
+        if config.image_tag == self._read_image_context_hash_marker():
+            print("image context has not changed. skipping image build.")
+            return
+        else:
+            print(f"image context has changed. building image: {config.image_tag}")
+
         file = self._selected_component.find_path("Containerfile")
         if not file.exists():
             raise FileNotFoundError("Containerfile not found in component")
@@ -164,6 +170,8 @@ class PluginCommands(cli.CommandContainer):
             self._selected_component.exe("az", "acr", "login", "--name", acr_registry)
             # for now only pushing automatically if the registry is ACR
             self._selected_component.exe("docker", "push", config.image)
+
+        self._update_image_context_hash_marker()
 
     @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
     @click.argument("repository_name")
@@ -315,12 +323,16 @@ class PluginCommands(cli.CommandContainer):
         self._worker_node_runtime.execute(*exe_ids)
         self._worker_node_runtime.execute_group(*group_ids)
 
-    @cli.command(cli.CommandId.auto())
-    def image_context_hash(self) -> None:
+    def _update_image_context_hash_marker(self) -> None:
         manifest = self._devtools_component.find_path(".tmp/image-context.manifest")
         hash = self._devtools_component.find_path(".tmp/image-context.hash")
 
         manifest.write_text(self._project_tools.image_context_manifest())
         hash.write_text(self._project_tools.image_context_hash())
 
-        print(f"hash: {self._project_tools.image_context_hash()}")
+        logger.info(f"hash: {self._project_tools.image_context_hash()}")
+
+    def _read_image_context_hash_marker(self) -> str | None:
+        hash = self._devtools_component.find_path(".tmp/image-context.hash")
+        if hash.exists():
+            return hash.read_text().strip()

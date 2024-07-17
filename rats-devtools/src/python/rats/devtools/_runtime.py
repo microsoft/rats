@@ -22,7 +22,7 @@ class K8sRuntimeContext(NamedTuple):
 
     @property
     def is_acr(self) -> bool:
-        parts = urlparse(f"//{self.image_name}")
+        parts = urlparse(f"//{self.image_name}").hostname.split(".")
         return ".".join(parts[1:]) == "azurecr.io"
 
 
