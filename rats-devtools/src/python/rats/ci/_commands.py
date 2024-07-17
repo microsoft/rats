@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-import subprocess
 from collections.abc import Iterable
 
 import click
@@ -317,61 +316,10 @@ class PluginCommands(cli.CommandContainer):
 
     @cli.command(cli.CommandId.auto())
     def image_context_hash(self) -> None:
-        """
-        Use `git ls-tree` to create a manifest of the files in the image context.
-
-        When building container images, this hash can be used to determine if any of the files in
-        the image might have changed.
-
-        Inspired by https://github.com/5monkeys/docker-image-context-hash-action
-        """
-        containerfile = self._devtools_component.find_path(
-            "src/resources/image-context-hash/Containerfile"
-        )
-        if not containerfile.exists():
-            raise FileNotFoundError(
-                f"Containerfile not found in devtools component: {containerfile}"
-            )
-
-        self._selected_component.exe(
-            "docker", "build", "-t", "image-context-hasher", "--file", str(containerfile), "../"
-        )
-        output = subprocess.run(
-            [
-                "docker",
-                "run",
-                "--pull",
-                "never",
-                "--rm",
-                "image-context-hasher",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout
-        lines = sorted(output.strip().split("\n"))
-
         manifest = self._devtools_component.find_path(".tmp/image-context.manifest")
         hash = self._devtools_component.find_path(".tmp/image-context.hash")
-        with manifest.open("w") as f:
-            subprocess.run(
-                ["git", "ls-tree", "-r", "--full-tree", "HEAD", *lines],
-                check=True,
-                cwd=self._project_tools.repo_root(),
-                stdout=f,
-            )
 
-        with hash.open("w") as f:
-            subprocess.run(
-                ["git", "hash-object", str(manifest)],
-                check=True,
-                cwd=self._project_tools.repo_root(),
-                stdout=f,
-            )
+        manifest.write_text(self._project_tools.image_context_manifest())
+        hash.write_text(self._project_tools.image_context_hash())
 
-        print(
-            "warning: if the hash is unexpectedly changing, make sure the below paths are dockerignored"
-        )
-        print(f"manifest saved: {manifest}")
-        print(f"hash saved: {hash}")
-        print(f"project hash: {hash.read_text().strip()}")
+        print(f"hash: {self._project_tools.image_context_hash()}")
