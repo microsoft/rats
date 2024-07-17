@@ -14,7 +14,7 @@ class ProjectTools:
     def __init__(self, path: Path) -> None:
         self._path = path
 
-    @cache
+    @cache  # noqa: B019
     def image_context_hash(self) -> str:
         manifest = self.image_context_manifest()
         return subprocess.run(
@@ -25,7 +25,7 @@ class ProjectTools:
             check=True,
         ).stdout.strip()
 
-    @cache
+    @cache  # noqa: B019
     def image_context_manifest(self) -> str:
         """
         Use `git ls-tree` to create a manifest of the files in the image context.
@@ -64,7 +64,7 @@ class ProjectTools:
             capture_output=True,
             text=True,
         ).stdout
-        lines = [l[2:] for l in sorted(output.strip().split("\n"))]
+        lines = [line[2:] for line in sorted(output.strip().split("\n"))]
 
         return subprocess.run(
             ["sha256sum", *lines],
