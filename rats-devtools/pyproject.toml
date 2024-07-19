@@ -176,7 +176,7 @@ docstring-code-format = true
 
 [tool.coverage.run]
 branch = true
-data_file = "../.tmp/rats-devtools/.coverage"
+data_file = ".tmp/.coverage"
 # Root namespace package folder here ensures coverage will include files with 0% coverage
 source = ["src/python/rats"]
 relative_files = true
@@ -185,15 +185,15 @@ relative_files = true
 show_missing = true
 
 [tool.coverage.xml]
-output = "../.tmp/rats-devtools/reports/coverage.xml"
+output = ".tmp/reports/coverage.xml"
 
 [tool.pytest.ini_options]
-cache_dir = "../.tmp/rats-devtools/.pytest_cache"
+cache_dir = ".tmp/.pytest_cache"
 testpaths = ["test/python"]
 addopts = """
     --cov --cov-report=term
     --cov-report=xml
-    --junit-xml ../.tmp/rats-devtools/reports/pytest-junit.xml
+    --junit-xml .tmp/reports/pytest-junit.xml
     --capture=no
     --cache-clear
 """
