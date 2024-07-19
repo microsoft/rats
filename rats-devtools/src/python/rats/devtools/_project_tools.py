@@ -1,9 +1,12 @@
 import logging
 import subprocess
+from collections.abc import Iterable
 from functools import cache
 from pathlib import Path
 
-from ._component_operations import ComponentOperations
+import toml
+
+from ._component_operations import ComponentConfig, ComponentOperations
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +76,27 @@ class ProjectTools:
             capture_output=True,
             text=True,
         ).stdout.strip()
+
+    def discover_components(self) -> Iterable[ComponentConfig]:
+        valid_components = []
+        for p in self.repo_root().iterdir():
+            if not p.is_dir() or not (p / "pyproject.toml").is_file():
+                continue
+
+            component_info = toml.loads((p / "pyproject.toml").read_text())
+            if "rats-devtools" not in component_info["tool"]:
+                # we don't recognize components unless they enable rats-devtools
+                logger.warning(f"detected unmanaged component: {p.name}")
+                continue
+
+            valid_components.append(
+                ComponentConfig(
+                    name=component_info["tool"]["poetry"]["name"],
+                    ci_stages=component_info["tool"]["rats-devtools"]["ci-stages"],
+                )
+            )
+
+        return tuple(valid_components)
 
     def get_component(self, name: str) -> ComponentOperations:
         p = self.repo_root() / name

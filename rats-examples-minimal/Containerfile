@@ -1,0 +1,42 @@
+FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
+
+# pipx is going to install things here for us
+ENV PIPX_BIN_DIR="/usr/local/bin"
+ENV PIPX_HOME=/opt/pipx
+
+RUN <<HEREDOC
+# install dependencies
+set -eux
+
+useradd -u 1001 -m nonroot
+
+apt-get update
+
+apt-get install -yqq --no-install-recommends \
+    python3-minimal \
+    python3-pip \
+    pipx
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+rm -rf /tmp/*
+rm -rf /root/.cache
+HEREDOC
+
+COPY rats-apps /opt/rats/rats-apps
+COPY rats-examples-minimal /opt/rats/rats-examples-minimal
+WORKDIR /opt/rats/rats-examples-minimal
+
+RUN <<HEREDOC
+# install the package
+set -eux
+
+# create a clean python venv
+python3 -m venv .venv
+.venv/bin/pip install .
+
+rm -rf /root/.cache
+HEREDOC
+
+# nothing should be installed after this step
+USER nonroot

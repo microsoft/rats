@@ -4,8 +4,14 @@ import sys
 from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
+from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
+
+
+class ComponentConfig(NamedTuple):
+    name: str
+    ci_stages: tuple[str, ...]
 
 
 class ComponentOperations:

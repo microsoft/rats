@@ -1,12 +1,13 @@
 import logging
 import os
+import sys
 from pathlib import Path
 
 from rats import apps, cli, logs
 
 from ._component_operations import ComponentOperations, UnsetComponentOperations
 from ._project_tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
-from ._runtime import K8sRuntime, K8sRuntimeContext
+from ._runtime import DevtoolsProcessContext, K8sRuntime, K8sRuntimeContext
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +15,7 @@ logger = logging.getLogger(__name__)
 @apps.autoscope
 class _PluginConfigs:
     K8S_RUNTIME_CTX = apps.ConfigId[K8sRuntimeContext]("k8s-runtime-ctx")
+    DEVTOOLS_PROCESS_CTX = apps.ConfigId[DevtoolsProcessContext]("devtools-process-ctx")
 
 
 @apps.autoscope
@@ -102,16 +104,31 @@ class PluginContainer(apps.Container):
     def _k8s_runtime(self) -> K8sRuntime:
         return K8sRuntime(
             ctx_name=os.environ.get("DEVTOOLS_K8S_CTX_NAME", "default"),
+            process_ctx=lambda: self._app.get(PluginServices.CONFIGS.DEVTOOLS_PROCESS_CTX),
             config=lambda: self._app.get(PluginServices.CONFIGS.K8S_RUNTIME_CTX),
+            devtools_ops=self._app.get(PluginServices.DEVTOOLS_COMPONENT_OPS),
             runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
         )
 
     @apps.config(PluginServices.CONFIGS.K8S_RUNTIME_CTX)
     def _k8s_runtime_ctx(self) -> K8sRuntimeContext:
         project_tools = self._app.get(PluginServices.PROJECT_TOOLS)
+        process_ctx = self._app.get(PluginServices.CONFIGS.DEVTOOLS_PROCESS_CTX)
+        registry = process_ctx.env.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "local.default")
+        component = Path(process_ctx.cwd).name
+
         return K8sRuntimeContext(
             id=os.environ.get("DEVTOOLS_K8S_CTX_ID", "/"),
-            image_name=os.environ.get("DEVTOOLS_K8S_IMAGE_NAME", "rats-devtools.default"),
+            image_name=f"{registry}/{component}",
             image_tag=os.environ.get("DEVTOOLS_K8S_IMAGE_TAG", project_tools.image_context_hash()),
             command=("rats-devtools", "ci", "worker-node"),
+        )
+
+    @apps.config(PluginServices.CONFIGS.DEVTOOLS_PROCESS_CTX)
+    def _devtools_process_ctx(self) -> DevtoolsProcessContext:
+        self._app.get(PluginServices.PROJECT_TOOLS)
+        return DevtoolsProcessContext(
+            cwd=str(Path().resolve()),
+            argv=tuple(sys.argv),
+            env=dict(os.environ),
         )

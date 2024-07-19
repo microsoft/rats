@@ -1,13 +1,21 @@
 import json
+import subprocess
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from textwrap import dedent
 from typing import NamedTuple
 from urllib.parse import urlparse
 
 import kubernetes
-from kubernetes.client import V1Job, V1ObjectMeta
 
 from rats import apps
+from rats.devtools import ComponentOperations
+
+
+class DevtoolsProcessContext(NamedTuple):
+    cwd: str
+    argv: tuple[str, ...]
+    env: Mapping[str, str]
 
 
 class K8sRuntimeContext(NamedTuple):
@@ -28,14 +36,23 @@ class K8sRuntimeContext(NamedTuple):
 
 class K8sRuntime(apps.Runtime):
     _ctx_name: str
+    _process_ctx: apps.ConfigProvider[DevtoolsProcessContext]
     _config: apps.ConfigProvider[K8sRuntimeContext]
+    _devtools_ops: ComponentOperations
     _runtime: apps.Runtime
 
     def __init__(
-        self, ctx_name: str, config: apps.ConfigProvider[K8sRuntimeContext], runtime: apps.Runtime
+        self,
+        ctx_name: str,
+        process_ctx: apps.ConfigProvider[DevtoolsProcessContext],
+        config: apps.ConfigProvider[K8sRuntimeContext],
+        devtools_ops: ComponentOperations,
+        runtime: apps.Runtime,
     ) -> None:
         self._ctx_name = ctx_name
+        self._process_ctx = process_ctx
         self._config = config
+        self._devtools_ops = devtools_ops
         self._runtime = runtime
 
     def execute(self, *exe_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
@@ -60,46 +77,75 @@ class K8sRuntime(apps.Runtime):
         exe_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
         group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
     ) -> None:
-        remote_ctx = self._config()
+        config = self._config()
         kubernetes.config.load_kube_config(context=self._ctx_name)
-        new_id = self._make_ctx_id()
+        new_id = self._make_ctx_id().strip("/")
         exes = json.dumps([exe._asdict() for exe in exe_ids])
         groups = json.dumps([group._asdict() for group in group_ids])
-        with kubernetes.client.ApiClient() as api_client:
-            # Create an instance of the API class
-            api_instance = kubernetes.client.BatchV1Api(api_client)
-            namespace = "default"
-            body = kubernetes.client.V1Job(
-                metadata=kubernetes.client.V1ObjectMeta(
-                    name=f"rats-devtools-{new_id[2:5]}",
-                ),
-                spec=kubernetes.client.V1JobSpec(
-                    template=kubernetes.client.V1PodTemplateSpec(
-                        spec=kubernetes.client.V1PodSpec(
-                            containers=[
-                                kubernetes.client.V1Container(
-                                    name="worker",
-                                    image=remote_ctx.image,
-                                    command=remote_ctx.command,
-                                    env=[
-                                        kubernetes.client.V1EnvVar("DEVTOOLS_K8S_CTX_ID", new_id),
-                                        kubernetes.client.V1EnvVar("DEVTOOLS_K8S_EXES", exes),
-                                        kubernetes.client.V1EnvVar("DEVTOOLS_K8S_GROUPS", groups),
-                                    ],
-                                    image_pull_policy="Always",
-                                ),
-                            ],
-                            restart_policy="Never",
-                        ),
-                    ),
-                ),
+
+        self._devtools_ops.create_or_empty(self._devtools_ops.find_path(".tmp/k8s-job"))
+        self._devtools_ops.copy_tree(
+            self._devtools_ops.find_path("src/resources/base-k8s-job"),
+            self._devtools_ops.find_path(".tmp/k8s-job"),
+        )
+        self._devtools_ops.find_path(".tmp/k8s-job/kustomization.yaml").write_text(
+            dedent(
+                f"""
+            apiVersion: kustomize.config.k8s.io/v1beta1
+            kind: Kustomization
+            namespace: lolo
+            resources:
+            - namespace.yaml
+            - job.yaml
+            buildMetadata:
+            - managedByLabel
+            nameSuffix: '-{new_id[-4:]}'
+            labels:
+            - includeSelectors: true
+              pairs:
+                managedBy: rats-devtools
+                workflow-id: '{new_id}'
+            patches:
+            - patch: |-
+                apiVersion: batch/v1
+                kind: Job
+                metadata:
+                  name: workflow
+                spec:
+                  template:
+                    spec:
+                      restartPolicy: Never
+                      containers:
+                        - name: main
+                          image: {config.image}
+                          command: ["echo", "hello, hello!"]
+                          env:
+                            - name: DEVTOOLS_K8S_CTX_ID
+                              value: '{new_id}'
+                            - name: DEVTOOLS_K8S_EXES
+                              value: '{exes}'
+                            - name: DEVTOOLS_K8S_GROUPS
+                              value: '{groups}'
+                          imagePullPolicy: Always
+            """
             )
-            api_response: V1Job = api_instance.create_namespaced_job(  # type: ignore
-                namespace=namespace,
-                body=body,
-            )
-            meta: V1ObjectMeta = api_response.metadata  # type: ignore
-            print(f"job created: {meta.name}")
+        )
+
+        built = subprocess.run(
+            ["kustomize", "build"],
+            check=True,
+            text=True,
+            cwd=self._devtools_ops.find_path(".tmp/k8s-job"),
+            capture_output=True,
+        ).stdout
+        subprocess.run(
+            ["kubectl", "apply", "-f-"],
+            check=True,
+            text=True,
+            cwd=self._devtools_ops.find_path(".tmp/k8s-job"),
+            input=built,
+        )
+        print("job created: ... somewhere")
 
     def _make_ctx_id(self) -> str:
         return f"{self._ctx_id()}/{uuid.uuid4()!s}"

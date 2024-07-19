@@ -287,6 +287,20 @@ class PluginCommands(cli.CommandContainer):
             )
 
     @cli.command(cli.CommandId.auto())
+    def full(self) -> None:
+        for config in self._project_tools.discover_components():
+            self._project_tools.get_component(config.name)
+            stages = config.ci_stages
+            if "build-image" in stages:
+                print("building container image")
+
+            if "build-wheel" in stages:
+                print("building python wheel")
+
+            if "all-checks" in stages:
+                print("running all-checks")
+
+    @cli.command(cli.CommandId.auto())
     @click.option("--exe-id", multiple=True)
     @click.option("--group-id", multiple=True)
     def example_k8s_runtime(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:
