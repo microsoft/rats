@@ -94,28 +94,13 @@ class K8sRuntime(apps.Runtime):
         groups = json.dumps([group._asdict() for group in group_ids])
 
         self._devtools_ops.copy_tree(
-            self._devtools_ops.find_path("src/resources/krm-components/workflow"),
+            self._devtools_ops.find_path("src/resources/k8s-components/workflow"),
             # our events should operate as if they run from the workflow staging directory
             workflow_stage / "workflow",
         )
-        (workflow_stage / "kustomization.yaml").write_text(
+        (workflow_stage / "patch-1.yaml").write_text(
             dedent(
                 f"""
-            apiVersion: kustomize.config.k8s.io/v1beta1
-            kind: Kustomization
-            namespace: lolo
-            resources:
-            - workflow
-            buildMetadata:
-            - managedByLabel
-            nameSuffix: '-{new_id[-4:]}'
-            labels:
-            - includeSelectors: true
-              pairs:
-                managedBy: rats-devtools
-                workflow-id: '{run_id[:60]}'
-            patches:
-            - patch: |-
                 apiVersion: batch/v1
                 kind: Job
                 metadata:
@@ -127,7 +112,6 @@ class K8sRuntime(apps.Runtime):
                       containers:
                         - name: main
                           image: {config.image}
-                          command: ["echo", "hello, hello!"]
                           env:
                             - name: DEVTOOLS_K8S_CTX_ID
                               value: '{new_id}'
@@ -138,6 +122,37 @@ class K8sRuntime(apps.Runtime):
                             - name: DEVTOOLS_K8S_GROUPS
                               value: '{groups}'
                           imagePullPolicy: Always
+                """
+            )
+        )
+        (workflow_stage / "resource-1.yaml").write_text(
+            dedent(
+                f"""
+                apiVersion: batch/v1
+                kind: Job
+                metadata:
+                  name: workflow
+                spec:
+                  template:
+                    spec:
+                      restartPolicy: Never
+                      containers:
+                        - name: another
+                          image: {config.image}
+                """
+            )
+        )
+        (workflow_stage / "kustomization.yaml").write_text(
+            dedent(
+                f"""
+            apiVersion: kustomize.config.k8s.io/v1beta1
+            kind: Kustomization
+            nameSuffix: -{run_id[:5]}
+            resources:
+            - workflow
+            patches:
+            - path: resource-1.yaml
+            - path: patch-1.yaml
             """
             )
         )
