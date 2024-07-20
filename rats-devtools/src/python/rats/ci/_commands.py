@@ -152,12 +152,6 @@ class PluginCommands(cli.CommandContainer):
     def build_image(self) -> None:
         """Update the version of the package found in pyproject.toml."""
         config = self._k8s_ctx()
-        if config.image_tag == self._read_image_context_hash_marker():
-            print(f"image context has not changed. skipping image build: {config.image_tag}")
-            return
-        else:
-            print(f"image context has changed. building image: {config.image_tag}")
-
         file = self._selected_component.find_path("Containerfile")
         if not file.exists():
             raise FileNotFoundError("Containerfile not found in component")
@@ -346,7 +340,6 @@ class PluginCommands(cli.CommandContainer):
 
         logger.info(f"hash: {self._project_tools.image_context_hash()}")
 
-    def _read_image_context_hash_marker(self) -> str | None:
+    def _read_image_context_hash_marker(self) -> str:
         hash = self._devtools_component.find_path(".tmp/image-context.hash")
-        if hash.exists():
-            return hash.read_text().strip()
+        return hash.read_text().strip() if hash.exists() else ""
