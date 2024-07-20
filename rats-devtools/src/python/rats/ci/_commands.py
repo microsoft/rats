@@ -7,7 +7,7 @@ from collections.abc import Iterable
 import click
 
 from rats import apps, cli, devtools
-from rats.devtools._runtime import K8sRuntimeContext
+from rats.devtools._runtime import K8sRuntime, K8sRuntimeContext
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class PluginCommands(cli.CommandContainer):
     _selected_component: devtools.ComponentOperations
     _devtools_component: devtools.ComponentOperations
     _worker_node_runtime: apps.Runtime
-    _k8s_runtime: apps.Runtime
+    _k8s_runtime: K8sRuntime
     _k8s_ctx: apps.ConfigProvider[K8sRuntimeContext]
 
     def __init__(
@@ -26,7 +26,7 @@ class PluginCommands(cli.CommandContainer):
         selected_component: devtools.ComponentOperations,
         devtools_component: devtools.ComponentOperations,
         worker_node_runtime: apps.Runtime,
-        k8s_runtime: apps.Runtime,
+        k8s_runtime: K8sRuntime,
         k8s_ctx: apps.ConfigProvider[K8sRuntimeContext],
     ) -> None:
         self._project_tools = project_tools

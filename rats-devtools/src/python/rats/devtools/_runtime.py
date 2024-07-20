@@ -2,6 +2,7 @@ import json
 import subprocess
 import uuid
 from collections.abc import Callable, Mapping
+from hashlib import sha256
 from textwrap import dedent
 from typing import NamedTuple
 from urllib.parse import urlparse
@@ -79,24 +80,32 @@ class K8sRuntime(apps.Runtime):
     ) -> None:
         config = self._config()
         kubernetes.config.load_kube_config(context=self._ctx_name)
-        new_id = self._make_ctx_id().strip("/")
+        # two very good seeds, if you want to reproduce a run
+        new_id = self._make_ctx_id()
+        run_id = sha256(new_id.encode()).hexdigest()
+        workflow_stage = self._devtools_ops.find_path(f".tmp/workflow-runs/{run_id}")
+
+        try:
+            workflow_stage.mkdir(parents=True, exist_ok=False)
+        except FileExistsError as e:
+            raise RuntimeError(f"workflow run with id {run_id} already exists") from e
+
         exes = json.dumps([exe._asdict() for exe in exe_ids])
         groups = json.dumps([group._asdict() for group in group_ids])
 
-        self._devtools_ops.create_or_empty(self._devtools_ops.find_path(".tmp/k8s-job"))
         self._devtools_ops.copy_tree(
-            self._devtools_ops.find_path("src/resources/base-k8s-job"),
-            self._devtools_ops.find_path(".tmp/k8s-job"),
+            self._devtools_ops.find_path("src/resources/krm-components/workflow"),
+            # our events should operate as if they run from the workflow staging directory
+            workflow_stage / "workflow",
         )
-        self._devtools_ops.find_path(".tmp/k8s-job/kustomization.yaml").write_text(
+        (workflow_stage / "kustomization.yaml").write_text(
             dedent(
                 f"""
             apiVersion: kustomize.config.k8s.io/v1beta1
             kind: Kustomization
             namespace: lolo
             resources:
-            - namespace.yaml
-            - job.yaml
+            - workflow
             buildMetadata:
             - managedByLabel
             nameSuffix: '-{new_id[-4:]}'
@@ -104,7 +113,7 @@ class K8sRuntime(apps.Runtime):
             - includeSelectors: true
               pairs:
                 managedBy: rats-devtools
-                workflow-id: '{new_id}'
+                workflow-id: '{run_id[:60]}'
             patches:
             - patch: |-
                 apiVersion: batch/v1
@@ -122,6 +131,8 @@ class K8sRuntime(apps.Runtime):
                           env:
                             - name: DEVTOOLS_K8S_CTX_ID
                               value: '{new_id}'
+                            - name: DEVTOOLS_K8S_RUN_ID
+                              value: '{run_id}'
                             - name: DEVTOOLS_K8S_EXES
                               value: '{exes}'
                             - name: DEVTOOLS_K8S_GROUPS
@@ -135,14 +146,14 @@ class K8sRuntime(apps.Runtime):
             ["kustomize", "build"],
             check=True,
             text=True,
-            cwd=self._devtools_ops.find_path(".tmp/k8s-job"),
+            cwd=workflow_stage,
             capture_output=True,
         ).stdout
         subprocess.run(
             ["kubectl", "apply", "-f-"],
             check=True,
             text=True,
-            cwd=self._devtools_ops.find_path(".tmp/k8s-job"),
+            cwd=workflow_stage,
             input=built,
         )
         print("job created: ... somewhere")
