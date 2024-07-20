@@ -3,6 +3,7 @@ import subprocess
 import uuid
 from collections.abc import Callable, Mapping
 from hashlib import sha256
+from pathlib import Path
 from textwrap import dedent
 from typing import NamedTuple
 from urllib.parse import urlparse
@@ -28,6 +29,10 @@ class K8sRuntimeContext(NamedTuple):
     @property
     def image(self) -> str:
         return f"{self.image_name}:{self.image_tag}"
+
+    @property
+    def image_registry(self) -> str:
+        return "/".join(self.image_name.split("/")[0:-1])
 
     @property
     def is_acr(self) -> bool:
@@ -98,7 +103,7 @@ class K8sRuntime(apps.Runtime):
             # our events should operate as if they run from the workflow staging directory
             workflow_stage / "workflow",
         )
-        (workflow_stage / "patch-1.yaml").write_text(
+        (workflow_stage / "main-container.yaml").write_text(
             dedent(
                 f"""
                 apiVersion: batch/v1
@@ -108,10 +113,9 @@ class K8sRuntime(apps.Runtime):
                 spec:
                   template:
                     spec:
-                      restartPolicy: Never
                       containers:
                         - name: main
-                          image: {config.image}
+                          image: {Path(self._process_ctx().cwd).name}
                           env:
                             - name: DEVTOOLS_K8S_CTX_ID
                               value: '{new_id}'
@@ -121,24 +125,6 @@ class K8sRuntime(apps.Runtime):
                               value: '{exes}'
                             - name: DEVTOOLS_K8S_GROUPS
                               value: '{groups}'
-                          imagePullPolicy: Always
-                """
-            )
-        )
-        (workflow_stage / "resource-1.yaml").write_text(
-            dedent(
-                f"""
-                apiVersion: batch/v1
-                kind: Job
-                metadata:
-                  name: workflow
-                spec:
-                  template:
-                    spec:
-                      restartPolicy: Never
-                      containers:
-                        - name: another
-                          image: {config.image}
                 """
             )
         )
@@ -148,11 +134,17 @@ class K8sRuntime(apps.Runtime):
             apiVersion: kustomize.config.k8s.io/v1beta1
             kind: Kustomization
             nameSuffix: -{run_id[:5]}
+            images:
+            - name: rats-devtools
+              newName: {config.image_name}
+              newTag: {config.image_tag}
+            - name: rats-examples-minimal
+              newName: {config.image_registry}/rats-examples-minimal
+              newTag: {config.image_tag}
             resources:
             - workflow
             patches:
-            - path: resource-1.yaml
-            - path: patch-1.yaml
+            - path: main-container.yaml
             """
             )
         )
@@ -164,13 +156,14 @@ class K8sRuntime(apps.Runtime):
             cwd=workflow_stage,
             capture_output=True,
         ).stdout
-        subprocess.run(
-            ["kubectl", "apply", "-f-"],
-            check=True,
-            text=True,
-            cwd=workflow_stage,
-            input=built,
-        )
+        print(built)
+        # subprocess.run(
+        #     ["kubectl", "apply", "-f-"],
+        #     check=True,
+        #     text=True,
+        #     cwd=workflow_stage,
+        #     input=built,
+        # )
         print("job created: ... somewhere")
 
     def _make_ctx_id(self) -> str:
