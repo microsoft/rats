@@ -70,7 +70,6 @@ class ProjectTools:
                 f"Containerfile not found in devtools component: {containerfile}"
             )
 
-        print(self.repo_root())
         subprocess.run(
             ["docker", "build", "-t", "image-context-hasher", "--file", str(containerfile), "."],
             check=True,
@@ -107,7 +106,7 @@ class ProjectTools:
                 continue
 
             component_info = toml.loads((p / "pyproject.toml").read_text())
-            if "rats-devtools" not in component_info["tool"]:
+            if not component_info.get("tool", {}).get("rats-devtools", {}).get("enabled", False):
                 # we don't recognize components unless they enable rats-devtools
                 logger.warning(f"detected unmanaged component: {p.name}")
                 continue
