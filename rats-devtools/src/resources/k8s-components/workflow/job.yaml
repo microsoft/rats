@@ -7,4 +7,5 @@ spec:
     spec:
       containers:
         - name: main
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
+      restartPolicy: OnFailure

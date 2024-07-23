@@ -3,38 +3,41 @@ import json
 import logging
 import os
 from collections.abc import Iterable
+from pathlib import Path
 
 import click
 
-from rats import apps, cli, devtools
-from rats.devtools._runtime import K8sRuntime, K8sRuntimeContext
+from rats import apps, cli, kuberuntime, projects
 
 logger = logging.getLogger(__name__)
 
 
 class PluginCommands(cli.CommandContainer):
-    _project_tools: devtools.ProjectTools
-    _selected_component: devtools.ComponentOperations
-    _devtools_component: devtools.ComponentOperations
+    _project_tools: projects.ProjectTools
+    _selected_component: projects.ComponentOperations
+    _devtools_component: projects.ComponentOperations
     _worker_node_runtime: apps.Runtime
-    _k8s_runtime: K8sRuntime
-    _k8s_ctx: apps.ConfigProvider[K8sRuntimeContext]
+    _k8s_runtime: kuberuntime.K8sRuntime
+    _devtools_runtime: kuberuntime.K8sRuntime
+    _minimal_runtime: kuberuntime.K8sRuntime
 
     def __init__(
         self,
-        project_tools: devtools.ProjectTools,
-        selected_component: devtools.ComponentOperations,
-        devtools_component: devtools.ComponentOperations,
+        project_tools: projects.ProjectTools,
+        selected_component: projects.ComponentOperations,
+        devtools_component: projects.ComponentOperations,
         worker_node_runtime: apps.Runtime,
-        k8s_runtime: K8sRuntime,
-        k8s_ctx: apps.ConfigProvider[K8sRuntimeContext],
+        k8s_runtime: kuberuntime.K8sRuntime,
+        devtools_runtime: kuberuntime.K8sRuntime,
+        minimal_runtime: kuberuntime.K8sRuntime,
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
         self._devtools_component = devtools_component
         self._worker_node_runtime = worker_node_runtime
         self._k8s_runtime = k8s_runtime
-        self._k8s_ctx = k8s_ctx
+        self._devtools_runtime = devtools_runtime
+        self._minimal_runtime = minimal_runtime
 
     @cli.command(cli.CommandId.auto())
     def install(self) -> None:
@@ -151,21 +154,7 @@ class PluginCommands(cli.CommandContainer):
     @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
     def build_image(self) -> None:
         """Update the version of the package found in pyproject.toml."""
-        config = self._k8s_ctx()
-        file = self._selected_component.find_path("Containerfile")
-        if not file.exists():
-            raise FileNotFoundError("Containerfile not found in component")
-
-        self._selected_component.exe(
-            "docker", "build", "-t", config.image, "--file", str(file), "../"
-        )
-        if config.is_acr:
-            acr_registry = config.image_name.split(".")[0]
-            self._selected_component.exe("az", "acr", "login", "--name", acr_registry)
-            # for now only pushing automatically if the registry is ACR
-            self._selected_component.exe("docker", "push", config.image)
-
-        self._update_image_context_hash_marker()
+        self._project_tools.build_component_image(self._selected_component.find_path(".").name)
 
     @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
     @click.argument("repository_name")
@@ -281,32 +270,20 @@ class PluginCommands(cli.CommandContainer):
             )
 
     @cli.command(cli.CommandId.auto())
-    def full(self) -> None:
-        for config in self._project_tools.discover_components():
-            self._project_tools.get_component(config.name)
-            stages = config.ci_stages
-            if "build-image" in stages:
-                print("building container image")
-
-            if "build-wheel" in stages:
-                print("building python wheel")
-
-            if "all-checks" in stages:
-                print("running all-checks")
-
-    @cli.command(cli.CommandId.auto())
     @click.option("--exe-id", multiple=True)
     @click.option("--group-id", multiple=True)
     def example_k8s_runtime(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 
-        # self.build_image()
+        # just forcefully build all our images
+        self._project_tools.build_component_images()
 
         exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
         groups = [apps.ServiceId[apps.Executable](group) for group in group_id]
         if len(exes):
             self._k8s_runtime.execute(*exes)
+            self._minimal_runtime.execute(*exes)
 
         if len(groups):
             self._k8s_runtime.execute_group(*groups)
@@ -321,25 +298,34 @@ class PluginCommands(cli.CommandContainer):
         environment variables until a proper mechanism is implemented.
         """
         exe_ids = json.loads(
-            os.environ.get("DEVTOOLS_K8S_EXES", "[]"),
+            os.environ.get("DEVTOOLS_K8S_EXE_IDS", "[]"),
             object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
         )
         group_ids = json.loads(
-            os.environ.get("DEVTOOLS_K8S_GROUPS", "[]"),
+            os.environ.get("DEVTOOLS_K8S_GROUP_IDS", "[]"),
             object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
         )
+
+        annotation_exe_ids = Path("/etc/podinfo/annotations/rats.kuberuntime/exe-ids")
+        annotation_group_ids = Path("/etc/podinfo/annotations/rats.kuberuntime/group-ids")
+
+        if annotation_exe_ids.exists():
+            try:
+                exe_ids += json.loads(
+                    annotation_exe_ids.read_text(),
+                    object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
+                )
+            except json.JSONDecodeError:
+                pass
+
+        if annotation_group_ids.exists():
+            try:
+                group_ids += json.loads(
+                    annotation_group_ids.read_text(),
+                    object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
+                )
+            except json.JSONDecodeError:
+                pass
+
         self._worker_node_runtime.execute(*exe_ids)
         self._worker_node_runtime.execute_group(*group_ids)
-
-    def _update_image_context_hash_marker(self) -> None:
-        manifest = self._devtools_component.find_path(".tmp/image-context.manifest")
-        hash = self._devtools_component.find_path(".tmp/image-context.hash")
-
-        manifest.write_text(self._project_tools.image_context_manifest())
-        hash.write_text(self._project_tools.image_context_hash())
-
-        logger.info(f"hash: {self._project_tools.image_context_hash()}")
-
-    def _read_image_context_hash_marker(self) -> str:
-        hash = self._devtools_component.find_path(".tmp/image-context.hash")
-        return hash.read_text().strip() if hash.exists() else ""

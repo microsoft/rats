@@ -1,21 +1,10 @@
 import logging
 import os
-import sys
 from pathlib import Path
 
-from rats import apps, cli, logs
-
-from ._component_operations import ComponentOperations, UnsetComponentOperations
-from ._project_tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
-from ._runtime import DevtoolsProcessContext, K8sRuntime, K8sRuntimeContext
+from rats import apps, cli, logs, projects
 
 logger = logging.getLogger(__name__)
-
-
-@apps.autoscope
-class _PluginConfigs:
-    K8S_RUNTIME_CTX = apps.ConfigId[K8sRuntimeContext]("k8s-runtime-ctx")
-    DEVTOOLS_PROCESS_CTX = apps.ConfigId[DevtoolsProcessContext]("devtools-process-ctx")
 
 
 @apps.autoscope
@@ -36,12 +25,14 @@ class _PluginEvents:
 @apps.autoscope
 class PluginServices:
     MAIN = apps.ServiceId[apps.Executable]("main")
-    ACTIVE_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("active-component-ops")
-    DEVTOOLS_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("devtools-component-ops")
-    PROJECT_TOOLS = apps.ServiceId[ProjectTools]("project-tools")
-    K8S_RUNTIME = apps.ServiceId[K8sRuntime]("k8s-runtime")
+    ACTIVE_COMPONENT_OPS = apps.ServiceId[projects.ComponentOperations]("active-component-ops")
+    DEVTOOLS_COMPONENT_OPS = apps.ServiceId[projects.ComponentOperations]("devtools-component-ops")
+    PROJECT_TOOLS = apps.ServiceId[projects.ProjectTools]("project-tools")
     EVENTS = _PluginEvents
-    CONFIGS = _PluginConfigs
+
+    @staticmethod
+    def component_ops(name: str) -> apps.ServiceId[projects.ComponentOperations]:
+        return apps.ServiceId[projects.ComponentOperations](f"component-ops[{name}]")
 
 
 class PluginContainer(apps.Container):
@@ -76,59 +67,34 @@ class PluginContainer(apps.Container):
         return apps.App(lambda: logger.debug("Closing app"))
 
     @apps.service(PluginServices.ACTIVE_COMPONENT_OPS)
-    def _active_component_ops(self) -> ComponentOperations:
-        ptools = self._app.get(PluginServices.PROJECT_TOOLS)
-        try:
-            return ptools.get_component(Path().resolve().name)
-        except ComponentNotFoundError:
-            return UnsetComponentOperations(Path())
-        except ProjectNotFoundError:
-            return UnsetComponentOperations(Path())
+    def _active_component_ops(self) -> projects.ComponentOperations:
+        return self._component_ops(Path().resolve().name)
 
     @apps.service(PluginServices.DEVTOOLS_COMPONENT_OPS)
-    def _devtools_component_ops(self) -> ComponentOperations:
+    def _devtools_component_ops_alias(self) -> projects.ComponentOperations:
+        return self._app.get(PluginServices.component_ops("rats-devtools"))
+
+    @apps.service(PluginServices.component_ops("rats-devtools"))
+    def _devtools_component_ops(self) -> projects.ComponentOperations:
+        return self._component_ops("rats-devtools")
+
+    @apps.service(PluginServices.component_ops("rats-examples-minimal"))
+    def _minimal_component_ops(self) -> projects.ComponentOperations:
+        return self._component_ops("rats-examples-minimal")
+
+    def _component_ops(self, name: str) -> projects.ComponentOperations:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
 
         try:
-            return ptools.get_component("rats-devtools")
-        except ComponentNotFoundError:
-            return UnsetComponentOperations(Path())
-        except ProjectNotFoundError:
-            return UnsetComponentOperations(Path())
+            return ptools.get_component(name)
+        except projects.ComponentNotFoundError:
+            return projects.UnsetComponentOperations(Path())
+        except projects.ProjectNotFoundError:
+            return projects.UnsetComponentOperations(Path())
 
     @apps.service(PluginServices.PROJECT_TOOLS)
-    def _project_tools(self) -> ProjectTools:
-        return ProjectTools(Path().resolve())
-
-    @apps.service(PluginServices.K8S_RUNTIME)
-    def _k8s_runtime(self) -> K8sRuntime:
-        return K8sRuntime(
-            ctx_name=os.environ.get("DEVTOOLS_K8S_CTX_NAME", "default"),
-            process_ctx=lambda: self._app.get(PluginServices.CONFIGS.DEVTOOLS_PROCESS_CTX),
-            config=lambda: self._app.get(PluginServices.CONFIGS.K8S_RUNTIME_CTX),
-            devtools_ops=self._app.get(PluginServices.DEVTOOLS_COMPONENT_OPS),
-            runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
-        )
-
-    @apps.config(PluginServices.CONFIGS.K8S_RUNTIME_CTX)
-    def _k8s_runtime_ctx(self) -> K8sRuntimeContext:
-        project_tools = self._app.get(PluginServices.PROJECT_TOOLS)
-        process_ctx = self._app.get(PluginServices.CONFIGS.DEVTOOLS_PROCESS_CTX)
-        registry = process_ctx.env.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "local.default")
-        component = Path(process_ctx.cwd).name
-
-        return K8sRuntimeContext(
-            id=os.environ.get("DEVTOOLS_K8S_CTX_ID", "/"),
-            image_name=f"{registry}/{component}",
-            image_tag=os.environ.get("DEVTOOLS_K8S_IMAGE_TAG", project_tools.image_context_hash()),
-            command=("rats-devtools", "ci", "worker-node"),
-        )
-
-    @apps.config(PluginServices.CONFIGS.DEVTOOLS_PROCESS_CTX)
-    def _devtools_process_ctx(self) -> DevtoolsProcessContext:
-        self._app.get(PluginServices.PROJECT_TOOLS)
-        return DevtoolsProcessContext(
-            cwd=str(Path().resolve()),
-            argv=tuple(sys.argv),
-            env=dict(os.environ),
+    def _project_tools(self) -> projects.ProjectTools:
+        return projects.ProjectTools(
+            path=Path().resolve(),
+            image_registry=os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local"),
         )

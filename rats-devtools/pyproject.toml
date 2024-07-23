@@ -5,8 +5,12 @@ version = "0.1.3"
 readme = "README.md"
 authors = []
 packages = [
+    { include = "rats/amlruntime", from = "src/python" },
     { include = "rats/ci", from = "src/python" },
+    { include = "rats/command_tree", from = "src/python" },
     { include = "rats/devtools", from = "src/python" },
+    { include = "rats/kuberuntime", from = "src/python" },
+    { include = "rats/projects", from = "src/python" },
 ]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
@@ -57,6 +61,7 @@ rats-devtools = "rats.devtools.__main__:run"
 [tool.poetry.plugins."rats.devtools.plugins"]
 "rats.devtools" = "rats.devtools:PluginContainer"
 "rats.ci" = "rats.ci:PluginContainer"
+"rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
 
 [tool.poetry.plugins."rats.amlruntime"]
 # this is a way to keep this plugin opt-in for now

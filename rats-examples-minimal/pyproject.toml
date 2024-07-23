@@ -37,6 +37,9 @@ sphinx-markdown-builder = "*"
 
 [tool.poetry.scripts]
 
+[tool.poetry.plugins."rats.examples"]
+"rats-examples-minimal" = "rats.examples._plugin:PluginContainer"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

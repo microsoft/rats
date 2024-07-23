@@ -1,3 +1,5 @@
+"""Experimenting."""
+
 from rats import apps
 
 from ._plugin import PluginServices

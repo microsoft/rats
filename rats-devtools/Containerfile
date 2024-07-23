@@ -6,6 +6,8 @@ ENV PIPX_HOME=/opt/pipx
 ENV PATH="${PIPX_BIN_DIR}:${PATH}"
 
 RUN <<HEREDOC
+set -eux
+
 useradd -u 1001 -m nonroot
 
 apt-get update
@@ -26,6 +28,8 @@ HEREDOC
 COPY . /opt/rats
 WORKDIR /opt/rats/rats-devtools
 RUN <<HEREDOC
+set -eux
+
 pipx install .
 
 rm -rf /root/.cache
@@ -33,3 +37,5 @@ HEREDOC
 
 # nothing should be installed after this step
 USER nonroot
+
+CMD ["rats-devtools", "ci", "worker-node"]

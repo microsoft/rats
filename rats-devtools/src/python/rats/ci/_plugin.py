@@ -6,7 +6,7 @@ import click
 
 from rats import apps as apps
 from rats import cli as cli
-from rats import devtools
+from rats import devtools, kuberuntime
 
 from ._commands import PluginCommands
 from ._executables import PongExecutable
@@ -55,8 +55,13 @@ class PluginContainer(apps.Container):
             devtools_component=self._app.get(devtools.PluginServices.DEVTOOLS_COMPONENT_OPS),
             # on worker nodes, we always want the simple local runtime, for now.
             worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
-            k8s_runtime=self._app.get(devtools.PluginServices.K8S_RUNTIME),
-            k8s_ctx=lambda: self._app.get(devtools.PluginServices.CONFIGS.K8S_RUNTIME_CTX),
+            k8s_runtime=self._app.get(kuberuntime.PluginServices.K8S_RUNTIME),
+            devtools_runtime=self._app.get(
+                kuberuntime.PluginServices.component_runtime("rats-devtools")
+            ),
+            minimal_runtime=self._app.get(
+                kuberuntime.PluginServices.component_runtime("rats-examples-minimal")
+            ),
         )
 
     @apps.service(PluginServices.CLICK.GROUP)

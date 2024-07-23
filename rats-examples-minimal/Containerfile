@@ -40,3 +40,4 @@ HEREDOC
 
 # nothing should be installed after this step
 USER nonroot
+CMD [".venv/bin/python3", "-m", "rats.examples"]

@@ -2,20 +2,49 @@ import logging
 import subprocess
 from collections.abc import Iterable
 from functools import cache
+from hashlib import sha256
 from pathlib import Path
 
 import toml
 
-from ._component_operations import ComponentConfig, ComponentOperations
+from rats import apps
+
+from ._components import ComponentId, ComponentOperations
+from ._container_images import ContainerImage
 
 logger = logging.getLogger(__name__)
 
 
 class ProjectTools:
     _path: Path
+    images: apps.ServiceProvider[Iterable[ContainerImage]]
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, image_registry: str) -> None:
         self._path = path
+        self._image_registry = image_registry
+
+    def build_component_images(self) -> None:
+        for c in self.discover_components():
+            self.build_component_image(c.name)
+
+    def build_component_image(self, name: str) -> None:
+        ops = self.get_component(name)
+        file = ops.find_path("Containerfile")
+        if not file.exists():
+            raise RuntimeError(f"Containerfile not found in component {name}")
+
+        image = ContainerImage(
+            name=f"{self._image_registry}/{name}",
+            tag=self.image_context_hash(),
+        )
+
+        ops.exe("docker", "build", "-t", image.full, "--file", str(file), "../")
+
+        if image.name.split("/")[0].split(".")[1:3] == ["azurecr", "io"]:
+            acr_registry = image.name.split(".")[0]
+            ops.exe("az", "acr", "login", "--name", acr_registry)
+            # for now only pushing automatically if the registry is ACR
+            ops.exe("docker", "push", image.full)
 
     @cache  # noqa: B019
     def image_context_hash(self) -> str:
@@ -69,15 +98,11 @@ class ProjectTools:
         ).stdout
         lines = [line[2:] for line in sorted(output.strip().split("\n"))]
 
-        return subprocess.run(
-            ["sha256sum", *lines],
-            check=True,
-            cwd=self.repo_root(),
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
+        checksum = sha256()
+        checksum.update("\n".join(lines).encode())
+        return checksum.hexdigest()
 
-    def discover_components(self) -> Iterable[ComponentConfig]:
+    def discover_components(self) -> Iterable[ComponentId]:
         valid_components = []
         for p in self.repo_root().iterdir():
             if not p.is_dir() or not (p / "pyproject.toml").is_file():
@@ -89,12 +114,7 @@ class ProjectTools:
                 logger.warning(f"detected unmanaged component: {p.name}")
                 continue
 
-            valid_components.append(
-                ComponentConfig(
-                    name=component_info["tool"]["poetry"]["name"],
-                    ci_stages=component_info["tool"]["rats-devtools"]["ci-stages"],
-                )
-            )
+            valid_components.append(ComponentId(component_info["tool"]["poetry"]["name"]))
 
         return tuple(valid_components)
 
