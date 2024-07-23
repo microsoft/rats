@@ -25,6 +25,8 @@ python = "^3.10"
 toml = "*"
 twine = "*"
 kubernetes = "*"
+azure-ai-ml = "*"
+azure-identity = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -55,6 +57,10 @@ rats-devtools = "rats.devtools.__main__:run"
 [tool.poetry.plugins."rats.devtools.plugins"]
 "rats.devtools" = "rats.devtools:PluginContainer"
 "rats.ci" = "rats.ci:PluginContainer"
+
+[tool.poetry.plugins."rats.amlruntime"]
+# this is a way to keep this plugin opt-in for now
+"rats.amlruntime" = "rats.amlruntime._plugin:PluginContainer"
 
 [build-system]
 requires = ["poetry-core"]
