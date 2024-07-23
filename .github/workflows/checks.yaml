@@ -39,7 +39,7 @@ jobs:
           rats-devtools ci install
           rats-devtools ci all-checks
       - name: upload-coverage
-        uses: codecov/codecov-action@v4.4.1
+        uses: codecov/codecov-action@v4.5.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: microsoft/rats
