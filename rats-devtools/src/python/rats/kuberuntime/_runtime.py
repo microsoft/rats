@@ -121,7 +121,7 @@ class K8sWorkflowRun(apps.Executable):
                 {
                     "apiVersion": "kustomize.config.k8s.io/v1beta1",
                     "kind": "Kustomization",
-                    "nameSuffix": f"-{run_hash[:5]}",
+                    "nameSuffix": f"-{self._main_component_id.name[0:40]}-{run_hash[:5]}",
                     "commonLabels": {"rats.kuberuntime/short-hash": short_hash},
                     "commonAnnotations": {
                         "rats.kuberuntime/run-id": run_id,
