@@ -38,6 +38,7 @@ class ProjectTools:
             tag=self.image_context_hash(),
         )
 
+        print(image)
         ops.exe("docker", "build", "-t", image.full, "--file", str(file), "../")
 
         if image.name.split("/")[0].split(".")[1:3] == ["azurecr", "io"]:
@@ -49,18 +50,12 @@ class ProjectTools:
     @cache  # noqa: B019
     def image_context_hash(self) -> str:
         manifest = self.image_context_manifest()
-        return subprocess.run(
-            ["git", "hash-object", "--stdin"],
-            input=manifest,
-            capture_output=True,
-            text=True,
-            check=True,
-        ).stdout.strip()
+        return sha256(manifest.encode()).hexdigest()
 
     @cache  # noqa: B019
     def image_context_manifest(self) -> str:
         """
-        Use `git ls-tree` to create a manifest of the files in the image context.
+        Use a container image to create a manifest of the files in the image context.
 
         When building container images, this hash can be used to determine if any of the files in
         the image might have changed.
@@ -75,6 +70,7 @@ class ProjectTools:
                 f"Containerfile not found in devtools component: {containerfile}"
             )
 
+        print(self.repo_root())
         subprocess.run(
             ["docker", "build", "-t", "image-context-hasher", "--file", str(containerfile), "."],
             check=True,
@@ -93,14 +89,16 @@ class ProjectTools:
                 "image-context-hasher",
             ],
             check=True,
+            cwd=self.repo_root(),
             capture_output=True,
             text=True,
         ).stdout
-        lines = [line[2:] for line in sorted(output.strip().split("\n"))]
+        lines = [
+            f"{sha256(line[2:].encode()).hexdigest()}\t{line[2:]}"
+            for line in sorted(output.strip().split("\n"))
+        ]
 
-        checksum = sha256()
-        checksum.update("\n".join(lines).encode())
-        return checksum.hexdigest()
+        return "\n".join(lines)
 
     def discover_components(self) -> Iterable[ComponentId]:
         valid_components = []
