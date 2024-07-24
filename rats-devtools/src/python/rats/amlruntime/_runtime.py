@@ -12,19 +12,16 @@ class AmlRuntime(apps.Runtime):
     def execute(self, *exe_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
         print("trying to submit to aml")
 
-        class your_workpsace_info:
+        class WorkpsaceInfo:
             def __init__(self):
                 self.subscription_id = os.environ.get("DEVTOOLS_AML_SUBSCRIPTION_ID")
                 self.resource_group = os.environ.get("DEVTOOLS_AML_RESOURCE_GROUP")
                 self.workspace = os.environ.get("DEVTOOLS_AML_WORKSPACE")
 
-        your_workpsace_info = your_workpsace_info()
+        ws_info = WorkpsaceInfo()
         credential = DefaultAzureCredential()
         ml_client = MLClient(
-            credential,
-            your_workpsace_info.subscription_id,
-            your_workpsace_info.resource_group,
-            your_workpsace_info.workspace,
+            credential, ws_info.subscription_id, ws_info.resource_group, ws_info.workspace
         )
 
         job = command(
