@@ -52,9 +52,6 @@ runs:
 
         echo "generating context for version: $PACKAGE_VERSION"
         echo "package-version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
-        # slash to dash just to simplify
-        echo "release-group=${RELEASE_GROUP//[\/]/-}" >> $GITHUB_OUTPUT
-        echo "release-environment=$RELEASE_ENVIRONMENT" >> $GITHUB_OUTPUT
     - id: "install-poetry"
       if: ${{ inputs.install-poetry }}
       name: "install-poetry"
