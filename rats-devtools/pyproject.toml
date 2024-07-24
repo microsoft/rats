@@ -61,6 +61,7 @@ rats-devtools = "rats.devtools.__main__:run"
 [tool.poetry.plugins."rats.devtools.plugins"]
 "rats.devtools" = "rats.devtools:PluginContainer"
 "rats.ci" = "rats.ci:PluginContainer"
+"rats.docs" = "rats.docs:PluginContainer"
 "rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
 
 [tool.poetry.plugins."rats.amlruntime"]
