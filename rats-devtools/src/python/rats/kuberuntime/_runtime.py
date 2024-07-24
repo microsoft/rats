@@ -4,7 +4,7 @@ import uuid
 from collections.abc import Callable
 from hashlib import sha256
 from textwrap import dedent
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import kubernetes
 import yaml
@@ -37,8 +37,8 @@ class K8sWorkflowRun(apps.Executable):
     _container_images: tuple[KustomizeImage, ...]
 
     _id: str
-    _exe_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...]
-    _group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...]
+    _exe_ids: tuple[apps.ServiceId[apps.Executable], ...]
+    _group_ids: tuple[apps.ServiceId[apps.Executable], ...]
 
     def __init__(
         self,
@@ -48,8 +48,8 @@ class K8sWorkflowRun(apps.Executable):
         k8s_config_context: str,
         container_images: tuple[KustomizeImage, ...],
         id: str,
-        exe_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
-        group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
+        exe_ids: tuple[apps.ServiceId[apps.Executable], ...],
+        group_ids: tuple[apps.ServiceId[apps.Executable], ...],
     ) -> None:
         self._devops_component = devops_component
         self._main_component = main_component
@@ -159,12 +159,12 @@ class K8sWorkflowRun(apps.Executable):
 
 class K8sRuntime(apps.Runtime):
     _config: apps.ConfigProvider[K8sRuntimeConfig]
-    _factory: Callable[[...], apps.Executable]
+    _factory: Callable[[Any], apps.Executable]
 
     def __init__(
         self,
         config: apps.ConfigProvider[K8sRuntimeConfig],
-        factory: Callable[[...], apps.Executable],
+        factory: Callable[[Any], apps.Executable],
     ) -> None:
         self._config = config
         self._factory = factory
@@ -172,7 +172,7 @@ class K8sRuntime(apps.Runtime):
     def execute(self, *exe_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
         """Execute a list of executables sequentially."""
         self._factory(
-            id=self._make_ctx_id(),
+            id=self._make_ctx_id(),  # type: ignore
             exe_ids=exe_ids,
             group_ids=(),
         ).execute()
@@ -186,7 +186,7 @@ class K8sRuntime(apps.Runtime):
         parallel or in any order that is convenient.
         """
         self._factory(
-            id=self._make_ctx_id(),
+            id=self._make_ctx_id(),  # type: ignore
             exe_ids=(),
             group_ids=exe_group_ids,
         ).execute()

@@ -2,7 +2,8 @@ import logging
 import os
 from pathlib import Path
 
-from rats import apps, cli, logs, projects
+from rats import apps, cli, logs
+from rats import projects as projects
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import click
 
-from rats import apps, cli, kuberuntime, projects
+from rats import apps, cli, projects
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +17,9 @@ class PluginCommands(cli.CommandContainer):
     _selected_component: projects.ComponentOperations
     _devtools_component: projects.ComponentOperations
     _worker_node_runtime: apps.Runtime
-    _k8s_runtime: kuberuntime.K8sRuntime
-    _devtools_runtime: kuberuntime.K8sRuntime
-    _minimal_runtime: kuberuntime.K8sRuntime
+    _k8s_runtime: apps.Runtime
+    _devtools_runtime: apps.Runtime
+    _minimal_runtime: apps.Runtime
 
     def __init__(
         self,
@@ -27,9 +27,9 @@ class PluginCommands(cli.CommandContainer):
         selected_component: projects.ComponentOperations,
         devtools_component: projects.ComponentOperations,
         worker_node_runtime: apps.Runtime,
-        k8s_runtime: kuberuntime.K8sRuntime,
-        devtools_runtime: kuberuntime.K8sRuntime,
-        minimal_runtime: kuberuntime.K8sRuntime,
+        k8s_runtime: apps.Runtime,
+        devtools_runtime: apps.Runtime,
+        minimal_runtime: apps.Runtime,
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component

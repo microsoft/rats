@@ -1,18 +1,20 @@
 import os
 from pathlib import Path
 
-from rats import apps, devtools, projects
+from rats import apps
+from rats import devtools as devtools
+from rats import projects as projects
 
 from ._runtime import K8sRuntime, K8sRuntimeConfig, K8sWorkflowRun, KustomizeImage
 
 
 @apps.autoscope
 class PluginServices:
-    K8S_RUNTIME = apps.ServiceId[K8sRuntime]("k8s-runtime")
+    K8S_RUNTIME = apps.ServiceId[apps.Runtime]("k8s-runtime")
 
     @staticmethod
-    def component_runtime(name: str) -> apps.ServiceId[K8sRuntime]:
-        return apps.ServiceId[K8sRuntime](f"{PluginServices.K8S_RUNTIME}[{name}]")
+    def component_runtime(name: str) -> apps.ServiceId[apps.Runtime]:
+        return apps.ServiceId[apps.Runtime](f"{PluginServices.K8S_RUNTIME}[{name}]")
 
 
 class PluginContainer(apps.Container):
@@ -68,8 +70,8 @@ class PluginContainer(apps.Container):
                 k8s_config_context=os.environ.get("DEVTOOLS_K8S_CONFIG_CONTEXT", "default"),
                 container_images=_container_images(),
                 id=id,
-                exe_ids=exe_ids,
-                group_ids=group_ids,
+                exe_ids=exe_ids,  # type: ignore
+                group_ids=group_ids,  # type: ignore
             )
 
         return K8sRuntime(
@@ -78,5 +80,5 @@ class PluginContainer(apps.Container):
                 container_images=_container_images(),
                 main_component=projects.ComponentId(name),
             ),
-            factory=_factory,
+            factory=_factory,  # type: ignore
         )

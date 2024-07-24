@@ -171,7 +171,7 @@ def dataclass_to_click_parameters(
             field_type = CLICK_TYPE_MAPPING[inner_type]
         else:
             if is_dataclass(base_field_type):
-                parameters.extend(dataclass_to_click_parameters(base_field_type, option_name))  # type: ignore
+                parameters.extend(dataclass_to_click_parameters(base_field_type, option_name))
                 continue
 
             field_type = CLICK_TYPE_MAPPING[base_field_type]  # type: ignore
