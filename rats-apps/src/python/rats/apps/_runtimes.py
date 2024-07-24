@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from collections.abc import Callable
-from typing import Protocol, TypeVar
+from typing import Protocol, TypeVar, final
 
 from ._executables import Executable
 from ._ids import ServiceId
@@ -30,3 +30,15 @@ class Runtime(Protocol):
 
         The used ServiceId is determined by the Runtime implementation.
         """
+
+
+@final
+class NullRuntime(Runtime):
+    def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
+        raise NotImplementedError("NullRuntime does not support execution.")
+
+    def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
+        raise NotImplementedError("NullRuntime does not support execution.")
+
+    def execute_callable(self, *callables: Callable[[], None]) -> None:
+        raise NotImplementedError("NullRuntime does not support execution.")

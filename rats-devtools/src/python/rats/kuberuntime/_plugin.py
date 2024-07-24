@@ -2,7 +2,8 @@ import os
 from pathlib import Path
 
 from rats import apps, devtools, projects
-from rats.kuberuntime._runtime import K8sRuntime, K8sRuntimeConfig, K8sWorkflowRun, KustomizeImage
+
+from ._runtime import K8sRuntime, K8sRuntimeConfig, K8sWorkflowRun, KustomizeImage
 
 
 @apps.autoscope
@@ -21,8 +22,13 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.service(PluginServices.K8S_RUNTIME)
-    def _k8s_runtime(self) -> K8sRuntime:
-        return self._app.get(PluginServices.component_runtime(Path().resolve().name))
+    def _k8s_runtime(self) -> apps.Runtime:
+        try:
+            return self._app.get(PluginServices.component_runtime(Path().resolve().name))
+        except apps.ServiceNotFoundError as e:
+            if e.service_id == PluginServices.component_runtime(Path().resolve().name):
+                return apps.NullRuntime()
+            raise
 
     @apps.service(PluginServices.component_runtime("rats-devtools"))
     def _devtools_runtime(self) -> K8sRuntime:
