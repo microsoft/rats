@@ -62,7 +62,7 @@ class PluginContainer(apps.Container):
         # our main app here runs a cli command, but it can also directly do something useful
         return self._app.get(cli.PluginServices.ROOT_COMMAND)
 
-    @apps.group(PluginServices.EVENTS.app_run(PluginServices.MAIN))
+    @apps.group(PluginServices.EVENTS.app_close(PluginServices.MAIN))
     def _on_app_close(self) -> apps.Executable:
         return apps.App(lambda: logger.debug("Closing app"))
 
