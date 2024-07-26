@@ -24,12 +24,15 @@ class AmlRuntime(apps.Runtime):
             credential, ws_info.subscription_id, ws_info.resource_group, ws_info.workspace
         )
 
-        pipe_env = Environment(
-            image="mcr.microsoft.com/mirror/docker/library/ubuntu:24.04",
-            description="A static container image.",
-            # How do we make sure this exists and is not created every time?
-            name="static-container-image",
-            version="2",
+        pipe_env = ml_client.environments.create_or_update(
+            Environment(
+                name="lolo-test-support",
+                description="Custom environment.",
+                tags={},
+                conda_file=None,
+                image="mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest",
+                version="0.2.0",
+            )
         )
 
         job = command(
