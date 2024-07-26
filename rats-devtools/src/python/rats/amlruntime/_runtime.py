@@ -24,15 +24,18 @@ class AmlRuntime(apps.Runtime):
             credential, ws_info.subscription_id, ws_info.resource_group, ws_info.workspace
         )
 
+        pipe_env = Environment(
+            image="mcr.microsoft.com/mirror/docker/library/ubuntu:24.04",
+            description="A static container image.",
+            # How do we make sure this exists and is not created every time?
+            name="static-container-image",
+            version="2",
+        )
+
         job = command(
             code=None,
             command="echo hello, world",
-            environment=Environment(
-                image=os.environ.get("DEVTOOLS_AML_IMAGE"),
-                # How do we make sure this exists and is not created every time?
-                name="static-container-image",
-                version="1",
-            ),
+            environment=pipe_env,
             environment_variables=None,
             compute=os.environ.get("DEVTOOLS_AML_COMPUTE"),
             distribution=None,
