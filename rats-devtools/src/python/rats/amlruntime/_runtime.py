@@ -1,54 +1,70 @@
-import os
+import logging
 from collections.abc import Callable
+from typing import NamedTuple
 
 from azure.ai.ml import MLClient, command
 from azure.ai.ml.entities import Environment
-from azure.identity import DefaultAzureCredential
+from azure.ai.ml.operations import EnvironmentOperations, JobOperations
 
 from rats import apps
 
+logger = logging.getLogger(__name__)
+
+
+class AmlWorkspace(NamedTuple):
+    subscription_id: str
+    resource_group_name: str
+    workspace_name: str
+
+
+class AmlEnvironment(NamedTuple):
+    name: str
+    image: str
+    version: str
+
+    @property
+    def full_name(self) -> str:
+        return f"{self.name}:{self.version}"
+
+
+class RuntimeConfig(NamedTuple):
+    command: str
+    compute: str
+    workspace: AmlWorkspace
+    environment: AmlEnvironment
+
 
 class AmlRuntime(apps.Runtime):
+    _ml_client: MLClient
+    _environment_operations: EnvironmentOperations
+    _job_operations: JobOperations
+    _config: apps.ConfigProvider[RuntimeConfig]
+
+    def __init__(
+        self,
+        ml_client: MLClient,
+        environment_operations: EnvironmentOperations,
+        job_operations: JobOperations,
+        config: apps.ConfigProvider[RuntimeConfig],
+    ) -> None:
+        self._ml_client = ml_client
+        self._environment_operations = environment_operations
+        self._job_operations = job_operations
+        self._config = config
+
     def execute(self, *exe_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
-        print("trying to submit to aml")
+        config = self._config()
+        logger.info("trying to submit to aml")
 
-        class WorkpsaceInfo:
-            def __init__(self):
-                self.subscription_id = os.environ.get("DEVTOOLS_AML_SUBSCRIPTION_ID")
-                self.resource_group = os.environ.get("DEVTOOLS_AML_RESOURCE_GROUP")
-                self.workspace = os.environ.get("DEVTOOLS_AML_WORKSPACE")
-
-        ws_info = WorkpsaceInfo()
-        credential = DefaultAzureCredential()
-        ml_client = MLClient(
-            credential, ws_info.subscription_id, ws_info.resource_group, ws_info.workspace
-        )
-
-        pipe_env = ml_client.environments.create_or_update(
-            Environment(
-                name="lolo-test-support",
-                description="Custom environment.",
-                tags={},
-                conda_file=None,
-                image="mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest",
-                version="0.2.0",
-            )
-        )
+        self._environment_operations.create_or_update(Environment(**config.environment._asdict()))
 
         job = command(
-            code=None,
-            command="echo hello, world",
-            environment=pipe_env,
-            environment_variables=None,
-            compute=os.environ.get("DEVTOOLS_AML_COMPUTE"),
-            distribution=None,
-            resources=None,
+            command=config.command,
+            compute=config.compute,
+            environment=config.environment.full_name,
         )
-
-        # submit the command
-        returned_job = ml_client.jobs.create_or_update(job)
-        # get a URL for the status of the job
-        print(returned_job.studio_url)
+        returned_job = self._job_operations.create_or_update(job)
+        logger.info(returned_job.studio_url)
 
     def execute_group(self, *exe_group_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
         pass

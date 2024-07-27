@@ -8,6 +8,7 @@ packages = [
     { include = "rats/amlruntime", from = "src/python" },
     { include = "rats/ci", from = "src/python" },
     { include = "rats/command_tree", from = "src/python" },
+    { include = "rats/docs", from = "src/python" },
     { include = "rats/devtools", from = "src/python" },
     { include = "rats/kuberuntime", from = "src/python" },
     { include = "rats/projects", from = "src/python" },

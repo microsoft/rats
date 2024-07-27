@@ -7,8 +7,6 @@ from pathlib import Path
 
 import toml
 
-from rats import apps
-
 from ._components import ComponentId, ComponentOperations
 from ._container_images import ContainerImage
 
@@ -17,7 +15,6 @@ logger = logging.getLogger(__name__)
 
 class ProjectTools:
     _path: Path
-    images: apps.ServiceProvider[Iterable[ContainerImage]]
 
     def __init__(self, path: Path, image_registry: str) -> None:
         self._path = path

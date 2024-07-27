@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import uuid
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -124,6 +125,11 @@ class PluginCommands(cli.CommandContainer):
 
         if len(groups):
             self._k8s_runtime.execute_group(*groups)
+
+    @cli.command(cli.CommandId.auto())
+    def ping(self) -> None:
+        for _x in range(20):
+            print(json.dumps({"pong": str(uuid.uuid4())}))
 
     @cli.command(cli.CommandId.auto())
     def worker_node(self) -> None:
