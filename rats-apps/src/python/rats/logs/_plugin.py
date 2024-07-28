@@ -54,7 +54,10 @@ class PluginContainer(apps.Container):
                             "stream": "ext://sys.stderr",
                         }
                     },
-                    "root": {"level": "INFO", "handlers": ["console"]},
+                    "loggers": {
+                        "": {"level": "INFO", "handlers": ["console"]},
+                        "azure": {"level": "WARNING", "handlers": ["console"]},
+                    },
                 }
             )
         )

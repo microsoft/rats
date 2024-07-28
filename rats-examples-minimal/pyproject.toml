@@ -28,7 +28,6 @@ pytest-cov = "*"
 pytest-nunit = "*"
 setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
-twine = "*"        # to release packages to hflabs
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "*"

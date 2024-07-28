@@ -1,6 +1,7 @@
 """Experimenting."""
 
-from rats import apps, devtools
+from rats import apps
+from rats import devtools as devtools
 
 from ._plugin import PluginServices
 

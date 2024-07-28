@@ -25,17 +25,46 @@ rm -rf /tmp/*
 rm -rf /root/.cache
 HEREDOC
 
-COPY . /opt/rats
+# copy the minimal number of files to install the devtools
+# this way we can cache as many container layers as possible
+COPY rats-devtools/pyproject.toml /opt/rats/rats-devtools/pyproject.toml
+COPY rats-devtools/README.md /opt/rats/rats-devtools/README.md
+# we have to account for the local dependencies and make sure they are also installable
+COPY rats-apps/pyproject.toml /opt/rats/rats-apps/pyproject.toml
+COPY rats-apps/README.md /opt/rats/rats-apps/README.md
+COPY rats-apps/src/python /opt/rats/rats-apps/src/python
+# create the skeleton of the packages so they install successfully
+RUN <<HEREDOC
+set -eux
+mkdir -p /opt/rats/rats-devtools/src/python/rats/amlruntime
+mkdir -p /opt/rats/rats-devtools/src/python/rats/ci
+mkdir -p /opt/rats/rats-devtools/src/python/rats/command_tree
+mkdir -p /opt/rats/rats-devtools/src/python/rats/devtools
+mkdir -p /opt/rats/rats-devtools/src/python/rats/docs
+mkdir -p /opt/rats/rats-devtools/src/python/rats/example
+mkdir -p /opt/rats/rats-devtools/src/python/rats/kuberuntime
+mkdir -p /opt/rats/rats-devtools/src/python/rats/projects
+
+touch /opt/rats/rats-devtools/src/python/rats/amlruntime/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/ci/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/command_tree/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/devtools/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/docs/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/example/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/kuberuntime/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/projects/__init__.py
+
+HEREDOC
+
 WORKDIR /opt/rats/rats-devtools
 RUN <<HEREDOC
 set -eux
 
-pipx install .
+pipx install -e .
 
 rm -rf /root/.cache
 HEREDOC
+COPY . /opt/rats
 
 # nothing should be installed after this step
 USER nonroot
-
-CMD ["rats-devtools", "ci", "worker-node"]
