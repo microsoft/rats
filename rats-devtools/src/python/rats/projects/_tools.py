@@ -89,10 +89,12 @@ class ProjectTools:
             capture_output=True,
             text=True,
         ).stdout
-        lines = [
-            f"{sha256(line[2:].encode()).hexdigest()}\t{line[2:]}"
-            for line in sorted(output.strip().split("\n"))
-        ]
+
+        def _file_hash(p: str) -> str:
+            contents = (self.repo_root() / p).read_bytes()
+            return f"{sha256(contents).hexdigest()}\t{p}"
+
+        lines = [f"{_file_hash(line[2:])}" for line in sorted(output.strip().split("\n"))]
 
         return "\n".join(lines)
 
