@@ -28,11 +28,8 @@ class _PluginConfigs:
 class PluginServices:
     AML_RUNTIME = apps.ServiceId[AmlRuntime]("aml-runtime")
     AML_CLIENT = apps.ServiceId[MLClient]("aml-client")
-    AML_ENVIRONMENT_OPERATIONS = apps.ServiceId[EnvironmentOperations](
-        "aml-environment-operations"
-    )
-    AML_JOB_OPERATIONS = apps.ServiceId[JobOperations]("aml-job-operations")
-    HELLO_WORLD = apps.ServiceId[apps.Executable]("hello-world")
+    AML_ENVIRONMENT_OPS = apps.ServiceId[EnvironmentOperations]("aml-environment-ops")
+    AML_JOB_OPS = apps.ServiceId[JobOperations]("aml-job-ops")
     COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
 
     CLICK = _PluginClickServices
@@ -77,18 +74,16 @@ class PluginContainer(apps.Container):
     def _aml_runtime(self) -> AmlRuntime:
         return AmlRuntime(
             ml_client=lambda: self._app.get(PluginServices.AML_CLIENT),
-            environment_operations=lambda: self._app.get(
-                PluginServices.AML_ENVIRONMENT_OPERATIONS
-            ),
-            job_operations=lambda: self._app.get(PluginServices.AML_JOB_OPERATIONS),
+            environment_operations=lambda: self._app.get(PluginServices.AML_ENVIRONMENT_OPS),
+            job_operations=lambda: self._app.get(PluginServices.AML_JOB_OPS),
             config=lambda: self._app.get(PluginServices.CONFIGS.AML_RUNTIME),
         )
 
-    @apps.service(PluginServices.AML_ENVIRONMENT_OPERATIONS)
+    @apps.service(PluginServices.AML_ENVIRONMENT_OPS)
     def _aml_env_ops(self) -> EnvironmentOperations:
         return self._app.get(PluginServices.AML_CLIENT).environments
 
-    @apps.service(PluginServices.AML_JOB_OPERATIONS)
+    @apps.service(PluginServices.AML_JOB_OPS)
     def _aml_job_ops(self) -> JobOperations:
         return self._app.get(PluginServices.AML_CLIENT).jobs
 
