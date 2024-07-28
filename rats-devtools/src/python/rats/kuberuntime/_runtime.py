@@ -142,7 +142,7 @@ class K8sWorkflowRun(apps.Executable):
                     namespace="default",
                     name=job.metadata.name,
                 )
-                status = j.status
+                status = j.status  # type: ignore[reportAttributeAccessIssue]
 
                 logger.info(f"job status: {status}")
                 if (status.succeeded or 0) > 0:
