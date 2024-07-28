@@ -9,7 +9,7 @@ from rats import devtools as devtools
 from rats import projects as projects
 
 from ._commands import PluginCommands
-from ._runtime import K8sRuntime, K8sRuntimeConfig, K8sWorkflowRun, KustomizeImage
+from ._runtime import K8sRuntime, K8sWorkflowRun, KustomizeImage, RuntimeConfig
 
 
 @apps.autoscope
@@ -49,7 +49,7 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.CLICK.GROUP)
     def _click_group(self) -> click.Group:
         return click.Group(
-            "k8s-runner",
+            "k8s-runtime",
             help="submit executables and events to k8s",
         )
 
@@ -108,14 +108,16 @@ class PluginContainer(apps.Container):
                 main_component_id=projects.ComponentId(name),
                 k8s_config_context=os.environ.get("DEVTOOLS_K8S_CONFIG_CONTEXT", "default"),
                 container_images=_container_images(),
+                command=("rats-devtools", "k8s-runtime", "worker-node"),
                 id=id,
                 exe_ids=exe_ids,  # type: ignore
                 group_ids=group_ids,  # type: ignore
             )
 
         return K8sRuntime(
-            config=lambda: K8sRuntimeConfig(
+            config=lambda: RuntimeConfig(
                 id=os.environ.get("DEVTOOLS_K8S_CONTEXT_ID", "/"),
+                command=("rats-devtools", "k8s-runtime", "worker-node"),
                 container_images=_container_images(),
                 main_component=projects.ComponentId(name),
             ),

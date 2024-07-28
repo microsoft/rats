@@ -34,7 +34,8 @@ class PluginCommands(cli.CommandContainer):
 
         # just forcefully build all our images for simplicity
         # i think we can figure out how to build only what we need
-        self._project_tools.build_component_images()
+        if os.environ.get("DEVTOOLS_K8S_SKIP_BUILD", "0") == "0":
+            self._project_tools.build_component_images()
 
         exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
         groups = [apps.ServiceId[apps.Executable](group) for group in group_id]
@@ -54,11 +55,11 @@ class PluginCommands(cli.CommandContainer):
         that are passed to it through environment variables.
         """
         exe_ids = json.loads(
-            os.environ.get("DEVTOOLS_K8SRUNTIME_EXE_IDS", "[]"),
+            os.environ.get("DEVTOOLS_K8S_EXE_IDS", "[]"),
             object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
         )
         group_ids = json.loads(
-            os.environ.get("DEVTOOLS_K8SRUNTIME_EVENT_IDS", "[]"),
+            os.environ.get("DEVTOOLS_K8S_EVENT_IDS", "[]"),
             object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
         )
 

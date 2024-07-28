@@ -57,7 +57,7 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.CLICK.GROUP)
     def _click_group(self) -> click.Group:
         return click.Group(
-            "aml-runner",
+            "aml-runtime",
             help="submit executables and events to aml",
         )
 

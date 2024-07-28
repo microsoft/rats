@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 from collections.abc import Iterable
 from functools import cache
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class ProjectTools:
     _path: Path
+    _image_registry: str
 
     def __init__(self, path: Path, image_registry: str) -> None:
         self._path = path
@@ -40,7 +42,9 @@ class ProjectTools:
 
         if image.name.split("/")[0].split(".")[1:3] == ["azurecr", "io"]:
             acr_registry = image.name.split(".")[0]
-            ops.exe("az", "acr", "login", "--name", acr_registry)
+            if os.environ.get("DEVTOOLS_K8S_SKIP_LOGIN", "0") == "0":
+                ops.exe("az", "acr", "login", "--name", acr_registry)
+
             # for now only pushing automatically if the registry is ACR
             ops.exe("docker", "push", image.full)
 

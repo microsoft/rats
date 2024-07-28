@@ -1,5 +1,7 @@
 import json
+import logging
 import subprocess
+import time
 import uuid
 from collections.abc import Callable
 from hashlib import sha256
@@ -8,9 +10,12 @@ from typing import Any, NamedTuple
 
 import kubernetes
 import yaml
+from kubernetes import client
 
 from rats import apps
 from rats.projects._components import ComponentId, ComponentOperations
+
+logger = logging.getLogger(__name__)
 
 
 class KustomizeImage(NamedTuple):
@@ -23,8 +28,9 @@ class KustomizeImage(NamedTuple):
         return f"{self.newName}:{self.newTag}"
 
 
-class K8sRuntimeConfig(NamedTuple):
+class RuntimeConfig(NamedTuple):
     id: str
+    command: tuple[str, ...]
     container_images: tuple[KustomizeImage, ...]
     main_component: ComponentId
 
@@ -35,6 +41,7 @@ class K8sWorkflowRun(apps.Executable):
     _main_component_id: ComponentId
     _k8s_config_context: str
     _container_images: tuple[KustomizeImage, ...]
+    _command: tuple[str, ...]
 
     _id: str
     _exe_ids: tuple[apps.ServiceId[apps.Executable], ...]
@@ -67,6 +74,7 @@ class K8sWorkflowRun(apps.Executable):
         main_component_id: ComponentId,
         k8s_config_context: str,
         container_images: tuple[KustomizeImage, ...],
+        command: tuple[str, ...],
         id: str,
         exe_ids: tuple[apps.ServiceId[apps.Executable], ...],
         group_ids: tuple[apps.ServiceId[apps.Executable], ...],
@@ -76,6 +84,7 @@ class K8sWorkflowRun(apps.Executable):
         self._main_component_id = main_component_id
         self._k8s_config_context = k8s_config_context
         self._container_images = container_images
+        self._command = command
         self._id = id
         self._exe_ids = exe_ids
         self._group_ids = group_ids
@@ -105,7 +114,8 @@ class K8sWorkflowRun(apps.Executable):
             cwd=self._workflow_stage,
             capture_output=True,
         ).stdout
-        print(built)
+        logger.info("completed kustomize build")
+
         subprocess.run(
             ["kubectl", "apply", "-f-"],
             check=True,
@@ -113,8 +123,35 @@ class K8sWorkflowRun(apps.Executable):
             cwd=self._workflow_stage,
             input=built,
         )
-        print("job created: ... somewhere")
-        print(f"kubectl describe pod -l rats.kuberuntime/short-hash={self._short_hash}")
+        logger.info(f"kubectl describe pod -l rats.kuberuntime/short-hash={self._short_hash}")
+
+        batch = client.BatchV1Api()
+
+        while True:
+            jobs = batch.list_namespaced_job(
+                namespace="default",
+                label_selector=f"rats.kuberuntime/short-hash={self._short_hash}",
+            )
+
+            # need to account for race conditions creating the job
+            if len(jobs.items) == 0:
+                raise RuntimeError("no jobs were created")
+
+            for job in jobs.items:
+                j = batch.read_namespaced_job_status(
+                    namespace="default",
+                    name=job.metadata.name,
+                )
+                status = j.status
+
+                logger.info(f"job status: {status}")
+                if (status.succeeded or 0) > 0:
+                    return
+
+                if (status.failed or 0) > 0:
+                    raise RuntimeError(f"job failed: {j}")
+
+            time.sleep(2)
 
     def _create_kustomization(self) -> None:
         (self._workflow_stage / "kustomization.yaml").write_text(
@@ -163,13 +200,14 @@ class K8sWorkflowRun(apps.Executable):
             {
                 "name": "main",
                 "image": self._main_component_id.name,
+                "command": self._command,
                 "env": [
                     {
-                        "name": "RATS_KUBERUNTIME_EXE_IDS",
+                        "name": "DEVTOOLS_K8S_EXE_IDS",
                         "value": self._exes_json,
                     },
                     {
-                        "name": "RATS_KUBERUNTIME_EVENT_IDS",
+                        "name": "DEVTOOLS_K8S_EVENT_IDS",
                         "value": self._groups_json,
                     },
                 ],
@@ -219,12 +257,12 @@ class K8sWorkflowRun(apps.Executable):
 
 
 class K8sRuntime(apps.Runtime):
-    _config: apps.ConfigProvider[K8sRuntimeConfig]
+    _config: apps.ConfigProvider[RuntimeConfig]
     _factory: Callable[[Any], apps.Executable]
 
     def __init__(
         self,
-        config: apps.ConfigProvider[K8sRuntimeConfig],
+        config: apps.ConfigProvider[RuntimeConfig],
         factory: Callable[[Any], apps.Executable],
     ) -> None:
         self._config = config
