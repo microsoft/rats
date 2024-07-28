@@ -3,7 +3,7 @@ import subprocess
 import uuid
 from collections.abc import Callable
 from hashlib import sha256
-from textwrap import dedent
+from pathlib import Path
 from typing import Any, NamedTuple
 
 import kubernetes
@@ -40,6 +40,26 @@ class K8sWorkflowRun(apps.Executable):
     _exe_ids: tuple[apps.ServiceId[apps.Executable], ...]
     _group_ids: tuple[apps.ServiceId[apps.Executable], ...]
 
+    @property
+    def _workflow_stage(self) -> Path:
+        return self._devops_component.find_path(f".tmp/workflow-runs/{self._run_hash}")
+
+    @property
+    def _short_hash(self) -> str:
+        return self._run_hash[:10]
+
+    @property
+    def _run_hash(self) -> str:
+        return sha256(self._id.encode()).hexdigest()
+
+    @property
+    def _exes_json(self) -> str:
+        return json.dumps([exe._asdict() for exe in self._exe_ids])
+
+    @property
+    def _groups_json(self) -> str:
+        return json.dumps([group._asdict() for group in self._group_ids])
+
     def __init__(
         self,
         devops_component: ComponentOperations,
@@ -62,73 +82,54 @@ class K8sWorkflowRun(apps.Executable):
 
     def execute(self) -> None:
         kubernetes.config.load_kube_config(context=self._k8s_config_context)
-        run_id = self._id
-        run_hash = sha256(run_id.encode()).hexdigest()
-        short_hash = run_hash[:10]
-        workflow_stage = self._devops_component.find_path(f".tmp/workflow-runs/{run_hash}")
-        try:
-            workflow_stage.mkdir(parents=True, exist_ok=False)
-        except FileExistsError as e:
-            raise RuntimeError(f"workflow run with id {run_id} already exists") from e
 
-        exes_json = json.dumps([exe._asdict() for exe in self._exe_ids])
-        groups_json = json.dumps([group._asdict() for group in self._group_ids])
+        try:
+            self._workflow_stage.mkdir(parents=True, exist_ok=False)
+        except FileExistsError as e:
+            raise RuntimeError(f"workflow run with id {self._id} already exists") from e
 
         self._devops_component.copy_tree(
             # we will include this resource at a minimum
             self._devops_component.find_path("src/resources/k8s-components/workflow"),
-            # our events should operate as if they run from the workflow staging directory
-            workflow_stage / "workflow",
-        )
-        (workflow_stage / "main-container.yaml").write_text(
-            dedent(
-                f"""
-                apiVersion: batch/v1
-                kind: Job
-                metadata:
-                  name: workflow
-                spec:
-                  template:
-                    spec:
-                      containers:
-                        - name: main
-                          image: {self._main_component_id.name}
-                          volumeMounts:
-                            - name: podinfo
-                              mountPath: /etc/podinfo
-                      volumes:
-                        - name: podinfo
-                          downwardAPI:
-                            items:
-                              - path: "annotations/rats.kuberuntime/run-id"
-                                fieldRef:
-                                  fieldPath: metadata.annotations['rats.kuberuntime/run-id']
-                              - path: "annotations/rats.kuberuntime/run-hash"
-                                fieldRef:
-                                  fieldPath: metadata.annotations['rats.kuberuntime/run-hash']
-                              - path: "annotations/rats.kuberuntime/exe-ids"
-                                fieldRef:
-                                  fieldPath: metadata.annotations['rats.kuberuntime/exe-ids']
-                              - path: "annotations/rats.kuberuntime/group-ids"
-                                fieldRef:
-                                  fieldPath: metadata.annotations['rats.kuberuntime/group-ids']
-                """
-            )
+            # our events should operate as if they run from the root staging directory
+            self._workflow_stage / "workflow",
         )
 
-        (workflow_stage / "kustomization.yaml").write_text(
+        self._create_kustomization()
+        self._create_main_container_patch()
+
+        built = subprocess.run(
+            ["kustomize", "build"],
+            check=True,
+            text=True,
+            cwd=self._workflow_stage,
+            capture_output=True,
+        ).stdout
+        print(built)
+        subprocess.run(
+            ["kubectl", "apply", "-f-"],
+            check=True,
+            text=True,
+            cwd=self._workflow_stage,
+            input=built,
+        )
+        print("job created: ... somewhere")
+        print(f"kubectl describe pod -l rats.kuberuntime/short-hash={self._short_hash}")
+
+    def _create_kustomization(self) -> None:
+        (self._workflow_stage / "kustomization.yaml").write_text(
             yaml.dump(
                 {
                     "apiVersion": "kustomize.config.k8s.io/v1beta1",
                     "kind": "Kustomization",
-                    "nameSuffix": f"-{self._main_component_id.name[0:40]}-{run_hash[:5]}",
-                    "commonLabels": {"rats.kuberuntime/short-hash": short_hash},
+                    "nameSuffix": f"-{self._main_component_id.name[0:40]}-{self._short_hash}",
+                    "commonLabels": {"rats.kuberuntime/short-hash": self._short_hash},
                     "commonAnnotations": {
-                        "rats.kuberuntime/run-id": run_id,
-                        "rats.kuberuntime/short-hash": short_hash,
-                        "rats.kuberuntime/run-hash": run_hash,
-                        "rats.kuberuntime/exe-ids": exes_json,
-                        "rats.kuberuntime/group-ids": groups_json,
+                        "rats.kuberuntime/run-id": self._id,
+                        "rats.kuberuntime/short-hash": self._short_hash,
+                        "rats.kuberuntime/run-hash": self._run_hash,
+                        "rats.kuberuntime/exe-ids": self._exes_json,
+                        "rats.kuberuntime/group-ids": self._groups_json,
                     },
                     "images": [image._asdict() for image in self._container_images],
                     "resources": ["workflow"],
@@ -138,23 +139,83 @@ class K8sWorkflowRun(apps.Executable):
             )
         )
 
-        built = subprocess.run(
-            ["kustomize", "build"],
-            check=True,
-            text=True,
-            cwd=workflow_stage,
-            capture_output=True,
-        ).stdout
-        print(built)
-        subprocess.run(
-            ["kubectl", "apply", "-f-"],
-            check=True,
-            text=True,
-            cwd=workflow_stage,
-            input=built,
+    def _create_main_container_patch(self) -> None:
+        (self._workflow_stage / "main-container.yaml").write_text(
+            yaml.dump(
+                {
+                    "apiVersion": "batch/v1",
+                    "kind": "Job",
+                    "metadata": {"name": "workflow"},
+                    "spec": {
+                        "template": {
+                            "spec": {
+                                "containers": self._containers(),
+                                "volumes": self._volumes(),
+                            },
+                        },
+                    },
+                }
+            ),
         )
-        print("job created: ... somewhere")
-        print(f"kubectl describe pod -l rats.kuberuntime/short-hash={short_hash}")
+
+    def _containers(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "name": "main",
+                "image": self._main_component_id.name,
+                "env": [
+                    {
+                        "name": "RATS_KUBERUNTIME_EXE_IDS",
+                        "value": self._exes_json,
+                    },
+                    {
+                        "name": "RATS_KUBERUNTIME_EVENT_IDS",
+                        "value": self._groups_json,
+                    },
+                ],
+                "volumeMounts": [
+                    {
+                        "name": "podinfo",
+                        "mountPath": "/etc/podinfo",
+                    }
+                ],
+            }
+        ]
+
+    def _volumes(self) -> list[dict[str, Any]]:
+        return [
+            {
+                "name": "podinfo",
+                "downwardAPI": {
+                    "items": [
+                        {
+                            "path": "annotations/rats.kuberuntime/run-id",
+                            "fieldRef": {
+                                "fieldPath": "metadata.annotations['rats.kuberuntime/run-id']",
+                            },
+                        },
+                        {
+                            "path": "annotations/rats.kuberuntime/run-hash",
+                            "fieldRef": {
+                                "fieldPath": "metadata.annotations['rats.kuberuntime/run-hash']",
+                            },
+                        },
+                        {
+                            "path": "annotations/rats.kuberuntime/exe-ids",
+                            "fieldRef": {
+                                "fieldPath": "metadata.annotations['rats.kuberuntime/exe-ids']",
+                            },
+                        },
+                        {
+                            "path": "annotations/rats.kuberuntime/group-ids",
+                            "fieldRef": {
+                                "fieldPath": "metadata.annotations['rats.kuberuntime/group-ids']",
+                            },
+                        },
+                    ],
+                },
+            }
+        ]
 
 
 class K8sRuntime(apps.Runtime):

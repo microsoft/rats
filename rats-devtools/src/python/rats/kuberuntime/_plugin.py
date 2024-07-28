@@ -1,16 +1,27 @@
 import os
 from pathlib import Path
+from typing import cast
 
-from rats import apps
+import click
+
+from rats import apps, cli
 from rats import devtools as devtools
 from rats import projects as projects
 
+from ._commands import PluginCommands
 from ._runtime import K8sRuntime, K8sRuntimeConfig, K8sWorkflowRun, KustomizeImage
+
+
+@apps.autoscope
+class _PluginClickServices:
+    GROUP = apps.ServiceId[click.Group]("group")
 
 
 @apps.autoscope
 class PluginServices:
     K8S_RUNTIME = apps.ServiceId[apps.Runtime]("k8s-runtime")
+    COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
+    CLICK = _PluginClickServices
 
     @staticmethod
     def component_runtime(name: str) -> apps.ServiceId[apps.Runtime]:
@@ -22,6 +33,34 @@ class PluginContainer(apps.Container):
 
     def __init__(self, app: apps.Container) -> None:
         self._app = app
+
+    @apps.group(cli.PluginServices.EVENTS.command_open(cli.PluginServices.ROOT_COMMAND))
+    def _runner_cli(self) -> apps.Executable:
+        def run() -> None:
+            group = self._app.get(
+                cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
+            )
+            k8srunner = self._app.get(PluginServices.CLICK.GROUP)
+            self._app.get(PluginServices.COMMANDS).on_group_open(k8srunner)
+            group.add_command(cast(click.Command, k8srunner))
+
+        return apps.App(run)
+
+    @apps.service(PluginServices.CLICK.GROUP)
+    def _click_group(self) -> click.Group:
+        return click.Group(
+            "k8s-runner",
+            help="submit executables and events to k8s",
+        )
+
+    @apps.service(PluginServices.COMMANDS)
+    def _commands(self) -> cli.CommandContainer:
+        return PluginCommands(
+            project_tools=self._app.get(devtools.PluginServices.PROJECT_TOOLS),
+            # on worker nodes, we always want the simple local runtime, for now.
+            worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            k8s_runtime=self._app.get(PluginServices.K8S_RUNTIME),
+        )
 
     @apps.service(PluginServices.K8S_RUNTIME)
     def _k8s_runtime(self) -> apps.Runtime:
