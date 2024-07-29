@@ -1,10 +1,8 @@
 # type: ignore[reportUntypedFunctionDecorator]
 import json
 import logging
-import os
 import uuid
 from collections.abc import Iterable
-from pathlib import Path
 
 import click
 
@@ -17,7 +15,9 @@ class PluginCommands(cli.CommandContainer):
     _project_tools: projects.ProjectTools
     _selected_component: projects.ComponentOperations
     _devtools_component: projects.ComponentOperations
-    _worker_node_runtime: apps.Runtime
+    _ping: apps.Executable
+    _pong: apps.Executable
+    _standard_runtime: apps.Runtime
     _k8s_runtime: apps.Runtime
     _devtools_runtime: apps.Runtime
     _minimal_runtime: apps.Runtime
@@ -27,7 +27,9 @@ class PluginCommands(cli.CommandContainer):
         project_tools: projects.ProjectTools,
         selected_component: projects.ComponentOperations,
         devtools_component: projects.ComponentOperations,
-        worker_node_runtime: apps.Runtime,
+        ping: apps.Executable,
+        pong: apps.Executable,
+        standard_runtime: apps.Runtime,
         k8s_runtime: apps.Runtime,
         devtools_runtime: apps.Runtime,
         minimal_runtime: apps.Runtime,
@@ -35,7 +37,9 @@ class PluginCommands(cli.CommandContainer):
         self._project_tools = project_tools
         self._selected_component = selected_component
         self._devtools_component = devtools_component
-        self._worker_node_runtime = worker_node_runtime
+        self._ping = ping
+        self._pong = pong
+        self._standard_runtime = standard_runtime
         self._k8s_runtime = k8s_runtime
         self._devtools_runtime = devtools_runtime
         self._minimal_runtime = minimal_runtime
@@ -108,67 +112,9 @@ class PluginCommands(cli.CommandContainer):
         )
 
     @cli.command(cli.CommandId.auto())
-    @click.option("--exe-id", multiple=True)
-    @click.option("--group-id", multiple=True)
-    def example_k8s_runtime(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:
-        if len(exe_id) == 0 and len(group_id) == 0:
-            raise ValueError("No executables or groups were passed to the command")
-
-        # just forcefully build all our images
-        self._project_tools.build_component_images()
-
-        exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
-        groups = [apps.ServiceId[apps.Executable](group) for group in group_id]
-        if len(exes):
-            self._k8s_runtime.execute(*exes)
-            self._minimal_runtime.execute(*exes)
-
-        if len(groups):
-            self._k8s_runtime.execute_group(*groups)
-
-    @cli.command(cli.CommandId.auto())
     def ping(self) -> None:
-        for _x in range(20):
-            print(json.dumps({"pong": str(uuid.uuid4())}))
+        self._ping.execute()
 
     @cli.command(cli.CommandId.auto())
-    def worker_node(self) -> None:
-        """
-        Run the worker node process.
-
-        This command is intended to be run in a kubernetes job. It will execute any exes and groups
-        that are passed to it by the kubernetes job. Currently, the exes and groups are passed as
-        environment variables until a proper mechanism is implemented.
-        """
-        exe_ids = json.loads(
-            os.environ.get("DEVTOOLS_K8S_EXE_IDS", "[]"),
-            object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
-        )
-        group_ids = json.loads(
-            os.environ.get("DEVTOOLS_K8S_GROUP_IDS", "[]"),
-            object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
-        )
-
-        annotation_exe_ids = Path("/etc/podinfo/annotations/rats.kuberuntime/exe-ids")
-        annotation_group_ids = Path("/etc/podinfo/annotations/rats.kuberuntime/group-ids")
-
-        if annotation_exe_ids.exists():
-            try:
-                exe_ids += json.loads(
-                    annotation_exe_ids.read_text(),
-                    object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
-                )
-            except json.JSONDecodeError:
-                pass
-
-        if annotation_group_ids.exists():
-            try:
-                group_ids += json.loads(
-                    annotation_group_ids.read_text(),
-                    object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
-                )
-            except json.JSONDecodeError:
-                pass
-
-        self._worker_node_runtime.execute(*exe_ids)
-        self._worker_node_runtime.execute_group(*group_ids)
+    def pong(self) -> None:
+        self._pong.execute()

@@ -9,11 +9,12 @@ from rats import cli as cli
 from rats import devtools, kuberuntime
 
 from ._commands import PluginCommands
-from ._executables import PongExecutable
+from ._executables import PingExecutable, PongExecutable
 
 
 @apps.autoscope
 class _PluginExamples:
+    PING_EXECUTABLE = apps.ServiceId[apps.Executable]("ping-executable")
     PONG_EXECUTABLE = apps.ServiceId[apps.Executable]("pong-executable")
 
 
@@ -53,8 +54,9 @@ class PluginContainer(apps.Container):
             project_tools=self._app.get(devtools.PluginServices.PROJECT_TOOLS),
             selected_component=self._app.get(devtools.PluginServices.ACTIVE_COMPONENT_OPS),
             devtools_component=self._app.get(devtools.PluginServices.DEVTOOLS_COMPONENT_OPS),
-            # on worker nodes, we always want the simple local runtime, for now.
-            worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            ping=self._app.get(PluginServices.EXAMPLES.PING_EXECUTABLE),
+            pong=self._app.get(PluginServices.EXAMPLES.PONG_EXECUTABLE),
+            standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             k8s_runtime=self._app.get(kuberuntime.PluginServices.K8S_RUNTIME),
             devtools_runtime=self._app.get(
                 kuberuntime.PluginServices.component_runtime("rats-devtools")
@@ -74,3 +76,7 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.EXAMPLES.PONG_EXECUTABLE)
     def _pong_executable(self) -> apps.Executable:
         return PongExecutable(f"hello from our examples: {uuid.uuid4()!s}")
+
+    @apps.service(PluginServices.EXAMPLES.PING_EXECUTABLE)
+    def _ping_executable(self) -> apps.Executable:
+        return PingExecutable(f"hello from our examples: {uuid.uuid4()!s}")

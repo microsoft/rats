@@ -63,6 +63,7 @@ rats-devtools = "rats.devtools.__main__:run"
 "rats.devtools" = "rats.devtools:PluginContainer"
 "rats.docs" = "rats.docs:PluginContainer"
 "rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
+"rats.stdruntime" = "rats.stdruntime:PluginContainer"
 
 [tool.poetry.plugins."rats.amlruntime"]
 # this is a way to keep this plugin opt-in for now
