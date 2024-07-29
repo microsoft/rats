@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 
 import click
 
@@ -32,10 +33,7 @@ class PluginCommands(cli.CommandContainer):
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 
-        # just forcefully build all our images for simplicity
-        # i think we can figure out how to build only what we need
-        if os.environ.get("DEVTOOLS_K8S_SKIP_BUILD", "0") == "0":
-            self._project_tools.build_component_images()
+        self._project_tools.build_component_image(Path().resolve().name)
 
         exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
         groups = [apps.ServiceId[apps.Executable](group) for group in group_id]

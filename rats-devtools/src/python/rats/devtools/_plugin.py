@@ -83,6 +83,10 @@ class PluginContainer(apps.Container):
     def _minimal_component_ops(self) -> projects.ComponentOperations:
         return self._component_ops("rats-examples-minimal")
 
+    @apps.service(PluginServices.component_ops("rats-examples-datasets"))
+    def _datasets_component_ops(self) -> projects.ComponentOperations:
+        return self._component_ops("rats-examples-datasets")
+
     def _component_ops(self, name: str) -> projects.ComponentOperations:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
 

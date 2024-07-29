@@ -25,7 +25,11 @@ class PluginServices:
 
     @staticmethod
     def component_runtime(name: str) -> apps.ServiceId[apps.Runtime]:
-        return apps.ServiceId[apps.Runtime](f"{PluginServices.K8S_RUNTIME}[{name}]")
+        return apps.ServiceId[apps.Runtime](f"{PluginServices.K8S_RUNTIME}[{name}][runtime]")
+
+    @staticmethod
+    def component_command(name: str) -> apps.ServiceId[tuple[str, ...]]:
+        return apps.ServiceId[tuple[str, ...]](f"{PluginServices.K8S_RUNTIME}[{name}][command]")
 
 
 class PluginContainer(apps.Container):
@@ -68,6 +72,7 @@ class PluginContainer(apps.Container):
             return self._app.get(PluginServices.component_runtime(Path().resolve().name))
         except apps.ServiceNotFoundError as e:
             if e.service_id == PluginServices.component_runtime(Path().resolve().name):
+                # this api is confusing
                 return apps.NullRuntime()
             raise
 
@@ -78,6 +83,22 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.component_runtime("rats-examples-minimal"))
     def _minimal_runtime(self) -> K8sRuntime:
         return self._k8s_component_runtime("rats-examples-minimal")
+
+    @apps.service(PluginServices.component_command("rats-examples-datasets"))
+    def _datasets_command(self) -> tuple[str, ...]:
+        return ".venv/bin/python", "-m", "rats.exampledatasets"
+
+    @apps.service(PluginServices.component_command("rats-devtools"))
+    def _devtools_command(self) -> tuple[str, ...]:
+        return "rats-devtools", "k8s-runtime", "worker-node"
+
+    @apps.service(PluginServices.component_command("rats-examples-minimal"))
+    def _minimal_command(self) -> tuple[str, ...]:
+        return "python", "-m", "rats.minis"
+
+    @apps.service(PluginServices.component_runtime("rats-examples-datasets"))
+    def _datasets_runtime(self) -> K8sRuntime:
+        return self._k8s_component_runtime("rats-examples-datasets")
 
     def _k8s_component_runtime(self, name: str) -> K8sRuntime:
         def _container_images() -> tuple[KustomizeImage, ...]:
@@ -95,6 +116,11 @@ class PluginContainer(apps.Container):
                     f"{reg}/rats-examples-minimal",
                     context_hash,
                 ),
+                KustomizeImage(
+                    "rats-examples-datasets",
+                    f"{reg}/rats-examples-datasets",
+                    context_hash,
+                ),
             )
 
         def _factory(
@@ -108,7 +134,7 @@ class PluginContainer(apps.Container):
                 main_component_id=projects.ComponentId(name),
                 k8s_config_context=os.environ.get("DEVTOOLS_K8S_CONFIG_CONTEXT", "default"),
                 container_images=_container_images(),
-                command=("rats-devtools", "k8s-runtime", "worker-node"),
+                command=self._app.get(PluginServices.component_command(name)),
                 id=id,
                 exe_ids=exe_ids,  # type: ignore
                 group_ids=group_ids,  # type: ignore

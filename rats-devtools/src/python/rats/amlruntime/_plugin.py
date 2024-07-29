@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import cast
 
 import click
@@ -23,6 +24,10 @@ class _PluginClickServices:
 class _PluginConfigs:
     AML_RUNTIME = apps.ConfigId[RuntimeConfig]("aml-runtime")
 
+    @staticmethod
+    def component_runtime(name: str) -> apps.ConfigId[RuntimeConfig]:
+        return apps.ConfigId[RuntimeConfig](f"{_PluginConfigs.AML_RUNTIME.name}[{name}][runtime]")
+
 
 @apps.autoscope
 class PluginServices:
@@ -35,6 +40,10 @@ class PluginServices:
     CLICK = _PluginClickServices
     CONFIGS = _PluginConfigs
 
+    @staticmethod
+    def component_runtime(name: str) -> apps.ServiceId[apps.Runtime]:
+        return apps.ServiceId[apps.Runtime](f"{PluginServices.AML_RUNTIME.name}[{name}]")
+
 
 class PluginContainer(apps.Container):
     _app: apps.Container
@@ -43,7 +52,7 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(cli.PluginServices.EVENTS.command_open(cli.PluginServices.ROOT_COMMAND))
-    def _runner_cli(self) -> apps.Executable:
+    def _runtime_cli(self) -> apps.Executable:
         def run() -> None:
             group = self._app.get(
                 cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
@@ -66,17 +75,34 @@ class PluginContainer(apps.Container):
         return PluginCommands(
             project_tools=self._app.get(devtools.PluginServices.PROJECT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
-            worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             aml_runtime=self._app.get(PluginServices.AML_RUNTIME),
         )
 
     @apps.service(PluginServices.AML_RUNTIME)
-    def _aml_runtime(self) -> AmlRuntime:
+    def _aml_runtime(self) -> apps.Runtime:
+        try:
+            return self._app.get(PluginServices.component_runtime(Path().resolve().name))
+        except apps.ServiceNotFoundError as e:
+            if e.service_id == PluginServices.component_runtime(Path().resolve().name):
+                # this api is confusing
+                return apps.NullRuntime()
+            raise
+
+    @apps.service(PluginServices.component_runtime("rats-devtools"))
+    def _devtools_runtime(self) -> AmlRuntime:
+        return self._aml_component_runtime("rats-devtools")
+
+    @apps.service(PluginServices.component_runtime("rats-examples-datasets"))
+    def _datasets_runtime(self) -> AmlRuntime:
+        return self._aml_component_runtime("rats-examples-datasets")
+
+    def _aml_component_runtime(self, name: str) -> AmlRuntime:
         return AmlRuntime(
             ml_client=lambda: self._app.get(PluginServices.AML_CLIENT),
             environment_operations=lambda: self._app.get(PluginServices.AML_ENVIRONMENT_OPS),
             job_operations=lambda: self._app.get(PluginServices.AML_JOB_OPS),
-            config=lambda: self._app.get(PluginServices.CONFIGS.AML_RUNTIME),
+            config=lambda: self._app.get(PluginServices.CONFIGS.component_runtime(name)),
         )
 
     @apps.service(PluginServices.AML_ENVIRONMENT_OPS)
@@ -87,32 +113,46 @@ class PluginContainer(apps.Container):
     def _aml_job_ops(self) -> JobOperations:
         return self._app.get(PluginServices.AML_CLIENT).jobs
 
-    @apps.service(PluginServices.AML_CLIENT)
-    def _aml_client(self) -> MLClient:
-        workspace = self._app.get(PluginServices.CONFIGS.AML_RUNTIME).workspace
-        return MLClient(
-            credential=cast(TokenCredential, DefaultAzureCredential()),
-            subscription_id=workspace.subscription_id,
-            resource_group_name=workspace.resource_group_name,
-            workspace_name=workspace.workspace_name,
-        )
-
     @apps.service(PluginServices.CONFIGS.AML_RUNTIME)
     def _aml_runtime_config(self) -> RuntimeConfig:
+        try:
+            return self._app.get(PluginServices.CONFIGS.component_runtime(Path().resolve().name))
+        except apps.ServiceNotFoundError as e:
+            if e.service_id == PluginServices.CONFIGS.component_runtime(Path().resolve().name):
+                # this api is confusing
+                return ()  # type: ignore
+            raise
+
+    @apps.service(PluginServices.CONFIGS.component_runtime("rats-devtools"))
+    def _devtools_runtime_config(self) -> RuntimeConfig:
+        return self._component_aml_runtime_config("rats-devtools")
+
+    @apps.service(PluginServices.CONFIGS.component_runtime("rats-examples-datasets"))
+    def _datasets_runtime_config(self) -> RuntimeConfig:
+        return self._component_aml_runtime_config("rats-examples-datasets")
+
+    @apps.service(PluginServices.CONFIGS.component_runtime("rats-examples-minimal"))
+    def _minimal_runtime_config(self) -> RuntimeConfig:
+        return self._component_aml_runtime_config("examples-minimal")
+
+    def _component_aml_runtime_config(self, name: str) -> RuntimeConfig:
         # think of this as a worker node running our executables
         reg = os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local")
         project_tools = self._app.get(devtools.PluginServices.PROJECT_TOOLS)
-        active_component = self._app.get(devtools.PluginServices.ACTIVE_COMPONENT_OPS)
-        name = active_component.find_path(".").name
         context_hash = project_tools.image_context_hash()
 
         image = f"{reg}/{name}:{context_hash}"
 
+        # for now :(
+        cmds = {
+            "rats-devtools": "rats-devtools aml-runner worker-node",
+            "rats-examples-minimal": "python -m rats.minis",
+            "rats-examples-datasets": ".venv/bin/python -m rats.exampledatasets",
+        }
+
+        # a lot more of this needs to be configurable
         return RuntimeConfig(
-            command=os.environ.get(
-                "DEVTOOLS_AMLRUNTIME_COMMAND",
-                "rats-devtools aml-runner worker-node",
-            ),
+            command=cmds[name],
             compute=os.environ.get("DEVTOOLS_AMLRUNTIME_COMPUTE", "default"),
             workspace=AmlWorkspace(
                 subscription_id=os.environ.get("DEVTOOLS_AMLRUNTIME_SUBSCRIPTION_ID", ""),
@@ -124,4 +164,14 @@ class PluginContainer(apps.Container):
                 image=image,
                 version=context_hash,
             ),
+        )
+
+    @apps.service(PluginServices.AML_CLIENT)
+    def _aml_client(self) -> MLClient:
+        workspace = self._app.get(PluginServices.CONFIGS.AML_RUNTIME).workspace
+        return MLClient(
+            credential=cast(TokenCredential, DefaultAzureCredential()),
+            subscription_id=workspace.subscription_id,
+            resource_group_name=workspace.resource_group_name,
+            workspace_name=workspace.workspace_name,
         )

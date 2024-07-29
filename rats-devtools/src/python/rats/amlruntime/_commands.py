@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 
 import click
 
@@ -18,11 +19,11 @@ class PluginCommands(cli.CommandContainer):
     def __init__(
         self,
         project_tools: projects.ProjectTools,
-        worker_node_runtime: apps.Runtime,
+        standard_runtime: apps.Runtime,
         aml_runtime: apps.Runtime,
     ) -> None:
         self._project_tools = project_tools
-        self._worker_node_runtime = worker_node_runtime
+        self._worker_node_runtime = standard_runtime
         self._aml_runtime = aml_runtime
 
     @cli.command(cli.CommandId.auto())
@@ -32,9 +33,7 @@ class PluginCommands(cli.CommandContainer):
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 
-        # just forcefully build all our images for simplicity
-        # i think we can figure out how to build only what we need
-        self._project_tools.build_component_images()
+        self._project_tools.build_component_image(Path().resolve().name)
 
         exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
         groups = [apps.ServiceId[apps.Executable](group) for group in group_id]
