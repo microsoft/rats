@@ -92,9 +92,15 @@ class SimpleApplication(Runtime, Container):
     """An application without anything fancy."""
 
     _plugin_groups: Iterable[str]
+    _runtime_plugin: Callable[[Container], Container] | None
 
-    def __init__(self, *plugin_groups: str) -> None:
+    def __init__(
+        self,
+        *plugin_groups: str,
+        runtime_plugin: Callable[[Container], Container] | None = None,
+    ) -> None:
         self._plugin_groups = plugin_groups
+        self._runtime_plugin = runtime_plugin
 
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
         self._runtime().execute(*exe_ids)
@@ -150,6 +156,8 @@ class SimpleApplication(Runtime, Container):
 
     @container()
     def _plugins(self) -> Container:
-        return CompositeContainer(
-            *[PluginContainers(self, group) for group in self._plugin_groups],
-        )
+        plugins: list[Container] = [PluginContainers(self, group) for group in self._plugin_groups]
+        if self._runtime_plugin:
+            plugins.append(self._runtime_plugin(self))
+
+        return CompositeContainer(*plugins)
