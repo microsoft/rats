@@ -23,8 +23,21 @@ rm -rf /tmp/*
 rm -rf /root/.cache
 HEREDOC
 
+# copy the minimal number of files to install the devtools
+# this way we can cache as many container layers as possible
+COPY rats-examples-datasets/pyproject.toml /opt/rats/rats-examples-datasets/pyproject.toml
+COPY rats-examples-datasets/README.md /opt/rats/rats-examples-datasets/README.md
+# we have to account for the local dependencies and make sure they are also installable
+# not sure i want to hand pick any files from local dependencies
 COPY rats-apps /opt/rats/rats-apps
-COPY rats-examples-datasets /opt/rats/rats-examples-datasets
+# create the skeleton of the packages so they install successfully
+RUN <<HEREDOC
+set -eux
+mkdir -p /opt/rats/rats-examples-datasets/src/python/rats/exampledatasets
+touch /opt/rats/rats-examples-datasets/src/python/rats/exampledatasets/__init__.py
+
+HEREDOC
+
 WORKDIR /opt/rats/rats-examples-datasets
 
 RUN <<HEREDOC
@@ -37,6 +50,8 @@ python3 -m venv .venv
 
 rm -rf /root/.cache
 HEREDOC
+
+COPY rats-examples-datasets /opt/rats/rats-examples-datasets
 
 # nothing should be installed after this step
 USER nonroot

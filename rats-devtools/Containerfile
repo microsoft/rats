@@ -3,7 +3,6 @@ FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
 # pipx is going to install things here for us
 ENV PIPX_BIN_DIR="/usr/local/bin"
 ENV PIPX_HOME=/opt/pipx
-ENV PATH="${PIPX_BIN_DIR}:${PATH}"
 
 RUN <<HEREDOC
 set -eux
@@ -30,9 +29,8 @@ HEREDOC
 COPY rats-devtools/pyproject.toml /opt/rats/rats-devtools/pyproject.toml
 COPY rats-devtools/README.md /opt/rats/rats-devtools/README.md
 # we have to account for the local dependencies and make sure they are also installable
-COPY rats-apps/pyproject.toml /opt/rats/rats-apps/pyproject.toml
-COPY rats-apps/README.md /opt/rats/rats-apps/README.md
-COPY rats-apps/src/python /opt/rats/rats-apps/src/python
+# not sure i want to hand pick any files from local dependencies
+COPY rats-apps /opt/rats/rats-apps
 # create the skeleton of the packages so they install successfully
 RUN <<HEREDOC
 set -eux
