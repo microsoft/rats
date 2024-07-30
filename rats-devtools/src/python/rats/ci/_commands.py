@@ -1,7 +1,5 @@
 # type: ignore[reportUntypedFunctionDecorator]
-import json
 import logging
-import uuid
 from collections.abc import Iterable
 
 import click
@@ -77,7 +75,7 @@ class PluginCommands(cli.CommandContainer):
         self._selected_component.run("ruff", "format", *files)
         self._selected_component.run("ruff", "check", "--fix", "--unsafe-fixes", *files)
 
-    @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
+    @cli.command(cli.CommandId.auto())
     @click.argument("version")
     def update_version(self, version: str) -> None:
         """Update the version of the package found in pyproject.toml."""
@@ -88,12 +86,12 @@ class PluginCommands(cli.CommandContainer):
         """Build a wheel for the package."""
         self._selected_component.poetry("build", "-f", "wheel")
 
-    @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
+    @cli.command(cli.CommandId.auto())
     def build_image(self) -> None:
         """Update the version of the package found in pyproject.toml."""
         self._project_tools.build_component_image(self._selected_component.find_path(".").name)
 
-    @cli.command(cli.CommandId.auto())  # type: ignore[reportArgumentType]
+    @cli.command(cli.CommandId.auto())
     @click.argument("repository_name")
     def publish_wheel(self, repository_name: str) -> None:
         """

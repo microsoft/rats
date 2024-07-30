@@ -60,7 +60,7 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
-            project_tools=self._app.get(devtools.PluginServices.PROJECT_TOOLS),
+            project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
             worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             k8s_runtime=self._app.get(PluginServices.K8S_RUNTIME),
@@ -103,7 +103,7 @@ class PluginContainer(apps.Container):
     def _k8s_component_runtime(self, name: str) -> K8sRuntime:
         def _container_images() -> tuple[KustomizeImage, ...]:
             reg = os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local")
-            project_tools = self._app.get(devtools.PluginServices.PROJECT_TOOLS)
+            project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
             context_hash = project_tools.image_context_hash()
             return (
                 KustomizeImage(
@@ -129,8 +129,8 @@ class PluginContainer(apps.Container):
             group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
         ) -> K8sWorkflowRun:
             return K8sWorkflowRun(
-                devops_component=self._app.get(devtools.PluginServices.DEVTOOLS_COMPONENT_OPS),
-                main_component=self._app.get(devtools.PluginServices.component_ops(name)),
+                devops_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_OPS),
+                main_component=self._app.get(projects.PluginServices.component_ops(name)),
                 main_component_id=projects.ComponentId(name),
                 k8s_config_context=os.environ.get("DEVTOOLS_K8S_CONFIG_CONTEXT", "default"),
                 container_images=_container_images(),

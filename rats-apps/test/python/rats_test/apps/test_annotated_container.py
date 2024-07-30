@@ -75,31 +75,6 @@ class TestAnnotatedContainer:
         with pytest.raises(apps.DuplicateServiceError):
             self._app_1.get(example.ExampleIds.DUPLICATE_SERVICE)
 
-    def test_config_retrieval(self) -> None:
-        settings = self._app_1.get(example.ExampleIds.CONFIGS.STORAGE)
-        assert settings.storage_account == "default"
-
-    def test_config_retrieval_404(self) -> None:
-        with pytest.raises(apps.ServiceNotFoundError):
-            self._app_1.get(example.ExampleIds.CONFIGS.OTHER_STORAGE)
-
-    def test_config_retrieval_is_cached(self) -> None:
-        first = self._app_1.get(example.ExampleIds.CONFIGS.RANDOM_STORAGE)
-        for _ in range(100):
-            assert first == self._app_1.get(example.ExampleIds.CONFIGS.RANDOM_STORAGE)
-
-    def test_config_fallback(self) -> None:
-        # app_2 has a plugin that defines a fallback service
-        fallback = self._app_fallback_1.get(example.ExampleIds.CONFIGS.OTHER_STORAGE)
-        assert fallback.storage_account == "other[fallback]"
-
-        primary = self._app_fallback_3.get(example.ExampleIds.CONFIGS.OTHER_STORAGE)
-        assert primary.storage_account == "other"
-
-    def test_duplicate_config(self) -> None:
-        with pytest.raises(apps.DuplicateServiceError):
-            self._app_1.get(example.ExampleIds.CONFIGS.DUPLICATE)
-
     def test_group_retrieval(self) -> None:
         storage_group_1 = self._app_groups_1.get_group(example.ExampleIds.GROUPS.STORAGE)
         assert len(list(storage_group_1)) == 2

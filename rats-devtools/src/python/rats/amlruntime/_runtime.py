@@ -41,14 +41,14 @@ class AmlRuntime(apps.Runtime):
     _ml_client: apps.ServiceProvider[MLClient]
     _environment_operations: apps.ServiceProvider[EnvironmentOperations]
     _job_operations: apps.ServiceProvider[JobOperations]
-    _config: apps.ConfigProvider[RuntimeConfig]
+    _config: apps.ServiceProvider[RuntimeConfig]
 
     def __init__(
         self,
         ml_client: apps.ServiceProvider[MLClient],
         environment_operations: apps.ServiceProvider[EnvironmentOperations],
         job_operations: apps.ServiceProvider[JobOperations],
-        config: apps.ConfigProvider[RuntimeConfig],
+        config: apps.ServiceProvider[RuntimeConfig],
     ) -> None:
         self._ml_client = ml_client
         self._environment_operations = environment_operations

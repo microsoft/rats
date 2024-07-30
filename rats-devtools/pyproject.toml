@@ -12,6 +12,7 @@ packages = [
     { include = "rats/devtools", from = "src/python" },
     { include = "rats/kuberuntime", from = "src/python" },
     { include = "rats/projects", from = "src/python" },
+    { include = "rats/stdruntime", from = "src/python" },
 ]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
@@ -63,11 +64,8 @@ rats-devtools = "rats.devtools.__main__:run"
 "rats.devtools" = "rats.devtools:PluginContainer"
 "rats.docs" = "rats.docs:PluginContainer"
 "rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
+"rats.projects" = "rats.projects:PluginContainer"
 "rats.stdruntime" = "rats.stdruntime:PluginContainer"
-
-[tool.poetry.plugins."rats.amlruntime"]
-# this is a way to keep this plugin opt-in for now
-"rats.amlruntime" = "rats.amlruntime._plugin:PluginContainer"
 
 [build-system]
 requires = ["poetry-core"]

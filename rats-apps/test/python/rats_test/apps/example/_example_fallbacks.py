@@ -14,7 +14,7 @@ class ExampleFallbackPlugin1(apps.Container):
     def fallback_other_storage(self) -> StorageClient:
         return StorageClient(self._app.get(ExampleIds.CONFIGS.OTHER_STORAGE))
 
-    @apps.fallback_config(ExampleIds.CONFIGS.OTHER_STORAGE)
+    @apps.fallback_service(ExampleIds.CONFIGS.OTHER_STORAGE)
     def fallback_other_storage_config(self) -> StorageSettings:
         return StorageSettings("other[fallback]", "thing")
 
@@ -36,6 +36,6 @@ class ExampleFallbackPlugin3(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.config(ExampleIds.CONFIGS.OTHER_STORAGE)
+    @apps.service(ExampleIds.CONFIGS.OTHER_STORAGE)
     def other_storage_config(self) -> StorageSettings:
         return StorageSettings("other", "thing")

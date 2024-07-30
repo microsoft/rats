@@ -6,7 +6,7 @@ import click
 
 from rats import apps as apps
 from rats import cli as cli
-from rats import devtools, kuberuntime
+from rats import kuberuntime, projects
 
 from ._commands import PluginCommands
 from ._executables import PingExecutable, PongExecutable
@@ -51,9 +51,9 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
-            project_tools=self._app.get(devtools.PluginServices.PROJECT_TOOLS),
-            selected_component=self._app.get(devtools.PluginServices.ACTIVE_COMPONENT_OPS),
-            devtools_component=self._app.get(devtools.PluginServices.DEVTOOLS_COMPONENT_OPS),
+            project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
+            selected_component=self._app.get(projects.PluginServices.ACTIVE_COMPONENT_OPS),
+            devtools_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_OPS),
             ping=self._app.get(PluginServices.EXAMPLES.PING_EXECUTABLE),
             pong=self._app.get(PluginServices.EXAMPLES.PONG_EXECUTABLE),
             standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),

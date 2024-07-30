@@ -1,11 +1,8 @@
 from abc import abstractmethod
 from collections.abc import Callable
-from typing import Protocol, TypeVar, final
+from typing import Protocol, final
 
-from ._executables import Executable
-from ._ids import ServiceId
-
-T_ExecutableType = TypeVar("T_ExecutableType", bound=Executable)
+from ._ids import ServiceId, T_ExecutableType
 
 
 class Runtime(Protocol):

@@ -6,10 +6,13 @@ component is a separate entity that can be built, tested, and released independe
 """
 
 from ._components import ComponentId, ComponentOperations, UnsetComponentOperations
+from ._plugin import PluginContainer, PluginServices
 from ._tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
 
 __all__ = [
     "ComponentId",
+    "PluginServices",
+    "PluginContainer",
     "ComponentOperations",
     "UnsetComponentOperations",
     "ProjectTools",

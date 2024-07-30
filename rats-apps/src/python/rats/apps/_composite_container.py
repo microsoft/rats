@@ -1,11 +1,13 @@
 from collections.abc import Iterator
+from typing import final
 
 from ._container import Container
 from ._ids import ServiceId, T_ServiceType
 
 
+@final
 class CompositeContainer(Container):
-    _contailers: tuple[Container, ...]
+    _containers: tuple[Container, ...]
 
     def __init__(self, *containers: Container) -> None:
         self._containers = containers

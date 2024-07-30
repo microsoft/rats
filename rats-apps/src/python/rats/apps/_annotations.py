@@ -3,7 +3,7 @@ from typing import Any, ParamSpec
 
 from rats import annotations
 
-from ._ids import ConfigId, ServiceId, T_ConfigType, T_ServiceType
+from ._ids import ServiceId, T_ServiceType
 from ._namespaces import ProviderNamespaces
 from ._scoping import scope_service_name
 
@@ -29,16 +29,6 @@ def group(
     return annotations.annotation(ProviderNamespaces.GROUPS, group_id)
 
 
-def config(
-    config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[P, T_ConfigType]], Callable[P, T_ConfigType]]:
-    """A service that provides simple data-structures."""
-    return annotations.annotation(
-        ProviderNamespaces.SERVICES,
-        config_id,
-    )
-
-
 def fallback_service(
     service_id: ServiceId[T_ServiceType],
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
@@ -56,16 +46,6 @@ def fallback_group(
     return annotations.annotation(
         ProviderNamespaces.FALLBACK_GROUPS,
         group_id,
-    )
-
-
-def fallback_config(
-    config_id: ConfigId[T_ConfigType],
-) -> Callable[[Callable[P, T_ConfigType]], Callable[P, T_ConfigType]]:
-    """A fallback config gets used if no config is defined."""
-    return annotations.annotation(
-        ProviderNamespaces.FALLBACK_SERVICES,
-        config_id,
     )
 
 

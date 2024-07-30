@@ -9,7 +9,7 @@ from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
 
 from rats import apps, cli
-from rats import devtools as devtools
+from rats import projects as projects
 
 from ._commands import PluginCommands
 from ._runtime import AmlEnvironment, AmlRuntime, AmlWorkspace, RuntimeConfig
@@ -22,16 +22,16 @@ class _PluginClickServices:
 
 @apps.autoscope
 class _PluginConfigs:
-    AML_RUNTIME = apps.ConfigId[RuntimeConfig]("aml-runtime")
+    AML_RUNTIME = apps.ServiceId[RuntimeConfig]("aml-runtime")
 
     @staticmethod
-    def component_runtime(name: str) -> apps.ConfigId[RuntimeConfig]:
-        return apps.ConfigId[RuntimeConfig](f"{_PluginConfigs.AML_RUNTIME.name}[{name}][runtime]")
+    def component_runtime(name: str) -> apps.ServiceId[RuntimeConfig]:
+        return apps.ServiceId[RuntimeConfig](f"{_PluginConfigs.AML_RUNTIME.name}[{name}][runtime]")
 
 
 @apps.autoscope
 class PluginServices:
-    AML_RUNTIME = apps.ServiceId[AmlRuntime]("aml-runtime")
+    AML_RUNTIME = apps.ServiceId[apps.Runtime]("aml-runtime")
     AML_CLIENT = apps.ServiceId[MLClient]("aml-client")
     AML_ENVIRONMENT_OPS = apps.ServiceId[EnvironmentOperations]("aml-environment-ops")
     AML_JOB_OPS = apps.ServiceId[JobOperations]("aml-job-ops")
@@ -73,7 +73,7 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
-            project_tools=self._app.get(devtools.PluginServices.PROJECT_TOOLS),
+            project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
             standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             aml_runtime=self._app.get(PluginServices.AML_RUNTIME),
@@ -138,7 +138,7 @@ class PluginContainer(apps.Container):
     def _component_aml_runtime_config(self, name: str) -> RuntimeConfig:
         # think of this as a worker node running our executables
         reg = os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local")
-        project_tools = self._app.get(devtools.PluginServices.PROJECT_TOOLS)
+        project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         context_hash = project_tools.image_context_hash()
 
         image = f"{reg}/{name}:{context_hash}"
