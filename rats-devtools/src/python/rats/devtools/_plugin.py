@@ -7,21 +7,9 @@ logger = logging.getLogger(__name__)
 
 @apps.autoscope
 class _PluginEvents:
-    OPEN = apps.ServiceId[apps.Executable]("open")
-    RUN = apps.ServiceId[apps.Executable]("run")
-    CLOSE = apps.ServiceId[apps.Executable]("close")
-
-    @staticmethod
-    def app_open(app: apps.ServiceId[apps.Executable]) -> apps.ServiceId[apps.Executable]:
-        return apps.ServiceId(f"{app.name}[open]")
-
-    @staticmethod
-    def app_run(app: apps.ServiceId[apps.Executable]) -> apps.ServiceId[apps.Executable]:
-        return apps.ServiceId(f"{app.name}[run]")
-
-    @staticmethod
-    def app_close(app: apps.ServiceId[apps.Executable]) -> apps.ServiceId[apps.Executable]:
-        return apps.ServiceId(f"{app.name}[close]")
+    OPENING = apps.ServiceId[apps.Executable]("opening")
+    RUNNING = apps.ServiceId[apps.Executable]("running")
+    CLOSING = apps.ServiceId[apps.Executable]("closing")
 
 
 @apps.autoscope
@@ -42,21 +30,21 @@ class PluginContainer(apps.Container):
         return apps.App(
             lambda: runtime.execute_group(
                 logs.PluginServices.EVENTS.CONFIGURE_LOGGING,
-                PluginServices.EVENTS.app_open(PluginServices.MAIN),
-                PluginServices.EVENTS.app_run(PluginServices.MAIN),
-                PluginServices.EVENTS.app_close(PluginServices.MAIN),
+                PluginServices.EVENTS.OPENING,
+                PluginServices.EVENTS.RUNNING,
+                PluginServices.EVENTS.CLOSING,
             )
         )
 
-    @apps.group(PluginServices.EVENTS.app_open(PluginServices.MAIN))
-    def _on_app_open(self) -> apps.Executable:
+    @apps.group(PluginServices.EVENTS.OPENING)
+    def _on_opening(self) -> apps.Executable:
         return apps.App(lambda: logger.debug("Opening app"))
 
-    @apps.group(PluginServices.EVENTS.app_run(PluginServices.MAIN))
-    def _on_app_run(self) -> apps.Executable:
+    @apps.group(PluginServices.EVENTS.RUNNING)
+    def _on_running(self) -> apps.Executable:
         # our main app here runs a cli command, but it can also directly do something useful
         return self._app.get(cli.PluginServices.ROOT_COMMAND)
 
-    @apps.group(PluginServices.EVENTS.app_close(PluginServices.MAIN))
-    def _on_app_close(self) -> apps.Executable:
+    @apps.group(PluginServices.EVENTS.CLOSING)
+    def _on_closing(self) -> apps.Executable:
         return apps.App(lambda: logger.debug("Closing app"))
