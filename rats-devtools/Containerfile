@@ -41,6 +41,7 @@ mkdir -p /opt/rats/rats-devtools/src/python/rats/devtools
 mkdir -p /opt/rats/rats-devtools/src/python/rats/docs
 mkdir -p /opt/rats/rats-devtools/src/python/rats/example
 mkdir -p /opt/rats/rats-devtools/src/python/rats/kuberuntime
+mkdir -p /opt/rats/rats-devtools/src/python/rats/stdruntime
 mkdir -p /opt/rats/rats-devtools/src/python/rats/projects
 
 touch /opt/rats/rats-devtools/src/python/rats/amlruntime/__init__.py
@@ -50,6 +51,7 @@ touch /opt/rats/rats-devtools/src/python/rats/devtools/__init__.py
 touch /opt/rats/rats-devtools/src/python/rats/docs/__init__.py
 touch /opt/rats/rats-devtools/src/python/rats/example/__init__.py
 touch /opt/rats/rats-devtools/src/python/rats/kuberuntime/__init__.py
+touch /opt/rats/rats-devtools/src/python/rats/stdruntime/__init__.py
 touch /opt/rats/rats-devtools/src/python/rats/projects/__init__.py
 
 HEREDOC

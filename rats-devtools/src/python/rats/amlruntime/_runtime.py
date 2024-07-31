@@ -71,6 +71,7 @@ class AmlRuntime(apps.Runtime):
     ) -> None:
         config = self._config()
         logger.info("trying to submit to aml")
+        logger.info(f"{config.environment._asdict()}")
 
         self._environment_operations().create_or_update(
             Environment(**config.environment._asdict())

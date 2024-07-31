@@ -141,11 +141,9 @@ class PluginContainer(apps.Container):
         project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         context_hash = project_tools.image_context_hash()
 
-        image = f"{reg}/{name}:{context_hash}"
-
         # for now :(
         cmds = {
-            "rats-devtools": "rats-devtools aml-runner worker-node",
+            "rats-devtools": "rats-devtools aml-runtime worker-node",
             "rats-examples-minimal": "python -m rats.minis",
             "rats-examples-datasets": ".venv/bin/python -m rats.exampledatasets",
         }
@@ -161,7 +159,7 @@ class PluginContainer(apps.Container):
             ),
             environment=AmlEnvironment(
                 name=name,
-                image=image,
+                image=f"{reg}/{name}:{context_hash}",
                 version=context_hash,
             ),
         )
