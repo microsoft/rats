@@ -4,26 +4,47 @@ import sys
 from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
+from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
 
 
+class ComponentId(NamedTuple):
+    name: str
+
+
 class ComponentOperations:
+    """
+    A small collection of operations commonly done on components.
+
+    This class might contain unrelated things like poetry and docker specific methods that we can
+    hopefully move to better components in the future.
+    """
+
     _path: Path
 
     def __init__(self, path: Path) -> None:
         self._path = path
 
     def symlink(self, src: Path, dst: Path) -> None:
-        # we want to allow symlinking files from anywhere in the project.
+        """
+        Create a symlink in the component directory.
+
+        The source path must be relative to the project directory. And the destination path must be
+        relative to the component directory.
+        """
         self._validate_project_path(src)
-        # we expect this instance to create files in the matching component
         self._validate_component_path(dst)
 
         symlink(src, dst)
 
     def copy(self, src: Path, dst: Path) -> None:
-        # we want to allow copying files from anywhere in the project.
+        """
+        Copy a file or directory into the component.
+
+        The source path must be relative to the project directory. And the destination path must be
+        relative to the component directory.
+        """
         self._validate_project_path(src)
         # we expect this instance to create files in the matching component
         self._validate_component_path(dst)
@@ -39,6 +60,7 @@ class ComponentOperations:
         copytree(src, dst, dirs_exist_ok=True)
 
     def create_or_empty(self, directory: Path) -> None:
+        """Ensure a directory in the component exists and is empty."""
         self._validate_component_path(directory)
         if directory.exists():
             rmtree(directory)
@@ -74,6 +96,7 @@ class ComponentOperations:
             raise ValueError(f"component path must be relative to project: {path}")
 
     def install(self) -> None:
+        """Install the dependencies of the component."""
         self.poetry("install")
 
     def pytest(self) -> None:
@@ -93,7 +116,7 @@ class ComponentOperations:
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
 
     def exe(self, *cmd: str) -> None:
-        logger.info(f"executing in {self._path}/: {' '.join(cmd)}")
+        logger.debug(f"executing in {self._path}/: {' '.join(cmd)}")
         try:
             subprocess.run(cmd, cwd=self._path, check=True)
         except subprocess.CalledProcessError as e:

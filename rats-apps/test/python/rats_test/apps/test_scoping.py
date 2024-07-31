@@ -7,7 +7,7 @@ from rats.apps import ServiceId
 @apps.autoscope
 class ExampleServices:
     FOO = apps.ServiceId[Any]("foo")
-    CONFIG = apps.ConfigId[Any]("config")
+    CONFIG = apps.ServiceId[Any]("config")
     OTHER = 52
 
     @staticmethod

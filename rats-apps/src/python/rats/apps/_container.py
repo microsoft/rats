@@ -8,7 +8,7 @@ from typing_extensions import deprecated
 
 from rats import annotations
 
-from ._ids import ServiceId, T_ServiceType, Tco_ConfigType, Tco_ServiceType
+from ._ids import ServiceId, T_ServiceType, Tco_ServiceType
 from ._namespaces import ProviderNamespaces
 
 logger = logging.getLogger(__name__)
@@ -20,10 +20,10 @@ class ServiceProvider(Protocol[Tco_ServiceType]):
         """Return the service instance."""
 
 
-class ConfigProvider(ServiceProvider[Tco_ConfigType], Protocol[Tco_ConfigType]):
+class GroupProvider(Protocol[Tco_ServiceType]):
     @abstractmethod
-    def __call__(self) -> Tco_ConfigType:
-        """Return the config instance."""
+    def __call__(self) -> Iterator[Tco_ServiceType]:
+        """Return the group instances."""
 
 
 class Container(Protocol):

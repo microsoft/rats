@@ -24,18 +24,18 @@ class ExampleStoragePlugin(apps.Container):
     def duplicate_2(self) -> StorageClient:
         return StorageClient(StorageSettings("fake", "fake"))
 
-    @apps.config(ExampleIds.CONFIGS.STORAGE)
+    @apps.service(ExampleIds.CONFIGS.STORAGE)
     def default_storage_settings(self) -> StorageSettings:
         return StorageSettings("default", "default")
 
-    @apps.config(ExampleIds.CONFIGS.RANDOM_STORAGE)
+    @apps.service(ExampleIds.CONFIGS.RANDOM_STORAGE)
     def random_storage_settings(self) -> StorageSettings:
         return StorageSettings(f"random-{randint(1, 1000000)}", f"random-{randint(1, 1000000)}")
 
-    @apps.config(ExampleIds.CONFIGS.DUPLICATE)
+    @apps.service(ExampleIds.CONFIGS.DUPLICATE)
     def duplicate_config_1(self) -> StorageSettings:
         return StorageSettings("fake", "fake")
 
-    @apps.config(ExampleIds.CONFIGS.DUPLICATE)
+    @apps.service(ExampleIds.CONFIGS.DUPLICATE)
     def duplicate_config_2(self) -> StorageSettings:
         return StorageSettings("fake", "fake")

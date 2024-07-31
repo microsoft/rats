@@ -33,8 +33,8 @@ jobs:
           cd ${{ matrix.component }}
           rats-devtools ci update-version "$PACKAGE_VERSION"
           rats-devtools ci install
-          rats-devtools ci sphinx-apidoc
-          rats-devtools ci sphinx-markdown
+          rats-devtools docs sphinx-apidoc
+          rats-devtools docs sphinx-markdown
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
@@ -74,7 +74,7 @@ jobs:
           cd rats-devtools
           rats-devtools ci update-version "$PACKAGE_VERSION"
           rats-devtools ci install
-          rats-devtools ci mkdocs-build
+          rats-devtools docs mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3
         with:

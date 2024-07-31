@@ -7,6 +7,16 @@ from ._ids import ServiceId, T_ServiceType
 
 
 class PluginContainers(Container):
+    """
+    A container that loads plugins using importlib.metadata.entry_points.
+
+    When looking for groups, the container loads the specified entry_points and defers the lookups
+    to the plugins. Plugin containers are expected to be Callable[[Container], Container] objects,
+    where the input container is typically the root application container.
+
+    TODO: How do we better specify the API for plugins without relying on documentation?
+    """
+
     _app: Container
     _group: str
     _names: tuple[str, ...]

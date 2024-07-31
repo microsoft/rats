@@ -5,8 +5,14 @@ version = "0.1.3"
 readme = "README.md"
 authors = []
 packages = [
+    { include = "rats/amlruntime", from = "src/python" },
     { include = "rats/ci", from = "src/python" },
+    { include = "rats/command_tree", from = "src/python" },
+    { include = "rats/docs", from = "src/python" },
     { include = "rats/devtools", from = "src/python" },
+    { include = "rats/kuberuntime", from = "src/python" },
+    { include = "rats/projects", from = "src/python" },
+    { include = "rats/stdruntime", from = "src/python" },
 ]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
@@ -19,11 +25,13 @@ version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
 rats-apps = { path = "../rats-apps", develop = true }
-rats-pipelines = { path = "../rats-pipelines", develop = true }
 click = "*"
 python = "^3.10"
 toml = "*"
 twine = "*"
+kubernetes = "*"
+azure-ai-ml = "*"
+azure-identity = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -33,7 +41,6 @@ pytest-cov = "*"
 pytest-nunit = "*"
 setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
-twine = "*"        # to release packages to hflabs
 
 [tool.poetry.group.docs.dependencies]
 mkdocs = "*"
@@ -52,12 +59,24 @@ sphinx-markdown-builder = "*"
 rats-devtools = "rats.devtools.__main__:run"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
-"rats.devtools" = "rats.devtools:PluginContainer"
+"rats.amlruntime" = "rats.amlruntime:PluginContainer"
 "rats.ci" = "rats.ci:PluginContainer"
+"rats.devtools" = "rats.devtools:PluginContainer"
+"rats.docs" = "rats.docs:PluginContainer"
+"rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
+"rats.projects" = "rats.projects:PluginContainer"
+"rats.stdruntime" = "rats.stdruntime:PluginContainer"
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.rats-devtools]
+enabled = true
+ci-stages = [
+    "build-image",
+    "all-checks",
+]
 
 [tool.pyright]
 pythonVersion = "3.10"
@@ -175,7 +194,7 @@ docstring-code-format = true
 
 [tool.coverage.run]
 branch = true
-data_file = "../.tmp/rats-devtools/.coverage"
+data_file = ".tmp/.coverage"
 # Root namespace package folder here ensures coverage will include files with 0% coverage
 source = ["src/python/rats"]
 relative_files = true
@@ -184,15 +203,15 @@ relative_files = true
 show_missing = true
 
 [tool.coverage.xml]
-output = "../.tmp/rats-devtools/reports/coverage.xml"
+output = ".tmp/reports/coverage.xml"
 
 [tool.pytest.ini_options]
-cache_dir = "../.tmp/rats-devtools/.pytest_cache"
+cache_dir = ".tmp/.pytest_cache"
 testpaths = ["test/python"]
 addopts = """
     --cov --cov-report=term
     --cov-report=xml
-    --junit-xml ../.tmp/rats-devtools/reports/pytest-junit.xml
+    --junit-xml .tmp/reports/pytest-junit.xml
     --capture=no
     --cache-clear
 """

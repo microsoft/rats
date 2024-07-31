@@ -102,7 +102,7 @@ reportIncompatibleMethodOverride = true
 
 
 [tool.ruff]
-cache-dir = "../.tmp/rats-apps/.ruff_cache"
+cache-dir = ".tmp/.ruff_cache"
 include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
 line-length = 99
 indent-width = 4
@@ -166,24 +166,24 @@ line-ending = "auto"              # Like Black, automatically detect the appropr
 docstring-code-format = true
 
 [tool.coverage.run]
-data_file = "../.tmp/rats-apps/.coverage"
+data_file = ".tmp/.coverage"
 relative_files = true
 
 [tool.coverage.report]
 show_missing = true
 
 [tool.coverage.xml]
-output = "../.tmp/rats-apps/reports/coverage.xml"
+output = ".tmp/report.coverage.xml"
 
 [tool.pytest.ini_options]
-cache_dir = "../.tmp/rats-apps/.pytest_cache"
+cache_dir = ".tmp/.pytest_cache"
 testpaths = ["test/python"]
 # Root namespace package folder here ensures coverage will include files with 0% coverage
 addopts = """
     --cov=src/python/rats --cov=test/python/rats_test
     --cov-report=term
     --cov-report=xml
-    --junit-xml ../.tmp/rats-apps/reports/pytest-junit.xml
+    --junit-xml .tmp/report.pytest-junit.xml
     --capture=no
     --cov-branch
     --cache-clear

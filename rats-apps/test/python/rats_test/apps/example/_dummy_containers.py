@@ -68,9 +68,16 @@ class DummyContainer2(apps.Container):
         return self._app.get(apps.autoid(self.unnamed_service1))
 
 
-class DummyContainer(apps.CompositeContainer):
+class DummyContainer(apps.Container):
     def __init__(self, app: apps.Container) -> None:
-        super().__init__(DummyContainer1(app), DummyContainer2(app))
+        self._app = app
+
+    @apps.container()
+    def _dummies(self) -> apps.Container:
+        return apps.CompositeContainer(
+            DummyContainer1(self._app),
+            DummyContainer2(self._app),
+        )
 
 
 # Declaring public service ids for the services we want to expose outside this module.

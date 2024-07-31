@@ -24,6 +24,7 @@ jobs:
       matrix:
         component:
           - rats-apps
+          - rats-devtools
           - rats-pipelines
           - rats-processors
     environment:

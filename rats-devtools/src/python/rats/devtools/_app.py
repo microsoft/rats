@@ -9,7 +9,4 @@ def run() -> None:
         "rats.devtools.plugins",
     )
 
-    def _main() -> None:
-        app.execute(PluginServices.MAIN)
-
-    app.execute_callable(_main)
+    app.execute(PluginServices.MAIN)

@@ -6,10 +6,10 @@ from ._storage import StorageClient, StorageSettings
 @apps.autoscope
 class ExampleConfigIds:
     # a couple example config ids for different storage accounts
-    STORAGE = apps.ConfigId[StorageSettings]("storage")
-    OTHER_STORAGE = apps.ConfigId[StorageSettings]("other-storage")
-    RANDOM_STORAGE = apps.ConfigId[StorageSettings]("random-storage")
-    DUPLICATE = apps.ConfigId[StorageSettings]("DUPLICATE")
+    STORAGE = apps.ServiceId[StorageSettings]("storage")
+    OTHER_STORAGE = apps.ServiceId[StorageSettings]("other-storage")
+    RANDOM_STORAGE = apps.ServiceId[StorageSettings]("random-storage")
+    DUPLICATE = apps.ServiceId[StorageSettings]("DUPLICATE")
 
 
 @apps.autoscope
