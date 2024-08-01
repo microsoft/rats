@@ -3,8 +3,6 @@ from typing import cast
 import click
 
 from rats import apps, cli
-from rats import devtools as devtools
-from rats import projects as projects
 
 from ._commands import PluginCommands
 
@@ -32,9 +30,9 @@ class PluginContainer(apps.Container):
             group = self._app.get(
                 cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
             )
-            stdruntime = self._app.get(PluginServices.CLICK.GROUP)
-            self._app.get(PluginServices.COMMANDS).on_group_open(stdruntime)
-            group.add_command(cast(click.Command, stdruntime))
+            stdruntime_group = self._app.get(PluginServices.CLICK.GROUP)
+            self._app.get(PluginServices.COMMANDS).on_group_open(stdruntime_group)
+            group.add_command(cast(click.Command, stdruntime_group))
 
         return apps.App(run)
 
