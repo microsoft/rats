@@ -257,12 +257,12 @@ class K8sWorkflowRun(apps.Executable):
 
 
 class K8sRuntime(apps.Runtime):
-    _config: apps.ServiceProvider[RuntimeConfig]
+    _config: apps.Provider[RuntimeConfig]
     _factory: Callable[[Any], apps.Executable]
 
     def __init__(
         self,
-        config: apps.ServiceProvider[RuntimeConfig],
+        config: apps.Provider[RuntimeConfig],
         factory: Callable[[Any], apps.Executable],
     ) -> None:
         self._config = config

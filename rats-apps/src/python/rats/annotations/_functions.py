@@ -52,10 +52,10 @@ class AnnotationsContainer(tNamedTuple):
 
     def with_namespace(
         self,
-        namespace: str,
+        *namespaces: str,
     ) -> AnnotationsContainer:
         return AnnotationsContainer(
-            annotations=tuple([x for x in self.annotations if x.namespace == namespace]),
+            annotations=tuple([x for x in self.annotations if x.namespace in namespaces]),
         )
 
 

@@ -1,10 +1,7 @@
-import abc
 import logging
 from abc import abstractmethod
 from collections.abc import Callable, Iterator
 from typing import Generic, ParamSpec, Protocol
-
-from typing_extensions import deprecated
 
 from rats import annotations
 
@@ -14,10 +11,14 @@ from ._namespaces import ProviderNamespaces
 logger = logging.getLogger(__name__)
 
 
-class ServiceProvider(Protocol[Tco_ServiceType]):
+class Provider(Protocol[Tco_ServiceType]):
     @abstractmethod
     def __call__(self) -> Tco_ServiceType:
         """Return the service instance."""
+
+
+# temporary alias for backwards compatibility
+ServiceProvider = Provider
 
 
 class GroupProvider(Protocol[Tco_ServiceType]):
@@ -26,7 +27,7 @@ class GroupProvider(Protocol[Tco_ServiceType]):
         """Return the group instances."""
 
 
-class Container(Protocol):
+class Container(Protocol[T_ServiceType]):
     """
     Main interface for service containers.
 
@@ -140,26 +141,7 @@ class Container(Protocol):
             yield from c.get_namespaced_group(namespace, group_id)
 
 
-@deprecated(
-    " ".join(
-        [
-            "AnnotatedContainer is deprecated and will be removed in the next major release.",
-            "The functionality has been moved into the apps.Container protocol.",
-            "Please extend apps.Container directly.",
-        ]
-    ),
-    stacklevel=2,
-)
-class AnnotatedContainer(Container, abc.ABC):
-    """
-    A Container implementation that extracts providers from its annotated methods.
-
-    .. deprecated:: 0.1.3
-    The behavior of this class has been made the default within ``Container``.
-    """
-
-
-DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
+DEFAULT_CONTAINER_GROUP = ServiceId[Container](f"{__name__}:__default__")
 P = ParamSpec("P")
 
 

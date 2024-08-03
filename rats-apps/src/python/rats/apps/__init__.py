@@ -20,6 +20,7 @@ from ._container import (
     DuplicateServiceError,
     ServiceNotFoundError,
     ServiceProvider,
+    Provider,
     container,
 )
 from ._executables import App, Executable
@@ -32,7 +33,6 @@ from ._scoping import autoscope
 from ._simple_apps import AppServices, SimpleApplication, StandardRuntime
 
 __all__ = [
-    "AnnotatedContainer",
     "App",
     "CompositeContainer",
     "Container",
@@ -41,6 +41,7 @@ __all__ = [
     "PluginContainers",
     "ProviderNamespaces",
     "ServiceProvider",
+    "Provider",
     "ServiceId",
     "ServiceNotFoundError",
     "autoid_service",
