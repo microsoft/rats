@@ -17,13 +17,13 @@ from ._composite_container import CompositeContainer
 from ._container import (
     Container,
     DuplicateServiceError,
+    Provider,
     ServiceNotFoundError,
     ServiceProvider,
-    Provider,
     container,
 )
 from ._executables import App, Executable
-from ._ids import ServiceId, T_ExecutableType
+from ._ids import ServiceId, T_ExecutableType, T_ServiceType
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
 from ._plugins import PluginRunner
@@ -53,6 +53,7 @@ __all__ = [
     "autoid",
     "service",
     "T_ExecutableType",
+    "T_ServiceType",
     "Runtime",
     "NullRuntime",
     "AppServices",

@@ -27,7 +27,7 @@ class GroupProvider(Protocol[Tco_ServiceType]):
         """Return the group instances."""
 
 
-class Container(Protocol[T_ServiceType]):
+class Container(Protocol):
     """
     Main interface for service containers.
 
