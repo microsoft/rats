@@ -15,7 +15,6 @@ from ._annotations import (
 )
 from ._composite_container import CompositeContainer
 from ._container import (
-    AnnotatedContainer,  # type: ignore[reportDeprecated]
     Container,
     DuplicateServiceError,
     ServiceNotFoundError,
