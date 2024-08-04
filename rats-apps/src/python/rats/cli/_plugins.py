@@ -7,8 +7,6 @@ from typing import Any, Protocol
 
 import click
 
-from rats import apps
-
 from ._annotations import get_class_commands
 
 
@@ -29,24 +27,6 @@ class AttachClickCommands(ClickGroupPlugin):
     def on_group_open(self, group: click.Group) -> None:
         for command in self._commands:
             group.add_command(command)
-
-
-class AttachClickGroup(ClickGroupPlugin):
-    _group: apps.ServiceProvider[click.Group]
-    _plugins: apps.PluginRunner[ClickGroupPlugin]
-
-    def __init__(
-        self,
-        group: apps.ServiceProvider[click.Group],
-        plugins: apps.PluginRunner[ClickGroupPlugin],
-    ) -> None:
-        self._group = group
-        self._plugins = plugins
-
-    def on_group_open(self, group: click.Group) -> None:
-        cmd = self._group()
-        self._plugins.apply(lambda plugin: plugin.on_group_open(cmd))
-        group.add_command(cmd)
 
 
 class CommandContainer(ClickGroupPlugin):

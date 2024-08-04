@@ -39,7 +39,9 @@ theme:
     - navigation.instant
     - navigation.instant.prefetch
     - navigation.path
+    - content.code.annotate
     - content.code.copy
+    - content.code.select
     - content.tabs.link
     - toc.follow
     - navigation.top
@@ -69,7 +71,9 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      # we can embed any file in the repo as long as we refer to the path from repo root
+      base_path: [".."]
   - pymdownx.magiclink
   - pymdownx.superfences
   - pymdownx.tabbed:
