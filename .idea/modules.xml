@@ -7,6 +7,7 @@
       <module fileurl="file://$PROJECT_DIR$/rats-devtools/.idea/rats-devtools.iml" filepath="$PROJECT_DIR$/rats-devtools/.idea/rats-devtools.iml" />
       <module fileurl="file://$PROJECT_DIR$/rats-examples-datasets/.idea/rats-examples-datasets.iml" filepath="$PROJECT_DIR$/rats-examples-datasets/.idea/rats-examples-datasets.iml" />
       <module fileurl="file://$PROJECT_DIR$/rats-examples-minimal/.idea/rats-examples-minimal.iml" filepath="$PROJECT_DIR$/rats-examples-minimal/.idea/rats-examples-minimal.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rats-examples-sklearn/.idea/rats-examples-sklearn.iml" filepath="$PROJECT_DIR$/rats-examples-sklearn/.idea/rats-examples-sklearn.iml" />
       <module fileurl="file://$PROJECT_DIR$/rats-pipelines/.idea/rats-pipelines.iml" filepath="$PROJECT_DIR$/rats-pipelines/.idea/rats-pipelines.iml" />
       <module fileurl="file://$PROJECT_DIR$/rats-processors/.idea/rats-processors.iml" filepath="$PROJECT_DIR$/rats-processors/.idea/rats-processors.iml" />
     </modules>
