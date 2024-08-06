@@ -79,13 +79,15 @@ class AnnotationsBuilder:
         )
 
 
-DecoratorType = TypeVar("DecoratorType", bound=Callable[..., Any])
+# the dynamic type of the function we are trying to annotate with data
+T_FunctionType = TypeVar("T_FunctionType", bound=Callable[..., Any])
+DecoratorType = Callable[[T_FunctionType], T_FunctionType]
 
 
 def annotation(
     namespace: str,
     group_id: NamedTuple | tNamedTuple,
-) -> Callable[[DecoratorType], DecoratorType]:
+) -> DecoratorType:
     """
     Decorator to add an annotation to a function.
 
@@ -93,7 +95,7 @@ def annotation(
     For examples, see the rats.apps annotations, like service() and group().
     """
 
-    def decorator(fn: DecoratorType) -> DecoratorType:
+    def decorator(fn: T_FunctionType) -> T_FunctionType:
         if not hasattr(fn, "__rats_annotations__"):
             fn.__rats_annotations__ = AnnotationsBuilder()  # type: ignore[reportFunctionMemberAccess]
 

@@ -11,5 +11,19 @@ other `rats` libraries in this project are developed with help from `rats-apps`.
 ```
 
 ## rats.annotations
+
+```py linenums="1" title="src/python/rats/annotations/__main__.py"
+--8<-- "rats-apps/src/python/rats/annotations/__main__.py"
+```
+
 ## rats.cli
+
+```py linenums="1" title="src/python/rats/cli/__main__.py"
+--8<-- "rats-apps/src/python/rats/cli/__main__.py"
+```
+
 ## rats.logs
+
+```py linenums="1" title="src/python/rats/logs/__main__.py"
+--8<-- "rats-apps/src/python/rats/logs/__main__.py"
+```

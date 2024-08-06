@@ -31,7 +31,7 @@ class PluginContainer(apps.Container):
                 cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
             )
             stdruntime_group = self._app.get(PluginServices.CLICK.GROUP)
-            self._app.get(PluginServices.COMMANDS).on_group_open(stdruntime_group)
+            self._app.get(PluginServices.COMMANDS).attach(stdruntime_group)
             group.add_command(cast(click.Command, stdruntime_group))
 
         return apps.App(run)

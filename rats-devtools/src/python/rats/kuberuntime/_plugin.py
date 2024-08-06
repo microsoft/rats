@@ -45,7 +45,7 @@ class PluginContainer(apps.Container):
                 cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
             )
             k8srunner = self._app.get(PluginServices.CLICK.GROUP)
-            self._app.get(PluginServices.COMMANDS).on_group_open(k8srunner)
+            self._app.get(PluginServices.COMMANDS).attach(k8srunner)
             group.add_command(cast(click.Command, k8srunner))
 
         return apps.App(run)

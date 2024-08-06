@@ -120,6 +120,7 @@ class Container(Protocol):
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service namespace."""
         tates = annotations.get_class_annotations(type(self))
+        # containers are a special service namespace that we look through recursively
         containers = tates.with_namespace(ProviderNamespaces.CONTAINERS)
         groups = tates.with_group(namespace, group_id)
 

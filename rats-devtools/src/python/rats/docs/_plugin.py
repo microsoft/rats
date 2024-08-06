@@ -35,7 +35,7 @@ class PluginContainer(apps.Container):
                 cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
             )
             docs = self._app.get(PluginServices.CLICK.GROUP)
-            self._app.get(PluginServices.COMMANDS).on_group_open(docs)
+            self._app.get(PluginServices.COMMANDS).attach(docs)
             group.add_command(cast(click.Command, docs))
 
         return apps.App(run)

@@ -24,7 +24,7 @@ class PluginCommands(cli.CommandContainer):
         self._devtools_component = devtools_component
         self._devtools_runtime = devtools_runtime
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     def sphinx_apidoc(self) -> None:
         """Build the sphinx apidoc for the package, saving output in dist/sphinx-apidoc."""
         # devtools package has the sphinx config files
@@ -51,7 +51,7 @@ class PluginCommands(cli.CommandContainer):
             "src/python/rats",
         )
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     def sphinx_markdown(self) -> None:
         """
         Convert the sphinx apidoc to markdown, saving output in docs/api.
@@ -77,12 +77,12 @@ class PluginCommands(cli.CommandContainer):
 
         self._selected_component.copy_tree(dist_md_path / "markdown", api_docs_path)
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     def mkdocs_build(self) -> None:
         """Build the mkdocs site for every component in the project."""
         self._do_mkdocs_things("build")
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     def mkdocs_serve(self) -> None:
         """
         Serve the mkdocs site for the project and monitor files for changes.
@@ -130,7 +130,7 @@ class PluginCommands(cli.CommandContainer):
 
         self._devtools_component.run("mkdocs", cmd, *args)
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     def build_tutorial_notebooks(self) -> None:
         """
         Build the tutorial notebooks section of each component's documentation.

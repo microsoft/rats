@@ -26,7 +26,7 @@ class PluginCommands(cli.CommandContainer):
         self._worker_node_runtime = worker_node_runtime
         self._k8s_runtime = k8s_runtime
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     @click.option("--exe-id", multiple=True)
     @click.option("--group-id", multiple=True)
     def submit(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:
@@ -44,7 +44,7 @@ class PluginCommands(cli.CommandContainer):
         if len(groups):
             self._k8s_runtime.execute_group(*groups)
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     def worker_node(self) -> None:
         """
         Run the worker node process.
