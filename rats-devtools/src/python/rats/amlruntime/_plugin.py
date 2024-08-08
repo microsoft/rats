@@ -8,15 +8,11 @@ from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
 
 from rats import apps, cli
+from rats import devtools as devtools
 from rats import projects as projects
 
 from ._commands import PluginCommands
 from ._runtime import AmlRuntime, RuntimeConfig
-
-
-@apps.autoscope
-class _PluginClickServices:
-    GROUP = apps.ServiceId[click.Group]("group")
 
 
 @apps.autoscope
@@ -36,7 +32,9 @@ class PluginServices:
     AML_JOB_OPS = apps.ServiceId[JobOperations]("aml-job-ops")
     COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
 
-    CLICK = _PluginClickServices
+    MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
+    MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
+
     CONFIGS = _PluginConfigs
 
     @staticmethod
@@ -50,24 +48,28 @@ class PluginContainer(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.group(cli.PluginServices.EVENTS.command_open(cli.PluginServices.ROOT_COMMAND))
+    @apps.group(devtools.PluginServices.EVENTS.OPENING)
     def _runtime_cli(self) -> apps.Executable:
         def run() -> None:
-            group = self._app.get(
-                cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
-            )
-            amlrunner = self._app.get(PluginServices.CLICK.GROUP)
-            self._app.get(PluginServices.COMMANDS).attach(amlrunner)
-            group.add_command(cast(click.Command, amlrunner))
+            amlruntime = self._app.get(PluginServices.MAIN_CLICK)
+            parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
+            parent.add_command(cast(click.Command, amlruntime))
 
         return apps.App(run)
 
-    @apps.service(PluginServices.CLICK.GROUP)
-    def _click_group(self) -> click.Group:
-        return click.Group(
+    @apps.service(PluginServices.MAIN_EXE)
+    def _main_exe(self) -> apps.Executable:
+        return apps.App(lambda: self._app.get(PluginServices.MAIN_CLICK)())
+
+    @apps.service(PluginServices.MAIN_CLICK)
+    def _main_click(self) -> click.Group:
+        command_container = self._app.get(PluginServices.COMMANDS)
+        amlrunner = click.Group(
             "aml-runtime",
             help="submit executables and events to aml",
         )
+        command_container.attach(amlrunner)
+        return amlrunner
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:

@@ -9,4 +9,8 @@ def run() -> None:
         "rats.devtools.plugins",
     )
 
-    app.execute(PluginServices.MAIN)
+    app.execute_group(
+        PluginServices.EVENTS.OPENING,
+        PluginServices.EVENTS.RUNNING,
+        PluginServices.EVENTS.CLOSING,
+    )

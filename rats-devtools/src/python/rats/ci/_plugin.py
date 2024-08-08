@@ -1,12 +1,10 @@
-# pyright seems to struggle with this namespace package
-# https://github.com/microsoft/pyright/issues/2882
 import uuid
 
 import click
 
 from rats import apps as apps
 from rats import cli as cli
-from rats import kuberuntime, projects
+from rats import devtools, kuberuntime, projects
 
 from ._commands import PluginCommands
 from ._executables import PingExecutable, PongExecutable
@@ -19,14 +17,10 @@ class _PluginExamples:
 
 
 @apps.autoscope
-class _PluginClickServices:
-    GROUP = apps.ServiceId[click.Group]("group")
-
-
-@apps.autoscope
 class PluginServices:
     COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
-    CLICK = _PluginClickServices
+    MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
+    MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
     EXAMPLES = _PluginExamples
 
 
@@ -36,15 +30,13 @@ class PluginContainer(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.group(cli.PluginServices.EVENTS.command_open(cli.PluginServices.ROOT_COMMAND))
+    @apps.group(devtools.PluginServices.EVENTS.OPENING)
     def _on_open(self) -> apps.Executable:
         def run() -> None:
-            group = self._app.get(
-                cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
-            )
-            ci = self._app.get(PluginServices.CLICK.GROUP)
+            parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
+            ci = self._app.get(PluginServices.MAIN_CLICK)
             self._app.get(PluginServices.COMMANDS).attach(ci)
-            group.add_command(ci)
+            parent.add_command(ci)
 
         return apps.App(run)
 
@@ -66,12 +58,19 @@ class PluginContainer(apps.Container):
             ),
         )
 
-    @apps.service(PluginServices.CLICK.GROUP)
-    def _click_group(self) -> click.Group:
-        return click.Group(
+    @apps.service(PluginServices.MAIN_EXE)
+    def _main_exe(self) -> apps.Executable:
+        return apps.App(lambda: self._app.get(PluginServices.MAIN_CLICK)())
+
+    @apps.service(PluginServices.MAIN_CLICK)
+    def _main_click(self) -> click.Group:
+        command_container = self._app.get(PluginServices.COMMANDS)
+        ci = click.Group(
             "ci",
             help="commands used during ci/cd",
         )
+        command_container.attach(ci)
+        return ci
 
     @apps.service(PluginServices.EXAMPLES.PONG_EXECUTABLE)
     def _pong_executable(self) -> apps.Executable:

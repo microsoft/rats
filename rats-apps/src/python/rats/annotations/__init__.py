@@ -7,7 +7,10 @@ Annotations are typically, but not exclusively, attached using decorators.
 from ._functions import (
     AnnotationsContainer,
     DecoratorType,
+    FunctionType,
     GroupAnnotations,
+    P,
+    R,
     T_GroupType,
     annotation,
     get_annotations,
@@ -16,10 +19,13 @@ from ._functions import (
 
 __all__ = [
     "annotation",
-    "DecoratorType",
     "AnnotationsContainer",
     "get_annotations",
     "get_class_annotations",
     "GroupAnnotations",
     "T_GroupType",
+    "DecoratorType",
+    "FunctionType",
+    "P",
+    "R",
 ]

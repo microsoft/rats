@@ -1,4 +1,3 @@
-# type: ignore[reportUntypedFunctionDecorator]
 import logging
 
 import click

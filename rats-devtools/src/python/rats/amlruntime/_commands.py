@@ -30,6 +30,7 @@ class PluginCommands(cli.CommandContainer):
     @click.option("--exe-id", multiple=True)
     @click.option("--group-id", multiple=True)
     def submit(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:
+        """Submit one or more exes and groups to aml."""
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 

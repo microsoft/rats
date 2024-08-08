@@ -1,6 +1,8 @@
 import logging
 
-from rats import apps, cli, logs
+import click
+
+from rats import apps, logs
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,8 @@ class _PluginEvents:
 
 @apps.autoscope
 class PluginServices:
-    MAIN = apps.ServiceId[apps.Executable]("main")
+    MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
+    MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
     EVENTS = _PluginEvents
 
 
@@ -24,27 +27,31 @@ class PluginContainer(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.service(PluginServices.MAIN)
-    def _main(self) -> apps.Executable:
-        runtime = self._app.get(apps.AppServices.RUNTIME)
-        return apps.App(
-            lambda: runtime.execute_group(
-                logs.PluginServices.EVENTS.CONFIGURE_LOGGING,
-                PluginServices.EVENTS.OPENING,
-                PluginServices.EVENTS.RUNNING,
-                PluginServices.EVENTS.CLOSING,
-            )
-        )
-
     @apps.group(PluginServices.EVENTS.OPENING)
     def _on_opening(self) -> apps.Executable:
-        return apps.App(lambda: logger.debug("Opening app"))
+        runtime = self._app.get(apps.AppServices.RUNTIME)
+        return apps.App(
+            lambda: runtime.execute_group(logs.PluginServices.EVENTS.CONFIGURE_LOGGING),
+        )
 
     @apps.group(PluginServices.EVENTS.RUNNING)
     def _on_running(self) -> apps.Executable:
         # our main app here runs a cli command, but it can also directly do something useful
-        return self._app.get(cli.PluginServices.ROOT_COMMAND)
+        runtime = self._app.get(apps.AppServices.RUNTIME)
+        return apps.App(lambda: runtime.execute(PluginServices.MAIN_EXE))
 
     @apps.group(PluginServices.EVENTS.CLOSING)
     def _on_closing(self) -> apps.Executable:
         return apps.App(lambda: logger.debug("Closing app"))
+
+    @apps.service(PluginServices.MAIN_EXE)
+    def _main_exe(self) -> apps.Executable:
+        return apps.App(lambda: self._app.get(PluginServices.MAIN_CLICK)())
+
+    @apps.service(PluginServices.MAIN_CLICK)
+    def _main_click(self) -> click.Group:
+        root = click.Group(
+            "rats-devtools",
+            help="develop your ideas with ease",
+        )
+        return root

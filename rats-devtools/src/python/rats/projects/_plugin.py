@@ -3,7 +3,7 @@ from pathlib import Path
 
 from rats import apps
 
-from . import UnsetComponentOperations
+from ._components import UnsetComponentOperations
 from ._tools import ComponentNotFoundError, ComponentOperations, ProjectNotFoundError, ProjectTools
 
 
