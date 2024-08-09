@@ -1,4 +1,6 @@
+# type: ignore[reportUntypedFunctionDecorator]
 """..."""
+
 from typing import NamedTuple
 
 from rats import annotations
@@ -6,6 +8,7 @@ from rats import annotations
 
 class FruitId(NamedTuple):
     """Any named tuple can be attached to functions."""
+
     name: str
     color: str
 
@@ -23,9 +26,8 @@ def some_function() -> None:
 
 @fruit(FruitId("banana", "yellow"))
 class SomeClass:
-    """
-    Class definitions can also be annotated.
-    """
+    """Class definitions can also be annotated."""
+
     @fruit(FruitId("cherry", "red"))
     def some_method(self) -> None:
         """Or class methods."""

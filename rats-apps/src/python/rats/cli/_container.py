@@ -1,12 +1,13 @@
+import logging
 from collections.abc import Callable
 from functools import partial
 from typing import Any, Protocol
 
 import click
 
-from rats import apps, cli
+from rats import apps
 
-import logging
+from ._annotations import get_class_commands
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class CommandContainer(apps.Container, Protocol):
             """
             _method(*args, **kwargs)
 
-        commands = cli.get_class_commands(type(self))
+        commands = get_class_commands(type(self))
         tates = commands.annotations
 
         for tate in tates:

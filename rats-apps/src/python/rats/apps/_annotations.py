@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any
+from typing import Any, ParamSpec
 
 from rats import annotations
 
@@ -7,34 +7,46 @@ from ._ids import ServiceId, T_ServiceType
 from ._namespaces import ProviderNamespaces
 from ._scoping import scope_service_name
 
+P = ParamSpec("P")
 
-def service(service_id: ServiceId[T_ServiceType]) -> annotations.DecoratorType:
+
+def service(
+    service_id: ServiceId[T_ServiceType],
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     """A service is anything you would create instances of?"""
     return annotations.annotation(ProviderNamespaces.SERVICES, service_id)
 
 
-def autoid_service(fn: annotations.FunctionType) -> annotations.FunctionType:
+def autoid_service(fn: Callable[P, T_ServiceType]) -> Callable[P, T_ServiceType]:
     _service_id = autoid(fn)
     return annotations.annotation(ProviderNamespaces.SERVICES, _service_id)(fn)
 
 
-def group(group_id: ServiceId[T_ServiceType]) -> annotations.DecoratorType:
+def group(
+    group_id: ServiceId[T_ServiceType],
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     """A group is a collection of services."""
     return annotations.annotation(ProviderNamespaces.GROUPS, group_id)
 
 
 def fallback_service(
     service_id: ServiceId[T_ServiceType],
-) -> annotations.DecoratorType:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     """A fallback service gets used if no service is defined."""
-    return annotations.annotation(ProviderNamespaces.FALLBACK_SERVICES, service_id)
+    return annotations.annotation(
+        ProviderNamespaces.FALLBACK_SERVICES,
+        service_id,
+    )
 
 
 def fallback_group(
     group_id: ServiceId[T_ServiceType],
-) -> annotations.DecoratorType:
+) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     """A fallback group gets used if no group is defined."""
-    return annotations.annotation(ProviderNamespaces.FALLBACK_GROUPS, group_id)
+    return annotations.annotation(
+        ProviderNamespaces.FALLBACK_GROUPS,
+        group_id,
+    )
 
 
 def autoid(method: Callable[..., T_ServiceType]) -> ServiceId[T_ServiceType]:

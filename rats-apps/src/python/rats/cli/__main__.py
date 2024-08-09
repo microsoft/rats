@@ -1,15 +1,11 @@
 # type: ignore[reportUntypedFunctionDecorator]
 """..."""
 
-from collections.abc import Callable
-from functools import partial
-from typing import Any, Protocol, final
+import logging
 
 import click
 
 from rats import apps, cli
-
-import logging
 
 logger = logging.getLogger(__name__)
 

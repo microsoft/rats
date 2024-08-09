@@ -1,4 +1,4 @@
-from typing_extensions import NamedTuple
+from typing import NamedTuple
 
 from rats.annotations import AnnotationsContainer, annotation, get_annotations
 

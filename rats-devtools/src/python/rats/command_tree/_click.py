@@ -164,7 +164,7 @@ def dataclass_to_click_parameters(
 
             if is_dataclass(inner_type):
                 parameters.extend(
-                    dataclass_to_click_parameters(inner_type, option_name, parent_nargs=True)
+                    dataclass_to_click_parameters(inner_type, option_name, parent_nargs=True)  # type: ignore
                 )
                 continue
 

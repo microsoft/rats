@@ -52,10 +52,10 @@ class AnnotationsContainer(tNamedTuple):
 
     def with_namespace(
         self,
-        *namespaces: str,
+        namespace: str,
     ) -> AnnotationsContainer:
         return AnnotationsContainer(
-            annotations=tuple([x for x in self.annotations if x.namespace in namespaces]),
+            annotations=tuple([x for x in self.annotations if x.namespace == namespace]),
         )
 
 
@@ -79,17 +79,13 @@ class AnnotationsBuilder:
         )
 
 
-# the dynamic type of the function we are trying to annotate with data
-P = ParamSpec("P")
-R = TypeVar("R")
-FunctionType = Callable[P, R]
-DecoratorType = Callable[[FunctionType], FunctionType]
+DecoratorType = TypeVar("DecoratorType", bound=Callable[..., Any])
 
 
 def annotation(
     namespace: str,
     group_id: NamedTuple | tNamedTuple,
-) -> DecoratorType:
+) -> Callable[[DecoratorType], DecoratorType]:
     """
     Decorator to add an annotation to a function.
 
@@ -97,7 +93,7 @@ def annotation(
     For examples, see the rats.apps annotations, like service() and group().
     """
 
-    def decorator(fn: FunctionType) -> FunctionType:
+    def decorator(fn: DecoratorType) -> DecoratorType:
         if not hasattr(fn, "__rats_annotations__"):
             fn.__rats_annotations__ = AnnotationsBuilder()  # type: ignore[reportFunctionMemberAccess]
 
