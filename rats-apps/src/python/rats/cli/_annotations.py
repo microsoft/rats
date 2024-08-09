@@ -11,26 +11,26 @@ class CommandId(NamedTuple):
     name: str
 
 
-EMPTY_COMMAND = CommandId("__empty__")
+AUTO_COMMAND = CommandId("__auto__")
 T = TypeVar("T", bound=Callable[[Any], Any])
 
 
-def command(command_id: CommandId = EMPTY_COMMAND) -> Callable[..., apps.Executable]:
+def command(command_id: CommandId = AUTO_COMMAND) -> Callable[..., apps.Executable]:
     def decorator(fn: T) -> T:
-        if command_id == EMPTY_COMMAND:
+        if command_id == AUTO_COMMAND:
             return anns.annotation("commands", CommandId(fn.__name__.replace("_", "-")))(fn)
         return anns.annotation("commands", command_id)(fn)
 
     return decorator  # type: ignore[reportReturnType]
 
 
-def group(command_id: CommandId) -> Callable[[T], T]:
+def group(command_id: CommandId = AUTO_COMMAND) -> Callable[..., apps.Executable]:
     def decorator(fn: T) -> T:
-        if command_id == EMPTY_COMMAND:
+        if command_id == AUTO_COMMAND:
             return anns.annotation("command-groups", CommandId(fn.__name__.replace("_", "-")))(fn)
         return anns.annotation("commands", command_id)(fn)
 
-    return decorator
+    return decorator  # type: ignore[reportReturnType]
 
 
 def get_class_commands(cls: type) -> anns.AnnotationsContainer:
