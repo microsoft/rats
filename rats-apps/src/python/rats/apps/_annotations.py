@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, ParamSpec
+from typing import Any, NamedTuple, ParamSpec, cast
 
 from rats import annotations
 
@@ -14,19 +14,19 @@ def service(
     service_id: ServiceId[T_ServiceType],
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     """A service is anything you would create instances of?"""
-    return annotations.annotation(ProviderNamespaces.SERVICES, service_id)
+    return annotations.annotation(ProviderNamespaces.SERVICES, cast(NamedTuple, service_id))
 
 
 def autoid_service(fn: Callable[P, T_ServiceType]) -> Callable[P, T_ServiceType]:
     _service_id = autoid(fn)
-    return annotations.annotation(ProviderNamespaces.SERVICES, _service_id)(fn)
+    return annotations.annotation(ProviderNamespaces.SERVICES, cast(NamedTuple, _service_id))(fn)
 
 
 def group(
     group_id: ServiceId[T_ServiceType],
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
     """A group is a collection of services."""
-    return annotations.annotation(ProviderNamespaces.GROUPS, group_id)
+    return annotations.annotation(ProviderNamespaces.GROUPS, cast(NamedTuple, group_id))
 
 
 def fallback_service(
@@ -35,7 +35,7 @@ def fallback_service(
     """A fallback service gets used if no service is defined."""
     return annotations.annotation(
         ProviderNamespaces.FALLBACK_SERVICES,
-        service_id,
+        cast(NamedTuple, service_id),
     )
 
 
@@ -45,7 +45,7 @@ def fallback_group(
     """A fallback group gets used if no group is defined."""
     return annotations.annotation(
         ProviderNamespaces.FALLBACK_GROUPS,
-        group_id,
+        cast(NamedTuple, group_id),
     )
 
 

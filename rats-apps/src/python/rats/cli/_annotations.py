@@ -4,32 +4,29 @@ from collections.abc import Callable
 from typing import Any, NamedTuple, TypeVar
 
 from rats import annotations as anns
+from rats import apps
 
 
 class CommandId(NamedTuple):
     name: str
 
-    # does this api make it impossible to reference a given command that was auto generated?
-    @staticmethod
-    def auto() -> CommandId:
-        return CommandId(name=f"{__name__}:auto")
 
-
+EMPTY_COMMAND = CommandId("__empty__")
 T = TypeVar("T", bound=Callable[[Any], Any])
 
 
-def command(command_id: CommandId) -> Callable[[T], T]:
+def command(command_id: CommandId = EMPTY_COMMAND) -> Callable[..., apps.Executable]:
     def decorator(fn: T) -> T:
-        if command_id == CommandId.auto():
+        if command_id == EMPTY_COMMAND:
             return anns.annotation("commands", CommandId(fn.__name__.replace("_", "-")))(fn)
         return anns.annotation("commands", command_id)(fn)
 
-    return decorator
+    return decorator  # type: ignore[reportReturnType]
 
 
 def group(command_id: CommandId) -> Callable[[T], T]:
     def decorator(fn: T) -> T:
-        if command_id == CommandId.auto():
+        if command_id == EMPTY_COMMAND:
             return anns.annotation("command-groups", CommandId(fn.__name__.replace("_", "-")))(fn)
         return anns.annotation("commands", command_id)(fn)
 

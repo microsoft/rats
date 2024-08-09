@@ -1,7 +1,7 @@
 import logging
 from abc import abstractmethod
 from collections.abc import Callable, Iterator
-from typing import Generic, ParamSpec, Protocol
+from typing import Generic, NamedTuple, ParamSpec, Protocol, cast
 
 from rats import annotations
 
@@ -122,7 +122,7 @@ class Container(Protocol):
         tates = annotations.get_class_annotations(type(self))
         # containers are a special service namespace that we look through recursively
         containers = tates.with_namespace(ProviderNamespaces.CONTAINERS)
-        groups = tates.with_group(namespace, group_id)
+        groups = tates.with_group(namespace, cast(NamedTuple, group_id))
 
         for annotation in groups.annotations:
             if not hasattr(self, f"__rats_cache_{annotation.name}"):
@@ -149,7 +149,7 @@ P = ParamSpec("P")
 def container(
     group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
-    return annotations.annotation(ProviderNamespaces.CONTAINERS, group_id)
+    return annotations.annotation(ProviderNamespaces.CONTAINERS, cast(NamedTuple, group_id))
 
 
 class ServiceNotFoundError(RuntimeError, Generic[T_ServiceType]):

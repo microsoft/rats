@@ -3,15 +3,14 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 from functools import cache
-from typing import Any, Generic, ParamSpec, TypeVar
-from typing import NamedTuple as tNamedTuple
+from typing import Any, Generic, NamedTuple, ParamSpec, TypeVar
 
-from typing_extensions import NamedTuple
+from typing_extensions import NamedTuple as ExtNamedTuple
 
 T_GroupType = TypeVar("T_GroupType", bound=NamedTuple)
 
 
-class GroupAnnotations(NamedTuple, Generic[T_GroupType]):
+class GroupAnnotations(ExtNamedTuple, Generic[T_GroupType]):
     """The list of T_GroupType objects identified by a given name in a namespace."""
 
     name: str
@@ -21,7 +20,7 @@ class GroupAnnotations(NamedTuple, Generic[T_GroupType]):
     groups: tuple[T_GroupType, ...]
 
 
-class AnnotationsContainer(tNamedTuple):
+class AnnotationsContainer(NamedTuple):
     """
     Holds metadata about the annotated functions or class methods.
 
@@ -65,7 +64,7 @@ class AnnotationsBuilder:
     def __init__(self) -> None:
         self._group_ids = defaultdict(set)
 
-    def add(self, namespace: str, group_id: NamedTuple | tNamedTuple) -> None:
+    def add(self, namespace: str, group_id: ExtNamedTuple | NamedTuple) -> None:
         self._group_ids[namespace].add(group_id)
 
     def make(self, name: str) -> AnnotationsContainer:
@@ -84,7 +83,7 @@ DecoratorType = TypeVar("DecoratorType", bound=Callable[..., Any])
 
 def annotation(
     namespace: str,
-    group_id: NamedTuple | tNamedTuple,
+    group_id: ExtNamedTuple | NamedTuple,
 ) -> Callable[[DecoratorType], DecoratorType]:
     """
     Decorator to add an annotation to a function.

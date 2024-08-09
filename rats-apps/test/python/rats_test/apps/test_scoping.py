@@ -1,7 +1,6 @@
 from typing import Any
 
 from rats import apps
-from rats.apps import ServiceId
 
 
 @apps.autoscope
@@ -11,8 +10,8 @@ class ExampleServices:
     OTHER = 52
 
     @staticmethod
-    def bar(name: str) -> ServiceId[Any]:
-        return ServiceId[Any](name)
+    def bar(name: str) -> apps.ServiceId[Any]:
+        return apps.ServiceId[Any](name)
 
     @staticmethod
     def custom(name: str) -> str:
