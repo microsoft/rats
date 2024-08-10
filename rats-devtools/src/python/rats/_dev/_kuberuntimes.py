@@ -18,21 +18,18 @@ class KubeRuntimePluginContainer(apps.Container):
     def _minimal_runtime(self) -> kuberuntime.K8sRuntime:
         return self._k8s_component_runtime("rats-examples-minimal")
 
-    @apps.service(kuberuntime.PluginServices.component_command("rats-examples-datasets"))
-    def _datasets_command(self) -> tuple[str, ...]:
-        return ".venv/bin/python", "-m", "rats.exampledatasets"
+    @apps.service(kuberuntime.PluginServices.component_runtime("rats-examples-datasets"))
+    def _datasets_runtime(self) -> kuberuntime.K8sRuntime:
+        return self._k8s_component_runtime("rats-examples-datasets")
 
     @apps.service(kuberuntime.PluginServices.component_command("rats-devtools"))
     def _devtools_command(self) -> tuple[str, ...]:
         return "bin/rats-devtools", "k8s-runtime", "worker-node"
 
+    @apps.service(kuberuntime.PluginServices.component_command("rats-examples-datasets"))
     @apps.service(kuberuntime.PluginServices.component_command("rats-examples-minimal"))
-    def _minimal_command(self) -> tuple[str, ...]:
-        return "python", "-m", "rats.minis"
-
-    @apps.service(kuberuntime.PluginServices.component_runtime("rats-examples-datasets"))
-    def _datasets_runtime(self) -> kuberuntime.K8sRuntime:
-        return self._k8s_component_runtime("rats-examples-datasets")
+    def _examples_command(self) -> tuple[str, ...]:
+        return ".venv/bin/python", "-m", "rats.examples"
 
     def _k8s_component_runtime(self, name: str) -> kuberuntime.K8sRuntime:
         def _container_images() -> tuple[kuberuntime.KustomizeImage, ...]:

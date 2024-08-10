@@ -33,8 +33,8 @@ COPY rats-apps /opt/rats/rats-apps
 # create the skeleton of the packages so they install successfully
 RUN <<HEREDOC
 set -eux
-mkdir -p /opt/rats/rats-examples-datasets/src/python/rats/exampledatasets
-touch /opt/rats/rats-examples-datasets/src/python/rats/exampledatasets/__init__.py
+mkdir -p /opt/rats/rats-examples-datasets/src/python/rats/examples
+touch /opt/rats/rats-examples-datasets/src/python/rats/examples/__init__.py
 
 HEREDOC
 

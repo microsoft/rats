@@ -1,14 +1,16 @@
 """Run me with python -m rats.examples."""
 
 from rats import apps
+from rats import examples
 
 
 def _run() -> None:
-    print("hello from the dataset world!")
+    app = apps.SimpleApplication(
+        "rats.apps.plugins",
+        "rats.examples",
+    )
+    app.execute(examples.PluginServices.MAIN_EXE)
 
 
-app = apps.SimpleApplication(
-    "rats.apps.plugins",
-    "rats.examples",
-)
-app.execute_callable(_run)
+if __name__ == "__main__":
+    _run()
