@@ -36,7 +36,12 @@ class AmlRuntimePluginContainer(apps.Container):
 
         # for now :(
         cmds = {
-            "rats-devtools": "cd /opt/rats/rats-devtools && bin/rats-devtools aml-runtime worker-node",
+            "rats-devtools": " && ".join(
+                [
+                    "cd /opt/rats/rats-devtools",
+                    "bin/rats-devtools aml-runtime worker-node",
+                ]
+            ),
             "rats-examples-minimal": ".venv/bin/python -m rats.minis",
             "rats-examples-datasets": ".venv/bin/python -m rats.exampledatasets",
         }
