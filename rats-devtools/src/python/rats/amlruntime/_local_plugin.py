@@ -41,9 +41,7 @@
 #                 return apps.NullRuntime()
 #             raise
 #
-#     @apps.service(PluginServices.component_runtime("rats-devtools"))
-#     def _devtools_runtime(self) -> AmlRuntime:
-#         return self._aml_component_runtime("rats-devtools")
+
 #
 #     @apps.service(PluginServices.component_runtime("rats-examples-datasets"))
 #     def _datasets_runtime(self) -> AmlRuntime:

@@ -55,7 +55,9 @@ sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
 
 [tool.poetry.scripts]
-rats-devtools = "rats.devtools.__main__:run"
+# temporarily removing the rats-devtools script entry
+# we don't want people that create devtools to need to use the rats-devtools cli (yet)
+# rats-devtools = "rats.devtools.__main__:run"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
 "rats.amlruntime" = "rats.amlruntime:PluginContainer"
@@ -65,6 +67,7 @@ rats-devtools = "rats.devtools.__main__:run"
 "rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
 "rats.projects" = "rats.projects:PluginContainer"
 "rats.stdruntime" = "rats.stdruntime:PluginContainer"
+"rats._dev" = "rats._dev:PluginContainer"
 
 [build-system]
 requires = ["poetry-core"]

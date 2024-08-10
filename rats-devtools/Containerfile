@@ -60,7 +60,8 @@ WORKDIR /opt/rats/rats-devtools
 RUN <<HEREDOC
 set -eux
 
-pipx install -e .
+python3 -m venv .venv
+.venv/bin/pip install -e .
 
 rm -rf /root/.cache
 HEREDOC

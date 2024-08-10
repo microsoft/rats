@@ -82,13 +82,7 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.AML_RUNTIME)
     def _aml_runtime(self) -> apps.Runtime:
-        try:
-            return self._app.get(PluginServices.component_runtime(Path().resolve().name))
-        except apps.ServiceNotFoundError as e:
-            if e.service_id == PluginServices.component_runtime(Path().resolve().name):
-                # this api is confusing
-                return apps.NullRuntime()
-            raise
+        return self._app.get(PluginServices.component_runtime(Path().resolve().name))
 
     def _aml_component_runtime(self, name: str) -> AmlRuntime:
         return AmlRuntime(

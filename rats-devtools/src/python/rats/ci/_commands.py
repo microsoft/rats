@@ -50,7 +50,7 @@ class PluginCommands(cli.CommandContainer):
         Typically, this just require running `poetry install`. However, some components may run
         additional steps to make the package ready for development. This command does not
         necessarily represent the steps required to install the package in a production
-        environments.
+        environments. For most components, this command installs the development dependencies.
         """
         self._selected_component.install()
 
