@@ -12,6 +12,17 @@ class AmlRuntimePluginContainer(apps.Container):
 
     @apps.service(amlruntime.PluginServices.component_runtime("rats-devtools"))
     def _devtools_runtime(self) -> amlruntime.AmlRuntime:
+        return self._make_runtime("rats-devtools")
+
+    @apps.service(amlruntime.PluginServices.component_runtime("rats-examples-minimal"))
+    def _minimal_runtime(self) -> amlruntime.AmlRuntime:
+        return self._make_runtime("rats-examples-minimal")
+
+    @apps.service(amlruntime.PluginServices.component_runtime("rats-examples-datasets"))
+    def _datasets_runtime(self) -> amlruntime.AmlRuntime:
+        return self._make_runtime("rats-examples-datasets")
+
+    def _make_runtime(self, name: str) -> amlruntime.AmlRuntime:
         return amlruntime.AmlRuntime(
             ml_client=lambda: self._app.get(amlruntime.PluginServices.AML_CLIENT),
             environment_operations=lambda: self._app.get(
@@ -19,11 +30,17 @@ class AmlRuntimePluginContainer(apps.Container):
             ),
             job_operations=lambda: self._app.get(amlruntime.PluginServices.AML_JOB_OPS),
             config=lambda: self._app.get(
-                amlruntime.PluginServices.CONFIGS.component_runtime(
-                    "rats-devtools",
-                )
+                amlruntime.PluginServices.CONFIGS.component_runtime(name)
             ),
         )
+
+    @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-examples-datasets"))
+    def _datasets_runtime_config(self) -> amlruntime.RuntimeConfig:
+        return self._component_aml_runtime_config("rats-examples-datasets")
+
+    @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-examples-minimal"))
+    def _minimal_runtime_config(self) -> amlruntime.RuntimeConfig:
+        return self._component_aml_runtime_config("rats-examples-minimal")
 
     @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-devtools"))
     def _devtools_runtime_config(self) -> amlruntime.RuntimeConfig:
@@ -43,8 +60,18 @@ class AmlRuntimePluginContainer(apps.Container):
                     "bin/rats-devtools aml-runtime worker-node",
                 ]
             ),
-            "rats-examples-minimal": ".venv/bin/python -m rats.minis",
-            "rats-examples-datasets": ".venv/bin/python -m rats.exampledatasets",
+            "rats-examples-minimal": " && ".join(
+                [
+                    "cd /opt/rats/rats-examples-minimal",
+                    ".venv/bin/python -m rats.examples",
+                ]
+            ),
+            "rats-examples-datasets": " && ".join(
+                [
+                    "cd /opt/rats/rats-examples-datasets",
+                    ".venv/bin/python -m rats.examples",
+                ]
+            ),
         }
 
         # a lot more of this needs to be configurable
