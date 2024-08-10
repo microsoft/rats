@@ -1,6 +1,7 @@
 import os
 
-from rats import amlruntime, apps, projects
+from rats import amlruntime, projects
+from rats import apps as apps
 
 
 class AmlRuntimePluginContainer(apps.Container):

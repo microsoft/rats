@@ -1,6 +1,7 @@
 import os
 
-from rats import apps, kuberuntime, projects
+from rats import apps as apps
+from rats import kuberuntime, projects
 
 
 class KubeRuntimePluginContainer(apps.Container):
