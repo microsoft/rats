@@ -26,15 +26,8 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.CWD_COMPONENT_TOOLS)
     def _active_component_ops(self) -> ComponentTools:
-        return self._component_ops(Path().resolve().name)
-
-    @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
-    def _devtools_component_tools(self) -> ComponentTools:
-        project = self._app.get(PluginServices.PROJECT_TOOLS)
-        return project.devtools_component()
-
-    def _component_ops(self, name: str) -> ComponentTools:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
+        name = Path().resolve().name
 
         try:
             return ptools.get_component(name)
@@ -42,6 +35,11 @@ class PluginContainer(apps.Container):
             return UnsetComponentTools(Path())
         except ProjectNotFoundError:
             return UnsetComponentTools(Path())
+
+    @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
+    def _devtools_component_tools(self) -> ComponentTools:
+        project = self._app.get(PluginServices.PROJECT_TOOLS)
+        return project.devtools_component()
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:

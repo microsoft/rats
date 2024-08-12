@@ -7,9 +7,13 @@ inputs:
     required: true
     default: ""
   install-devtools:
-    description: install the global rats-devtools cli command
+    description: install the devtools cli command
     required: true
     default: ""
+  devtools-component:
+    description: the component from the repo to treat as the devtools provider
+    required: true
+    default: "rats-devtools"
 outputs:
   package-version:
     description: "a generated version usable for publishing packages and containers"
@@ -63,5 +67,7 @@ runs:
       if: ${{ inputs.install-devtools }}
       name: "install-devtools"
       shell: bash
+      env:
+        DEVTOOLS_COMPONENT: ${{ inputs.devtools-component }}
       run: |
-        pipx install rats-devtools/
+        bin/${DEVTOOLS_COMPONENT}.setup

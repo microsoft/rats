@@ -16,6 +16,8 @@ jobs:
           - rats-apps
           - rats-pipelines
           - rats-processors
+          - rats-examples-datasets
+          - rats-examples-minimal
           - rats-examples-sklearn
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "check: ${{ matrix.component }}"
@@ -30,14 +32,15 @@ jobs:
         with:
           install-poetry: true
           install-devtools: true
+          devtools-component: "rats-devtools"
       - name: check
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd ${{ matrix.component }}
-          rats-devtools ci update-version "$PACKAGE_VERSION"
-          rats-devtools ci install
-          rats-devtools ci all-checks
+          rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
+          rats-devtools.pipx ci install
+          rats-devtools.pipx ci all-checks
       - name: upload-coverage
         uses: codecov/codecov-action@v4.5.0
         with:
