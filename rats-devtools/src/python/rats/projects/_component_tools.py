@@ -13,7 +13,7 @@ class ComponentId(NamedTuple):
     name: str
 
 
-class ComponentOperations:
+class ComponentTools:
     """
     A small collection of operations commonly done on components.
 
@@ -113,6 +113,7 @@ class ComponentOperations:
 
     def poetry(self, *args: str) -> None:
         # when running a poetry command, we want to ignore any env we might be in.
+        # i'm not sure yet how reliable this is.
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
 
     def exe(self, *cmd: str) -> None:
@@ -124,7 +125,7 @@ class ComponentOperations:
             sys.exit(e.returncode)
 
 
-class UnsetComponentOperations(ComponentOperations):
+class UnsetComponentTools(ComponentTools):
     def copy_tree(self, src: Path, dst: Path) -> None:
         raise NotImplementedError("no component selected")
 

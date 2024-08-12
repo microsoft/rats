@@ -60,8 +60,8 @@ class KubeRuntimePluginContainer(apps.Container):
             group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
         ) -> kuberuntime.K8sWorkflowRun:
             return kuberuntime.K8sWorkflowRun(
-                devops_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_OPS),
-                main_component=self._app.get(projects.PluginServices.component_ops(name)),
+                devops_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS),
+                main_component=self._app.get(projects.PluginServices.component_tools(name)),
                 main_component_id=projects.ComponentId(name),
                 k8s_config_context=os.environ.get("DEVTOOLS_K8S_CONFIG_CONTEXT", "default"),
                 container_images=_container_images(),

@@ -38,8 +38,8 @@ class PluginContainer(apps.Container):
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
             project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
-            selected_component=self._app.get(projects.PluginServices.ACTIVE_COMPONENT_OPS),
-            devtools_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_OPS),
+            selected_component=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
+            devtools_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS),
             devtools_runtime=self._app.get(
                 kuberuntime.PluginServices.component_runtime("rats-devtools")
             ),

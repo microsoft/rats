@@ -8,15 +8,15 @@ logger = logging.getLogger(__name__)
 
 class PluginCommands(cli.CommandContainer):
     _project_tools: projects.ProjectTools
-    _selected_component: projects.ComponentOperations
-    _devtools_component: projects.ComponentOperations
+    _selected_component: projects.ComponentTools
+    _devtools_component: projects.ComponentTools
     _devtools_runtime: apps.Runtime
 
     def __init__(
         self,
         project_tools: projects.ProjectTools,
-        selected_component: projects.ComponentOperations,
-        devtools_component: projects.ComponentOperations,
+        selected_component: projects.ComponentTools,
+        devtools_component: projects.ComponentTools,
         devtools_runtime: apps.Runtime,
     ) -> None:
         self._project_tools = project_tools

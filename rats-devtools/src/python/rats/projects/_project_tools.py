@@ -8,7 +8,7 @@ from pathlib import Path
 
 import toml
 
-from ._components import ComponentId, ComponentOperations
+from ._component_tools import ComponentId, ComponentTools
 from ._container_images import ContainerImage
 
 logger = logging.getLogger(__name__)
@@ -102,28 +102,48 @@ class ProjectTools:
 
         return "\n".join(lines)
 
+    def devtools_component(self) -> ComponentTools:
+        for c in self.discover_components():
+            tool_info = self._extract_tool_info(self.repo_root() / c.name / "pyproject.toml")
+            if tool_info["devtools-component"]:
+                return self.get_component(c.name)
+
+        raise ComponentNotFoundError("was not able to find a devtools component in the project")
+
     def discover_components(self) -> Iterable[ComponentId]:
         valid_components = []
+        # limited to 1 level of nesting for now (i think)
         for p in self.repo_root().iterdir():
             if not p.is_dir() or not (p / "pyproject.toml").is_file():
                 continue
 
             component_info = toml.loads((p / "pyproject.toml").read_text())
-            if not component_info.get("tool", {}).get("rats-devtools", {}).get("enabled", False):
+            tool_info = self._extract_tool_info(p / "pyproject.toml")
+            if not tool_info["enabled"]:
                 # we don't recognize components unless they enable rats-devtools
-                logger.warning(f"detected unmanaged component: {p.name}")
+                # play nice and don't surprise people
+                logger.info(f"detected unmanaged component: {p.name}")
                 continue
 
+            # how do we stop depending on poetry here?
+            # looks like we wait: https://github.com/python-poetry/poetry/pull/9135
             valid_components.append(ComponentId(component_info["tool"]["poetry"]["name"]))
 
         return tuple(valid_components)
 
-    def get_component(self, name: str) -> ComponentOperations:
+    def _extract_tool_info(self, pyproject: Path) -> dict[str, bool]:
+        config = toml.loads(pyproject.read_text())["tool"].get("rats-devtools", {})
+        return {
+            "enabled": config.get("enabled", False),
+            "devtools-component": config.get("devtools-component", False),
+        }
+
+    def get_component(self, name: str) -> ComponentTools:
         p = self.repo_root() / name
         if not p.is_dir() or not (p / "pyproject.toml").is_file():
             raise ComponentNotFoundError(f"component {name} is not a valid python component")
 
-        return ComponentOperations(p)
+        return ComponentTools(p)
 
     def repo_root(self) -> Path:
         guess = self._path.resolve()
@@ -134,7 +154,7 @@ class ProjectTools:
             guess = guess.parent
 
         raise ProjectNotFoundError(
-            "could not find the root of the repository. rats-devtools must be used from a repo."
+            f"repo root not found: {self._path}. rats-devtools must be used from a git repo."
         )
 
 

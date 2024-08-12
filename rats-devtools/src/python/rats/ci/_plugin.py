@@ -25,7 +25,6 @@ class PluginContainer(apps.Container):
         def run() -> None:
             parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
             ci = self._app.get(PluginServices.MAIN_CLICK)
-            self._app.get(PluginServices.COMMANDS).attach(ci)
             parent.add_command(ci)
 
         return apps.App(run)
@@ -34,8 +33,8 @@ class PluginContainer(apps.Container):
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
             project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
-            selected_component=self._app.get(projects.PluginServices.ACTIVE_COMPONENT_OPS),
-            devtools_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_OPS),
+            selected_component=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
+            devtools_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS),
         )
 
     @apps.service(PluginServices.MAIN_EXE)

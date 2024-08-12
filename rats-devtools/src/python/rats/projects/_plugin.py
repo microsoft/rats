@@ -3,19 +3,19 @@ from pathlib import Path
 
 from rats import apps
 
-from ._components import UnsetComponentOperations
-from ._tools import ComponentNotFoundError, ComponentOperations, ProjectNotFoundError, ProjectTools
+from ._component_tools import ComponentTools, UnsetComponentTools
+from ._project_tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
 
 
 @apps.autoscope
 class PluginServices:
-    ACTIVE_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("active-component-ops")
-    DEVTOOLS_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("devtools-component-ops")
+    CWD_COMPONENT_TOOLS = apps.ServiceId[ComponentTools]("cwd-component-tools")
+    DEVTOOLS_COMPONENT_TOOLS = apps.ServiceId[ComponentTools]("devtools-component-tools")
     PROJECT_TOOLS = apps.ServiceId[ProjectTools]("project-tools")
 
     @staticmethod
-    def component_ops(name: str) -> apps.ServiceId[ComponentOperations]:
-        return apps.ServiceId[ComponentOperations](f"component-ops[{name}]")
+    def component_tools(name: str) -> apps.ServiceId[ComponentTools]:
+        return apps.ServiceId[ComponentTools](f"component-tools[{name}]")
 
 
 class PluginContainer(apps.Container):
@@ -24,35 +24,24 @@ class PluginContainer(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.service(PluginServices.ACTIVE_COMPONENT_OPS)
-    def _active_component_ops(self) -> ComponentOperations:
+    @apps.service(PluginServices.CWD_COMPONENT_TOOLS)
+    def _active_component_ops(self) -> ComponentTools:
         return self._component_ops(Path().resolve().name)
 
-    @apps.service(PluginServices.DEVTOOLS_COMPONENT_OPS)
-    def _devtools_component_ops_alias(self) -> ComponentOperations:
-        return self._app.get(PluginServices.component_ops("rats-devtools"))
+    @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
+    def _devtools_component_tools(self) -> ComponentTools:
+        project = self._app.get(PluginServices.PROJECT_TOOLS)
+        return project.devtools_component()
 
-    @apps.service(PluginServices.component_ops("rats-devtools"))
-    def _devtools_component_ops(self) -> ComponentOperations:
-        return self._component_ops("rats-devtools")
-
-    @apps.service(PluginServices.component_ops("rats-examples-minimal"))
-    def _minimal_component_ops(self) -> ComponentOperations:
-        return self._component_ops("rats-examples-minimal")
-
-    @apps.service(PluginServices.component_ops("rats-examples-datasets"))
-    def _datasets_component_ops(self) -> ComponentOperations:
-        return self._component_ops("rats-examples-datasets")
-
-    def _component_ops(self, name: str) -> ComponentOperations:
+    def _component_ops(self, name: str) -> ComponentTools:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
 
         try:
             return ptools.get_component(name)
         except ComponentNotFoundError:
-            return UnsetComponentOperations(Path())
+            return UnsetComponentTools(Path())
         except ProjectNotFoundError:
-            return UnsetComponentOperations(Path())
+            return UnsetComponentTools(Path())
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:

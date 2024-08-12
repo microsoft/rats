@@ -13,7 +13,7 @@ import yaml
 from kubernetes import client
 
 from rats import apps
-from rats.projects._components import ComponentId, ComponentOperations
+from rats import projects as projects
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +32,13 @@ class RuntimeConfig(NamedTuple):
     id: str
     command: tuple[str, ...]
     container_images: tuple[KustomizeImage, ...]
-    main_component: ComponentId
+    main_component: projects.ComponentId
 
 
 class K8sWorkflowRun(apps.Executable):
-    _devops_component: ComponentOperations
-    _main_component: ComponentOperations
-    _main_component_id: ComponentId
+    _devops_component: projects.ComponentTools
+    _main_component: projects.ComponentTools
+    _main_component_id: projects.ComponentId
     _k8s_config_context: str
     _container_images: tuple[KustomizeImage, ...]
     _command: tuple[str, ...]
@@ -69,9 +69,9 @@ class K8sWorkflowRun(apps.Executable):
 
     def __init__(
         self,
-        devops_component: ComponentOperations,
-        main_component: ComponentOperations,
-        main_component_id: ComponentId,
+        devops_component: projects.ComponentTools,
+        main_component: projects.ComponentTools,
+        main_component_id: projects.ComponentId,
         k8s_config_context: str,
         container_images: tuple[KustomizeImage, ...],
         command: tuple[str, ...],
