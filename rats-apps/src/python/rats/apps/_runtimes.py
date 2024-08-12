@@ -4,6 +4,10 @@ from typing import Protocol, final
 
 from ._ids import ServiceId, T_ExecutableType
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Runtime(Protocol):
     @abstractmethod
@@ -31,11 +35,18 @@ class Runtime(Protocol):
 
 @final
 class NullRuntime(Runtime):
+
+    _msg: str
+
+    def __init__(self, msg: str) -> None:
+        self._msg = msg
+
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
-        raise NotImplementedError("NullRuntime does not support execution.")
+        logger.error(self._msg)
+        raise NotImplementedError(f"NullRuntime cannot execute ids: {exe_ids}")
 
     def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
-        raise NotImplementedError("NullRuntime does not support execution.")
+        raise NotImplementedError(f"NullRuntime cannot execute groups: {exe_group_ids}")
 
     def execute_callable(self, *callables: Callable[[], None]) -> None:
-        raise NotImplementedError("NullRuntime does not support execution.")
+        raise NotImplementedError(f"NullRuntime cannot execute callables: {callables}")

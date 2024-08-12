@@ -18,7 +18,6 @@ class PluginCommands(cli.CommandContainer):
     _standard_runtime: apps.Runtime
     _k8s_runtime: apps.Runtime
     _devtools_runtime: apps.Runtime
-    _minimal_runtime: apps.Runtime
 
     def __init__(
         self,
@@ -30,7 +29,6 @@ class PluginCommands(cli.CommandContainer):
         standard_runtime: apps.Runtime,
         k8s_runtime: apps.Runtime,
         devtools_runtime: apps.Runtime,
-        minimal_runtime: apps.Runtime,
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
@@ -40,7 +38,6 @@ class PluginCommands(cli.CommandContainer):
         self._standard_runtime = standard_runtime
         self._k8s_runtime = k8s_runtime
         self._devtools_runtime = devtools_runtime
-        self._minimal_runtime = minimal_runtime
 
     @cli.command()
     def install(self) -> None:

@@ -66,7 +66,7 @@ class PluginContainer(apps.Container):
         command_container = self._app.get(PluginServices.COMMANDS)
         amlrunner = click.Group(
             "aml-runtime",
-            help="submit executables and events to aml",
+            help="run executables and groups on AzureML",
         )
         command_container.attach(amlrunner)
         return amlrunner
@@ -83,6 +83,10 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.AML_RUNTIME)
     def _aml_runtime(self) -> apps.Runtime:
         return self._app.get(PluginServices.component_runtime(Path().resolve().name))
+
+    @apps.fallback_service(PluginServices.component_runtime(Path().resolve().name))
+    def _default_runtime(self) -> apps.Runtime:
+        return apps.NullRuntime("No runtime configured")
 
     def _aml_component_runtime(self, name: str) -> AmlRuntime:
         return AmlRuntime(

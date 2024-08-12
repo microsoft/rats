@@ -53,9 +53,6 @@ class PluginContainer(apps.Container):
             devtools_runtime=self._app.get(
                 kuberuntime.PluginServices.component_runtime("rats-devtools")
             ),
-            minimal_runtime=self._app.get(
-                kuberuntime.PluginServices.component_runtime("rats-examples-minimal")
-            ),
         )
 
     @apps.service(PluginServices.MAIN_EXE)
