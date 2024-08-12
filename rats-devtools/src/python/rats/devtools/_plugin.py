@@ -2,7 +2,10 @@ import logging
 
 import click
 
-from rats import apps, logs
+from rats import apps, cli, logs
+from rats import projects as projects
+
+from ._commands import PluginCommands
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +21,7 @@ class _PluginEvents:
 class PluginServices:
     MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
+    COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
     EVENTS = _PluginEvents
 
 
@@ -55,3 +59,15 @@ class PluginContainer(apps.Container):
             help="develop your ideas with ease",
         )
         return root
+
+    @apps.group(PluginServices.EVENTS.OPENING)
+    def _on_open(self) -> apps.Executable:
+        def run() -> None:
+            parent = self._app.get(PluginServices.MAIN_CLICK)
+            self._app.get(PluginServices.COMMANDS).attach(parent)
+
+        return apps.App(run)
+
+    @apps.service(PluginServices.COMMANDS)
+    def _commands(self) -> cli.CommandContainer:
+        return PluginCommands(self._app.get(projects.PluginServices.PROJECT_TOOLS))
