@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import sys
+from collections.abc import Iterator
 from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
@@ -26,9 +27,9 @@ class ComponentTools:
     def __init__(self, path: Path) -> None:
         self._path = path
 
-    def discover_root_packages(self) -> list[ComponentId]:
+    def discover_root_packages(self) -> Iterator[ComponentId]:
         # iterate through folders in src/
-        for item in self.find_path("src").iterdir():
+        for item in self.find_path("src/python").iterdir():
             if item.is_dir():
                 # for now just making some bold assumptions
                 yield ComponentId(name=item.name)

@@ -1,7 +1,7 @@
 # type: ignore[reportUntypedFunctionDecorator]
 import logging
 
-from rats import apps, cli, projects
+from rats import cli, projects
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class PluginCommands(cli.CommandContainer):
     def sphinx_apidoc(self) -> None:
         """Build the sphinx apidoc for the package, saving output in dist/sphinx-apidoc."""
         # devtools package has the sphinx config files
-        sphinx_resources_path = self._devtools_component.find_path("resources/sphinx-docs")
+        sphinx_resources_path = self._devtools_component.find_path("src/resources/sphinx-docs")
         # we place the built documentation in the component we are building
         component_apidoc_path = self._selected_component.find_path("dist/sphinx-apidoc")
 
@@ -46,7 +46,7 @@ class PluginCommands(cli.CommandContainer):
             str(component_apidoc_path),
             "--templatedir",
             str(component_apidoc_path / "_templates"),
-            *[f"src/python/{p}" for p in self._selected_component.discover_root_packages()],
+            *[f"src/python/{p.name}" for p in self._selected_component.discover_root_packages()],
         )
 
     @cli.command()
