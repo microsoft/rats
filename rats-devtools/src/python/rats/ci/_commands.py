@@ -4,7 +4,7 @@ from collections.abc import Iterable
 
 import click
 
-from rats import apps, cli, projects
+from rats import cli, projects
 
 logger = logging.getLogger(__name__)
 
@@ -13,31 +13,16 @@ class PluginCommands(cli.CommandContainer):
     _project_tools: projects.ProjectTools
     _selected_component: projects.ComponentOperations
     _devtools_component: projects.ComponentOperations
-    _ping: apps.Executable
-    _pong: apps.Executable
-    _standard_runtime: apps.Runtime
-    _k8s_runtime: apps.Runtime
-    _devtools_runtime: apps.Runtime
 
     def __init__(
         self,
         project_tools: projects.ProjectTools,
         selected_component: projects.ComponentOperations,
         devtools_component: projects.ComponentOperations,
-        ping: apps.Executable,
-        pong: apps.Executable,
-        standard_runtime: apps.Runtime,
-        k8s_runtime: apps.Runtime,
-        devtools_runtime: apps.Runtime,
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
         self._devtools_component = devtools_component
-        self._ping = ping
-        self._pong = pong
-        self._standard_runtime = standard_runtime
-        self._k8s_runtime = k8s_runtime
-        self._devtools_runtime = devtools_runtime
 
     @cli.command()
     def install(self) -> None:
@@ -105,11 +90,3 @@ class PluginCommands(cli.CommandContainer):
             # temporarily skip existing during testing
             "--skip-existing",
         )
-
-    @cli.command()
-    def ping(self) -> None:
-        self._ping.execute()
-
-    @cli.command()
-    def pong(self) -> None:
-        self._pong.execute()
