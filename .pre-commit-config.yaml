@@ -49,13 +49,13 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v3.28.0
+    rev: v3.29.0
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
-    rev: v0.3.2
+    rev: v0.3.3
     hooks:
       - id: conventional-gitmoji
 
