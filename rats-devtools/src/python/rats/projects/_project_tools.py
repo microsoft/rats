@@ -102,6 +102,15 @@ class ProjectTools:
 
         return "\n".join(lines)
 
+    def project_name(self) -> str:
+        root = self.repo_root()
+        if (root / "pyproject.toml").exists():
+            # this is a single component project and the project name is the component name
+            return toml.loads((root / "pyproject.toml").read_text())["tool"]["poetry"]["name"]
+
+        # this is a monorepo so i'm not quite sure what to use to detect the project name
+        return self.repo_root().name
+
     def devtools_component(self) -> ComponentTools:
         for c in self.discover_components():
             tool_info = self._extract_tool_info(self.repo_root() / c.name / "pyproject.toml")

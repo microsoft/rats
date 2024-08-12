@@ -5,7 +5,7 @@ import click
 
 from rats import apps as apps
 from rats import cli as cli
-from rats import devtools, kuberuntime, projects
+from rats import devtools, projects
 
 from ._commands import PluginCommands
 
@@ -40,9 +40,6 @@ class PluginContainer(apps.Container):
             project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
             selected_component=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             devtools_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS),
-            devtools_runtime=self._app.get(
-                kuberuntime.PluginServices.component_runtime("rats-devtools")
-            ),
         )
 
     @apps.service(PluginServices.MAIN_EXE)

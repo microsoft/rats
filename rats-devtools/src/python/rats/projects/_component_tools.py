@@ -26,6 +26,13 @@ class ComponentTools:
     def __init__(self, path: Path) -> None:
         self._path = path
 
+    def discover_root_packages(self) -> list[ComponentId]:
+        # iterate through folders in src/
+        for item in self.find_path("src").iterdir():
+            if item.is_dir():
+                # for now just making some bold assumptions
+                yield ComponentId(name=item.name)
+
     def symlink(self, src: Path, dst: Path) -> None:
         """
         Create a symlink in the component directory.

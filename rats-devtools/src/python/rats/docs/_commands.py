@@ -10,35 +10,33 @@ class PluginCommands(cli.CommandContainer):
     _project_tools: projects.ProjectTools
     _selected_component: projects.ComponentTools
     _devtools_component: projects.ComponentTools
-    _devtools_runtime: apps.Runtime
 
     def __init__(
         self,
         project_tools: projects.ProjectTools,
         selected_component: projects.ComponentTools,
         devtools_component: projects.ComponentTools,
-        devtools_runtime: apps.Runtime,
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
         self._devtools_component = devtools_component
-        self._devtools_runtime = devtools_runtime
 
     @cli.command()
     def sphinx_apidoc(self) -> None:
         """Build the sphinx apidoc for the package, saving output in dist/sphinx-apidoc."""
         # devtools package has the sphinx config files
-        sphinx_resources_path = self._devtools_component.find_path("src/resources/sphinx-docs")
+        sphinx_resources_path = self._devtools_component.find_path("resources/sphinx-docs")
+        # we place the built documentation in the component we are building
         component_apidoc_path = self._selected_component.find_path("dist/sphinx-apidoc")
 
         self._selected_component.create_or_empty(component_apidoc_path)
-        # we copy the config files from the devtools package into the component we are building.
+        # copy the config files from the devtools package into the component we are building
         self._selected_component.copy_tree(sphinx_resources_path, component_apidoc_path)
 
         self._selected_component.run(
             "sphinx-apidoc",
             "--doc-project",
-            "rats",
+            self._project_tools.project_name(),
             "--tocfile",
             "index",
             "--implicit-namespaces",
@@ -48,7 +46,7 @@ class PluginCommands(cli.CommandContainer):
             str(component_apidoc_path),
             "--templatedir",
             str(component_apidoc_path / "_templates"),
-            "src/python/rats",
+            *[f"src/python/{p}" for p in self._selected_component.discover_root_packages()],
         )
 
     @cli.command()
@@ -71,6 +69,7 @@ class PluginCommands(cli.CommandContainer):
             "dist/sphinx-markdown",
         )
         # empty the docs/api directory from previous runs, except the .gitignore file
+        # this can probably be done more elegantly
         gitignore = (api_docs_path / ".gitignore").read_text()
         self._selected_component.create_or_empty(api_docs_path)
         (api_docs_path / ".gitignore").write_text(gitignore)
@@ -102,20 +101,12 @@ class PluginCommands(cli.CommandContainer):
         self._devtools_component.create_or_empty(mkdocs_staging_path)
         # start with the contents of our root-docs
         self._devtools_component.copy_tree(root_docs_path, mkdocs_staging_path)
-
-        # TODO: swap with config in di container
-        components = [
-            "rats-apps",
-            "rats-devtools",
-            "rats-pipelines",
-            "rats-processors",
-            "rats-examples-sklearn",
-        ]
+        components = self._project_tools.discover_components()
 
         for c in components:
-            comp_ops = self._project_tools.get_component(c)
-            docs_path = comp_ops.find_path("docs")
-            self._devtools_component.symlink(docs_path, mkdocs_staging_path / c)
+            comp_tools = self._project_tools.get_component(c.name)
+            docs_path = comp_tools.find_path("docs")
+            self._devtools_component.symlink(docs_path, mkdocs_staging_path / c.name)
 
         # replace the mkdocs config with a fresh version
         mkdocs_staging_config.unlink(missing_ok=True)

@@ -1,10 +1,9 @@
+import logging
 from abc import abstractmethod
 from collections.abc import Callable
 from typing import Protocol, final
 
 from ._ids import ServiceId, T_ExecutableType
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +34,6 @@ class Runtime(Protocol):
 
 @final
 class NullRuntime(Runtime):
-
     _msg: str
 
     def __init__(self, msg: str) -> None:
