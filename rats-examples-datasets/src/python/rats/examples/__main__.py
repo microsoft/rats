@@ -1,7 +1,7 @@
 """Run me with python -m rats.examples."""
 
 from rats import apps
-from rats import examples
+from rats import examples as examples
 
 
 def _run() -> None:
