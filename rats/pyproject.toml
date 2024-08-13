@@ -47,6 +47,9 @@ sphinx-markdown-builder = "*"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.rats-devtools]
+enabled = true
+
 [tool.pyright]
 pythonVersion = "3.10"
 include = ["src/python", "test/python"]
