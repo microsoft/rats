@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "rats-examples-sklean"
+name = "rats-examples-sklearn"
 description = "Rats Examples with sklearn"
 version = "0.1.3"
 readme = "README.md"
