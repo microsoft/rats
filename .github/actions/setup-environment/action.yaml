@@ -36,7 +36,7 @@ runs:
         export PATH="${PWD}/bin:$PATH"
         echo "${PWD}/bin" >> $GITHUB_PATH
 
-        TOML_VERSION=$(grep -m 1 version rats-devtools/pyproject.toml | tr -s " " | tr -d '"' | tr -d "'" | cut -d" " -f3)
+        TOML_VERSION=$(grep -m 1 version ${DEVTOOLS_COMPONENT}/pyproject.toml | tr -s " " | tr -d '"' | tr -d "'" | cut -d" " -f3)
         echo "timestamp: $COMMIT_TIMESTAMP"
         echo "commit ref: $COMMIT_REF"
         echo "version found in devtools toml: $TOML_VERSION"
