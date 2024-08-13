@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "rats-apps"
 description = "research analysis tools for building applications"
-version = "0.1.3"
+version = "0.2.0"
 readme = "README.md"
 authors = []
 packages = [

@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "rats-pipelines"
 description = "Rats Pipelines"
-version = "0.1.3"
+version = "0.2.0"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]
