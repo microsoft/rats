@@ -12,14 +12,10 @@ documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
 
-[tool.poetry-monorepo-dependency-plugin]
-enable = true
-version-pinning-strategy = "semver"
-
 [tool.poetry.dependencies]
 python = "^3.10"
 pyyaml = "*"
-rats-apps = { path = "../rats-apps", develop = true }
+rats-apps = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -34,6 +30,9 @@ ruff = "*"
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
+
+[tool.poetry.group.local.dependencies]
+rats-apps = { path = "../rats-apps", develop = true }
 
 [tool.poetry.scripts]
 
