@@ -18,10 +18,6 @@
 **/*.code-workspace
 !rats.code-workspace
 
-**/.vscode/
-!**/.vscode/launch.json
-!**/.vscode/settings.json
-
 **/.idea/*
 # The module files tell Pycharm about the various components in the repo.
 !**/.idea/*.iml
