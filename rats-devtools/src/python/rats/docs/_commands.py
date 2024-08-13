@@ -106,6 +106,11 @@ class PluginCommands(cli.CommandContainer):
         self._devtools_component.create_or_empty(mkdocs_staging_path)
         # start with the contents of our root-docs
         self._devtools_component.copy_tree(root_docs_path, mkdocs_staging_path)
+        self._devtools_component.symlink(
+            # use the README.md at the root as the homepage of the docs site
+            self._project_tools.repo_root() / "README.md",
+            mkdocs_staging_path / "index.md",
+        )
         components = self._project_tools.discover_components()
 
         for c in components:
