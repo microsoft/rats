@@ -1,4 +1,4 @@
-exclude: (?x)(^.idea/)
+exclude: ".idea/"
 
 ci:
   autofix_prs: false
@@ -58,12 +58,12 @@ repos:
     rev: v0.3.2
     hooks:
       - id: conventional-gitmoji
-
-  - repo: https://github.com/asottile/blacken-docs
-    rev: 1.18.0
-    hooks:
-      - id: blacken-docs
-        additional_dependencies: [black]
+# this seems to break python blocks created by embedding src files
+#  - repo: https://github.com/asottile/blacken-docs
+#    rev: 1.18.0
+#    hooks:
+#      - id: blacken-docs
+#        additional_dependencies: [black]
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.3.0
