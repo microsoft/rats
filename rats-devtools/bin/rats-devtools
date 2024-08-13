@@ -3,4 +3,4 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 DEVTOOLS_DIR="$SCRIPT_DIR/.."
 
-exec $DEVTOOLS_DIR/.venv/bin/python -m rats.devtools "$@"
+exec $DEVTOOLS_DIR/.venv/bin/python -m rats._dev "$@"

@@ -67,6 +67,8 @@ sphinx-markdown-builder = "*"
 "rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
 "rats.projects" = "rats.projects:PluginContainer"
 "rats.stdruntime" = "rats.stdruntime:PluginContainer"
+
+[tool.poetry.plugins."rats.local.plugins"]
 "rats._dev" = "rats._dev:PluginContainer"
 
 [build-system]
