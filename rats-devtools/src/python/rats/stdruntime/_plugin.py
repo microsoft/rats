@@ -4,20 +4,14 @@ import click
 
 from rats import apps, cli
 from rats import devtools as devtools
-from rats import projects as projects
 
 from ._commands import PluginCommands
 
 
 @apps.autoscope
-class _PluginClickServices:
-    GROUP = apps.ServiceId[click.Group]("group")
-
-
-@apps.autoscope
 class PluginServices:
     COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
-    CLICK = _PluginClickServices
+    MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
 
 
 class PluginContainer(apps.Container):
@@ -26,19 +20,17 @@ class PluginContainer(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.group(cli.PluginServices.EVENTS.command_open(cli.PluginServices.ROOT_COMMAND))
+    @apps.group(devtools.PluginServices.EVENTS.OPENING)
     def _runtime_cli(self) -> apps.Executable:
         def run() -> None:
-            group = self._app.get(
-                cli.PluginServices.click_command(cli.PluginServices.ROOT_COMMAND)
-            )
-            stdruntime = self._app.get(PluginServices.CLICK.GROUP)
-            self._app.get(PluginServices.COMMANDS).on_group_open(stdruntime)
-            group.add_command(cast(click.Command, stdruntime))
+            parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
+            stdruntime = self._app.get(PluginServices.MAIN_CLICK)
+            self._app.get(PluginServices.COMMANDS).attach(stdruntime)
+            parent.add_command(cast(click.Command, stdruntime))
 
         return apps.App(run)
 
-    @apps.service(PluginServices.CLICK.GROUP)
+    @apps.service(PluginServices.MAIN_CLICK)
     def _click_group(self) -> click.Group:
         return click.Group(
             "std-runtime",

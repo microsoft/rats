@@ -1,7 +1,7 @@
 import json
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
 from azure.ai.ml import MLClient, command
@@ -33,22 +33,23 @@ class AmlEnvironment(NamedTuple):
 class RuntimeConfig(NamedTuple):
     command: str
     compute: str
+    env_variables: Mapping[str, str]
     workspace: AmlWorkspace
     environment: AmlEnvironment
 
 
 class AmlRuntime(apps.Runtime):
-    _ml_client: apps.ServiceProvider[MLClient]
-    _environment_operations: apps.ServiceProvider[EnvironmentOperations]
-    _job_operations: apps.ServiceProvider[JobOperations]
-    _config: apps.ServiceProvider[RuntimeConfig]
+    _ml_client: apps.Provider[MLClient]
+    _environment_operations: apps.Provider[EnvironmentOperations]
+    _job_operations: apps.Provider[JobOperations]
+    _config: apps.Provider[RuntimeConfig]
 
     def __init__(
         self,
-        ml_client: apps.ServiceProvider[MLClient],
-        environment_operations: apps.ServiceProvider[EnvironmentOperations],
-        job_operations: apps.ServiceProvider[JobOperations],
-        config: apps.ServiceProvider[RuntimeConfig],
+        ml_client: apps.Provider[MLClient],
+        environment_operations: apps.Provider[EnvironmentOperations],
+        job_operations: apps.Provider[JobOperations],
+        config: apps.Provider[RuntimeConfig],
     ) -> None:
         self._ml_client = ml_client
         self._environment_operations = environment_operations
@@ -70,7 +71,6 @@ class AmlRuntime(apps.Runtime):
         exe_group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
     ) -> None:
         config = self._config()
-        logger.info("trying to submit to aml")
         logger.info(f"{config.environment._asdict()}")
 
         self._environment_operations().create_or_update(
@@ -85,6 +85,7 @@ class AmlRuntime(apps.Runtime):
             compute=config.compute,
             environment=config.environment.full_name,
             environment_variables={
+                **config.env_variables,
                 "DEVTOOLS_AMLRUNTIME_EXE_IDS": exes_json,
                 "DEVTOOLS_AMLRUNTIME_EVENT_IDS": groups_json,
             },

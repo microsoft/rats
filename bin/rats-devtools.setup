@@ -1,17 +1,37 @@
 #!/bin/bash
 
+set -eux
+
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 REPO_DIR="$SCRIPT_DIR/.."
 LOCAL_SUFFIX="pipx"
-GLOBAL_SUFFIX=$(echo -n $SCRIPT_DIR | md5sum  | awk '{print $1}')
 LOCAL_PATH="$SCRIPT_DIR/rats-devtools.$LOCAL_SUFFIX"
-GLOBAL_PATH="$(pipx environment --value PIPX_BIN_DIR)/rats-devtools.$GLOBAL_SUFFIX"
+
 echo "Local Executable: $LOCAL_PATH"
-echo "Global Executable: $GLOBAL_PATH"
-pipx uninstall "rats-devtools.${GLOBAL_SUFFIX}"
-pipx install -e $REPO_DIR/rats-devtools/ --suffix .$GLOBAL_SUFFIX || exit $?
+cd $REPO_DIR/rats-devtools
+rm -rf ".tmp/venv-${LOCAL_SUFFIX}"
+# make sure the dev env is up to date
+poetry install
+# then use its python to create a new venv for this repo-level cli
+poetry run python -m venv ".tmp/venv-${LOCAL_SUFFIX}"
+cd ".tmp/venv-${LOCAL_SUFFIX}"
+# we install local editable versions of any package dependency we want to iterate quickly on
+bin/pip install \
+  -e $REPO_DIR/rats-devtools
+cd $REPO_DIR
+
 rm $LOCAL_PATH || true
-ln -s $GLOBAL_PATH $LOCAL_PATH || exit $?
+
+cat <<EOF> $LOCAL_PATH
+#!/bin/bash
+
+export DEVTOOLS_PROJECT_ROOT=${REPO_DIR}
+exec ${REPO_DIR}/rats-devtools/.tmp/venv-${LOCAL_SUFFIX}/bin/python -m rats._dev "\$@"
+EOF
+
+chmod +x $LOCAL_PATH
+cat $LOCAL_PATH
+
 # Disabled this prompt until I find a good way to do it.
 #echo "For shell autocompletion add this to your profile:"
 #echo "eval '\$(_RATS_DEVTOOLS_${GLOBAL_SUFFIX^^}_COMPLETE=zsh_source rats-devtools.${GLOBAL_SUFFIX})'"

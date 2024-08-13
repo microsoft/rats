@@ -1,10 +1,7 @@
-import abc
 import logging
 from abc import abstractmethod
 from collections.abc import Callable, Iterator
-from typing import Generic, ParamSpec, Protocol
-
-from typing_extensions import deprecated
+from typing import Generic, NamedTuple, ParamSpec, Protocol, cast
 
 from rats import annotations
 
@@ -14,10 +11,14 @@ from ._namespaces import ProviderNamespaces
 logger = logging.getLogger(__name__)
 
 
-class ServiceProvider(Protocol[Tco_ServiceType]):
+class Provider(Protocol[Tco_ServiceType]):
     @abstractmethod
     def __call__(self) -> Tco_ServiceType:
         """Return the service instance."""
+
+
+# temporary alias for backwards compatibility
+ServiceProvider = Provider
 
 
 class GroupProvider(Protocol[Tco_ServiceType]):
@@ -119,8 +120,9 @@ class Container(Protocol):
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service namespace."""
         tates = annotations.get_class_annotations(type(self))
+        # containers are a special service namespace that we look through recursively
         containers = tates.with_namespace(ProviderNamespaces.CONTAINERS)
-        groups = tates.with_group(namespace, group_id)
+        groups = tates.with_group(namespace, cast(NamedTuple, group_id))
 
         for annotation in groups.annotations:
             if not hasattr(self, f"__rats_cache_{annotation.name}"):
@@ -140,33 +142,14 @@ class Container(Protocol):
             yield from c.get_namespaced_group(namespace, group_id)
 
 
-@deprecated(
-    " ".join(
-        [
-            "AnnotatedContainer is deprecated and will be removed in the next major release.",
-            "The functionality has been moved into the apps.Container protocol.",
-            "Please extend apps.Container directly.",
-        ]
-    ),
-    stacklevel=2,
-)
-class AnnotatedContainer(Container, abc.ABC):
-    """
-    A Container implementation that extracts providers from its annotated methods.
-
-    .. deprecated:: 0.1.3
-    The behavior of this class has been made the default within ``Container``.
-    """
-
-
-DEFAULT_CONTAINER_GROUP = ServiceId[Container]("__default__")
+DEFAULT_CONTAINER_GROUP = ServiceId[Container](f"{__name__}:__default__")
 P = ParamSpec("P")
 
 
 def container(
     group_id: ServiceId[T_ServiceType] = DEFAULT_CONTAINER_GROUP,
 ) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
-    return annotations.annotation(ProviderNamespaces.CONTAINERS, group_id)
+    return annotations.annotation(ProviderNamespaces.CONTAINERS, cast(NamedTuple, group_id))
 
 
 class ServiceNotFoundError(RuntimeError, Generic[T_ServiceType]):

@@ -15,15 +15,15 @@ from ._annotations import (
 )
 from ._composite_container import CompositeContainer
 from ._container import (
-    AnnotatedContainer,  # type: ignore[reportDeprecated]
     Container,
     DuplicateServiceError,
+    Provider,
     ServiceNotFoundError,
     ServiceProvider,
     container,
 )
 from ._executables import App, Executable
-from ._ids import ServiceId, T_ExecutableType
+from ._ids import ServiceId, T_ExecutableType, T_ServiceType
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
 from ._plugins import PluginRunner
@@ -32,7 +32,6 @@ from ._scoping import autoscope
 from ._simple_apps import AppServices, SimpleApplication, StandardRuntime
 
 __all__ = [
-    "AnnotatedContainer",
     "App",
     "CompositeContainer",
     "Container",
@@ -41,6 +40,7 @@ __all__ = [
     "PluginContainers",
     "ProviderNamespaces",
     "ServiceProvider",
+    "Provider",
     "ServiceId",
     "ServiceNotFoundError",
     "autoid_service",
@@ -53,6 +53,7 @@ __all__ = [
     "autoid",
     "service",
     "T_ExecutableType",
+    "T_ServiceType",
     "Runtime",
     "NullRuntime",
     "AppServices",

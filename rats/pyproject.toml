@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "rats"
 description = "Package for the bundled rats components."
-version = "0.1.3"
+version = "0.2.0"
 readme = "README.md"
 authors = []
 packages = [{ include = "rats", from = "src/python" }]
@@ -46,6 +46,9 @@ sphinx-markdown-builder = "*"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.rats-devtools]
+enabled = true
 
 [tool.pyright]
 pythonVersion = "3.10"

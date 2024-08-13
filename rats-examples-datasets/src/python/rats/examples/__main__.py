@@ -1,7 +1,7 @@
 """Run me with python -m rats.examples."""
 
 from rats import apps
-from rats.exampledatasets import PluginServices
+from rats import examples as examples
 
 
 def _run() -> None:
@@ -9,7 +9,7 @@ def _run() -> None:
         "rats.apps.plugins",
         "rats.examples",
     )
-    app.execute(PluginServices.MAIN_EXE)
+    app.execute(examples.PluginServices.MAIN_EXE)
 
 
 if __name__ == "__main__":

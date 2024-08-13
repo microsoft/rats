@@ -1,10 +1,13 @@
 import logging
 import subprocess
 import sys
+from collections.abc import Iterator
 from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
 from typing import NamedTuple
+
+import toml
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +16,7 @@ class ComponentId(NamedTuple):
     name: str
 
 
-class ComponentOperations:
+class ComponentTools:
     """
     A small collection of operations commonly done on components.
 
@@ -25,6 +28,21 @@ class ComponentOperations:
 
     def __init__(self, path: Path) -> None:
         self._path = path
+
+    def component_name(self) -> str:
+        # for now only supporting poetry components :(
+        return toml.loads((self.find_path("pyproject.toml")).read_text())["tool"]["poetry"]["name"]
+
+    def discover_root_packages(self) -> Iterator[ComponentId]:
+        # iterate through folders in src/
+        src_dir = (
+            # hackily only support src/ and src/python structures for now
+            "src/python" if self.find_path("src/python").is_dir() else "src"
+        )
+        for item in self.find_path(src_dir).iterdir():
+            if item.is_dir():
+                # for now just making some bold assumptions
+                yield ComponentId(name=item.name)
 
     def symlink(self, src: Path, dst: Path) -> None:
         """
@@ -113,6 +131,7 @@ class ComponentOperations:
 
     def poetry(self, *args: str) -> None:
         # when running a poetry command, we want to ignore any env we might be in.
+        # i'm not sure yet how reliable this is.
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
 
     def exe(self, *cmd: str) -> None:
@@ -124,7 +143,7 @@ class ComponentOperations:
             sys.exit(e.returncode)
 
 
-class UnsetComponentOperations(ComponentOperations):
+class UnsetComponentTools(ComponentTools):
     def copy_tree(self, src: Path, dst: Path) -> None:
         raise NotImplementedError("no component selected")
 

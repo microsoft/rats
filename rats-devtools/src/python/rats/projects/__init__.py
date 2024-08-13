@@ -5,17 +5,18 @@ A project is loosely tied to one repository, which is made up of one or more com
 component is a separate entity that can be built, tested, and released independently.
 """
 
-from ._components import ComponentId, ComponentOperations, UnsetComponentOperations
-from ._plugin import PluginContainer, PluginServices
-from ._tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
+from ._component_tools import ComponentId, ComponentTools, UnsetComponentTools
+from ._plugin import PluginContainer, PluginServices, find_repo_root
+from ._project_tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
 
 __all__ = [
     "ComponentId",
     "PluginServices",
     "PluginContainer",
-    "ComponentOperations",
-    "UnsetComponentOperations",
+    "ComponentTools",
+    "UnsetComponentTools",
     "ProjectTools",
     "ComponentNotFoundError",
     "ProjectNotFoundError",
+    "find_repo_root",
 ]

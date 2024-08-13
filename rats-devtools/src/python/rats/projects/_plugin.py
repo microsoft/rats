@@ -1,21 +1,31 @@
+import logging
 import os
 from pathlib import Path
 
 from rats import apps
 
-from . import UnsetComponentOperations
-from ._tools import ComponentNotFoundError, ComponentOperations, ProjectNotFoundError, ProjectTools
+from ._component_tools import ComponentTools
+from ._project_tools import ProjectConfig, ProjectNotFoundError, ProjectTools
+
+logger = logging.getLogger(__name__)
+
+
+@apps.autoscope
+class PluginConfigs:
+    PROJECT = apps.ServiceId[ProjectConfig]("project")
 
 
 @apps.autoscope
 class PluginServices:
-    ACTIVE_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("active-component-ops")
-    DEVTOOLS_COMPONENT_OPS = apps.ServiceId[ComponentOperations]("devtools-component-ops")
+    CWD_COMPONENT_TOOLS = apps.ServiceId[ComponentTools]("cwd-component-tools")
+    DEVTOOLS_COMPONENT_TOOLS = apps.ServiceId[ComponentTools]("devtools-component-tools")
     PROJECT_TOOLS = apps.ServiceId[ProjectTools]("project-tools")
 
+    CONFIGS = PluginConfigs
+
     @staticmethod
-    def component_ops(name: str) -> apps.ServiceId[ComponentOperations]:
-        return apps.ServiceId[ComponentOperations](f"component-ops[{name}]")
+    def component_tools(name: str) -> apps.ServiceId[ComponentTools]:
+        return apps.ServiceId[ComponentTools](f"component-tools[{name}]")
 
 
 class PluginContainer(apps.Container):
@@ -24,39 +34,46 @@ class PluginContainer(apps.Container):
     def __init__(self, app: apps.Container) -> None:
         self._app = app
 
-    @apps.service(PluginServices.ACTIVE_COMPONENT_OPS)
-    def _active_component_ops(self) -> ComponentOperations:
-        return self._component_ops(Path().resolve().name)
-
-    @apps.service(PluginServices.DEVTOOLS_COMPONENT_OPS)
-    def _devtools_component_ops_alias(self) -> ComponentOperations:
-        return self._app.get(PluginServices.component_ops("rats-devtools"))
-
-    @apps.service(PluginServices.component_ops("rats-devtools"))
-    def _devtools_component_ops(self) -> ComponentOperations:
-        return self._component_ops("rats-devtools")
-
-    @apps.service(PluginServices.component_ops("rats-examples-minimal"))
-    def _minimal_component_ops(self) -> ComponentOperations:
-        return self._component_ops("rats-examples-minimal")
-
-    @apps.service(PluginServices.component_ops("rats-examples-datasets"))
-    def _datasets_component_ops(self) -> ComponentOperations:
-        return self._component_ops("rats-examples-datasets")
-
-    def _component_ops(self, name: str) -> ComponentOperations:
+    @apps.service(PluginServices.CWD_COMPONENT_TOOLS)
+    def _active_component_tools(self) -> ComponentTools:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
+        name = Path().resolve().name
+        return ptools.get_component(name)
 
-        try:
-            return ptools.get_component(name)
-        except ComponentNotFoundError:
-            return UnsetComponentOperations(Path())
-        except ProjectNotFoundError:
-            return UnsetComponentOperations(Path())
+    @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
+    def _devtools_component_tools(self) -> ComponentTools:
+        project = self._app.get(PluginServices.PROJECT_TOOLS)
+        return project.get_component(project.devtools_component().name)
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:
         return ProjectTools(
-            path=Path().resolve(),
-            image_registry=os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local"),
+            # deferring the call to prevent side effects but this api is not great
+            config=lambda: self._app.get(PluginServices.CONFIGS.PROJECT),
         )
+
+    @apps.fallback_service(PluginServices.CONFIGS.PROJECT)
+    def _project_config(self) -> ProjectConfig:
+        repo_root = str(find_repo_root())
+        return ProjectConfig(
+            name=os.environ.get("DEVTOOLS_PROJECT_NAME", "default-project"),
+            path=repo_root,
+            image_registry=os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local"),
+            image_push_on_build=True,
+        )
+
+
+def find_repo_root() -> Path:
+    env = os.environ.get("DEVTOOLS_PROJECT_ROOT")
+    if env:
+        return Path(env)
+
+    guess = Path().resolve()
+    while str(guess) != "/":
+        if (guess / ".git").exists():
+            return guess
+        guess = guess.parent
+
+    raise ProjectNotFoundError(
+        "repo root not found. devtools must be used on a project in a git repo."
+    )

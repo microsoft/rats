@@ -1,4 +1,3 @@
-# type: ignore[reportUntypedFunctionDecorator]
 import logging
 
 import click
@@ -14,7 +13,7 @@ class PluginCommands(cli.CommandContainer):
     def __init__(self, standard_runtime: apps.Runtime) -> None:
         self._standard_runtime = standard_runtime
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     @click.option("--exe-id", multiple=True)
     @click.option("--group-id", multiple=True)
     def submit(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:

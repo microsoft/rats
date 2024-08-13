@@ -26,10 +26,11 @@ class PluginCommands(cli.CommandContainer):
         self._worker_node_runtime = standard_runtime
         self._aml_runtime = aml_runtime
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     @click.option("--exe-id", multiple=True)
     @click.option("--group-id", multiple=True)
     def submit(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:
+        """Submit one or more exes and groups to aml."""
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 
@@ -44,7 +45,7 @@ class PluginCommands(cli.CommandContainer):
         if len(groups):
             self._aml_runtime.execute_group(*groups)
 
-    @cli.command(cli.CommandId.auto())
+    @cli.command()
     def worker_node(self) -> None:
         """
         Run the worker node process.

@@ -16,6 +16,8 @@ jobs:
           - rats-apps
           - rats-devtools
           - rats-examples-sklearn
+          - rats-examples-datasets
+          - rats-examples-minimal
           - rats-pipelines
           - rats-processors
     name: "build-wheels: ${{ matrix.component }}"
@@ -30,14 +32,15 @@ jobs:
         with:
           install-poetry: true
           install-devtools: true
+          devtools-component: "rats-devtools"
       - name: build-wheel
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd ${{ matrix.component }}
-          rats-devtools ci update-version "$PACKAGE_VERSION"
-          rats-devtools ci install
-          rats-devtools ci build-wheel
+          rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
+          rats-devtools.pipx ci install
+          rats-devtools.pipx ci build-wheel
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:

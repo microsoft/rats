@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import yaml
 
@@ -27,7 +27,7 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:
         def run() -> None:
-            def _named_tuple(s, data: NamedTuple):
+            def _named_tuple(s: Any, data: NamedTuple):
                 if hasattr(data, "_asdict"):
                     return s.represent_dict(data._asdict())
                 return s.represent_list(data)

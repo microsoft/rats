@@ -17,6 +17,8 @@ jobs:
           - rats-apps
           - rats-pipelines
           - rats-processors
+          - rats-examples-datasets
+          - rats-examples-minimal
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,13 +30,14 @@ jobs:
         with:
           install-poetry: true
           install-devtools: true
+          devtools-component: "rats-devtools"
       - name: build-api-docs
         run: |
           cd ${{ matrix.component }}
-          rats-devtools ci update-version "$PACKAGE_VERSION"
-          rats-devtools ci install
-          rats-devtools docs sphinx-apidoc
-          rats-devtools docs sphinx-markdown
+          rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
+          rats-devtools.pipx ci install
+          rats-devtools.pipx docs sphinx-apidoc
+          rats-devtools.pipx docs sphinx-markdown
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
@@ -55,6 +58,7 @@ jobs:
         with:
           install-poetry: true
           install-devtools: true
+          devtools-component: "rats-devtools"
       - name: download-rats-devtools
         uses: actions/download-artifact@v4
         with:
@@ -72,9 +76,9 @@ jobs:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd rats-devtools
-          rats-devtools ci update-version "$PACKAGE_VERSION"
-          rats-devtools ci install
-          rats-devtools docs mkdocs-build
+          rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
+          rats-devtools.pipx ci install
+          rats-devtools.pipx docs mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3
         with:

@@ -5,48 +5,57 @@ from collections.abc import Iterable
 from functools import cache
 from hashlib import sha256
 from pathlib import Path
+from typing import NamedTuple
 
 import toml
 
-from ._components import ComponentId, ComponentOperations
+from rats import apps
+
+from ._component_tools import ComponentId, ComponentTools
 from ._container_images import ContainerImage
 
 logger = logging.getLogger(__name__)
 
 
-class ProjectTools:
-    _path: Path
-    _image_registry: str
+class ProjectConfig(NamedTuple):
+    name: str
+    path: str
+    # this one doesn't seem to belong here
+    image_registry: str
+    image_push_on_build: bool
 
-    def __init__(self, path: Path, image_registry: str) -> None:
-        self._path = path
-        self._image_registry = image_registry
+
+class ProjectTools:
+    _config: apps.Provider[ProjectConfig]
+
+    def __init__(self, config: apps.Provider[ProjectConfig]) -> None:
+        self._config = config
 
     def build_component_images(self) -> None:
         for c in self.discover_components():
             self.build_component_image(c.name)
 
     def build_component_image(self, name: str) -> None:
-        ops = self.get_component(name)
-        file = ops.find_path("Containerfile")
+        component_tools = self.get_component(name)
+        file = component_tools.find_path("Containerfile")
         if not file.exists():
             raise RuntimeError(f"Containerfile not found in component {name}")
 
         image = ContainerImage(
-            name=f"{self._image_registry}/{name}",
+            name=f"{self._config().image_registry}/{name}",
             tag=self.image_context_hash(),
         )
 
-        print(image)
-        ops.exe("docker", "build", "-t", image.full, "--file", str(file), "../")
+        print(f"building docker image: {image.full}")
+        component_tools.exe("docker", "build", "-t", image.full, "--file", str(file), "../")
 
         if image.name.split("/")[0].split(".")[1:3] == ["azurecr", "io"]:
             acr_registry = image.name.split(".")[0]
             if os.environ.get("DEVTOOLS_K8S_SKIP_LOGIN", "0") == "0":
-                ops.exe("az", "acr", "login", "--name", acr_registry)
+                component_tools.exe("az", "acr", "login", "--name", acr_registry)
 
-            # for now only pushing automatically if the registry is ACR
-            ops.exe("docker", "push", image.full)
+        if self._config().image_push_on_build:
+            component_tools.exe("docker", "push", image.full)
 
     @cache  # noqa: B019
     def image_context_hash(self) -> str:
@@ -63,8 +72,8 @@ class ProjectTools:
 
         Inspired by https://github.com/5monkeys/docker-image-context-hash-action
         """
-        containerfile = self.get_component("rats-devtools").find_path(
-            "src/resources/image-context-hash/Containerfile"
+        containerfile = self.get_component(self.devtools_component().name).find_path(
+            "resources/image-context-hash/Containerfile"
         )
         if not containerfile.exists():
             raise FileNotFoundError(
@@ -102,40 +111,68 @@ class ProjectTools:
 
         return "\n".join(lines)
 
+    def project_name(self) -> str:
+        root = self.repo_root()
+        if (root / "pyproject.toml").exists():
+            # this is a single component project and the project name is the component name
+            return toml.loads((root / "pyproject.toml").read_text())["tool"]["poetry"]["name"]
+
+        # this is a monorepo so i'm not quite sure what to use to detect the project name
+        return self.repo_root().name
+
+    def devtools_component(self) -> ComponentId:
+        for c in self.discover_components():
+            tool_info = self._extract_tool_info(self.repo_root() / c.name / "pyproject.toml")
+            if tool_info["devtools-component"]:
+                return c
+
+        raise ComponentNotFoundError("was not able to find a devtools component in the project")
+
+    @cache  # noqa: B019
     def discover_components(self) -> Iterable[ComponentId]:
         valid_components = []
+        # limited to 1 level of nesting for now (i think)
         for p in self.repo_root().iterdir():
             if not p.is_dir() or not (p / "pyproject.toml").is_file():
                 continue
 
             component_info = toml.loads((p / "pyproject.toml").read_text())
-            if not component_info.get("tool", {}).get("rats-devtools", {}).get("enabled", False):
+            tool_info = self._extract_tool_info(p / "pyproject.toml")
+
+            if not tool_info["enabled"]:
                 # we don't recognize components unless they enable rats-devtools
-                logger.warning(f"detected unmanaged component: {p.name}")
+                # play nice and don't surprise people
+                logger.info(f"detected unmanaged component: {p.name}")
                 continue
 
+            # how do we stop depending on poetry here?
+            # looks like we wait: https://github.com/python-poetry/poetry/pull/9135
             valid_components.append(ComponentId(component_info["tool"]["poetry"]["name"]))
 
         return tuple(valid_components)
 
-    def get_component(self, name: str) -> ComponentOperations:
+    def _extract_tool_info(self, pyproject: Path) -> dict[str, bool]:
+        config = toml.loads(pyproject.read_text())["tool"].get("rats-devtools", {})
+        return {
+            "enabled": config.get("enabled", False),
+            "devtools-component": config.get("devtools-component", False),
+        }
+
+    def get_component(self, name: str) -> ComponentTools:
         p = self.repo_root() / name
         if not p.is_dir() or not (p / "pyproject.toml").is_file():
             raise ComponentNotFoundError(f"component {name} is not a valid python component")
 
-        return ComponentOperations(p)
+        return ComponentTools(p)
 
     def repo_root(self) -> Path:
-        guess = self._path.resolve()
-        while str(guess) != "/":
-            if (guess / ".git").exists():
-                return guess
+        p = Path(self._config().path).resolve()
+        if not (p / ".git").exists():
+            raise ProjectNotFoundError(
+                f"repo root not found: {p}. devtools must be used on a project in a git repo."
+            )
 
-            guess = guess.parent
-
-        raise ProjectNotFoundError(
-            "could not find the root of the repository. rats-devtools must be used from a repo."
-        )
+        return p
 
 
 class ComponentNotFoundError(ValueError):
