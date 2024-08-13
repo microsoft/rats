@@ -32,13 +32,13 @@ tests-mypy = ["mypy (>=1.11.1)", "pytest-mypy-plugins"]
 
 [[package]]
 name = "azure-ai-ml"
-version = "1.18.0"
+version = "1.19.0"
 description = "Microsoft Azure Machine Learning Client Library for Python"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "azure_ai_ml-1.18.0-py3-none-any.whl", hash = "sha256:21fb562d55a21e0ba2268791e2151c700a5ee30b0b70c3231afb1661ea3a0031"},
-    {file = "azure_ai_ml-1.18.0.tar.gz", hash = "sha256:0a1ec1a65df4e4437652a270c1cc28c5bb847d43eaa7a9ecdde4dab647d4f12e"},
+    {file = "azure-ai-ml-1.19.0.tar.gz", hash = "sha256:94bb1afbb0497e539ae75455fc4a51b6942b5b68b3a275727ecce6ceb250eff9"},
+    {file = "azure_ai_ml-1.19.0-py3-none-any.whl", hash = "sha256:f0385af06efbeae1f83113613e45343508d1288fd2f05857619e7c7d4d4f5302"},
 ]
 
 [package.dependencies]
