@@ -617,7 +617,7 @@ files = [
 
 [[package]]
 name = "rats-apps"
-version = "0.1.3"
+version = "0.2.0"
 description = "research analysis tools for building applications"
 optional = false
 python-versions = "^3.10"
@@ -931,4 +931,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a85f1ab73beffcead374e9f38ef80eb515bf8602e80391dbf5e5f68d20c9a7d8"
+content-hash = "baed27f9b352f4fe792047d6dc71cc2f8e32db22f19b459608ce05a6324ca72b"

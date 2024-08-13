@@ -19,12 +19,8 @@ documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
 
-[tool.poetry-monorepo-dependency-plugin]
-enable = true
-version-pinning-strategy = "semver"
-
 [tool.poetry.dependencies]
-rats-apps = { path = "../rats-apps", develop = true }
+rats-apps = "*"
 click = "*"
 python = "^3.10"
 toml = "*"
@@ -53,6 +49,11 @@ pymdown-extensions = { version = ">=10.0.0" }
 sphinx = "*"
 sphinx-autodoc-typehints = "*"
 sphinx-markdown-builder = "*"
+
+[tool.poetry.group.local.dependencies]
+# putting the local dependencies in a poetry group ensures pip never sees them
+# and we can tell poetry to skip this group to test what our end users experience
+rats-apps = { path = "../rats-apps", develop = true }
 
 [tool.poetry.scripts]
 # temporarily removing the rats-devtools script entry

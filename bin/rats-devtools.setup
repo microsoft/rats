@@ -17,7 +17,8 @@ poetry run python -m venv ".tmp/venv-${LOCAL_SUFFIX}"
 cd ".tmp/venv-${LOCAL_SUFFIX}"
 # we install local editable versions of any package dependency we want to iterate quickly on
 bin/pip install \
-  -e $REPO_DIR/rats-devtools
+  -e $REPO_DIR/rats-devtools \
+  -e $REPO_DIR/rats-apps
 cd $REPO_DIR
 
 rm $LOCAL_PATH || true
