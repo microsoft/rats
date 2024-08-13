@@ -20,8 +20,10 @@ class PluginCommands(cli.CommandContainer):
     @cli.command()
     def project_info(self) -> None:
         """Show everything we know about this project."""
-        print("are these right? i hope so:")
         print(f"repo root: {self._project_tools.repo_root().resolve()}")
         print("detected components:")
         for component in self._project_tools.discover_components():
-            print(component.name)
+            if component == self._project_tools.devtools_component():
+                print(f"🛠 {component.name}")
+            else:
+                print(f"   {component.name}")

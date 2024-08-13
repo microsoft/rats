@@ -25,13 +25,18 @@ class PluginCommands(cli.CommandContainer):
     def sphinx_apidoc(self) -> None:
         """Build the sphinx apidoc for the package, saving output in dist/sphinx-apidoc."""
         # devtools package has the sphinx config files
-        sphinx_resources_path = self._devtools_component.find_path("src/resources/sphinx-docs")
+        sphinx_resources_path = self._devtools_component.find_path("resources/sphinx-docs")
         # we place the built documentation in the component we are building
         component_apidoc_path = self._selected_component.find_path("dist/sphinx-apidoc")
 
         self._selected_component.create_or_empty(component_apidoc_path)
         # copy the config files from the devtools package into the component we are building
         self._selected_component.copy_tree(sphinx_resources_path, component_apidoc_path)
+
+        src_prefix = (
+            # hackily only support src/ and src/python structures for now
+            "src/python" if self._selected_component.find_path("src/python").is_dir() else "src"
+        )
 
         self._selected_component.run(
             "sphinx-apidoc",
@@ -46,7 +51,7 @@ class PluginCommands(cli.CommandContainer):
             str(component_apidoc_path),
             "--templatedir",
             str(component_apidoc_path / "_templates"),
-            *[f"src/python/{p.name}" for p in self._selected_component.discover_root_packages()],
+            *[f"{src_prefix}/{p.name}" for p in self._selected_component.discover_root_packages()],
         )
 
     @cli.command()
@@ -92,7 +97,7 @@ class PluginCommands(cli.CommandContainer):
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
-        root_docs_path = self._devtools_component.find_path("src/resources/root-docs")
+        root_docs_path = self._devtools_component.find_path("resources/root-docs")
         mkdocs_config = self._devtools_component.find_path("mkdocs.yaml")
         mkdocs_staging_path = self._devtools_component.find_path("dist/docs")
         site_dir_path = self._devtools_component.find_path("dist/site")
@@ -130,7 +135,7 @@ class PluginCommands(cli.CommandContainer):
         folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
         """
         nb_convert_templates_path = self._devtools_component.find_path(
-            "src/resources/nbconvert-templates"
+            "resources/nbconvert-templates"
         )
         jupytext_sources_path = self._selected_component.find_path(
             "docs/_tutorial_notebook_sources"

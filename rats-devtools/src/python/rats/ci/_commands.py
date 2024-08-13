@@ -88,5 +88,6 @@ class PluginCommands(cli.CommandContainer):
             repository_name,
             "--no-interaction",
             # temporarily skip existing during testing
+            # not yet sure how to handle failures here
             "--skip-existing",
         )

@@ -7,6 +7,8 @@ from pathlib import Path
 from shutil import copy, copytree, rmtree
 from typing import NamedTuple
 
+import toml
+
 logger = logging.getLogger(__name__)
 
 
@@ -27,9 +29,17 @@ class ComponentTools:
     def __init__(self, path: Path) -> None:
         self._path = path
 
+    def component_name(self) -> str:
+        # for now only supporting poetry components :(
+        return toml.loads((self.find_path("pyproject.toml")).read_text())["tool"]["poetry"]["name"]
+
     def discover_root_packages(self) -> Iterator[ComponentId]:
         # iterate through folders in src/
-        for item in self.find_path("src/python").iterdir():
+        src_dir = (
+            # hackily only support src/ and src/python structures for now
+            "src/python" if self.find_path("src/python").is_dir() else "src"
+        )
+        for item in self.find_path(src_dir).iterdir():
             if item.is_dir():
                 # for now just making some bold assumptions
                 yield ComponentId(name=item.name)
