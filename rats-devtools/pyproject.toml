@@ -5,14 +5,7 @@ version = "0.2.0"
 readme = "README.md"
 authors = []
 packages = [
-    { include = "rats/amlruntime", from = "src/python" },
-    { include = "rats/ci", from = "src/python" },
-    { include = "rats/command_tree", from = "src/python" },
-    { include = "rats/docs", from = "src/python" },
-    { include = "rats/devtools", from = "src/python" },
-    { include = "rats/kuberuntime", from = "src/python" },
-    { include = "rats/projects", from = "src/python" },
-    { include = "rats/stdruntime", from = "src/python" },
+    { include = "rats", from = "src/python" },
 ]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
