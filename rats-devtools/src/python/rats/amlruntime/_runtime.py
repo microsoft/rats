@@ -39,6 +39,8 @@ class RuntimeConfig(NamedTuple):
 
 
 class AmlRuntime(apps.Runtime):
+    """An app runtime that submits jobs to AML for the execution of a set of exes or groups."""
+
     _ml_client: apps.Provider[MLClient]
     _environment_operations: apps.Provider[EnvironmentOperations]
     _job_operations: apps.Provider[JobOperations]

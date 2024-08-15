@@ -33,26 +33,33 @@ class PluginCommands(cli.CommandContainer):
         # copy the config files from the devtools package into the component we are building
         self._selected_component.copy_tree(sphinx_resources_path, component_apidoc_path)
 
-        src_prefix = (
-            # hackily only support src/ and src/python structures for now
-            "src/python" if self._selected_component.find_path("src/python").is_dir() else "src"
-        )
+        print("generating apidoc for packages:")
+        for p in self._selected_component.root_package_dirs():
+            print(f"  {p}")
 
-        self._selected_component.run(
-            "sphinx-apidoc",
-            "--doc-project",
-            self._project_tools.project_name(),
-            "--tocfile",
-            "index",
-            "--implicit-namespaces",
-            "--module-first",
-            "--force",
-            "--output-dir",
-            str(component_apidoc_path),
-            "--templatedir",
-            str(component_apidoc_path / "_templates"),
-            *[f"{src_prefix}/{p.name}" for p in self._selected_component.discover_root_packages()],
-        )
+            self._selected_component.run(
+                "sphinx-apidoc",
+                "--doc-project",
+                self._project_tools.project_name(),
+                "--no-toc",
+                "--implicit-namespaces",
+                "--module-first",
+                "--force",
+                "--output-dir",
+                str(component_apidoc_path),
+                "--templatedir",
+                str(component_apidoc_path / "_templates"),
+                p,
+            )
+
+        if not (component_apidoc_path / "index.rst").exists():
+            # try to find a root package doc to use as the index.rst file
+            for rst in component_apidoc_path.glob("*.rst"):
+                if "." not in rst.stem:
+                    rst.rename(component_apidoc_path / "index.rst")
+                    break
+
+            logger.warning("something went wrong and we couldn't find an index.rst file")
 
     @cli.command()
     def sphinx_markdown(self) -> None:
