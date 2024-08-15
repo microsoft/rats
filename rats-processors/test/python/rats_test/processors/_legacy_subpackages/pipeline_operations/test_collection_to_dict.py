@@ -53,9 +53,9 @@ def test_dict_to_collection_uniform_types(dict_to_collection: DictToCollection) 
     assert set(from_dict.outputs) == {"col"}
     assert set(from_dict.outputs.col) == {"v1", "v2"}
     assert len(from_dict.outputs.col.v1) == 1
-    assert next(iter(from_dict.outputs.col.v1)).param.annotation == int
+    assert next(iter(from_dict.outputs.col.v1)).param.annotation is int
     assert len(from_dict.outputs.col.v2) == 1
-    assert next(iter(from_dict.outputs.col.v2)).param.annotation == int
+    assert next(iter(from_dict.outputs.col.v2)).param.annotation is int
 
 
 def test_dict_to_collection_different_types(dict_to_collection: DictToCollection) -> None:
@@ -64,9 +64,9 @@ def test_dict_to_collection_different_types(dict_to_collection: DictToCollection
     assert set(from_dict.outputs) == {"col"}
     assert set(from_dict.outputs.col) == {"v1", "v2"}
     assert len(from_dict.outputs.col.v1) == 1
-    assert next(iter(from_dict.outputs.col.v1)).param.annotation == int
+    assert next(iter(from_dict.outputs.col.v1)).param.annotation is int
     assert len(from_dict.outputs.col.v2) == 1
-    assert next(iter(from_dict.outputs.col.v2)).param.annotation == str
+    assert next(iter(from_dict.outputs.col.v2)).param.annotation is str
 
 
 def test_dict_to_collection_wiring(

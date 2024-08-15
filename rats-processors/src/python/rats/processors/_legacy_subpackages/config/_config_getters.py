@@ -58,7 +58,7 @@ class InstantiateConfMapping(Mapping[str, Any]):
         return hash(self._cfg)
 
     def __iter__(self) -> Iterator[str]:
-        return iter(self._cfg)
+        return iter(self._cfg)  # type: ignore[reportReturnType]
 
     def __len__(self) -> int:
         return len(self._cfg)
