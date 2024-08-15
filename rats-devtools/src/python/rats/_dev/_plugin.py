@@ -1,6 +1,7 @@
 from rats import apps
 
 from ._amlruntimes import AmlRuntimePluginContainer
+from ._examples import ExamplesPluginContainer
 from ._kuberuntimes import KubeRuntimePluginContainer
 
 
@@ -15,4 +16,5 @@ class PluginContainer(apps.Container):
         return apps.CompositeContainer(
             AmlRuntimePluginContainer(self._app),
             KubeRuntimePluginContainer(self._app),
+            ExamplesPluginContainer(self._app),
         )

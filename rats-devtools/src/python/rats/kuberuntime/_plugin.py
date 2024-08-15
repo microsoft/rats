@@ -67,7 +67,8 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.K8S_RUNTIME)
     def _k8s_runtime(self) -> apps.Runtime:
-        return self._app.get(PluginServices.component_runtime(Path().resolve().name))
+        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+        return self._app.get(PluginServices.component_runtime(ptools.devtools_component().name))
 
     @apps.fallback_service(PluginServices.component_runtime(Path().resolve().name))
     def _default_runtime(self) -> apps.Runtime:

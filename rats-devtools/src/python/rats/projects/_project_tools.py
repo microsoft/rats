@@ -73,7 +73,7 @@ class ProjectTools:
         Inspired by https://github.com/5monkeys/docker-image-context-hash-action
         """
         containerfile = self.get_component(self.devtools_component().name).find_path(
-            "resources/image-context-hash/Containerfile"
+            "src/resources/image-context-hash/Containerfile"
         )
         if not containerfile.exists():
             raise FileNotFoundError(
