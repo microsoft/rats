@@ -25,7 +25,7 @@ class PluginCommands(cli.CommandContainer):
     def sphinx_apidoc(self) -> None:
         """Build the sphinx apidoc for the package, saving output in dist/sphinx-apidoc."""
         # devtools package has the sphinx config files
-        sphinx_resources_path = self._devtools_component.find_path("resources/sphinx-docs")
+        sphinx_resources_path = self._devtools_component.find_path("src/resources/sphinx-docs")
         # we place the built documentation in the component we are building
         component_apidoc_path = self._selected_component.find_path("dist/sphinx-apidoc")
 
@@ -58,8 +58,8 @@ class PluginCommands(cli.CommandContainer):
                 if "." not in rst.stem:
                     rst.rename(component_apidoc_path / "index.rst")
                     break
-
-            logger.warning("something went wrong and we couldn't find an index.rst file")
+            else:
+                logger.warning("something went wrong and we couldn't find an index.rst file")
 
     @cli.command()
     def sphinx_markdown(self) -> None:
@@ -104,7 +104,7 @@ class PluginCommands(cli.CommandContainer):
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
-        root_docs_path = self._devtools_component.find_path("resources/root-docs")
+        root_docs_path = self._devtools_component.find_path("src/resources/root-docs")
         mkdocs_config = self._devtools_component.find_path("mkdocs.yaml")
         mkdocs_staging_path = self._devtools_component.find_path("dist/docs")
         site_dir_path = self._devtools_component.find_path("dist/site")
@@ -147,7 +147,7 @@ class PluginCommands(cli.CommandContainer):
         folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
         """
         nb_convert_templates_path = self._devtools_component.find_path(
-            "resources/nbconvert-templates"
+            "src/resources/nbconvert-templates"
         )
         jupytext_sources_path = self._selected_component.find_path(
             "docs/_tutorial_notebook_sources"
