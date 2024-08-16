@@ -22,7 +22,9 @@ class PluginServices:
 
     @staticmethod
     def component_command(name: str) -> apps.ServiceId[tuple[str, ...]]:
-        return apps.ServiceId[tuple[str, ...]](f"{PluginServices.K8S_RUNTIME}[{name}][command]")
+        return apps.ServiceId[tuple[str, ...]](
+            f"{PluginServices.K8S_RUNTIME.name}[{name}][command]",
+        )
 
 
 class PluginContainer(apps.Container):

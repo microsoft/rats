@@ -40,7 +40,7 @@ class ProjectTools:
         component_tools = self.get_component(name)
         file = component_tools.find_path("Containerfile")
         if not file.exists():
-            file = component_tools.find_path("Containerfile")
+            file = component_tools.find_path("Dockerfile")
 
         if not file.exists():
             raise RuntimeError(f"Containerfile not found in component {name}")
@@ -51,7 +51,15 @@ class ProjectTools:
         )
 
         print(f"building docker image: {image.full}")
-        component_tools.exe("docker", "build", "-t", image.full, "--file", str(file), "../")
+        component_tools.exe(
+            "docker",
+            "build",
+            "-t",
+            image.full,
+            "--file",
+            str(file),
+            str(self.repo_root()),
+        )
 
         if image.name.split("/")[0].split(".")[1:3] == ["azurecr", "io"]:
             acr_registry = image.name.split(".")[0]
