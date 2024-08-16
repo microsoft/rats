@@ -4,6 +4,9 @@
             "path": "."
         },
         {
+            "path": "rats"
+        },
+        {
             "path": "rats-apps"
         },
         {
@@ -16,16 +19,25 @@
             "path": "rats-processors"
         },
         {
+            "path": "rats-examples-datasets"
+        },
+        {
+            "path": "rats-examples-minimal"
+        },
+        {
             "path": "rats-examples-sklearn"
         },
     ],
     "settings": {
         "files.exclude": {
             // de-duplicate paths added as workspace roots above
+            "rats": true,
             "rats-apps": true,
             "rats-devtools": true,
             "rats-pipelines": true,
             "rats-processors": true,
+            "rats-examples-datasets": true,
+            "rats-examples-minimal": true,
             "rats-examples-sklearn": true,
             // tool-generated dirs/files
             ".tox": true,
@@ -75,14 +87,13 @@
         "python.analysis.typeCheckingMode": "basic",
         "python.analysis.autoImportCompletions": true,
         "python.analysis.extraPaths": [
-            "${workspaceFolder}/src/python"
+            "${fileWorkspaceFolder}/src/python"
         ],
         "python.autoComplete.extraPaths": [
-            "${workspaceFolder}/src/python"
+            "${fileWorkspaceFolder}/src/python"
         ],
         "python.analysis.inlayHints.pytestParameters": true,
-        "python.defaultInterpreterPath": ".venv/bin/python",
-        "python.envFile": "${workspaceFolder}/.envrc",
+        "python.envFile": "${fileWorkspaceFolder}/.envrc",
         "redhat.telemetry.enabled": false,
         "search.exclude": {
             "**/build": true,
