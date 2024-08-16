@@ -30,11 +30,14 @@ from ._plugins import PluginRunner
 from ._runtimes import NullRuntime, Runtime
 from ._scoping import autoscope
 from ._simple_apps import AppServices, SimpleApplication, StandardRuntime
+from ._static_container import StaticContainer, StaticProvider
 
 __all__ = [
     "App",
     "CompositeContainer",
     "Container",
+    "StaticContainer",
+    "StaticProvider",
     "DuplicateServiceError",
     "Executable",
     "PluginContainers",

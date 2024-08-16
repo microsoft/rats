@@ -4,6 +4,7 @@ import subprocess
 import time
 import uuid
 from collections.abc import Callable
+from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
 from typing import Any, NamedTuple
@@ -57,7 +58,8 @@ class K8sWorkflowRun(apps.Executable):
 
     @property
     def _run_hash(self) -> str:
-        return sha256(self._id.encode()).hexdigest()
+        d = datetime.now()
+        return f"{d.strftime('%Y%m%d.%H.%M.%S')}.{sha256(self._id.encode()).hexdigest()}"
 
     @property
     def _exes_json(self) -> str:
@@ -129,7 +131,7 @@ class K8sWorkflowRun(apps.Executable):
 
         while True:
             jobs = batch.list_namespaced_job(
-                namespace="default",
+                namespace="workflows",
                 label_selector=f"rats.kuberuntime/short-hash={self._short_hash}",
             )
 
@@ -139,7 +141,7 @@ class K8sWorkflowRun(apps.Executable):
 
             for job in jobs.items:
                 j = batch.read_namespaced_job_status(
-                    namespace="default",
+                    namespace="workflows",
                     name=job.metadata.name,
                 )
                 status = j.status  # type: ignore[reportAttributeAccessIssue]
@@ -155,7 +157,7 @@ class K8sWorkflowRun(apps.Executable):
 
     def _create_kustomization(self) -> None:
         (self._workflow_stage / "kustomization.yaml").write_text(
-            yaml.dump(
+            yaml.safe_dump(
                 {
                     "apiVersion": "kustomize.config.k8s.io/v1beta1",
                     "kind": "Kustomization",
@@ -178,7 +180,7 @@ class K8sWorkflowRun(apps.Executable):
 
     def _create_main_container_patch(self) -> None:
         (self._workflow_stage / "main-container.yaml").write_text(
-            yaml.dump(
+            yaml.safe_dump(
                 {
                     "apiVersion": "batch/v1",
                     "kind": "Job",
@@ -203,11 +205,11 @@ class K8sWorkflowRun(apps.Executable):
                 "command": self._command,
                 "env": [
                     {
-                        "name": "DEVTOOLS_K8S_EXE_IDS",
+                        "name": "DEVTOOLS_EXE_IDS",
                         "value": self._exes_json,
                     },
                     {
-                        "name": "DEVTOOLS_K8S_EVENT_IDS",
+                        "name": "DEVTOOLS_EVENT_IDS",
                         "value": self._groups_json,
                     },
                 ],

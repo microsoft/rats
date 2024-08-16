@@ -27,3 +27,13 @@ class PluginCommands(cli.CommandContainer):
                 print(f"🛠 {component.name}")
             else:
                 print(f"   {component.name}")
+
+    @cli.command()
+    def project_hash(self) -> None:
+        """Calculate the hash of the project manifest."""
+        print(self._project_tools.image_context_hash())
+
+    @cli.command()
+    def project_manifest(self) -> None:
+        """Show the project manifest."""
+        print(self._project_tools.image_context_manifest())

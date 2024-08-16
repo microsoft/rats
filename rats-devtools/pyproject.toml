@@ -5,14 +5,7 @@ version = "0.2.0"
 readme = "README.md"
 authors = []
 packages = [
-    { include = "rats/amlruntime", from = "src/python" },
-    { include = "rats/ci", from = "src/python" },
-    { include = "rats/command_tree", from = "src/python" },
-    { include = "rats/docs", from = "src/python" },
-    { include = "rats/devtools", from = "src/python" },
-    { include = "rats/kuberuntime", from = "src/python" },
-    { include = "rats/projects", from = "src/python" },
-    { include = "rats/stdruntime", from = "src/python" },
+    { include = "rats", from = "src/python" },
 ]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
@@ -70,7 +63,13 @@ rats-apps = { path = "../rats-apps", develop = true }
 "rats.stdruntime" = "rats.stdruntime:PluginContainer"
 
 [tool.poetry.plugins."rats.local.plugins"]
+# this plugin group is only used for operating on the local repo during development
+# code in these plugins expects to be able to query for git commits and build artifacts
 "rats._dev" = "rats._dev:PluginContainer"
+
+[tool.poetry.plugins."rats.examples.plugins"]
+# all the plugins that are meant to show examples of rats capabilities are in this group
+"rats._examples" = "rats._examples:ExamplesPluginContainer"
 
 [build-system]
 requires = ["poetry-core"]

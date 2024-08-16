@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from collections import defaultdict
 from collections.abc import Callable
 from functools import cache
@@ -30,14 +28,14 @@ class AnnotationsContainer(NamedTuple):
     annotations: tuple[GroupAnnotations[Any], ...]
 
     @staticmethod
-    def empty() -> AnnotationsContainer:
+    def empty() -> "AnnotationsContainer":
         return AnnotationsContainer(annotations=())
 
     def with_group(
         self,
         namespace: str,
         group_id: NamedTuple,
-    ) -> AnnotationsContainer:
+    ) -> "AnnotationsContainer":
         return AnnotationsContainer(
             annotations=tuple(
                 [
@@ -52,7 +50,7 @@ class AnnotationsContainer(NamedTuple):
     def with_namespace(
         self,
         namespace: str,
-    ) -> AnnotationsContainer:
+    ) -> "AnnotationsContainer":
         return AnnotationsContainer(
             annotations=tuple([x for x in self.annotations if x.namespace == namespace]),
         )
@@ -64,7 +62,7 @@ class AnnotationsBuilder:
     def __init__(self) -> None:
         self._group_ids = defaultdict(set)
 
-    def add(self, namespace: str, group_id: ExtNamedTuple | NamedTuple) -> None:
+    def add(self, namespace: str, group_id: NamedTuple) -> None:
         self._group_ids[namespace].add(group_id)
 
     def make(self, name: str) -> AnnotationsContainer:
@@ -83,7 +81,7 @@ DecoratorType = TypeVar("DecoratorType", bound=Callable[..., Any])
 
 def annotation(
     namespace: str,
-    group_id: ExtNamedTuple | NamedTuple,
+    group_id: NamedTuple,
 ) -> Callable[[DecoratorType], DecoratorType]:
     """
     Decorator to add an annotation to a function.

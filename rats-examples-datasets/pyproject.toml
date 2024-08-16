@@ -36,7 +36,7 @@ rats-apps = { path = "../rats-apps", develop = true }
 
 [tool.poetry.scripts]
 
-[tool.poetry.plugins."rats.examples"]
+[tool.poetry.plugins."rats.examples.plugins"]
 "rats.examples" = "rats.examples:PluginContainer"
 
 [build-system]

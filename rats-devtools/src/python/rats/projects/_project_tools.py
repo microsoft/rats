@@ -5,6 +5,7 @@ from collections.abc import Iterable
 from functools import cache
 from hashlib import sha256
 from pathlib import Path
+from textwrap import dedent
 from typing import NamedTuple
 
 import toml
@@ -39,6 +40,9 @@ class ProjectTools:
         component_tools = self.get_component(name)
         file = component_tools.find_path("Containerfile")
         if not file.exists():
+            file = component_tools.find_path("Containerfile")
+
+        if not file.exists():
             raise RuntimeError(f"Containerfile not found in component {name}")
 
         image = ContainerImage(
@@ -72,16 +76,17 @@ class ProjectTools:
 
         Inspired by https://github.com/5monkeys/docker-image-context-hash-action
         """
-        containerfile = self.get_component(self.devtools_component().name).find_path(
-            "resources/image-context-hash/Containerfile"
-        )
-        if not containerfile.exists():
-            raise FileNotFoundError(
-                f"Containerfile not found in devtools component: {containerfile}"
-            )
+        containerfile = dedent("""
+            FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
+            COPY . /image-context
+            WORKDIR /image-context
+
+            CMD ["bash", "-c", "find . -type f | sort"]
+        """)
 
         subprocess.run(
-            ["docker", "build", "-t", "image-context-hasher", "--file", str(containerfile), "."],
+            ["docker", "build", "-t", "image-context-hasher", "-f-", "."],
+            input=containerfile,
             check=True,
             cwd=self.repo_root(),
             capture_output=True,

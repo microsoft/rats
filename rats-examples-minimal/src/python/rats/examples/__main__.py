@@ -9,6 +9,6 @@ def _run() -> None:
 
 app = apps.SimpleApplication(
     "rats.apps.plugins",
-    "rats.examples",
+    "rats.examples.plugins",
 )
 app.execute_callable(_run)

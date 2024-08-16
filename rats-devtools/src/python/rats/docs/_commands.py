@@ -25,7 +25,7 @@ class PluginCommands(cli.CommandContainer):
     def sphinx_apidoc(self) -> None:
         """Build the sphinx apidoc for the package, saving output in dist/sphinx-apidoc."""
         # devtools package has the sphinx config files
-        sphinx_resources_path = self._devtools_component.find_path("resources/sphinx-docs")
+        sphinx_resources_path = self._devtools_component.find_path("src/resources/sphinx-docs")
         # we place the built documentation in the component we are building
         component_apidoc_path = self._selected_component.find_path("dist/sphinx-apidoc")
 
@@ -33,26 +33,33 @@ class PluginCommands(cli.CommandContainer):
         # copy the config files from the devtools package into the component we are building
         self._selected_component.copy_tree(sphinx_resources_path, component_apidoc_path)
 
-        src_prefix = (
-            # hackily only support src/ and src/python structures for now
-            "src/python" if self._selected_component.find_path("src/python").is_dir() else "src"
-        )
+        print("generating apidoc for packages:")
+        for p in self._selected_component.root_package_dirs():
+            print(f"  {p}")
 
-        self._selected_component.run(
-            "sphinx-apidoc",
-            "--doc-project",
-            self._project_tools.project_name(),
-            "--tocfile",
-            "index",
-            "--implicit-namespaces",
-            "--module-first",
-            "--force",
-            "--output-dir",
-            str(component_apidoc_path),
-            "--templatedir",
-            str(component_apidoc_path / "_templates"),
-            *[f"{src_prefix}/{p.name}" for p in self._selected_component.discover_root_packages()],
-        )
+            self._selected_component.run(
+                "sphinx-apidoc",
+                "--doc-project",
+                self._project_tools.project_name(),
+                "--no-toc",
+                "--implicit-namespaces",
+                "--module-first",
+                "--force",
+                "--output-dir",
+                str(component_apidoc_path),
+                "--templatedir",
+                str(component_apidoc_path / "_templates"),
+                p,
+            )
+
+        if not (component_apidoc_path / "index.rst").exists():
+            # try to find a root package doc to use as the index.rst file
+            for rst in component_apidoc_path.glob("*.rst"):
+                if "." not in rst.stem:
+                    rst.rename(component_apidoc_path / "index.rst")
+                    break
+            else:
+                logger.warning("something went wrong and we couldn't find an index.rst file")
 
     @cli.command()
     def sphinx_markdown(self) -> None:
@@ -97,7 +104,7 @@ class PluginCommands(cli.CommandContainer):
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
-        root_docs_path = self._devtools_component.find_path("resources/root-docs")
+        root_docs_path = self._devtools_component.find_path("src/resources/root-docs")
         mkdocs_config = self._devtools_component.find_path("mkdocs.yaml")
         mkdocs_staging_path = self._devtools_component.find_path("dist/docs")
         site_dir_path = self._devtools_component.find_path("dist/site")
@@ -140,7 +147,7 @@ class PluginCommands(cli.CommandContainer):
         folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
         """
         nb_convert_templates_path = self._devtools_component.find_path(
-            "resources/nbconvert-templates"
+            "src/resources/nbconvert-templates"
         )
         jupytext_sources_path = self._selected_component.find_path(
             "docs/_tutorial_notebook_sources"

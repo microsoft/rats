@@ -57,7 +57,7 @@ class AmlRuntimePluginContainer(apps.Container):
             "rats-devtools": " && ".join(
                 [
                     "cd /opt/rats/rats-devtools",
-                    "bin/rats-devtools aml-runtime worker-node",
+                    "bin/rats-examples",
                 ]
             ),
             "rats-examples-minimal": " && ".join(

@@ -2,7 +2,6 @@
 import json
 import logging
 import os
-from pathlib import Path
 
 import click
 
@@ -13,16 +12,19 @@ logger = logging.getLogger(__name__)
 
 class PluginCommands(cli.CommandContainer):
     _project_tools: projects.ProjectTools
+    _cwd_component_tools: projects.ComponentTools
     _worker_node_runtime: apps.Runtime
     _k8s_runtime: apps.Runtime
 
     def __init__(
         self,
         project_tools: projects.ProjectTools,
+        cwd_component_tools: projects.ComponentTools,
         worker_node_runtime: apps.Runtime,
         k8s_runtime: apps.Runtime,
     ) -> None:
         self._project_tools = project_tools
+        self._cwd_component_tools = cwd_component_tools
         self._worker_node_runtime = worker_node_runtime
         self._k8s_runtime = k8s_runtime
 
@@ -33,7 +35,7 @@ class PluginCommands(cli.CommandContainer):
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 
-        self._project_tools.build_component_image(Path().resolve().name)
+        self._project_tools.build_component_image(self._cwd_component_tools.component_name())
 
         exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
         groups = [apps.ServiceId[apps.Executable](group) for group in group_id]

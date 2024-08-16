@@ -33,16 +33,13 @@ class ComponentTools:
         # for now only supporting poetry components :(
         return toml.loads((self.find_path("pyproject.toml")).read_text())["tool"]["poetry"]["name"]
 
-    def discover_root_packages(self) -> Iterator[ComponentId]:
-        # iterate through folders in src/
-        src_dir = (
-            # hackily only support src/ and src/python structures for now
-            "src/python" if self.find_path("src/python").is_dir() else "src"
-        )
-        for item in self.find_path(src_dir).iterdir():
-            if item.is_dir():
-                # for now just making some bold assumptions
-                yield ComponentId(name=item.name)
+    def root_package_dirs(self) -> Iterator[str]:
+        # currently assuming packages have been specified in poetry pyproject.toml settings
+        pkgs = toml.loads(
+            (self.find_path("pyproject.toml")).read_text(),
+        )["tool"]["poetry"]["packages"]
+        for pkg in pkgs:
+            yield f"{pkg['from']}/{pkg['include']}"
 
     def symlink(self, src: Path, dst: Path) -> None:
         """

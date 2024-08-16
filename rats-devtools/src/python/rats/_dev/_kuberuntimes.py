@@ -24,7 +24,7 @@ class KubeRuntimePluginContainer(apps.Container):
 
     @apps.service(kuberuntime.PluginServices.component_command("rats-devtools"))
     def _devtools_command(self) -> tuple[str, ...]:
-        return "bin/rats-devtools", "k8s-runtime", "worker-node"
+        return ("bin/rats-examples",)
 
     @apps.service(kuberuntime.PluginServices.component_command("rats-examples-datasets"))
     @apps.service(kuberuntime.PluginServices.component_command("rats-examples-minimal"))
@@ -74,7 +74,7 @@ class KubeRuntimePluginContainer(apps.Container):
         return kuberuntime.K8sRuntime(
             config=lambda: kuberuntime.RuntimeConfig(
                 id=os.environ.get("DEVTOOLS_K8S_CONTEXT_ID", "/"),
-                command=("rats-devtools", "k8s-runtime", "worker-node"),
+                command=("rats-examples",),
                 container_images=_container_images(),
                 main_component=projects.ComponentId(name),
             ),
