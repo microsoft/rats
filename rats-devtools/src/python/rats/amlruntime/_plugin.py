@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import cast
 
 import click
@@ -26,7 +25,7 @@ class _PluginConfigs:
 
 @apps.autoscope
 class PluginServices:
-    AML_RUNTIME = apps.ServiceId[apps.Runtime]("aml-runtime")
+    AML_RUNTIME = apps.ServiceId[apps.Provider[apps.Runtime]]("aml-runtime")
     AML_CLIENT = apps.ServiceId[MLClient]("aml-client")
     AML_ENVIRONMENT_OPS = apps.ServiceId[EnvironmentOperations]("aml-environment-ops")
     AML_JOB_OPS = apps.ServiceId[JobOperations]("aml-job-ops")
@@ -82,10 +81,16 @@ class PluginContainer(apps.Container):
         )
 
     @apps.service(PluginServices.AML_RUNTIME)
-    def _aml_runtime(self) -> apps.Runtime:
+    def _aml_runtime(self) -> apps.Provider[apps.Runtime]:
         """The AML Runtime of the CWD component."""
-        component_tools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        return self._app.get(PluginServices.component_runtime(component_tools.component_name()))
+
+        def _get() -> apps.Runtime:
+            component_tools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+            return self._app.get(
+                PluginServices.component_runtime(component_tools.component_name())
+            )
+
+        return _get
 
     def _aml_component_runtime(self, name: str) -> AmlRuntime:
         return AmlRuntime(
