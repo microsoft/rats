@@ -2,7 +2,7 @@ import logging
 import os
 from pathlib import Path
 
-from rats import apps
+from rats import apps, projects
 
 from ._component_tools import ComponentTools
 from ._project_tools import ProjectConfig, ProjectNotFoundError, ProjectTools
@@ -43,7 +43,9 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
     def _devtools_component_tools(self) -> ComponentTools:
         project = self._app.get(PluginServices.PROJECT_TOOLS)
-        return project.get_component(project.devtools_component().name)
+        return self._app.get(
+            projects.PluginServices.component_tools(project.devtools_component().name),
+        )
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:

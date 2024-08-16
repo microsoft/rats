@@ -7,7 +7,7 @@ from rats import examples as examples
 def _run() -> None:
     app = apps.SimpleApplication(
         "rats.apps.plugins",
-        "rats.examples",
+        "rats.examples.plugins",
     )
     app.execute(examples.PluginServices.MAIN_EXE)
 
