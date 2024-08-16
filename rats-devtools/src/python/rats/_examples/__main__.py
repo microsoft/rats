@@ -1,11 +1,12 @@
 """rats-examples provides a tiny cli to run a handful of example executables (apps)."""
+
 import json
+import logging
 import os
 
 from rats import apps, logs
-from ._plugin import ExamplesPluginServices
 
-import logging
+from ._plugin import ExamplesPluginServices
 
 logger = logging.getLogger(__name__)
 

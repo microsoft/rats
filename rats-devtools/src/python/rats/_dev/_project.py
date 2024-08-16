@@ -1,4 +1,5 @@
-from rats import apps, projects
+from rats import apps
+from rats import projects as projects
 
 
 class ProjectPluginContainer(apps.Container):

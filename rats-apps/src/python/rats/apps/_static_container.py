@@ -1,21 +1,22 @@
-from collections.abc import Callable
-from typing import Iterator, NamedTuple
+from collections.abc import Callable, Iterator
+from typing import Any, Generic
 
-from rats import apps
+from typing_extensions import NamedTuple as ExtNamedTuple
+
+from ._container import Container
 from ._ids import ServiceId, T_ServiceType
 
 
-class StaticProvider(NamedTuple):
+class StaticProvider(ExtNamedTuple, Generic[T_ServiceType]):
     namespace: str
     service_id: ServiceId[T_ServiceType]
     provider: Callable[[], T_ServiceType]
 
 
-class StaticContainer(apps.Container):
+class StaticContainer(Container):
+    _providers: tuple[StaticProvider[Any], ...]
 
-    _providers: tuple[StaticProvider, ...]
-
-    def __init__(self, *providers: StaticProvider) -> None:
+    def __init__(self, *providers: StaticProvider[Any]) -> None:
         self._providers = providers
 
     def get_namespaced_group(

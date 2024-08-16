@@ -2,7 +2,8 @@ import logging
 import os
 from pathlib import Path
 
-from rats import apps, projects
+from rats import apps
+from rats import projects as projects
 
 from ._component_tools import ComponentTools
 from ._project_tools import ProjectConfig, ProjectNotFoundError, ProjectTools

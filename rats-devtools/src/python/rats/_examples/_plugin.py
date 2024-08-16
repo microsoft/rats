@@ -17,8 +17,8 @@ class ExamplesPluginContainer(apps.Container):
 
     @apps.service(ExamplesPluginServices.PING)
     def _ping(self) -> apps.Executable:
-        return apps.App(lambda: print(f"ping: {str(uuid.uuid4())}"))
+        return apps.App(lambda: print(f"ping: {uuid.uuid4()!s}"))
 
     @apps.service(ExamplesPluginServices.PONG)
     def _pong(self) -> apps.Executable:
-        return apps.App(lambda: print(f"pong: {str(uuid.uuid4())}"))
+        return apps.App(lambda: print(f"pong: {uuid.uuid4()!s}"))
