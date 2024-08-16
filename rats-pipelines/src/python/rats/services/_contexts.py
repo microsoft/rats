@@ -73,7 +73,7 @@ class ContextClient(IManageContexts):
         self._contexts = defaultdict(list)
 
     @contextmanager
-    def open_context(  # type: ignore[reportIncompatibleMethodOverride]
+    def open_context(
         self,
         context_id: ContextId[T_ContextType],
         value: T_ContextType,

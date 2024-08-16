@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import cast
 
 import click
@@ -26,7 +25,7 @@ class _PluginConfigs:
 
 @apps.autoscope
 class PluginServices:
-    AML_RUNTIME = apps.ServiceId[apps.Runtime]("aml-runtime")
+    AML_RUNTIME = apps.ServiceId[apps.Provider[apps.Runtime]]("aml-runtime")
     AML_CLIENT = apps.ServiceId[MLClient]("aml-client")
     AML_ENVIRONMENT_OPS = apps.ServiceId[EnvironmentOperations]("aml-environment-ops")
     AML_JOB_OPS = apps.ServiceId[JobOperations]("aml-job-ops")
@@ -75,18 +74,23 @@ class PluginContainer(apps.Container):
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
             project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
+            cwd_component_tools=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
             standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             aml_runtime=self._app.get(PluginServices.AML_RUNTIME),
         )
 
     @apps.service(PluginServices.AML_RUNTIME)
-    def _aml_runtime(self) -> apps.Runtime:
-        return self._app.get(PluginServices.component_runtime(Path().resolve().name))
+    def _aml_runtime(self) -> apps.Provider[apps.Runtime]:
+        """The AML Runtime of the CWD component."""
 
-    @apps.fallback_service(PluginServices.component_runtime(Path().resolve().name))
-    def _default_runtime(self) -> apps.Runtime:
-        return apps.NullRuntime("No runtime configured")
+        def _get() -> apps.Runtime:
+            component_tools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+            return self._app.get(
+                PluginServices.component_runtime(component_tools.component_name())
+            )
+
+        return _get
 
     def _aml_component_runtime(self, name: str) -> AmlRuntime:
         return AmlRuntime(
@@ -106,7 +110,10 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.CONFIGS.AML_RUNTIME)
     def _aml_runtime_config(self) -> RuntimeConfig:
-        return self._app.get(PluginServices.CONFIGS.component_runtime(Path().resolve().name))
+        component_tools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        return self._app.get(
+            PluginServices.CONFIGS.component_runtime(component_tools.component_name()),
+        )
 
     @apps.service(PluginServices.AML_CLIENT)
     def _aml_client(self) -> MLClient:

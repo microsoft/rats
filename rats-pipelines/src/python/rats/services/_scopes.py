@@ -1,3 +1,4 @@
+# type: ignore[reportUnknownVariableType]
 from types import FunctionType
 from typing import Any, TypeVar, cast
 

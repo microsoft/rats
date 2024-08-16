@@ -1,5 +1,0 @@
-FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
-COPY . /image-context
-WORKDIR /image-context
-
-CMD ["bash", "-c", "find . -type f | sort"]

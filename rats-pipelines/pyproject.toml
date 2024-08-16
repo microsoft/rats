@@ -10,10 +10,6 @@ documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
 
-[tool.poetry-monorepo-dependency-plugin]
-enable = true
-version-pinning-strategy = "semver"
-
 [tool.poetry.dependencies]
 dill = "*"
 furl = "^2.1.3"

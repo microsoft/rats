@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import cast
 
 import click
@@ -60,6 +59,7 @@ class PluginContainer(apps.Container):
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
             project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
+            cwd_component_tools=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
             worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             k8s_runtime=self._app.get(PluginServices.K8S_RUNTIME),
@@ -67,8 +67,5 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.K8S_RUNTIME)
     def _k8s_runtime(self) -> apps.Runtime:
-        return self._app.get(PluginServices.component_runtime(Path().resolve().name))
-
-    @apps.fallback_service(PluginServices.component_runtime(Path().resolve().name))
-    def _default_runtime(self) -> apps.Runtime:
-        return apps.NullRuntime("No runtime configured")
+        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+        return self._app.get(PluginServices.component_runtime(ptools.devtools_component().name))
