@@ -126,6 +126,11 @@ class ProjectTools:
         return self.repo_root().name
 
     def devtools_component(self) -> ComponentId:
+        if self._is_single_component_project():
+            tool_info = self._extract_tool_info(self.repo_root() / "pyproject.toml")
+            if tool_info["devtools-component"]:
+                return next(iter(self.discover_components()))
+
         for c in self.discover_components():
             tool_info = self._extract_tool_info(self.repo_root() / c.name / "pyproject.toml")
             if tool_info["devtools-component"]:
@@ -136,6 +141,20 @@ class ProjectTools:
     @cache  # noqa: B019
     def discover_components(self) -> Iterable[ComponentId]:
         valid_components = []
+        if self._is_single_component_project():
+            p = self.repo_root() / "pyproject.toml"
+
+            component_info = toml.loads(p.read_text())
+            tool_info = self._extract_tool_info(p)
+
+            if not tool_info["enabled"]:
+                # we don't recognize components unless they enable rats-devtools
+                # play nice and don't surprise people
+                logger.info(f"detected unmanaged component: {p.name}")
+                raise RuntimeError("detected single component repo but not managed by rats")
+
+            return (ComponentId(component_info["tool"]["poetry"]["name"]),)
+
         # limited to 1 level of nesting for now (i think)
         for p in self.repo_root().iterdir():
             if not p.is_dir() or not (p / "pyproject.toml").is_file():
@@ -156,14 +175,10 @@ class ProjectTools:
 
         return tuple(valid_components)
 
-    def _extract_tool_info(self, pyproject: Path) -> dict[str, bool]:
-        config = toml.loads(pyproject.read_text())["tool"].get("rats-devtools", {})
-        return {
-            "enabled": config.get("enabled", False),
-            "devtools-component": config.get("devtools-component", False),
-        }
-
     def get_component(self, name: str) -> ComponentTools:
+        if self._is_single_component_project():
+            return ComponentTools(self.repo_root())
+
         p = self.repo_root() / name
         if not p.is_dir() or not (p / "pyproject.toml").is_file():
             raise ComponentNotFoundError(f"component {name} is not a valid python component")
@@ -178,6 +193,17 @@ class ProjectTools:
             )
 
         return p
+
+    def _extract_tool_info(self, pyproject: Path) -> dict[str, bool]:
+        config = toml.loads(pyproject.read_text())["tool"].get("rats-devtools", {})
+
+        return {
+            "enabled": config.get("enabled", False),
+            "devtools-component": config.get("devtools-component", False),
+        }
+
+    def _is_single_component_project(self) -> bool:
+        return (self.repo_root() / "pyproject.toml").exists()
 
 
 class ComponentNotFoundError(ValueError):
