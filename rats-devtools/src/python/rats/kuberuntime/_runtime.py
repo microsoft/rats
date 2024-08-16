@@ -4,6 +4,7 @@ import subprocess
 import time
 import uuid
 from collections.abc import Callable
+from datetime import datetime
 from hashlib import sha256
 from pathlib import Path
 from typing import Any, NamedTuple
@@ -57,7 +58,8 @@ class K8sWorkflowRun(apps.Executable):
 
     @property
     def _run_hash(self) -> str:
-        return sha256(self._id.encode()).hexdigest()
+        d = datetime.now()
+        return f"{d.strftime('%Y%m%d.%H.%M.%S')}.{sha256(self._id.encode()).hexdigest()}"
 
     @property
     def _exes_json(self) -> str:
@@ -155,7 +157,7 @@ class K8sWorkflowRun(apps.Executable):
 
     def _create_kustomization(self) -> None:
         (self._workflow_stage / "kustomization.yaml").write_text(
-            yaml.dump(
+            yaml.safe_dump(
                 {
                     "apiVersion": "kustomize.config.k8s.io/v1beta1",
                     "kind": "Kustomization",
@@ -178,7 +180,7 @@ class K8sWorkflowRun(apps.Executable):
 
     def _create_main_container_patch(self) -> None:
         (self._workflow_stage / "main-container.yaml").write_text(
-            yaml.dump(
+            yaml.safe_dump(
                 {
                     "apiVersion": "batch/v1",
                     "kind": "Job",
