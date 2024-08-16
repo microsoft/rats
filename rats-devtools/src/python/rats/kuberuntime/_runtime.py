@@ -54,7 +54,7 @@ class K8sWorkflowRun(apps.Executable):
 
     @property
     def _short_hash(self) -> str:
-        return self._run_hash[:10]
+        return self._run_hash[-10:]
 
     @property
     def _run_hash(self) -> str:
@@ -162,7 +162,14 @@ class K8sWorkflowRun(apps.Executable):
                     "apiVersion": "kustomize.config.k8s.io/v1beta1",
                     "kind": "Kustomization",
                     "nameSuffix": f"-{self._main_component_id.name[0:40]}-{self._short_hash}",
-                    "commonLabels": {"rats.kuberuntime/short-hash": self._short_hash},
+                    "labels": [
+                        {
+                            "includeSelectors": True,
+                            "pairs": {
+                                "rats.kuberuntime/short-hash": self._short_hash,
+                            },
+                        }
+                    ],
                     "commonAnnotations": {
                         "rats.kuberuntime/run-id": self._id,
                         "rats.kuberuntime/short-hash": self._short_hash,
