@@ -131,7 +131,7 @@ class K8sWorkflowRun(apps.Executable):
 
         while True:
             jobs = batch.list_namespaced_job(
-                namespace="default",
+                namespace="workflows",
                 label_selector=f"rats.kuberuntime/short-hash={self._short_hash}",
             )
 
@@ -141,7 +141,7 @@ class K8sWorkflowRun(apps.Executable):
 
             for job in jobs.items:
                 j = batch.read_namespaced_job_status(
-                    namespace="default",
+                    namespace="workflows",
                     name=job.metadata.name,
                 )
                 status = j.status  # type: ignore[reportAttributeAccessIssue]
@@ -205,11 +205,11 @@ class K8sWorkflowRun(apps.Executable):
                 "command": self._command,
                 "env": [
                     {
-                        "name": "DEVTOOLS_K8S_EXE_IDS",
+                        "name": "DEVTOOLS_EXE_IDS",
                         "value": self._exes_json,
                     },
                     {
-                        "name": "DEVTOOLS_K8S_EVENT_IDS",
+                        "name": "DEVTOOLS_EVENT_IDS",
                         "value": self._groups_json,
                     },
                 ],

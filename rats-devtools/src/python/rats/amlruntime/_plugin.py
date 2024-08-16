@@ -75,6 +75,7 @@ class PluginContainer(apps.Container):
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
             project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
+            cwd_component_tools=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
             standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             aml_runtime=self._app.get(PluginServices.AML_RUNTIME),
@@ -82,11 +83,9 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.AML_RUNTIME)
     def _aml_runtime(self) -> apps.Runtime:
-        return self._app.get(PluginServices.component_runtime(Path().resolve().name))
-
-    @apps.fallback_service(PluginServices.component_runtime(Path().resolve().name))
-    def _default_runtime(self) -> apps.Runtime:
-        return apps.NullRuntime("No runtime configured")
+        """The AML Runtime of the CWD component."""
+        component_tools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        return self._app.get(PluginServices.component_runtime(component_tools.component_name()))
 
     def _aml_component_runtime(self, name: str) -> AmlRuntime:
         return AmlRuntime(
@@ -106,7 +105,10 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.CONFIGS.AML_RUNTIME)
     def _aml_runtime_config(self) -> RuntimeConfig:
-        return self._app.get(PluginServices.CONFIGS.component_runtime(Path().resolve().name))
+        component_tools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        return self._app.get(
+            PluginServices.CONFIGS.component_runtime(component_tools.component_name()),
+        )
 
     @apps.service(PluginServices.AML_CLIENT)
     def _aml_client(self) -> MLClient:

@@ -19,11 +19,11 @@ if __name__ == "__main__":
     app.execute_group(logs.PluginServices.EVENTS.CONFIGURE_LOGGING)
     exe_ids = [
         apps.ServiceId[apps.Executable](**x)
-        for x in json.loads(os.environ.get("DEVTOOLS_K8S_EXE_IDS", "[]"))
+        for x in json.loads(os.environ.get("DEVTOOLS_EXE_IDS", "[]"))
     ]
     event_ids = [
         apps.ServiceId[apps.Executable](**x)
-        for x in json.loads(os.environ.get("DEVTOOLS_K8S_EVENT_IDS", "[]"))
+        for x in json.loads(os.environ.get("DEVTOOLS_EVENT_IDS", "[]"))
     ]
 
     if len(exe_ids) + len(event_ids) > 0:

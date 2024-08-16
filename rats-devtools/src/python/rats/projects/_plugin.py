@@ -38,7 +38,9 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.CWD_COMPONENT_TOOLS)
     def _active_component_tools(self) -> ComponentTools:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
-        name = Path().resolve().name
+        cwd = Path().resolve()
+        relative = cwd.relative_to(ptools.repo_root()).as_posix()
+        name = relative.split("/")[0]  # the component sits at the root of the project, for now
         return ptools.get_component(name)
 
     @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)

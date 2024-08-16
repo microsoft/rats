@@ -88,8 +88,8 @@ class AmlRuntime(apps.Runtime):
             environment=config.environment.full_name,
             environment_variables={
                 **config.env_variables,
-                "DEVTOOLS_AMLRUNTIME_EXE_IDS": exes_json,
-                "DEVTOOLS_AMLRUNTIME_EVENT_IDS": groups_json,
+                "DEVTOOLS_EXE_IDS": exes_json,
+                "DEVTOOLS_EVENT_IDS": groups_json,
             },
         )
         returned_job = self._job_operations().create_or_update(job)
