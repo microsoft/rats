@@ -25,11 +25,6 @@ pytest-nunit = "*"
 setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
 
-[tool.poetry.group.docs.dependencies]
-sphinx = "*"
-sphinx-autodoc-typehints = "*"
-sphinx-markdown-builder = "*"
-
 [tool.poetry.group.local.dependencies]
 rats-apps = { path = "../rats-apps", develop = true }
 

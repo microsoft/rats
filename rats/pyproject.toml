@@ -20,13 +20,9 @@ dirty = false
 # https://developercommunity.visualstudio.com/t/local-version-segments-for-python-package-feeds/892057
 metadata = false
 
-[tool.poetry-monorepo-dependency-plugin]
-enable = true
-version-pinning-strategy = "semver"
-
 [tool.poetry.dependencies]
-rats-pipelines = { path = "../rats-pipelines", develop = true }
-rats-processors = { path = "../rats-processors", develop = true }
+rats-pipelines = "*"
+rats-processors = "*"
 python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
@@ -38,10 +34,9 @@ pytest-nunit = "*"
 setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
 
-[tool.poetry.group.docs.dependencies]
-sphinx = "*"
-sphinx-autodoc-typehints = "*"
-sphinx-markdown-builder = "*"
+[tool.poetry.group.local.dependencies]
+rats-pipelines = { path = "../rats-pipelines", develop = true }
+rats-processors = { path = "../rats-processors", develop = true }
 
 [build-system]
 requires = ["poetry-core"]

@@ -56,19 +56,3 @@ Currently enabled for rats-processors and rats-examples-sklearn.  To enable for 
 edit the components list in `rats.devtools._commands.build_tutorial_notebooks`. and add `jupytext`
 and `nbconvert` to the component's `pyproject.toml` in section
 `tool.poetry.group.docs.dependencies`.
-
-## build-api-docs
-
-Uses `sphinx` to generate the API Reference documentation for each component in this project,
-and pulls them into the docs directories for `mkdocs` to pick up. You can run this command
-occasionally when working on docstrings in code, and your local documentation site will be
-kept up to date for you to review.
-
-```bash
-rats-devtools.pipx ci build-api-docs
-Creating file /rats/rats-pipelines/dist/sphinx-apidoc/rats.app.rst.
-Creating file /rats/rats-pipelines/dist/sphinx-apidoc/rats.app_api.rst.
-Creating file /rats/rats-pipelines/dist/sphinx-apidoc/rats.examples.rst.
-Creating file /rats/rats-pipelines/dist/sphinx-apidoc/rats.examples.io2.rst.
-…
-```
