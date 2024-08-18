@@ -55,6 +55,30 @@ extra_css:
 #  - js/tex-mml-chtml.js
 plugins:
   - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths:
+            # we don't need to install packages to generate docs any more
+            # these paths should be relative from rats-devtools/dist
+            - "../../rats/src/python"
+            - "../../rats-apps/src/python"
+            - "../../rats-devtools/src/python"
+            - "../../rats-pipelines/src/python"
+            - "../../rats-processors/src/python"
+            - "../../rats-examples-datasets/src/python"
+            - "../../rats-examples-minimal/src/python"
+            - "../../rats-examples-sklearn/src/python"
+          options:
+            show_if_no_docstring: true
+            show_symbol_type_toc: true
+            show_symbol_type_heading: true
+            docstring_options:
+              ignore_init_summary: false
+              merge_init_into_class: true
+              separate_signature: true
+              show_signature_annotations: true
   - awesome-pages
   - mkdocs-video:
       is_video: true
