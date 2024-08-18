@@ -28,9 +28,7 @@ class PluginCommands(cli.CommandContainer):
 
     @cli.command()
     def mkdocs_serve(self) -> None:
-        """
-        Serve the mkdocs site for the project and monitor files for changes.
-        """
+        """Serve the mkdocs site for the project and monitor files for changes."""
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
