@@ -1,4 +1,4 @@
-title: intro
+title: Introduction
 ---
 ## rats-apps
 
@@ -169,6 +169,8 @@ function into our plugin container and use `apps.SimpleApplication` to run it.
     [tool.poetry.scripts]
     foo = "foo.__main__:run"
     ```
+## Examples
+Most of the examples below can be executed by running the related module's `__main__.py` file.
 
 ### rats.apps
 
