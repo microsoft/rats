@@ -31,11 +31,6 @@ pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
 
-[tool.poetry.group.docs.dependencies]
-sphinx = "*"
-sphinx-autodoc-typehints = "*"
-sphinx-markdown-builder = "*"
-
 jupytext = "*"
 nbconvert = "*"
 

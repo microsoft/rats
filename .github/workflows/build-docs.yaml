@@ -7,45 +7,8 @@ on:
         required: true
         type: string
 jobs:
-  build-api-docs:
-    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
-    name: "build-api-docs"
-    strategy:
-      matrix:
-        component:
-          - rats-devtools
-          - rats-apps
-          - rats-pipelines
-          - rats-processors
-          - rats-examples-datasets
-          - rats-examples-minimal
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.sha }}
-          fetch-depth: 0
-          fetch-tags: true
-      - uses: ./.github/actions/setup-environment
-        id: runner-context
-        with:
-          install-poetry: true
-          install-devtools: true
-          devtools-component: "rats-devtools"
-      - name: build-api-docs
-        run: |
-          cd ${{ matrix.component }}
-          rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
-          rats-devtools.pipx ci install
-          rats-devtools.pipx docs sphinx-apidoc
-          rats-devtools.pipx docs sphinx-markdown
-      - name: "upload-artifacts"
-        uses: actions/upload-artifact@v4
-        with:
-          name: "api-docs.${{ matrix.component }}"
-          path: "${{ matrix.component }}/docs/api/"
   generate-docs:
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
-    needs: [ "build-api-docs" ]
     name: "generate-docs"
     steps:
       - uses: actions/checkout@v4
@@ -59,18 +22,6 @@ jobs:
           install-poetry: true
           install-devtools: true
           devtools-component: "rats-devtools"
-      - name: download-rats-devtools
-        uses: actions/download-artifact@v4
-        with:
-          path: rats-devtools/docs/api/
-          pattern: "api-docs.rats-devtools"
-          merge-multiple: false
-      - name: download-rats-apps
-        uses: actions/download-artifact@v4
-        with:
-          path: rats-apps/docs/api/
-          pattern: "api-docs.rats-apps"
-          merge-multiple: false
       - name: mkdocs-build
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"

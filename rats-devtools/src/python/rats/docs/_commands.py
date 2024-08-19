@@ -22,85 +22,13 @@ class PluginCommands(cli.CommandContainer):
         self._devtools_component = devtools_component
 
     @cli.command()
-    def sphinx_apidoc(self) -> None:
-        """Build the sphinx apidoc for the package, saving output in dist/sphinx-apidoc."""
-        # devtools package has the sphinx config files
-        sphinx_resources_path = self._devtools_component.find_path("src/resources/sphinx-docs")
-        # we place the built documentation in the component we are building
-        component_apidoc_path = self._selected_component.find_path("dist/sphinx-apidoc")
-
-        self._selected_component.create_or_empty(component_apidoc_path)
-        # copy the config files from the devtools package into the component we are building
-        self._selected_component.copy_tree(sphinx_resources_path, component_apidoc_path)
-
-        print("generating apidoc for packages:")
-        for p in self._selected_component.root_package_dirs():
-            print(f"  {p}")
-
-            self._selected_component.run(
-                "sphinx-apidoc",
-                "--doc-project",
-                self._project_tools.project_name(),
-                "--no-toc",
-                "--implicit-namespaces",
-                "--module-first",
-                "--force",
-                "--output-dir",
-                str(component_apidoc_path),
-                "--templatedir",
-                str(component_apidoc_path / "_templates"),
-                p,
-            )
-
-        if not (component_apidoc_path / "index.rst").exists():
-            # try to find a root package doc to use as the index.rst file
-            for rst in component_apidoc_path.glob("*.rst"):
-                if "." not in rst.stem:
-                    rst.rename(component_apidoc_path / "index.rst")
-                    break
-            else:
-                logger.warning("something went wrong and we couldn't find an index.rst file")
-
-    @cli.command()
-    def sphinx_markdown(self) -> None:
-        """
-        Convert the sphinx apidoc to markdown, saving output in docs/api.
-
-        This command should be run after sphinx-apidoc, and before mkdocs-build. We convert the
-        sphinx apidoc to markdown so that it can be rendered and indexed alongside the rest of the
-        other documentation.
-        """
-        dist_md_path = self._selected_component.find_path("dist/sphinx-markdown")
-        api_docs_path = self._selected_component.find_path("docs/api")
-        self._selected_component.create_or_empty(dist_md_path)
-        self._selected_component.run(
-            "sphinx-build",
-            "-M",
-            "markdown",
-            "dist/sphinx-apidoc",
-            "dist/sphinx-markdown",
-        )
-        # empty the docs/api directory from previous runs, except the .gitignore file
-        # this can probably be done more elegantly
-        gitignore = (api_docs_path / ".gitignore").read_text()
-        self._selected_component.create_or_empty(api_docs_path)
-        (api_docs_path / ".gitignore").write_text(gitignore)
-
-        self._selected_component.copy_tree(dist_md_path / "markdown", api_docs_path)
-
-    @cli.command()
     def mkdocs_build(self) -> None:
         """Build the mkdocs site for every component in the project."""
         self._do_mkdocs_things("build")
 
     @cli.command()
     def mkdocs_serve(self) -> None:
-        """
-        Serve the mkdocs site for the project and monitor files for changes.
-
-        This command does not automatically update api documentation, but will update if the sphinx
-        commands are run in a separate process.
-        """
+        """Serve the mkdocs site for the project and monitor files for changes."""
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:

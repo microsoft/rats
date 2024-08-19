@@ -27,11 +27,6 @@ pytest-nunit = "*"
 ruff = "*"
 types-urllib3 = "*"
 
-[tool.poetry.group.docs.dependencies]
-sphinx = "*"
-sphinx-autodoc-typehints = "*"
-sphinx-markdown-builder = "*"
-
 [tool.poetry.scripts]
 
 [tool.poetry.plugins."rats.app_plugins"]

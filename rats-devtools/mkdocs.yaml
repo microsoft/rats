@@ -55,6 +55,34 @@ extra_css:
 #  - js/tex-mml-chtml.js
 plugins:
   - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths:
+            # we don't need to install packages to generate docs any more
+            # these paths should be relative from rats-devtools/dist
+            # we can automate the detection of this list later
+            - "../../rats/src/python"
+            - "../../rats-apps/src/python"
+            - "../../rats-devtools/src/python"
+            - "../../rats-pipelines/src/python"
+            - "../../rats-processors/src/python"
+            - "../../rats-examples-datasets/src/python"
+            - "../../rats-examples-minimal/src/python"
+            - "../../rats-examples-sklearn/src/python"
+          options:
+            show_inheritance_diagram: true
+            show_if_no_docstring: true
+            show_symbol_type_toc: true
+            show_symbol_type_heading: true
+            show_signature_annotations: true
+            group_by_category: true
+            show_category_heading: true
+            docstring_options:
+              ignore_init_summary: false
+              merge_init_into_class: true
+              separate_signature: true
   - awesome-pages
   - mkdocs-video:
       is_video: true
@@ -94,6 +122,3 @@ markdown_extensions:
   # https://github.com/microsoft/rats/security/code-scanning/4
   #  - pymdownx.arithmatex:
   #      generic: true
-  # Needed because sphinx is generating lists with 2 spaces which is not supported by mkdocs
-  # See: https://github.com/mkdocs/mkdocs/issues/545
-  - mdx_truly_sane_lists

@@ -13,14 +13,24 @@ keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
 
 [tool.poetry.dependencies]
+python = "^3.10"
+# app development
 rats-apps = "*"
 click = "*"
-python = "^3.10"
 toml = "*"
 twine = "*"
+# workflowing
 kubernetes = "*"
 azure-ai-ml = "*"
 azure-identity = "*"
+# documentation tooling
+mkdocs = "*"
+mkdocs-awesome-pages-plugin = "*"
+mkdocs-material = "*"
+mkdocs-video = "*"
+mdx-truly-sane-lists = "*"
+mkdocstrings = "*"
+mkdocstrings-python = "*"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -30,18 +40,6 @@ pytest-cov = "*"
 pytest-nunit = "*"
 setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "*"
-mkdocs-awesome-pages-plugin = "*"
-mkdocs-material = "*"
-mkdocs-video = "*"
-mdx-truly-sane-lists = "*"
-# Fix CVE-2023-32309 pymdown-extensions 9.10
-pymdown-extensions = { version = ">=10.0.0" }
-sphinx = "*"
-sphinx-autodoc-typehints = "*"
-sphinx-markdown-builder = "*"
 
 [tool.poetry.group.local.dependencies]
 # putting the local dependencies in a poetry group ensures pip never sees them

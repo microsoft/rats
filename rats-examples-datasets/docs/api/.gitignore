@@ -1,4 +1,0 @@
-# Sphinx generates the contents of this directory before mkdocs renders the site.
-# Nothing in this directory should be edited manually or committed to the repo.
-*
-!.gitignore
