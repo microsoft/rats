@@ -87,6 +87,7 @@ class AmlRuntime(apps.Runtime):
             compute=config.compute,
             environment=config.environment.full_name,
             environment_variables={
+                # we always define the two devtools envs and let the user define others
                 **config.env_variables,
                 "DEVTOOLS_EXE_IDS": exes_json,
                 "DEVTOOLS_EVENT_IDS": groups_json,

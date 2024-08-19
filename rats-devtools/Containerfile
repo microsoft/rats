@@ -5,6 +5,7 @@ ENV PIPX_BIN_DIR="/usr/local/bin"
 ENV PIPX_HOME=/opt/pipx
 
 RUN <<HEREDOC
+# install package dependencies and create nonroot user
 set -eux
 
 useradd -u 1001 -m nonroot
@@ -33,6 +34,7 @@ COPY rats-devtools/README.md /opt/rats/rats-devtools/README.md
 COPY rats-apps /opt/rats/rats-apps
 # create the skeleton of the packages so they install successfully
 RUN <<HEREDOC
+# create skeleton of python packages
 set -eux
 mkdir -p /opt/rats/rats-devtools/src/python/rats/amlruntime
 mkdir -p /opt/rats/rats-devtools/src/python/rats/ci
@@ -58,6 +60,7 @@ HEREDOC
 
 WORKDIR /opt/rats/rats-devtools
 RUN <<HEREDOC
+# install python package dependencies!
 set -eux
 
 python3 -m venv .venv

@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+from collections.abc import Iterator
 
 import click
 
@@ -15,6 +16,7 @@ class PluginCommands(cli.CommandContainer):
     _cwd_component_tools: projects.ComponentTools
     _worker_node_runtime: apps.Runtime
     _aml_runtime: apps.Provider[apps.Runtime]
+    _aml_exes: apps.Provider[Iterator[apps.ServiceId[apps.Executable], ...]]
 
     def __init__(
         self,
@@ -22,11 +24,19 @@ class PluginCommands(cli.CommandContainer):
         cwd_component_tools: projects.ComponentTools,
         standard_runtime: apps.Runtime,
         aml_runtime: apps.Provider[apps.Runtime],
+        aml_exes: apps.Provider[Iterator[apps.ServiceId[apps.Executable], ...]],
     ) -> None:
         self._project_tools = project_tools
         self._cwd_component_tools = cwd_component_tools
         self._worker_node_runtime = standard_runtime
         self._aml_runtime = aml_runtime
+        self._aml_exes = aml_exes
+
+    @cli.command()
+    def _list(self) -> None:
+        """List all the exes and groups that announce their availability to be submitted to aml."""
+        for exe in self._aml_exes():
+            click.echo(f"Exe: {exe.name}")
 
     @cli.command()
     @click.option("--exe-id", multiple=True)

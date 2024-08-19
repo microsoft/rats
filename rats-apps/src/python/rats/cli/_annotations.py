@@ -18,7 +18,8 @@ T = TypeVar("T", bound=Callable[[Any], Any])
 def command(command_id: CommandId = AUTO_COMMAND) -> Callable[..., apps.Executable]:
     def decorator(fn: T) -> T:
         if command_id == AUTO_COMMAND:
-            return anns.annotation("commands", CommandId(fn.__name__.replace("_", "-")))(fn)
+            cmd_name = fn.__name__.replace("_", "-").strip("-")
+            return anns.annotation("commands", CommandId(cmd_name))(fn)
         return anns.annotation("commands", command_id)(fn)
 
     return decorator  # type: ignore[reportReturnType]

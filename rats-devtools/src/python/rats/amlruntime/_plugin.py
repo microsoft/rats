@@ -17,6 +17,7 @@ from ._runtime import AmlRuntime, RuntimeConfig
 @apps.autoscope
 class _PluginConfigs:
     AML_RUNTIME = apps.ServiceId[RuntimeConfig]("aml-runtime")
+    EXE_GROUP = apps.ServiceId[apps.ServiceId[apps.Executable]]("exe-group")
 
     @staticmethod
     def component_runtime(name: str) -> apps.ServiceId[RuntimeConfig]:
@@ -78,6 +79,7 @@ class PluginContainer(apps.Container):
             # on worker nodes, we always want the simple local runtime, for now.
             standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
             aml_runtime=self._app.get(PluginServices.AML_RUNTIME),
+            aml_exes=lambda: self._app.get_group(PluginServices.CONFIGS.EXE_GROUP),
         )
 
     @apps.service(PluginServices.AML_RUNTIME)
@@ -124,3 +126,7 @@ class PluginContainer(apps.Container):
             resource_group_name=workspace.resource_group_name,
             workspace_name=workspace.workspace_name,
         )
+
+    @apps.fallback_group(PluginServices.CONFIGS.EXE_GROUP)
+    def _default_exes(self) -> apps.ServiceId[apps.Executable]:
+        return PluginServices.MAIN_EXE
