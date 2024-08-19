@@ -5,6 +5,7 @@ import time
 import uuid
 from collections.abc import Callable
 from datetime import datetime
+from functools import cache
 from hashlib import sha256
 from pathlib import Path
 from typing import Any, NamedTuple
@@ -58,7 +59,7 @@ class K8sWorkflowRun(apps.Executable):
 
     @property
     def _run_hash(self) -> str:
-        d = datetime.now()
+        d = self._instance_datetime()  # use a cached value so this instance does not mutate
         return f"{d.strftime('%Y%m%d.%H.%M.%S')}.{sha256(self._id.encode()).hexdigest()}"
 
     @property
@@ -263,6 +264,10 @@ class K8sWorkflowRun(apps.Executable):
                 },
             }
         ]
+
+    @cache  # noqa: B019
+    def _instance_datetime(self) -> datetime:
+        return datetime.now()
 
 
 class K8sRuntime(apps.Runtime):
