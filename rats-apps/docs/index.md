@@ -2,8 +2,8 @@ title: Introduction
 ---
 ## rats-apps
 
-The `rats-apps` package helps create applications; a small set of modules that eliminate the most 
-common boilerplate code when creating applications of any kind. Install it with `pip install 
+The `rats-apps` package helps create applications; a small set of modules that eliminate the most
+common boilerplate code when creating applications of any kind. Install it with `pip install
 rats-apps`!
 
 ### What is an application?
