@@ -39,8 +39,7 @@ jobs:
         run: |
           cd ${{ matrix.component }}
           rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
-          rats-devtools.pipx ci install
-          rats-devtools.pipx ci all-checks
+          rats-devtools.pipx ci install check test
       - name: upload-coverage
         uses: codecov/codecov-action@v4.5.0
         with:

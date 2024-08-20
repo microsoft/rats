@@ -1,6 +1,6 @@
 # type: ignore[reportUntypedFunctionDecorator]
 import logging
-from collections.abc import Iterable
+from typing import NamedTuple
 
 import click
 
@@ -9,53 +9,58 @@ from rats import apps, cli, projects
 logger = logging.getLogger(__name__)
 
 
+class CiCommandGroups(NamedTuple):
+    install: tuple[tuple[str, ...], ...]
+    fix: tuple[tuple[str, ...], ...]
+    check: tuple[tuple[str, ...], ...]
+    test: tuple[tuple[str, ...], ...]
+
+
 class PluginCommands(cli.CommandContainer):
     _project_tools: apps.Provider[projects.ProjectTools]
     _selected_component: apps.Provider[projects.ComponentTools]
     _devtools_component: apps.Provider[projects.ComponentTools]
+    _command_groups: apps.Provider[CiCommandGroups]
 
     def __init__(
         self,
         project_tools: apps.Provider[projects.ProjectTools],
         selected_component: apps.Provider[projects.ComponentTools],
         devtools_component: apps.Provider[projects.ComponentTools],
+        command_groups: apps.Provider[CiCommandGroups],
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
         self._devtools_component = devtools_component
+        self._command_groups = command_groups
 
     @cli.command()
     def install(self) -> None:
-        """
-        Install the package in the current environment.
-
-        Typically, this just require running `poetry install`. However, some components may run
-        additional steps to make the package ready for development. This command does not
-        necessarily represent the steps required to install the package in a production
-        environments. For most components, this command installs the development dependencies.
-        """
-        self._selected_component().install()
+        """Install the development environment for the component."""
+        for cmd in self._command_groups().install:
+            self._selected_component().run(*cmd)
+        print(f"ran {len(self._command_groups().install)} installation commands")
 
     @cli.command()
-    def all_checks(self) -> None:
-        """
-        Run all the required checks for the component.
-
-        In many cases, if this command completes without error, the CI pipelines in the Pull
-        Request should also pass. If the checks for a component run quickly enough, this command
-        can be used as a pre-commit hook.
-        """
-        self._selected_component().pytest()
-        self._selected_component().pyright()
-        self._selected_component().ruff("format", "--check")
-        self._selected_component().ruff("check")
-
-    @cli.command()
-    @click.argument("files", nargs=-1, type=click.Path(exists=True))
-    def fix(self, files: Iterable[str]) -> None:
+    def fix(self) -> None:
         """Run any configured auto-formatters for the component."""
-        self._selected_component().run("ruff", "format", *files)
-        self._selected_component().run("ruff", "check", "--fix", "--unsafe-fixes", *files)
+        for cmd in self._command_groups().fix:
+            self._selected_component().run(*cmd)
+        print(f"ran {len(self._command_groups().fix)} fix commands")
+
+    @cli.command()
+    def check(self) -> None:
+        """Run any configured linting & typing checks for the component."""
+        for cmd in self._command_groups().check:
+            self._selected_component().run(*cmd)
+        print(f"ran {len(self._command_groups().check)} check commands")
+
+    @cli.command()
+    def test(self) -> None:
+        """Run any configured tests for the component."""
+        for cmd in self._command_groups().test:
+            self._selected_component().run(*cmd)
+        print(f"ran {len(self._command_groups().test)} test commands")
 
     @cli.command()
     @click.argument("version")
