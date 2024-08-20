@@ -34,7 +34,9 @@ class PluginContainer(apps.Container):
         return PluginCommands(
             project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
             selected_component=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
-            devtools_component=lambda: self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS),
+            devtools_component=lambda: self._app.get(
+                projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS
+            ),
         )
 
     @apps.service(PluginServices.MAIN_EXE)
