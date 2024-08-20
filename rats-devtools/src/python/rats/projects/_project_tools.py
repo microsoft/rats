@@ -174,7 +174,7 @@ class ProjectTools:
             if not tool_info["enabled"]:
                 # we don't recognize components unless they enable rats-devtools
                 # play nice and don't surprise people
-                logger.info(f"detected unmanaged component: {p.name}")
+                logger.debug(f"detected unmanaged component: {p.name}")
                 continue
 
             # how do we stop depending on poetry here?

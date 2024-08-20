@@ -32,9 +32,9 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
-            project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
-            selected_component=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
-            devtools_component=self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS),
+            project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
+            selected_component=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
+            devtools_component=lambda: self._app.get(projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS),
         )
 
     @apps.service(PluginServices.MAIN_EXE)

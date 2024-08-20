@@ -4,21 +4,21 @@ from collections.abc import Iterable
 
 import click
 
-from rats import cli, projects
+from rats import apps, cli, projects
 
 logger = logging.getLogger(__name__)
 
 
 class PluginCommands(cli.CommandContainer):
-    _project_tools: projects.ProjectTools
-    _selected_component: projects.ComponentTools
-    _devtools_component: projects.ComponentTools
+    _project_tools: apps.Provider[projects.ProjectTools]
+    _selected_component: apps.Provider[projects.ComponentTools]
+    _devtools_component: apps.Provider[projects.ComponentTools]
 
     def __init__(
         self,
-        project_tools: projects.ProjectTools,
-        selected_component: projects.ComponentTools,
-        devtools_component: projects.ComponentTools,
+        project_tools: apps.Provider[projects.ProjectTools],
+        selected_component: apps.Provider[projects.ComponentTools],
+        devtools_component: apps.Provider[projects.ComponentTools],
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
@@ -34,7 +34,7 @@ class PluginCommands(cli.CommandContainer):
         necessarily represent the steps required to install the package in a production
         environments. For most components, this command installs the development dependencies.
         """
-        self._selected_component.install()
+        self._selected_component().install()
 
     @cli.command()
     def all_checks(self) -> None:
@@ -45,33 +45,33 @@ class PluginCommands(cli.CommandContainer):
         Request should also pass. If the checks for a component run quickly enough, this command
         can be used as a pre-commit hook.
         """
-        self._selected_component.pytest()
-        self._selected_component.pyright()
-        self._selected_component.ruff("format", "--check")
-        self._selected_component.ruff("check")
+        self._selected_component().pytest()
+        self._selected_component().pyright()
+        self._selected_component().ruff("format", "--check")
+        self._selected_component().ruff("check")
 
     @cli.command()
     @click.argument("files", nargs=-1, type=click.Path(exists=True))
     def fix(self, files: Iterable[str]) -> None:
         """Run any configured auto-formatters for the component."""
-        self._selected_component.run("ruff", "format", *files)
-        self._selected_component.run("ruff", "check", "--fix", "--unsafe-fixes", *files)
+        self._selected_component().run("ruff", "format", *files)
+        self._selected_component().run("ruff", "check", "--fix", "--unsafe-fixes", *files)
 
     @cli.command()
     @click.argument("version")
     def update_version(self, version: str) -> None:
         """Update the version of the package found in pyproject.toml."""
-        self._selected_component.poetry("version", version)
+        self._selected_component().poetry("version", version)
 
     @cli.command()
     def build_wheel(self) -> None:
         """Build a wheel for the package."""
-        self._selected_component.poetry("build", "-f", "wheel")
+        self._selected_component().poetry("build", "-f", "wheel")
 
     @cli.command()
     def build_image(self) -> None:
         """Update the version of the package found in pyproject.toml."""
-        self._project_tools.build_component_image(self._selected_component.find_path(".").name)
+        self._project_tools().build_component_image(self._selected_component().find_path(".").name)
 
     @cli.command()
     @click.argument("repository_name")
@@ -82,7 +82,7 @@ class PluginCommands(cli.CommandContainer):
         This command assumes the caller has the required permissions and the specified repository
         has been configured with poetry.
         """
-        self._selected_component.poetry(
+        self._selected_component().poetry(
             "publish",
             "--repository",
             repository_name,

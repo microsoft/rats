@@ -12,17 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 class PluginCommands(cli.CommandContainer):
-    _project_tools: projects.ProjectTools
-    _cwd_component_tools: projects.ComponentTools
-    _worker_node_runtime: apps.Runtime
+    _project_tools: apps.Provider[projects.ProjectTools]
+    _cwd_component_tools: apps.Provider[projects.ComponentTools]
+    _worker_node_runtime: apps.Provider[apps.Runtime]
     _aml_runtime: apps.Provider[apps.Runtime]
     _aml_exes: apps.Provider[Iterator[apps.ServiceId[apps.Executable], ...]]
 
     def __init__(
         self,
-        project_tools: projects.ProjectTools,
-        cwd_component_tools: projects.ComponentTools,
-        standard_runtime: apps.Runtime,
+        project_tools: apps.Provider[projects.ProjectTools],
+        cwd_component_tools: apps.Provider[projects.ComponentTools],
+        standard_runtime: apps.Provider[apps.Runtime],
         aml_runtime: apps.Provider[apps.Runtime],
         aml_exes: apps.Provider[Iterator[apps.ServiceId[apps.Executable], ...]],
     ) -> None:
@@ -46,7 +46,7 @@ class PluginCommands(cli.CommandContainer):
         if len(exe_id) == 0 and len(group_id) == 0:
             raise ValueError("No executables or groups were passed to the command")
 
-        self._project_tools.build_component_image(self._cwd_component_tools.component_name())
+        self._project_tools().build_component_image(self._cwd_component_tools().component_name())
 
         exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
         groups = [apps.ServiceId[apps.Executable](group) for group in group_id]
@@ -74,5 +74,5 @@ class PluginCommands(cli.CommandContainer):
             object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
         )
 
-        self._worker_node_runtime.execute(*exe_ids)
-        self._worker_node_runtime.execute_group(*group_ids)
+        self._worker_node_runtime().execute(*exe_ids)
+        self._worker_node_runtime().execute_group(*group_ids)

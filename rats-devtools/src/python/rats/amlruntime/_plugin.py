@@ -74,11 +74,11 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
-            project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
-            cwd_component_tools=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
+            project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
+            cwd_component_tools=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
-            standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
-            aml_runtime=self._app.get(PluginServices.AML_RUNTIME),
+            standard_runtime=lambda: self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            aml_runtime=lambda: self._app.get(PluginServices.AML_RUNTIME),
             aml_exes=lambda: self._app.get_group(PluginServices.CONFIGS.EXE_GROUP),
         )
 

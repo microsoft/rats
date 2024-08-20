@@ -1,21 +1,21 @@
 # type: ignore[reportUntypedFunctionDecorator]
 import logging
 
-from rats import cli, projects
+from rats import apps, cli, projects
 
 logger = logging.getLogger(__name__)
 
 
 class PluginCommands(cli.CommandContainer):
-    _project_tools: projects.ProjectTools
-    _selected_component: projects.ComponentTools
-    _devtools_component: projects.ComponentTools
+    _project_tools: apps.Provider[projects.ProjectTools]
+    _selected_component: apps.Provider[projects.ComponentTools]
+    _devtools_component: apps.Provider[projects.ComponentTools]
 
     def __init__(
         self,
-        project_tools: projects.ProjectTools,
-        selected_component: projects.ComponentTools,
-        devtools_component: projects.ComponentTools,
+        project_tools: apps.Provider[projects.ProjectTools],
+        selected_component: apps.Provider[projects.ComponentTools],
+        devtools_component: apps.Provider[projects.ComponentTools],
     ) -> None:
         self._project_tools = project_tools
         self._selected_component = selected_component
@@ -32,30 +32,30 @@ class PluginCommands(cli.CommandContainer):
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
-        root_docs_path = self._devtools_component.find_path("src/resources/root-docs")
-        mkdocs_config = self._devtools_component.find_path("mkdocs.yaml")
-        mkdocs_staging_path = self._devtools_component.find_path("dist/docs")
-        site_dir_path = self._devtools_component.find_path("dist/site")
-        mkdocs_staging_config = self._devtools_component.find_path("dist/mkdocs.yaml")
+        root_docs_path = self._devtools_component().find_path("src/resources/root-docs")
+        mkdocs_config = self._devtools_component().find_path("mkdocs.yaml")
+        mkdocs_staging_path = self._devtools_component().find_path("dist/docs")
+        site_dir_path = self._devtools_component().find_path("dist/site")
+        mkdocs_staging_config = self._devtools_component().find_path("dist/mkdocs.yaml")
         # clear any stale state
-        self._devtools_component.create_or_empty(mkdocs_staging_path)
+        self._devtools_component().create_or_empty(mkdocs_staging_path)
         # start with the contents of our root-docs
-        self._devtools_component.copy_tree(root_docs_path, mkdocs_staging_path)
-        self._devtools_component.symlink(
+        self._devtools_component().copy_tree(root_docs_path, mkdocs_staging_path)
+        self._devtools_component().symlink(
             # use the README.md at the root as the homepage of the docs site
-            self._project_tools.repo_root() / "README.md",
+            self._project_tools().repo_root() / "README.md",
             mkdocs_staging_path / "index.md",
         )
-        components = self._project_tools.discover_components()
+        components = self._project_tools().discover_components()
 
         for c in components:
-            comp_tools = self._project_tools.get_component(c.name)
+            comp_tools = self._project_tools().get_component(c.name)
             docs_path = comp_tools.find_path("docs")
-            self._devtools_component.symlink(docs_path, mkdocs_staging_path / c.name)
+            self._devtools_component().symlink(docs_path, mkdocs_staging_path / c.name)
 
         # replace the mkdocs config with a fresh version
         mkdocs_staging_config.unlink(missing_ok=True)
-        self._devtools_component.copy(mkdocs_config, mkdocs_staging_config)
+        self._devtools_component().copy(mkdocs_config, mkdocs_staging_config)
 
         args = [
             "--config-file",
@@ -64,7 +64,7 @@ class PluginCommands(cli.CommandContainer):
         if cmd == "build":
             args.extend(["--site-dir", str(site_dir_path.resolve())])
 
-        self._devtools_component.run("mkdocs", cmd, *args)
+        self._devtools_component().run("mkdocs", cmd, *args)
 
     @cli.command()
     def build_tutorial_notebooks(self) -> None:
@@ -74,14 +74,14 @@ class PluginCommands(cli.CommandContainer):
         Converts each *.py jupytext file in the component's docs/_tutorial_notebook_sources
         folder into a markdown notebook in the component's docs/_tutorial_notebooks folder.
         """
-        nb_convert_templates_path = self._devtools_component.find_path(
+        nb_convert_templates_path = self._devtools_component().find_path(
             "src/resources/nbconvert-templates"
         )
-        jupytext_sources_path = self._selected_component.find_path(
+        jupytext_sources_path = self._selected_component().find_path(
             "docs/_tutorial_notebook_sources"
         )
-        notebooks_target_path = self._selected_component.find_path("docs/_tutorial_notebooks")
-        self._selected_component.create_or_empty(notebooks_target_path)
+        notebooks_target_path = self._selected_component().find_path("docs/_tutorial_notebooks")
+        self._selected_component().create_or_empty(notebooks_target_path)
         source_file_names = [f.stem for f in jupytext_sources_path.glob("*.py")]
 
         # symlink the jupytext files to the target path
@@ -91,13 +91,13 @@ class PluginCommands(cli.CommandContainer):
                 jupytext_sources_path / f"{file_name}.py"
             )
 
-        self._selected_component.run(
+        self._selected_component().run(
             "jupytext",
             "--to",
             "ipynb",
             f"{notebooks_target_path!s}/*.py",
         )
-        self._selected_component.run(
+        self._selected_component().run(
             "jupyter",
             "nbconvert",
             f"{notebooks_target_path!s}/*.ipynb",

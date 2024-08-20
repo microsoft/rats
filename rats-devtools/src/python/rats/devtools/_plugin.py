@@ -70,4 +70,4 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
-        return PluginCommands(self._app.get(projects.PluginServices.PROJECT_TOOLS))
+        return PluginCommands(lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS))
