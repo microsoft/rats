@@ -18,7 +18,7 @@ class PluginServices:
 
     @staticmethod
     def component_runtime(name: str) -> apps.ServiceId[apps.Runtime]:
-        return apps.ServiceId[apps.Runtime](f"{PluginServices.K8S_RUNTIME}[{name}][runtime]")
+        return apps.ServiceId[apps.Runtime](f"{PluginServices.K8S_RUNTIME.name}[{name}][runtime]")
 
     @staticmethod
     def component_command(name: str) -> apps.ServiceId[tuple[str, ...]]:
@@ -60,11 +60,11 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
         return PluginCommands(
-            project_tools=self._app.get(projects.PluginServices.PROJECT_TOOLS),
-            cwd_component_tools=self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
+            project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
+            cwd_component_tools=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
-            worker_node_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
-            k8s_runtime=self._app.get(PluginServices.K8S_RUNTIME),
+            worker_node_runtime=lambda: self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            k8s_runtime=lambda: self._app.get(PluginServices.K8S_RUNTIME),
         )
 
     @apps.service(PluginServices.K8S_RUNTIME)
