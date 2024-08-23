@@ -7,7 +7,12 @@ component is a separate entity that can be built, tested, and released independe
 
 from ._component_tools import ComponentId, ComponentTools, UnsetComponentTools
 from ._plugin import PluginContainer, PluginServices, find_repo_root
-from ._project_tools import ComponentNotFoundError, ProjectNotFoundError, ProjectTools
+from ._project_tools import (
+    ComponentNotFoundError,
+    ProjectConfig,
+    ProjectNotFoundError,
+    ProjectTools,
+)
 
 __all__ = [
     "ComponentId",
@@ -16,6 +21,7 @@ __all__ = [
     "ComponentTools",
     "UnsetComponentTools",
     "ProjectTools",
+    "ProjectConfig",
     "ComponentNotFoundError",
     "ProjectNotFoundError",
     "find_repo_root",
