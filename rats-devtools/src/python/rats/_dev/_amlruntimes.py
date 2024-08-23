@@ -48,7 +48,7 @@ class AmlRuntimePluginContainer(apps.Container):
 
     def _component_aml_runtime_config(self, name: str) -> amlruntime.RuntimeConfig:
         # think of this as a worker node running our executables
-        reg = os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local")
+        reg = os.environ.get("DEVTOOLS_IMAGE_REGISTRY", "default.local")
         project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         context_hash = project_tools.image_context_hash()
 

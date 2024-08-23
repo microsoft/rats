@@ -33,7 +33,7 @@ class KubeRuntimePluginContainer(apps.Container):
 
     def _k8s_component_runtime(self, name: str) -> kuberuntime.K8sRuntime:
         def _container_images() -> tuple[kuberuntime.KustomizeImage, ...]:
-            reg = os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local")
+            reg = os.environ.get("DEVTOOLS_IMAGE_REGISTRY", "default.local")
             project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
             context_hash = project_tools.image_context_hash()
             return (

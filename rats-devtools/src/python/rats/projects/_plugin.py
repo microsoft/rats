@@ -72,8 +72,8 @@ class PluginContainer(apps.Container):
         return ProjectConfig(
             name=os.environ.get("DEVTOOLS_PROJECT_NAME", "default-project"),
             path=repo_root,
-            image_registry=os.environ.get("DEVTOOLS_K8S_IMAGE_REGISTRY", "default.local"),
-            image_push_on_build=True,
+            image_registry=os.environ.get("DEVTOOLS_IMAGE_REGISTRY", "default.local"),
+            image_push_on_build=bool(os.environ.get("DEVTOOLS_IMAGE_PUSH_ON_BUILD", True)),
         )
 
 
