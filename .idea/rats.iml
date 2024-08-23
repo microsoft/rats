@@ -15,6 +15,7 @@
     <orderEntry type="module" module-name="rats-apps" />
     <orderEntry type="module" module-name="rats-examples-datasets" />
     <orderEntry type="module" module-name="rats-examples-sklearn" />
+    <orderEntry type="module" module-name="rats-contrib-jesus" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />

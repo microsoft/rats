@@ -18,4 +18,18 @@ class ProjectPluginContainer(apps.Container):
                     projects.PluginServices.PROJECT_TOOLS,
                 ).get_component("rats-devtools"),
             ),
+            apps.StaticProvider(
+                apps.ProviderNamespaces.SERVICES,
+                projects.PluginServices.component_tools("rats-examples-datasets"),
+                lambda: self._app.get(
+                    projects.PluginServices.PROJECT_TOOLS,
+                ).get_component("rats-examples-datasets"),
+            ),
+            apps.StaticProvider(
+                apps.ProviderNamespaces.SERVICES,
+                projects.PluginServices.component_tools("rats-contrib-jesus"),
+                lambda: self._app.get(
+                    projects.PluginServices.PROJECT_TOOLS,
+                ).get_component("rats-contrib-jesus"),
+            ),
         )
