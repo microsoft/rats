@@ -4,8 +4,7 @@ import time
 from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
-from azure.ai.ml import MLClient, command, Output
-from azure.ai.ml.constants import AssetTypes
+from azure.ai.ml import MLClient, Output, command
 from azure.ai.ml.entities import Environment
 from azure.ai.ml.operations import EnvironmentOperations, JobOperations
 from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
@@ -95,8 +94,7 @@ class AmlRuntime(apps.Runtime):
             compute=config.compute,
             environment=config.environment.full_name,
             outputs={
-                k: Output(type=v.type, path=v.path, mode=v.mode)
-                for k, v in config.outputs.items()
+                k: Output(type=v.type, path=v.path, mode=v.mode) for k, v in config.outputs.items()
             },
             environment_variables={
                 # we always define the two devtools envs and let the user define others
