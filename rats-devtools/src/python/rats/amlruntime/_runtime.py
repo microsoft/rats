@@ -4,7 +4,8 @@ import time
 from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
-from azure.ai.ml import MLClient, command
+from azure.ai.ml import MLClient, command, Output
+from azure.ai.ml.constants import AssetTypes
 from azure.ai.ml.entities import Environment
 from azure.ai.ml.operations import EnvironmentOperations, JobOperations
 from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
@@ -30,10 +31,17 @@ class AmlEnvironment(NamedTuple):
         return f"{self.name}:{self.version}"
 
 
+class AmlOutput(NamedTuple):
+    type: str
+    path: str
+    mode: str
+
+
 class RuntimeConfig(NamedTuple):
     command: str
     compute: str
     env_variables: Mapping[str, str]
+    outputs: Mapping[str, AmlOutput]
     workspace: AmlWorkspace
     environment: AmlEnvironment
 
@@ -86,6 +94,10 @@ class AmlRuntime(apps.Runtime):
             command=config.command,
             compute=config.compute,
             environment=config.environment.full_name,
+            outputs={
+                k: Output(type=v.type, path=v.path, mode=v.mode)
+                for k, v in config.outputs.items()
+            },
             environment_variables={
                 # we always define the two devtools envs and let the user define others
                 **config.env_variables,

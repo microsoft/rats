@@ -79,6 +79,7 @@ class AmlRuntimePluginContainer(apps.Container):
             command=cmds[name],
             env_variables=dict(),
             compute=os.environ.get("DEVTOOLS_AMLRUNTIME_COMPUTE", "default"),
+            outputs={},
             workspace=amlruntime.AmlWorkspace(
                 subscription_id=os.environ.get("DEVTOOLS_AMLRUNTIME_SUBSCRIPTION_ID", ""),
                 resource_group_name=os.environ.get("DEVTOOLS_AMLRUNTIME_RESOURCE_GROUP", ""),
