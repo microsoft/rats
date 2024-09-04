@@ -4,41 +4,61 @@ from .example import DummyContainerServiceIds, ExampleApp
 class TestServiceCaching:
     _app: ExampleApp = ExampleApp()
 
-    def test_service_caching(self) -> None:
+    def test_caching_of_multiple_service_calls(self) -> None:
+        # service declared with autoid_service
         c1s1a = self._app.get(DummyContainerServiceIds.C1S1A)
         c1s1a_ = self._app.get(DummyContainerServiceIds.C1S1A)
+
+        # the object created in the first call should be cached
+        assert c1s1a is c1s1a_
+
+        # service declared with given service id.  internally, it calls
+        # the same service as C1S1A, so it should be cached as well.
         c1s1b = self._app.get(DummyContainerServiceIds.C1S1B)
-        c1s1b_ = self._app.get(DummyContainerServiceIds.C1S1B)
+
+        assert c1s1b is c1s1a
+
+        # service declared with given service id.  internally, it calls the method behind C1S1A,
+        # but not via the service id.  This should be a separate object, but cached between the
+        # following two calls.
         c1s1c = self._app.get(DummyContainerServiceIds.C1S1C)
         c1s1c_ = self._app.get(DummyContainerServiceIds.C1S1C)
 
-        assert c1s1a is c1s1a_
-        assert c1s1b is c1s1b_
+        assert c1s1c is not c1s1a
         assert c1s1c is c1s1c_
-        assert c1s1a.get_tag() == "c1.s1"
-        assert c1s1b.get_tag() == "c1.s1"
-        assert c1s1c.get_tag() == "c1.s1"
-        assert c1s1a is c1s1b
-        assert c1s1a is not c1s1c
 
+        # The tags the two objects should be identical:
+        assert c1s1a.get_tag() == "c1.s1"
+        assert c1s1c.get_tag() == "c1.s1"
+
+    def test_caching_of_multiple_service_ids(self) -> None:
+        # two service ids decorating the same method
         c1s2a = self._app.get(DummyContainerServiceIds.C1S2A)
         c1s2a_ = self._app.get(DummyContainerServiceIds.C1S2A)
         c1s2b = self._app.get(DummyContainerServiceIds.C1S2B)
         c1s2b_ = self._app.get(DummyContainerServiceIds.C1S2B)
 
+        # multiple calls using the same service id should return the same object
         assert c1s2a is c1s2a_
         assert c1s2b is c1s2b_
-        assert c1s2a.get_tag() == "c1.s2"
-        assert c1s2b.get_tag() == "c1.s2"
+
+        # but calls using different service ids should return different objects
         assert c1s2a is not c1s2b
 
+        # the tags the two objects should be identical:
+        assert c1s2a.get_tag() == "c1.s2"
+        assert c1s2b.get_tag() == "c1.s2"
+
+    def test_caching_of_service_calls_between_containers(self) -> None:
+        # C2S1A calls C2S1B, which is a service in another container.
         c2s1a = self._app.get(DummyContainerServiceIds.C2S1A)
         c2s1a_ = self._app.get(DummyContainerServiceIds.C2S1A)
         c2s1b = self._app.get(DummyContainerServiceIds.C2S1B)
         c2s1b_ = self._app.get(DummyContainerServiceIds.C2S1B)
 
+        # All calls should return the same object
         assert c2s1a is c2s1a_
         assert c2s1b is c2s1b_
-        assert c2s1a.get_tag() == "c2.s1"
-        assert c2s1b.get_tag() == "c2.s1"
         assert c2s1a is c2s1b
+
+        assert c2s1a.get_tag() == "c2.s1"
