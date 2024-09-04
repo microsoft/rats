@@ -125,10 +125,14 @@ class Container(Protocol):
         groups = tates.with_group(namespace, cast(NamedTuple, group_id))
 
         for annotation in groups.annotations:
-            if not hasattr(self, f"__rats_cache_{annotation.name}"):
-                setattr(self, f"__rats_cache_{annotation.name}", getattr(self, annotation.name)())
+            if not hasattr(self, f"__rats_cache_{annotation.name}_{group_id.name}"):
+                setattr(
+                    self,
+                    f"__rats_cache_{annotation.name}_{group_id.name}",
+                    getattr(self, annotation.name)(),
+                )
 
-            yield getattr(self, f"__rats_cache_{annotation.name}")
+            yield getattr(self, f"__rats_cache_{annotation.name}_{group_id.name}")
 
         for annotation in containers.annotations:
             if not hasattr(self, f"__rats_container_cache_{annotation.name}"):
@@ -138,7 +142,7 @@ class Container(Protocol):
                     getattr(self, annotation.name)(),
                 )
 
-            c = getattr(self, f"__rats_container_cache_{annotation.name}")
+            c: Container = getattr(self, f"__rats_container_cache_{annotation.name}")
             yield from c.get_namespaced_group(namespace, group_id)
 
 

@@ -8,17 +8,9 @@ class ITag(Protocol):
         """Get the tag."""
 
 
-class Tag1:
+class Tag:
     def __init__(self, ns: str) -> None:
         self._ns = ns
 
     def get_tag(self) -> str:
-        return f"{self._ns}:t1"
-
-
-class Tag2:
-    def __init__(self, ns: str) -> None:
-        self._ns = ns
-
-    def get_tag(self) -> str:
-        return f"{self._ns}:t2"
+        return self._ns
