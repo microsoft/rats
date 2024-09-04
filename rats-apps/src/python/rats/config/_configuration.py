@@ -1,8 +1,11 @@
+from ast import Call
 import functools
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any, Generic, NamedTuple, ParamSpec, Protocol, TypeVar
 
 from rats import annotations, apps
+from ._annotations import ProviderNamespaces
+
 
 _CONFIGURATION_ANNOTATION_KEY = "__rats_config__"
 
@@ -80,121 +83,60 @@ T_Container = TypeVar("T_Container", bound=apps.Container)
 T = TypeVar("T")
 
 
-def _get_service_id(
-    method: Callable[[T_Container], Callable[P, T]],
-) -> apps.ServiceId[Callable[P, T]]:
-    tates = annotations.get_annotations(method)
-    tates = tates.with_namespace(apps.ProviderNamespaces.SERVICES)
-    service_ids: tuple[apps.ServiceId[Callable[P, T]]] = tuple(
-        service_id for group in tates.annotations for service_id in group.groups
-    )
-    return service_ids[0]
+class FactoryToFactoryWithConfig:
+    _get_configuration_from_object: GetConfigurationFromObject
 
+    def __init__(self, get_configuration_from_object: GetConfigurationFromObject) -> None:
+        self._get_configuration_from_object = get_configuration_from_object
 
-def _factory_to_factory_with_config(
-    method: Callable[[T_Container], Callable[P, T]],
-) -> Callable[[T_Container], Callable[P, T]]:
-    """
-    Add configuration support to factory services.
+    def _cast_as_configured_object(self, obj: Any) -> ConfiguredObject:
+        return obj
 
-    To be used as a decorator on a factory service provider method.
+    def _get_configuration(self, obj: Any) -> Configuration:
+        return self._get_configuration_from_object(self._cast_as_configured_object(obj))
 
-    A Factory service is a callable taking some arguments and returning an object.
-    Adding support for configuration assumes the arguments are `ConfiguredObject` and ensures the
-    returned object is a `ConfiguredObject`.
+    def _get_args_configuration(self, args: Sequence[Any]) -> Sequence[Configuration]:
+        return tuple(self._get_configuration(x) for x in args)
 
-    Args:
-        factory_provider: A method taking nothing and returning a factory service.
+    def _get_kwargs_configuration(self, kwargs: Mapping[str, Any]) -> Mapping[str, Configuration]:
+        return {key: self._get_configuration(value) for key, value in kwargs.items()}
 
-    Returns:
-        A method wrapping over `factory_provider` and adding configuration support.
-    """
-    get_configuration_from_object = GetConfigurationFromObject()
-
-    def _get_configuration_from_object(obj: Any) -> Configuration:
-        return get_configuration_from_object(obj)
-
-    @functools.wraps(method)
-    def get_factory(container: T_Container) -> Callable[P, T]:
-        service_id = _get_service_id(method)
-
-        factory = method(container)
-
+    def __call__(
+        self, service_id: apps.ServiceId[Callable[P, T]], factory: Callable[P, T]
+    ) -> Callable[P, T]:
+        @functools.wraps(factory)
         def factory_with_config(*args: P.args, **kwargs: P.kwargs) -> T:
+            args_configuration = self._get_args_configuration(args)
+            kwargs_configuration = self._get_kwargs_configuration(kwargs)
             configuration = FactoryConfiguration(
                 service_id=service_id,
-                args=tuple(_get_configuration_from_object(x) for x in args),
-                kwargs={
-                    key: _get_configuration_from_object(value) for key, value in kwargs.items()
-                },
+                args=args_configuration,
+                kwargs=kwargs_configuration,
             )
             obj = factory(*args, **kwargs)
             _set_configuration_as_annotation(obj, configuration)
             return obj
 
-        factory_with_config.__name__ = factory.__name__
-        factory_with_config.__module__ = factory.__module__
-        factory_with_config.__qualname__ = factory.__qualname__
-        factory_with_config.__doc__ = factory.__doc__
-
         return factory_with_config
 
-    return get_factory
 
+class FactoryProviderToFactoryWithConfigProvider:
+    _factory_to_factory_with_config: FactoryToFactoryWithConfig
 
-class AssignConfigurationAsAnnotation:
-    _get_configuration_from_annotation_service_id: apps.ServiceId[IGetConfigurationForObject]
+    def __init__(self, factory_to_factory_with_config: FactoryToFactoryWithConfig) -> None:
+        self._factory_to_factory_with_config = factory_to_factory_with_config
 
-    def __init__(
-        self,
-        get_configuration_from_annotation_service_id: apps.ServiceId[IGetConfigurationForObject],
-    ) -> None:
-        self._get_configuration_from_annotation_service_id = (
-            get_configuration_from_annotation_service_id
-        )
+    def __call__(
+        self, factory_provider: Callable[[T_Container], Callable[P, T]]
+    ) -> Callable[[T_Container], Callable[P, T]]:
+        service_id = apps.get_method_service_id(factory_provider)
 
-    def __call__(self, object: Any, configuration: Configuration) -> None:
-        setattr(
-            object,
-            _GET_CONFIGURATION_FOR_OBJECT_SERVICE_ID_ANNOTATION_KEY,
-            self._get_configuration_from_annotation_service_id,
-        )
-        setattr(object, _CONFIGURATION_ANNOTATION_KEY, configuration)
+        @annotations.wraps(factory_provider)
+        def factory_with_config_provider(container: T_Container) -> Callable[P, T]:
+            factory = factory_provider(container)
+            return self._factory_to_factory_with_config(service_id, factory)
 
-
-P = ParamSpec("P")
-T = TypeVar("T")
-
-
-class Factory(Generic[P, T]):
-    _assign_configuration_as_annotation: AssignConfigurationAsAnnotation
-    _self_service_id: apps.ServiceId[Callable[..., T]]
-    _get_configuration_from_object: IGetConfigurationForObject
-    _wrapped_factory: Callable[P, T]
-
-    def __init__(
-        self,
-        assign_configuration_as_annotation: AssignConfigurationAsAnnotation,
-        self_service_id: apps.ServiceId[Callable[..., T]],
-        get_configuration_from_object: IGetConfigurationForObject,
-        wrapped_factory: Callable[P, T],
-    ) -> None:
-        self._assign_configuration_as_annotation = assign_configuration_as_annotation
-        self._self_service_id = self_service_id
-        self._get_configuration_from_object = get_configuration_from_object
-        self._wrapped_factory = wrapped_factory
-
-    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> T:
-        obj = self._wrapped_factory(*args, **kwargs)
-        configuration = FactoryConfiguration(
-            service_id=self._self_service_id,
-            args=[self._get_configuration_from_object(x) for x in args],
-            kwargs={
-                key: self._get_configuration_from_object(value) for key, value in kwargs.items()
-            },
-        )
-        self._assign_configuration_as_annotation(obj, configuration)
-        return obj
+        return factory_with_config_provider
 
 
 class ConfigurationToObject:

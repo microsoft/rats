@@ -12,6 +12,8 @@ from ._annotations import (
     fallback_service,
     group,
     service,
+    get_method_service_id,
+    get_method_service_ids,
 )
 from ._composite_container import CompositeContainer
 from ._container import (
@@ -55,6 +57,8 @@ __all__ = [
     "group",
     "autoid",
     "service",
+    "get_method_service_id",
+    "get_method_service_ids",
     "T_ExecutableType",
     "T_ServiceType",
     "Runtime",

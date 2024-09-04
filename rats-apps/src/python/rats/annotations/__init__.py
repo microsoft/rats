@@ -12,6 +12,7 @@ from ._functions import (
     annotation,
     get_annotations,
     get_class_annotations,
+    wraps,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "get_class_annotations",
     "GroupAnnotations",
     "T_GroupType",
+    "wraps",
 ]

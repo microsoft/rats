@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any, NamedTuple, ParamSpec, cast
 
 from rats import annotations
@@ -72,3 +72,19 @@ def _get_method_service_id_name(method: Callable[..., Any]) -> str:
     module_name = method.__module__
     class_name, method_name = method.__qualname__.rsplit(".", 1)
     return scope_service_name(module_name, class_name, method_name)
+
+
+def get_method_service_ids(
+    method: Callable[..., T_ServiceType],
+) -> Iterator[ServiceId[T_ServiceType]]:
+    """Get all service ids associated with a method."""
+    tates = annotations.get_annotations(method).with_namespace(ProviderNamespaces.SERVICES)
+
+    for a in tates.annotations:
+        for service_id in a.groups:
+            yield service_id
+
+
+def get_method_service_id(method: Callable[..., T_ServiceType]) -> ServiceId[T_ServiceType]:
+    """Get the one of the service ids associated with a method."""
+    return next(get_method_service_ids(method))

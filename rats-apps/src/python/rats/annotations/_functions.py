@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Callable
-from functools import cache
-from typing import Any, Generic, NamedTuple, ParamSpec, TypeVar
+import functools
+from typing import Any, Generic, NamedTuple, TypeVar, Sequence
 
 from typing_extensions import NamedTuple as ExtNamedTuple
 
@@ -101,7 +101,7 @@ def annotation(
     return decorator
 
 
-@cache
+@functools.cache
 def get_class_annotations(cls: type) -> AnnotationsContainer:
     """
     Get all annotations for a class.
@@ -123,7 +123,7 @@ def get_class_annotations(cls: type) -> AnnotationsContainer:
     return AnnotationsContainer(annotations=tuple(tates))
 
 
-P = ParamSpec("P")
+T = TypeVar("T")
 
 
 def get_annotations(fn: Callable[..., Any]) -> AnnotationsContainer:
@@ -140,3 +140,13 @@ def get_annotations(fn: Callable[..., Any]) -> AnnotationsContainer:
     )
 
     return builder.make(fn.__name__)
+
+
+def wraps(
+    wrapped: Any,
+    assigned: Sequence[str] = functools.WRAPPER_ASSIGNMENTS,
+    updated: Sequence[str] = functools.WRAPPER_UPDATES,
+) -> Callable[[T], T]:
+    """functools.wraps, with the addition of copying over rats"""
+    effective_assigned = tuple(assigned) + ("__rats_annotations__",)
+    return functools.wraps(wrapped, assigned=effective_assigned, updated=updated)
