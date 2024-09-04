@@ -1,0 +1,163 @@
+from ast import TypeVar
+from collections.abc import Callable
+from typing import Any, Generic, NamedTuple, ParamSpec, Protocol, TypeVar
+
+from rats import apps
+
+_GET_CONFIGURATION_FOR_OBJECT_SERVICE_ID_ANNOTATION_KEY = (
+    "__rats_config_get_configuration_for_object_service_id__"
+)
+_CONFIGURATION_ANNOTATION_KEY = "__rats_config__"
+
+
+class FactoryConfiguration(NamedTuple):
+    service_id: apps.ServiceId[Callable[..., Any]]
+    args: list["Configuration"]
+    kwargs: dict[str, "Configuration"]
+
+
+Configuration = (
+    int
+    | str
+    | float
+    | bool
+    | list["Configuration"]
+    | dict[str, "Configuration"]
+    | FactoryConfiguration
+)
+
+
+class IGetConfigurationForObject(Protocol):
+    def __call__(self, object: Any) -> Configuration: ...
+
+
+class GetConfigurationFromAnnotation:
+    def __call__(self, object: Any) -> Configuration:
+        return getattr(object, _CONFIGURATION_ANNOTATION_KEY)
+
+
+class GetConfigurationForObject:
+    _container: apps.Container
+
+    def __init__(
+        self,
+        container: apps.Container,
+    ) -> None:
+        self._container = container
+
+    def _get_configuration_of_list(self, object: list[Any]) -> Configuration:
+        return [self(x) for x in object]
+
+    def _get_configuration_of_dict(self, object: dict[str, Any]) -> Configuration:
+        return {key: self(value) for key, value in object.items()}
+
+    def _get_service(self, object: Any) -> IGetConfigurationForObject:
+        service_id = apps.ServiceId[IGetConfigurationForObject](
+            getattr(object, _GET_CONFIGURATION_FOR_OBJECT_SERVICE_ID_ANNOTATION_KEY)
+        )
+        service = self._container.get(service_id)
+        return service
+
+    def _get_configuration_using_service(self, object: Any) -> Configuration:
+        service = self._get_service(object)
+        return service(object)
+
+    def __call__(self, object: Any) -> Configuration:
+        if isinstance(object, int):
+            return object
+        elif isinstance(object, str):
+            return object
+        elif isinstance(object, float):
+            return object
+        elif isinstance(object, bool):
+            return object
+        elif isinstance(object, list):
+            return self._get_configuration_of_list(object)
+        elif isinstance(object, dict):
+            return self._get_configuration_of_dict(object)
+        else:
+            return self._get_configuration_using_service(object)
+
+
+class AssignConfigurationAsAnnotation:
+    _get_configuration_from_annotation_service_id: apps.ServiceId[IGetConfigurationForObject]
+
+    def __init__(
+        self,
+        get_configuration_from_annotation_service_id: apps.ServiceId[IGetConfigurationForObject],
+    ) -> None:
+        self._get_configuration_from_annotation_service_id = (
+            get_configuration_from_annotation_service_id
+        )
+
+    def __call__(self, object: Any, configuration: Configuration) -> None:
+        setattr(
+            object,
+            _GET_CONFIGURATION_FOR_OBJECT_SERVICE_ID_ANNOTATION_KEY,
+            self._get_configuration_from_annotation_service_id,
+        )
+        setattr(object, _CONFIGURATION_ANNOTATION_KEY, configuration)
+
+
+P = ParamSpec("P")
+T = TypeVar("T")
+
+
+class Factory(Generic[P, T]):
+    _assign_configuration_as_annotation: AssignConfigurationAsAnnotation
+    _self_service_id: apps.ServiceId[Callable[..., T]]
+    _get_configuration_from_object: IGetConfigurationForObject
+    _wrapped_factory: Callable[P, T]
+
+    def __init__(
+        self,
+        assign_configuration_as_annotation: AssignConfigurationAsAnnotation,
+        self_service_id: apps.ServiceId[Callable[..., T]],
+        get_configuration_from_object: IGetConfigurationForObject,
+        wrapped_factory: Callable[P, T],
+    ) -> None:
+        self._assign_configuration_as_annotation = assign_configuration_as_annotation
+        self._self_service_id = self_service_id
+        self._get_configuration_from_object = get_configuration_from_object
+        self._wrapped_factory = wrapped_factory
+
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> T:
+        obj = self._wrapped_factory(*args, **kwargs)
+        configuration = FactoryConfiguration(
+            service_id=self._self_service_id,
+            args=[self._get_configuration_from_object(x) for x in args],
+            kwargs={
+                key: self._get_configuration_from_object(value) for key, value in kwargs.items()
+            },
+        )
+        self._assign_configuration_as_annotation(obj, configuration)
+        return obj
+
+
+class ConfigurationToObject:
+    _container: apps.Container
+
+    def __init__(self, container: apps.Container) -> None:
+        self._container = container
+
+    def __call__(self, configuration: Configuration) -> Any:
+        if isinstance(configuration, int):
+            return configuration
+        elif isinstance(configuration, str):
+            return configuration
+        elif isinstance(configuration, float):
+            return configuration
+        elif isinstance(configuration, bool):
+            return configuration
+        elif isinstance(configuration, list):
+            return [self(x) for x in configuration]
+        elif isinstance(configuration, dict):
+            return {key: self(value) for key, value in configuration.items()}
+        elif isinstance(configuration, FactoryConfiguration):
+            service_id = configuration.service_id
+            factory = self._container.get(service_id)
+            args = [self(x) for x in configuration.args]
+            kwargs = {key: self(value) for key, value in configuration.kwargs.items()}
+            return factory(*args, **kwargs)
+        else:
+            raise ValueError(f"Unsupported configuration type: {type(configuration)}")
