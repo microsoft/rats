@@ -1,5 +1,5 @@
 from collections.abc import Callable, Iterator
-from typing import Any, NamedTuple, ParamSpec, cast
+from typing import Any, NamedTuple, ParamSpec, cast, Concatenate, TypeVar, Generic
 
 from rats import annotations
 
@@ -8,6 +8,8 @@ from ._namespaces import ProviderNamespaces
 from ._scoping import scope_service_name
 
 P = ParamSpec("P")
+R = TypeVar("R")
+T_Container = TypeVar("T_Container")
 
 
 def service(
@@ -47,6 +49,55 @@ def fallback_group(
         ProviderNamespaces.FALLBACK_GROUPS,
         cast(NamedTuple, group_id),
     )
+
+
+def _factory_to_factory_provider(
+    method: Callable[Concatenate[T_Container, P], R],
+) -> Callable[[T_Container], Callable[P, R]]:
+    """Convert a factory method a factory provider method returning the original method."""
+
+    def new_method(self: T_Container) -> Callable[P, R]:
+        def factory(*args: P.args, **kwargs: P.kwargs) -> R:
+            return method(self, *args, **kwargs)
+
+        return factory
+
+    new_method.__name__ = method.__name__
+    new_method.__module__ = method.__module__
+    new_method.__qualname__ = method.__qualname__
+    new_method.__doc__ = method.__doc__
+    return new_method
+
+
+class factory_service(Generic[P, R]):
+    """A decorator to create a factory service.
+
+    Decorate a method that takes any number of arguments and returns an object.  The resulting
+    service will be that factory - taking the same arguments and returning a new object each time.
+    """
+
+    _service_id: ServiceId[Callable[P, R]]
+
+    def __init__(self, service_id: ServiceId[Callable[P, R]]) -> None:
+        self._service_id = service_id
+
+    def __call__(
+        self, method: Callable[Concatenate[T_Container, P], R]
+    ) -> Callable[[T_Container], Callable[P, R]]:
+        new_method = _factory_to_factory_provider(method)
+        return service(self._service_id)(new_method)
+
+
+def autoid_factory_service(
+    method: Callable[Concatenate[T_Container, P], R],
+) -> Callable[[T_Container], Callable[P, R]]:
+    """A decorator to create a factory service, with an automatically generated service id.
+
+    Decorate a method that takes any number of arguments and returns an object.  The resulting
+    service will be that factory - taking the same arguments and returning a new object each time.
+    """
+    new_method = _factory_to_factory_provider(method)
+    return autoid_service(new_method)
 
 
 def autoid(method: Callable[..., T_ServiceType]) -> ServiceId[T_ServiceType]:

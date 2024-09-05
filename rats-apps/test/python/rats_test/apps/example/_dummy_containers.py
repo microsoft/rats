@@ -1,3 +1,4 @@
+from typing import Callable
 from rats import apps
 
 from ._dummies import ITag, Tag
@@ -9,6 +10,7 @@ class _PrivateIds:
     C1S1C = apps.ServiceId[ITag]("c1s1c")
     C1S2A = apps.ServiceId[ITag]("c1s2a")
     C1S2B = apps.ServiceId[ITag]("c1s2b")
+    TAG_FACTORY_1 = apps.ServiceId[Callable[[str], ITag]]("tag-factory-1")
 
 
 class DummyContainer1(apps.Container):
@@ -46,6 +48,14 @@ class DummyContainer1(apps.Container):
     def c2s1a(self) -> ITag:
         # Calling a service from another container using its public service id.
         return self._app.get(DummyContainerServiceIds.C2S1B)
+
+    @apps.factory_service(_PrivateIds.TAG_FACTORY_1)
+    def tag_factory_1(self, ns: str) -> ITag:
+        return Tag(ns)
+
+    @apps.autoid_factory_service
+    def tag_factory_2(self, ns: str) -> ITag:
+        return Tag(ns)
 
 
 class DummyContainer2(apps.Container):
@@ -85,3 +95,6 @@ class DummyContainerServiceIds:
 
     C2S1A = apps.autoid(DummyContainer1.c2s1a)
     C2S1B = apps.autoid(DummyContainer2.unnamed_service)
+
+    TAG_FACTORY_1 = _PrivateIds.TAG_FACTORY_1
+    TAG_FACTORY_2 = apps.autoid(DummyContainer1.tag_factory_2)
