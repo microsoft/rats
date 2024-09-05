@@ -12,6 +12,8 @@ from ._annotations import (
     fallback_service,
     group,
     service,
+    factory_service,
+    autoid_factory_service,
 )
 from ._composite_container import CompositeContainer
 from ._container import (
@@ -63,4 +65,6 @@ __all__ = [
     "StandardRuntime",
     "StandardRuntime",
     "SimpleApplication",
+    "factory_service",
+    "autoid_factory_service",
 ]

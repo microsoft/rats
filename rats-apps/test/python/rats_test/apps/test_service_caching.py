@@ -62,3 +62,31 @@ class TestServiceCaching:
         assert c2s1a is c2s1b
 
         assert c2s1a.get_tag() == "c2.s1"
+
+    def test_caching_of_factory_services(self) -> None:
+        f1 = self._app.get(DummyContainerServiceIds.TAG_FACTORY_1)
+        f1_ = self._app.get(DummyContainerServiceIds.TAG_FACTORY_1)
+        f2 = self._app.get(DummyContainerServiceIds.TAG_FACTORY_2)
+        f2_ = self._app.get(DummyContainerServiceIds.TAG_FACTORY_2)
+
+        # multiple calls using the same service should return the same factory object
+        assert f1 is f1_
+        assert f2 is f2_
+
+        # but calls using different service ids should return different objects
+        assert f1 is not f2
+
+        # and multiple calls to the factories themselves should return different objects
+        t1a = f1("f1")
+        t1b = f1("f1")
+        t2a = f2("f2")
+        t2b = f2("f2")
+
+        assert t1a is not t1b
+        assert t2a is not t2b
+
+        assert t1a.get_tag() == "f1"
+        assert t1b.get_tag() == "f1"
+
+        assert t2a.get_tag() == "f2"
+        assert t2b.get_tag() == "f2"
