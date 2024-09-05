@@ -17,6 +17,8 @@ python = "^3.10"
 typing_extensions = "*"
 click = "*"
 colorlog = "*"
+pyyaml = "*"
+
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -30,6 +32,7 @@ types-urllib3 = "*"
 [tool.poetry.plugins."rats.apps.plugins"]
 "rats.logs" = "rats.logs:PluginContainer"
 "rats.cli" = "rats.cli:PluginContainer"
+"rats.config" = "rats.config:PluginContainer"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

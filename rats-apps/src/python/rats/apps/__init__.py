@@ -8,6 +8,8 @@ domain.
 from ._annotations import (
     autoid,
     autoid_service,
+    factory_service,
+    autoid_factory_service,
     fallback_group,
     fallback_service,
     group,
@@ -67,4 +69,6 @@ __all__ = [
     "StandardRuntime",
     "StandardRuntime",
     "SimpleApplication",
+    "factory_service",
+    "autoid_factory_service",
 ]

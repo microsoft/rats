@@ -4,7 +4,7 @@ from ._storage import StorageClient, StorageSettings
 
 
 @apps.autoscope
-class ExampleConfigIds:
+class ExampleStorageConfigIds:
     # a couple example config ids for different storage accounts
     STORAGE = apps.ServiceId[StorageSettings]("storage")
     OTHER_STORAGE = apps.ServiceId[StorageSettings]("other-storage")
@@ -26,5 +26,5 @@ class ExampleIds:
 
     DUPLICATE_SERVICE = apps.ServiceId[StorageClient]("duplicate-service")
 
-    CONFIGS = ExampleConfigIds
+    CONFIGS = ExampleStorageConfigIds
     GROUPS = ExampleGroupIds
