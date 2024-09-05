@@ -8,9 +8,14 @@ from ._configuration import (
     Configuration,
     FactoryConfiguration,
 )
+from ._decorators import config_factory_service, autoid_config_factory_service
+from ._container import ConfigFactoryContainer
 from ._plugin import PluginContainer
 
 __all__ = [
+    "ConfigFactoryContainer",
+    "config_factory_service",
+    "autoid_config_factory_service",
     "Configuration",
     "FactoryConfiguration",
     "PluginContainer",

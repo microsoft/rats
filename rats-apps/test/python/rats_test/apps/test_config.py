@@ -1,108 +1,7 @@
 from rats import apps, config
 from rats.config import Services as ConfigServices
-from collections.abc import Callable, Sequence, Mapping
-from typing import Generic, cast, Any, ParamSpec, TypeVar, Concatenate
-import yaml
-
-P = ParamSpec("P")
-R = TypeVar("R")
-S = TypeVar("S")
-T_Container = TypeVar("T_Container", bound=apps.Container)
-
-
-def _factory_to_factory_provider(
-    method: Callable[Concatenate[T_Container, P], R],
-) -> Callable[[T_Container], Callable[P, R]]:
-    def new_method(self: T_Container) -> Callable[P, R]:
-        def factory(*args: P.args, **kwargs: P.kwargs) -> R:
-            return method(self, *args, **kwargs)
-
-        return factory
-
-    new_method.__name__ = method.__name__
-    new_method.__module__ = method.__module__
-    new_method.__qualname__ = method.__qualname__
-    new_method.__doc__ = method.__doc__
-    return new_method
-
-
-class factory_service(Generic[P, R]):
-    _service_id: apps.ServiceId[Callable[P, R]]
-
-    def __init__(self, service_id: apps.ServiceId[Callable[P, R]]) -> None:
-        self._service_id = service_id
-
-    def __call__(
-        self, method: Callable[Concatenate[T_Container, P], R]
-    ) -> Callable[[T_Container], Callable[P, R]]:
-        new_method = _factory_to_factory_provider(method)
-        return apps.service(self._service_id)(new_method)
-
-
-def autoid_factory_service(
-    method: Callable[Concatenate[T_Container, P], R],
-) -> Callable[[T_Container], Callable[P, R]]:
-    new_method = _factory_to_factory_provider(method)
-    return apps.autoid_service(new_method)
-
-
-class ConfigFactoryContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
-    @property
-    def factory_to_factory_with_config(self) -> config.IFactoryToFactoryWithConfig:
-        return self._app.get(ConfigServices.FACTORY_TO_FACTORY_WITH_CONFIG)
-
-
-T_ConfigFactoryContainer = TypeVar("T_ConfigFactoryContainer", bound=ConfigFactoryContainer)
-
-
-class config_factory_service(Generic[P, R]):
-    _service_id: apps.ServiceId[Callable[P, R]]
-
-    def __init__(self, service_id: apps.ServiceId[Callable[P, R]]) -> None:
-        self._service_id = service_id
-
-    def __call__(
-        self, method: Callable[Concatenate[T_ConfigFactoryContainer, P], R]
-    ) -> Callable[[T_ConfigFactoryContainer], Callable[P, R]]:
-        new_method = self._create_new_method(self._service_id, method)
-        return apps.service(self._service_id)(new_method)
-
-    def _create_new_method(
-        self,
-        service_id: apps.ServiceId[Callable[P, R]],
-        method: Callable[Concatenate[T_ConfigFactoryContainer, P], R],
-    ) -> Callable[[T_ConfigFactoryContainer], Callable[P, R]]:
-        def new_method(self: T_ConfigFactoryContainer) -> Callable[P, R]:
-            def factory(*args: P.args, **kwargs: P.kwargs) -> R:
-                return method(self, *args, **kwargs)
-
-            factory_with_config = self.factory_to_factory_with_config(
-                service_id=service_id, factory=factory
-            )
-            return factory_with_config
-
-        new_method.__name__ = method.__name__
-        new_method.__module__ = method.__module__
-        new_method.__qualname__ = method.__qualname__
-        new_method.__doc__ = method.__doc__
-
-        return new_method
-
-
-def autoid_config_factory_service(
-    method: Callable[Concatenate[T_ConfigFactoryContainer, P], R],
-) -> Callable[[T_ConfigFactoryContainer], Callable[P, R]]:
-    module_name = method.__module__
-    class_name, method_name = method.__qualname__.rsplit(".", 1)
-    service_name = f"{module_name}:{class_name}[{method_name}]"
-    service_id = apps.ServiceId[Callable[P, R]](service_name)
-    cfs = config_factory_service(service_id)
-    return cfs(method)
+from collections.abc import Sequence, Mapping
+from typing import cast, Any
 
 
 class A:
@@ -133,23 +32,23 @@ def _li(start: int, end: int, step: int) -> Sequence[int]:
     return tuple(range(start, end, step))
 
 
-class Container(ConfigFactoryContainer):
+class Container(config.ConfigFactoryContainer):
     def __init__(self, app: apps.Container) -> None:
         super().__init__(app)
 
-    @autoid_config_factory_service
+    @config.autoid_config_factory_service
     def a(self) -> A:
         return A()
 
-    @autoid_config_factory_service
+    @config.autoid_config_factory_service
     def b(self, num: int, s: str) -> B:
         return B(num, s)
 
-    @autoid_factory_service
+    @apps.autoid_factory_service
     def li(self, start: int, end: int, step: int) -> Sequence[int]:
         return tuple(range(start, end, step))
 
-    @autoid_factory_service
+    @apps.autoid_factory_service
     def db(self) -> Mapping[int, B]:
         b_factory = self.get(apps.autoid(self.b))
         db = {
@@ -158,7 +57,7 @@ class Container(ConfigFactoryContainer):
         }
         return db
 
-    @autoid_config_factory_service
+    @config.autoid_config_factory_service
     def c(self, li: Sequence[int], a: A, db: Mapping[int, B]) -> C:
         return C(li, a, db)
 
@@ -326,6 +225,12 @@ class TestConfig:
         )
         assert c_config == expected
 
+    def test_config_to_config(self) -> None:
+        c_config = self.get_c_config()
+        object_to_config = self._app.get(ConfigServices.GET_CONFIGURATION_FROM_OBJECT)
+        c_config2 = object_to_config(c_config)
+        assert c_config2 == c_config
+
     def test_c_reconstructed(self) -> None:
         c_config = self.get_c_config()
         config_to_object = self._app.get(ConfigServices.CONFIGURATION_TO_OBJECT)
@@ -345,26 +250,11 @@ class TestConfig:
         assert b1.num == 1
         assert b1.s == "one"
 
-    def to_yaml(self, obj: Any) -> str:
-        config_getter = self._app.get(ConfigServices.GET_CONFIGURATION_FROM_OBJECT)
-        config = config_getter(obj)
-
-        class CustomDumper(yaml.Dumper):
-            pass
-
-        CustomDumper.add_representer(tuple, lambda dumper, data: dumper.represent_list(data))
-        return yaml.dump(
-            config, sort_keys=False, indent=4, default_flow_style=False, Dumper=CustomDumper
-        )
-
-    def from_yaml(self, yaml_str: str) -> Any:
-        config = yaml.safe_load(yaml_str)
-        config_to_object = self._app.get(ConfigServices.CONFIGURATION_TO_OBJECT)
-        obj = config_to_object(config)
-        return obj
-
     def test_c_yaml(self) -> None:
+        to_yaml = self._app.get(ConfigServices.TO_CONFIG_YAML)
+        from_yaml = self._app.get(ConfigServices.FROM_CONFIG_YAML)
+
         c = self.get_c()
-        yaml_str = self.to_yaml(c)
-        c2 = self.from_yaml(yaml_str)
+        yaml_str = to_yaml.to_str(c)
+        c2 = from_yaml.get_object(yaml_str)
         assert c2 == c

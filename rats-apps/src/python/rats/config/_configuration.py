@@ -1,7 +1,8 @@
+import yaml
 from typing_extensions import NotRequired
 from abc import abstractmethod
 from collections.abc import Callable, Mapping, Sequence
-from typing import Any, ParamSpec, Protocol, TypeVar, cast, TypedDict
+from typing import Any, ParamSpec, Protocol, TypeVar, cast, TypedDict, IO
 import functools
 from rats import apps
 
@@ -224,3 +225,53 @@ class ConfigurationToObject:
             return tuple(self(x) for x in configuration)
         else:
             raise ValueError(f"Unsupported configuration type: {type(configuration)}")
+
+
+class ToConfigYaml:
+    _object_to_config: IGetConfigurationFromObject
+
+    def __init__(self, object_to_config: IGetConfigurationFromObject) -> None:
+        self._object_to_config = object_to_config
+
+    @classmethod
+    def _get_dumper(cls) -> type[yaml.Dumper]:
+        class _Dumper(yaml.Dumper):
+            pass
+
+        _Dumper.add_representer(tuple, lambda dumper, data: dumper.represent_list(data))
+        return _Dumper
+
+    def to_str(self, source: Any) -> str:
+        """Dumps a config or an object's config into a yaml string."""
+        config = self._object_to_config(source)
+        return yaml.dump(
+            config, sort_keys=False, indent=4, default_flow_style=False, Dumper=self._get_dumper()
+        )
+
+    def to_stream(self, source: Any, stream: IO[str]) -> None:
+        """Dumps a config or an object's config into a yaml stream."""
+        config = self._object_to_config(source)
+        yaml.dump(
+            config,
+            stream,
+            sort_keys=False,
+            indent=4,
+            default_flow_style=False,
+            Dumper=self._get_dumper(),
+        )
+
+
+class FromConfigYaml:
+    _config_to_object: IConfigurationToObject
+
+    def __init__(self, config_to_object: IConfigurationToObject) -> None:
+        self._config_to_object = config_to_object
+
+    def get_config(self, yml: str | IO[str]) -> Configuration:
+        """Converts a configuration YAML string or stream to a configuration."""
+        return yaml.safe_load(yml)
+
+    def get_object(self, yml: str | IO[str]) -> ConfiguredObject:
+        """Converts a configuration YAML string or stream to an object."""
+        config = self.get_config(yml)
+        return self._config_to_object(config)
