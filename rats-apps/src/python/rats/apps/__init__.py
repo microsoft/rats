@@ -7,13 +7,13 @@ domain.
 
 from ._annotations import (
     autoid,
+    autoid_factory_service,
     autoid_service,
+    factory_service,
     fallback_group,
     fallback_service,
     group,
     service,
-    factory_service,
-    autoid_factory_service,
 )
 from ._composite_container import CompositeContainer
 from ._container import (

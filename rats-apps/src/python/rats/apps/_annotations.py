@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import Any, NamedTuple, ParamSpec, cast, Concatenate, TypeVar, Generic
+from typing import Any, Concatenate, Generic, NamedTuple, ParamSpec, TypeVar, cast
 
 from rats import annotations
 
@@ -70,7 +70,8 @@ def _factory_to_factory_provider(
 
 
 class factory_service(Generic[P, R]):
-    """A decorator to create a factory service.
+    """
+    A decorator to create a factory service.
 
     Decorate a method that takes any number of arguments and returns an object.  The resulting
     service will be that factory - taking the same arguments and returning a new object each time.
@@ -91,7 +92,8 @@ class factory_service(Generic[P, R]):
 def autoid_factory_service(
     method: Callable[Concatenate[T_Container, P], R],
 ) -> Callable[[T_Container], Callable[P, R]]:
-    """A decorator to create a factory service, with an automatically generated service id.
+    """
+    A decorator to create a factory service, with an automatically generated service id.
 
     Decorate a method that takes any number of arguments and returns an object.  The resulting
     service will be that factory - taking the same arguments and returning a new object each time.
