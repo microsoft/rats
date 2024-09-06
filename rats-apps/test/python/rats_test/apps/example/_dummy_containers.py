@@ -1,4 +1,5 @@
-from typing import Callable
+from collections.abc import Callable
+
 from rats import apps
 
 from ._dummies import ITag, Tag
