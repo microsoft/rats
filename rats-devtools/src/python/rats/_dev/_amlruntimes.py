@@ -14,6 +14,10 @@ class AmlRuntimePluginContainer(apps.Container):
     def _devtools_runtime(self) -> amlruntime.AmlRuntime:
         return self._make_runtime("rats-devtools")
 
+    @apps.service(amlruntime.PluginServices.component_runtime("rats-contrib-jesus"))
+    def _jesus_runtime(self) -> amlruntime.AmlRuntime:
+        return self._make_runtime("rats-contrib-jesus")
+
     @apps.service(amlruntime.PluginServices.component_runtime("rats-examples-minimal"))
     def _minimal_runtime(self) -> amlruntime.AmlRuntime:
         return self._make_runtime("rats-examples-minimal")
@@ -33,6 +37,10 @@ class AmlRuntimePluginContainer(apps.Container):
                 amlruntime.PluginServices.CONFIGS.component_runtime(name)
             ),
         )
+
+    @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-contrib-jesus"))
+    def _jesus_runtime_config(self) -> amlruntime.RuntimeConfig:
+        return self._component_aml_runtime_config("rats-contrib-jesus")
 
     @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-examples-datasets"))
     def _datasets_runtime_config(self) -> amlruntime.RuntimeConfig:
@@ -69,6 +77,12 @@ class AmlRuntimePluginContainer(apps.Container):
             "rats-examples-datasets": " && ".join(
                 [
                     "cd /opt/rats/rats-examples-datasets",
+                    ".venv/bin/python -m rats.examples",
+                ]
+            ),
+            "rats-contrib-jesus": " && ".join(
+                [
+                    "cd /opt/rats/rats-contrib-jesus",
                     ".venv/bin/python -m rats.examples",
                 ]
             ),
