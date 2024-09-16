@@ -60,14 +60,14 @@ rats-apps = { path = "../rats-apps", develop = true }
 "rats.projects" = "rats.projects:PluginContainer"
 "rats.stdruntime" = "rats.stdruntime:PluginContainer"
 
-[tool.poetry.plugins."rats.local.plugins"]
+[tool.poetry.plugins."rats._local.plugins"]
 # this plugin group is only used for operating on the local repo during development
 # code in these plugins expects to be able to query for git commits and build artifacts
-"rats._dev" = "rats._dev:PluginContainer"
+"rats._local" = "rats._local:PluginContainer"
 
 [tool.poetry.plugins."rats.examples.plugins"]
 # all the plugins that are meant to show examples of rats capabilities are in this group
-"rats._examples" = "rats._examples:ExamplesPluginContainer"
+"rats.examples" = "rats.examples:PluginContainer"
 
 [build-system]
 requires = ["poetry-core"]

@@ -5,8 +5,7 @@ import logging
 import os
 
 from rats import apps, logs
-
-from ._plugin import ExamplesPluginServices
+from rats.examples import PluginServices
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +32,10 @@ if __name__ == "__main__":
     else:
         logger.info("running default examples")
         ids = [
-            ExamplesPluginServices.PING,
-            ExamplesPluginServices.PONG,
-            ExamplesPluginServices.PING,
-            ExamplesPluginServices.PONG,
+            PluginServices.PING,
+            PluginServices.PONG,
+            PluginServices.PING,
+            PluginServices.PONG,
         ]
         print(f"executing: {ids}")
         app.execute(*ids)
