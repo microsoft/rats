@@ -1,7 +1,8 @@
 import logging
 from abc import abstractmethod
 from collections.abc import Callable, Iterator
-from typing import Generic, NamedTuple, ParamSpec, Protocol, cast
+from typing import Any, Generic, NamedTuple, ParamSpec, Protocol, cast
+from typing_extensions import NamedTuple as ExtNamedTuple
 
 from rats import annotations
 
@@ -119,31 +120,74 @@ class Container(Protocol):
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service namespace."""
-        tates = annotations.get_class_annotations(type(self))
-        # containers are a special service namespace that we look through recursively
-        containers = tates.with_namespace(ProviderNamespaces.CONTAINERS)
-        groups = tates.with_group(namespace, cast(NamedTuple, group_id))
+        yield from _get_cached_services_for_group(
+            self,
+            namespace,
+            group_id,
+        )
 
-        for annotation in groups.annotations:
-            if not hasattr(self, f"__rats_cache_{annotation.name}_{group_id.name}"):
-                setattr(
-                    self,
-                    f"__rats_cache_{annotation.name}_{group_id.name}",
-                    getattr(self, annotation.name)(),
-                )
+        for subcontainer in _get_subcontainers(self):
+            yield from subcontainer.get_namespaced_group(
+                namespace,
+                group_id,
+            )
 
-            yield getattr(self, f"__rats_cache_{annotation.name}_{group_id.name}")
 
-        for annotation in containers.annotations:
-            if not hasattr(self, f"__rats_container_cache_{annotation.name}"):
-                setattr(
-                    self,
-                    f"__rats_container_cache_{annotation.name}",
-                    getattr(self, annotation.name)(),
-                )
+def _get_subcontainers(c: Container) -> Iterator[Container]:
+    yield from _get_cached_services_for_group(
+        c, ProviderNamespaces.CONTAINERS, DEFAULT_CONTAINER_GROUP,
+    )
 
-            c: Container = getattr(self, f"__rats_container_cache_{annotation.name}")
-            yield from c.get_namespaced_group(namespace, group_id)
+
+class _ProviderInfo(ExtNamedTuple, Generic[T_ServiceType]):
+    attr: str
+    group_id: ServiceId[T_ServiceType]
+
+
+def _get_cached_services_for_group(
+    c: Container,
+    namespace: str,
+    group_id: ServiceId[T_ServiceType],
+) -> Iterator[T_ServiceType]:
+    provider_cache = _get_provider_cache(c)
+    info_cache = _get_provider_info_cache(c)
+
+    if (namespace, group_id) not in info_cache:
+        info_cache[(namespace, group_id)] = list(_get_providers_for_group(c, namespace, group_id))
+
+    for provider in info_cache[(namespace, group_id)]:
+        if provider not in provider_cache:
+            provider_cache[provider] = getattr(c, provider.attr)()
+
+        yield provider_cache[provider]
+
+
+def _get_provider_cache(obj: object) -> dict[_ProviderInfo[Any], Any]:
+    if not hasattr(obj, f"__rats_apps_provider_cache__"):
+        setattr(obj, "__rats_apps_provider_cache__", {})
+
+    return getattr(obj, "__rats_apps_provider_cache__")
+
+
+def _get_provider_info_cache(
+    obj: object,
+) -> dict[tuple[str, ServiceId[Any]], list[_ProviderInfo[Any]]]:
+    if not hasattr(obj, f"__rats_apps_provider_info_cache__"):
+        setattr(obj, "__rats_apps_provider_info_cache__", {})
+
+    return getattr(obj, "__rats_apps_provider_info_cache__")
+
+
+def _get_providers_for_group(
+    c: Container,
+    namespace: str,
+    group_id: ServiceId[T_ServiceType],
+) -> Iterator[_ProviderInfo[T_ServiceType]]:
+    tates = annotations.get_class_annotations(type(c))
+    groups = tates.with_group(namespace, cast(NamedTuple, group_id))
+
+    for annotation in groups.annotations:
+        yield _ProviderInfo(annotation.name, group_id)
 
 
 DEFAULT_CONTAINER_GROUP = ServiceId[Container](f"{__name__}:__default__")
