@@ -134,7 +134,7 @@ class ExampleSimpleTypedPipelineBuilder(rp.PipelineContainer):
 
     @apps.group(rp.Services.GROUPS.EXECUTABLE_PIPELINES)
     def executable_pipelines(self) -> Any:
-        return (
+        yield (
             {
                 "name": "examples.typed_simple_pipeline",
                 "doc": f"""

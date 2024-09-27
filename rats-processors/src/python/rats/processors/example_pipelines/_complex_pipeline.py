@@ -41,7 +41,7 @@ class ExampleComplexPipelineBuilder(rp.PipelineContainer):
 
     @apps.group(rp.Services.GROUPS.EXECUTABLE_PIPELINES)
     def executable_pipelines(self) -> Any:
-        return (
+        yield (
             {
                 "name": "examples.complex_pipeline",
                 "doc": f"""

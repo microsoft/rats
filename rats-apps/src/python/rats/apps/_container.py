@@ -110,9 +110,13 @@ class Container(Protocol):
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id."""
         if not self.has_namespace(ProviderNamespaces.GROUPS, group_id):
-            yield from self.get_namespaced_group(ProviderNamespaces.FALLBACK_GROUPS, group_id)
+            # groups are expected to return iterable services
+            # TODO: we need to clean up the meaning of groups and services somehow
+            for i in self.get_namespaced_group(ProviderNamespaces.FALLBACK_GROUPS, group_id):
+                yield from i
 
-        yield from self.get_namespaced_group(ProviderNamespaces.GROUPS, group_id)
+        for i in self.get_namespaced_group(ProviderNamespaces.GROUPS, group_id):
+            yield from i
 
     def get_namespaced_group(
         self,

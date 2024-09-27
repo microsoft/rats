@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterator
 
 import click
 
@@ -32,21 +33,21 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(PluginServices.EVENTS.OPENING)
-    def _on_opening(self) -> apps.Executable:
+    def _on_opening(self) -> Iterator[apps.Executable]:
         runtime = self._app.get(apps.AppServices.RUNTIME)
-        return apps.App(
+        yield apps.App(
             lambda: runtime.execute_group(logs.PluginServices.EVENTS.CONFIGURE_LOGGING),
         )
 
     @apps.group(PluginServices.EVENTS.RUNNING)
-    def _on_running(self) -> apps.Executable:
+    def _on_running(self) -> Iterator[apps.Executable]:
         # our main app here runs a cli command, but it can also directly do something useful
         runtime = self._app.get(apps.AppServices.RUNTIME)
-        return apps.App(lambda: runtime.execute(PluginServices.MAIN_EXE))
+        yield apps.App(lambda: runtime.execute(PluginServices.MAIN_EXE))
 
     @apps.group(PluginServices.EVENTS.CLOSING)
-    def _on_closing(self) -> apps.Executable:
-        return apps.App(lambda: logger.debug("Closing app"))
+    def _on_closing(self) -> Iterator[apps.Executable]:
+        yield apps.App(lambda: logger.debug("Closing app"))
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:
@@ -61,12 +62,12 @@ class PluginContainer(apps.Container):
         return root
 
     @apps.group(PluginServices.EVENTS.OPENING)
-    def _on_open(self) -> apps.Executable:
+    def _on_open(self) -> Iterator[apps.Executable]:
         def run() -> None:
             parent = self._app.get(PluginServices.MAIN_CLICK)
             self._app.get(PluginServices.COMMANDS).attach(parent)
 
-        return apps.App(run)
+        yield apps.App(run)
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:

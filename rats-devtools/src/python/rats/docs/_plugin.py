@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Iterator
 from typing import cast
 
 import click
@@ -26,13 +27,13 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _on_open(self) -> apps.Executable:
+    def _on_open(self) -> Iterator[apps.Executable]:
         def run() -> None:
             parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
             docs = self._app.get(PluginServices.MAIN_CLICK)
             parent.add_command(cast(click.Command, docs))
 
-        return apps.App(run)
+        yield apps.App(run)
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:

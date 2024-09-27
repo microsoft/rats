@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Iterator
 
 from rats import amlruntime
 from rats import apps as apps
@@ -17,12 +18,12 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.fallback_group(amlruntime.PluginServices.CONFIGS.EXE_GROUP)  # type: ignore[reportArgumentType]
-    def _aml_ping(self) -> apps.Executable:
-        return self._app.get(PluginServices.PING)
+    def _aml_ping(self) -> Iterator[apps.Executable]:
+        yield self._app.get(PluginServices.PING)
 
     @apps.fallback_group(amlruntime.PluginServices.CONFIGS.EXE_GROUP)  # type: ignore[reportArgumentType]
-    def _aml_pong(self) -> apps.Executable:
-        return self._app.get(PluginServices.PONG)
+    def _aml_pong(self) -> Iterator[apps.Executable]:
+        yield self._app.get(PluginServices.PONG)
 
     @apps.service(PluginServices.PING)
     def _ping(self) -> apps.Executable:
