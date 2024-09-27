@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any, Concatenate, Generic, NamedTuple, ParamSpec, TypeVar, cast
 
 from rats import annotations
@@ -26,7 +26,7 @@ def autoid_service(fn: Callable[P, T_ServiceType]) -> Callable[P, T_ServiceType]
 
 def group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[[Callable[P, Iterator[T_ServiceType]]], Callable[P, Iterator[T_ServiceType]]]:
     """A group is a collection of services."""
     return annotations.annotation(ProviderNamespaces.GROUPS, cast(NamedTuple, group_id))
 
@@ -43,7 +43,7 @@ def fallback_service(
 
 def fallback_group(
     group_id: ServiceId[T_ServiceType],
-) -> Callable[[Callable[P, T_ServiceType]], Callable[P, T_ServiceType]]:
+) -> Callable[[Callable[P, Iterator[T_ServiceType]]], Callable[P, Iterator[T_ServiceType]]]:
     """A fallback group gets used if no group is defined."""
     return annotations.annotation(
         ProviderNamespaces.FALLBACK_GROUPS,
@@ -69,7 +69,7 @@ def _factory_to_factory_provider(
     return new_method
 
 
-class factory_service(Generic[P, R]):
+class _FactoryService(Generic[P, R]):
     """
     A decorator to create a factory service.
 
@@ -87,6 +87,10 @@ class factory_service(Generic[P, R]):
     ) -> Callable[[T_Container], Callable[P, R]]:
         new_method = _factory_to_factory_provider(method)
         return service(self._service_id)(new_method)
+
+
+# alias so we can think of it as a function
+factory_service = _FactoryService
 
 
 def autoid_factory_service(
