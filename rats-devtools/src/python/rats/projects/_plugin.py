@@ -24,10 +24,6 @@ class PluginServices:
 
     CONFIGS = PluginConfigs
 
-    @staticmethod
-    def component_tools(name: str) -> apps.ServiceId[ComponentTools]:
-        return apps.ServiceId[ComponentTools](f"component-tools[{name}]")
-
 
 class PluginContainer(apps.Container):
     _app: apps.Container
@@ -55,9 +51,7 @@ class PluginContainer(apps.Container):
     @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
     def _devtools_component_tools(self) -> ComponentTools:
         project = self._app.get(PluginServices.PROJECT_TOOLS)
-        return self._app.get(
-            projects.PluginServices.component_tools(project.devtools_component().name),
-        )
+        return project.get_component(project.devtools_component().name)
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:
