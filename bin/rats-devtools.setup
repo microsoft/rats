@@ -27,7 +27,7 @@ cat <<EOF> $LOCAL_PATH
 #!/bin/bash
 
 export DEVTOOLS_PROJECT_ROOT=${REPO_DIR}
-exec ${REPO_DIR}/rats-devtools/.tmp/venv-${LOCAL_SUFFIX}/bin/python -m rats._dev "\$@"
+exec ${REPO_DIR}/rats-devtools/.tmp/venv-${LOCAL_SUFFIX}/bin/python -m rats._local "\$@"
 EOF
 
 chmod +x $LOCAL_PATH

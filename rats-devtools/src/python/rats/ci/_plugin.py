@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 import click
 
 from rats import apps as apps
@@ -32,13 +34,13 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _on_open(self) -> apps.Executable:
+    def _on_open(self) -> Iterator[apps.Executable]:
         def run() -> None:
             parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
             ci = self._app.get(PluginServices.MAIN_CLICK)
             parent.add_command(ci)
 
-        return apps.App(run)
+        yield apps.App(run)
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
@@ -61,32 +63,32 @@ class PluginContainer(apps.Container):
         )
 
     @apps.fallback_group(PluginServices.CONFIGS.INSTALL)
-    def _poetry_install(self) -> tuple[str, ...]:
-        return "poetry", "install"
+    def _poetry_install(self) -> Iterator[tuple[str, ...]]:
+        yield "poetry", "install"
 
     @apps.fallback_group(PluginServices.CONFIGS.FIX)
-    def _ruff_format(self) -> tuple[str, ...]:
-        return "ruff", "format"
+    def _ruff_format(self) -> Iterator[tuple[str, ...]]:
+        yield "ruff", "format"
 
     @apps.fallback_group(PluginServices.CONFIGS.FIX)
-    def _ruff_fix(self) -> tuple[str, ...]:
-        return "ruff", "check", "--fix", "--unsafe-fixes"
+    def _ruff_fix(self) -> Iterator[tuple[str, ...]]:
+        yield "ruff", "check", "--fix", "--unsafe-fixes"
 
     @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _ruff_format_check(self) -> tuple[str, ...]:
-        return "ruff", "format", "--check"
+    def _ruff_format_check(self) -> Iterator[tuple[str, ...]]:
+        yield "ruff", "format", "--check"
 
     @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _ruff_check(self) -> tuple[str, ...]:
-        return "ruff", "check"
+    def _ruff_check(self) -> Iterator[tuple[str, ...]]:
+        yield "ruff", "check"
 
     @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _pyright(self) -> tuple[str, ...]:
-        return ("pyright",)
+    def _pyright(self) -> Iterator[tuple[str, ...]]:
+        yield ("pyright",)
 
     @apps.fallback_group(PluginServices.CONFIGS.TEST)
-    def _pytest(self) -> tuple[str, ...]:
-        return ("pytest",)
+    def _pytest(self) -> Iterator[tuple[str, ...]]:
+        yield ("pytest",)
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:

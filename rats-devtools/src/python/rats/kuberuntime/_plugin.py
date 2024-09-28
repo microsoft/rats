@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from typing import cast
 
 import click
@@ -34,14 +35,14 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _runner_cli(self) -> apps.Executable:
+    def _runner_cli(self) -> Iterator[apps.Executable]:
         def run() -> None:
             kuberuntime = self._app.get(PluginServices.MAIN_CLICK)
             parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
             self._app.get(PluginServices.COMMANDS).attach(kuberuntime)
             parent.add_command(cast(click.Command, kuberuntime))
 
-        return apps.App(run)
+        yield apps.App(run)
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:

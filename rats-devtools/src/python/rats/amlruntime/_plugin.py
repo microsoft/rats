@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from typing import cast
 
 import click
@@ -49,13 +50,13 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _runtime_cli(self) -> apps.Executable:
+    def _runtime_cli(self) -> Iterator[apps.Executable]:
         def run() -> None:
             amlruntime = self._app.get(PluginServices.MAIN_CLICK)
             parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
             parent.add_command(cast(click.Command, amlruntime))
 
-        return apps.App(run)
+        yield apps.App(run)
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:
@@ -122,5 +123,5 @@ class PluginContainer(apps.Container):
         )
 
     @apps.fallback_group(PluginServices.CONFIGS.EXE_GROUP)
-    def _default_exes(self) -> apps.ServiceId[apps.Executable]:
-        return PluginServices.MAIN_EXE
+    def _default_exes(self) -> Iterator[apps.ServiceId[apps.Executable]]:
+        yield PluginServices.MAIN_EXE

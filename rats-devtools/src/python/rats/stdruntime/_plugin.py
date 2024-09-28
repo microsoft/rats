@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from typing import cast
 
 import click
@@ -21,14 +22,14 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _runtime_cli(self) -> apps.Executable:
+    def _runtime_cli(self) -> Iterator[apps.Executable]:
         def run() -> None:
             parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
             stdruntime = self._app.get(PluginServices.MAIN_CLICK)
             self._app.get(PluginServices.COMMANDS).attach(stdruntime)
             parent.add_command(cast(click.Command, stdruntime))
 
-        return apps.App(run)
+        yield apps.App(run)
 
     @apps.service(PluginServices.MAIN_CLICK)
     def _click_group(self) -> click.Group:

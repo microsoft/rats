@@ -1,4 +1,5 @@
 import logging.config
+from collections.abc import Iterator
 
 from rats import apps
 
@@ -22,9 +23,9 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(PluginServices.EVENTS.CONFIGURE_LOGGING)
-    def _configure_logging(self) -> apps.Executable:
+    def _configure_logging(self) -> Iterator[apps.Executable]:
         # in the future, we can use this plugin to make logging easily configurable
-        return apps.App(
+        yield apps.App(
             lambda: logging.config.dictConfig(
                 {
                     "version": 1,
