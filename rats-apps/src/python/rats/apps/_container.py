@@ -2,6 +2,7 @@ import logging
 from abc import abstractmethod
 from collections.abc import Callable, Iterator
 from typing import Any, Generic, NamedTuple, ParamSpec, Protocol, cast
+
 from typing_extensions import NamedTuple as ExtNamedTuple
 
 from rats import annotations
@@ -113,10 +114,10 @@ class Container(Protocol):
             # groups are expected to return iterable services
             # TODO: we need to clean up the meaning of groups and services somehow
             for i in self.get_namespaced_group(ProviderNamespaces.FALLBACK_GROUPS, group_id):
-                yield from i
+                yield from cast(Iterator[T_ServiceType], i)
 
         for i in self.get_namespaced_group(ProviderNamespaces.GROUPS, group_id):
-            yield from i
+            yield from cast(Iterator[T_ServiceType], i)
 
     def get_namespaced_group(
         self,
@@ -124,22 +125,15 @@ class Container(Protocol):
         group_id: ServiceId[T_ServiceType],
     ) -> Iterator[T_ServiceType]:
         """Retrieve a service group by its id, within a given service namespace."""
-        yield from _get_cached_services_for_group(
-            self,
-            namespace,
-            group_id,
-        )
+        yield from _get_cached_services_for_group(self, namespace, group_id)
 
         for subcontainer in _get_subcontainers(self):
-            yield from subcontainer.get_namespaced_group(
-                namespace,
-                group_id,
-            )
+            yield from subcontainer.get_namespaced_group(namespace, group_id)
 
 
 def _get_subcontainers(c: Container) -> Iterator[Container]:
     yield from _get_cached_services_for_group(
-        c, ProviderNamespaces.CONTAINERS, DEFAULT_CONTAINER_GROUP,
+        c, ProviderNamespaces.CONTAINERS, DEFAULT_CONTAINER_GROUP
     )
 
 
@@ -167,19 +161,19 @@ def _get_cached_services_for_group(
 
 
 def _get_provider_cache(obj: object) -> dict[_ProviderInfo[Any], Any]:
-    if not hasattr(obj, f"__rats_apps_provider_cache__"):
-        setattr(obj, "__rats_apps_provider_cache__", {})
+    if not hasattr(obj, "__rats_apps_provider_cache__"):
+        obj.__rats_apps_provider_cache__ = {}  # type: ignore[reportAttributeAccessIssue]
 
-    return getattr(obj, "__rats_apps_provider_cache__")
+    return obj.__rats_apps_provider_cache__  # type: ignore[reportAttributeAccessIssue]
 
 
 def _get_provider_info_cache(
     obj: object,
 ) -> dict[tuple[str, ServiceId[Any]], list[_ProviderInfo[Any]]]:
-    if not hasattr(obj, f"__rats_apps_provider_info_cache__"):
-        setattr(obj, "__rats_apps_provider_info_cache__", {})
+    if not hasattr(obj, "__rats_apps_provider_info_cache__"):
+        obj.__rats_apps_provider_info_cache__ = {}  # type: ignore[reportAttributeAccessIssue]
 
-    return getattr(obj, "__rats_apps_provider_info_cache__")
+    return obj.__rats_apps_provider_info_cache__  # type: ignore[reportAttributeAccessIssue]
 
 
 def _get_providers_for_group(
