@@ -5,14 +5,12 @@ from typing import Any, Protocol
 
 import click
 
-from rats import apps
-
 from ._annotations import get_class_commands
 
 logger = logging.getLogger(__name__)
 
 
-class CommandContainer(apps.Container, Protocol):
+class CommandContainer(Protocol):
     """A container that can attach click commands to a click group."""
 
     def attach(self, group: click.Group) -> None:
