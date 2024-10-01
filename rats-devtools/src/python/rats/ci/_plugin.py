@@ -75,15 +75,9 @@ class PluginContainer(apps.Container):
         yield "ruff", "check", "--fix", "--unsafe-fixes"
 
     @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _ruff_format_check(self) -> Iterator[tuple[str, ...]]:
+    def _default_checks(self) -> Iterator[tuple[str, ...]]:
         yield "ruff", "format", "--check"
-
-    @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _ruff_check(self) -> Iterator[tuple[str, ...]]:
         yield "ruff", "check"
-
-    @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _pyright(self) -> Iterator[tuple[str, ...]]:
         yield ("pyright",)
 
     @apps.fallback_group(PluginServices.CONFIGS.TEST)
