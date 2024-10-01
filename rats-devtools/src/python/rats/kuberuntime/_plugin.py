@@ -1,5 +1,4 @@
 from collections.abc import Iterator
-from typing import cast
 
 import click
 
@@ -35,14 +34,13 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _runner_cli(self) -> Iterator[apps.Executable]:
-        def run() -> None:
-            kuberuntime = self._app.get(PluginServices.MAIN_CLICK)
-            parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
-            self._app.get(PluginServices.COMMANDS).attach(kuberuntime)
-            parent.add_command(cast(click.Command, kuberuntime))
-
-        yield apps.App(run)
+    def _on_open(self) -> Iterator[apps.Executable]:
+        yield apps.App(
+            lambda: cli.attach(
+                self._app.get(PluginServices.MAIN_CLICK),
+                self._app.get(devtools.PluginServices.MAIN_CLICK),
+            )
+        )
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:
@@ -50,13 +48,13 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.MAIN_CLICK)
     def _main_click(self) -> click.Group:
-        command_container = self._app.get(PluginServices.COMMANDS)
-        kuberuntime = click.Group(
-            "k8s-runtime",
-            help="submit executables and events to k8s",
+        return cli.create_group(
+            click.Group(
+                "k8s-runtime",
+                help="submit executables and events to k8s",
+            ),
+            self._app.get(PluginServices.COMMANDS),
         )
-        command_container.attach(kuberuntime)
-        return kuberuntime
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:

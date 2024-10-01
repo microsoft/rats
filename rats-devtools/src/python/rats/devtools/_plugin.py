@@ -55,19 +55,13 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.MAIN_CLICK)
     def _main_click(self) -> click.Group:
-        root = click.Group(
-            "rats-devtools",
-            help="develop your ideas with ease",
+        return cli.create_group(
+            click.Group(
+                "rats-devtools",
+                help="develop your ideas with ease",
+            ),
+            self._app.get(PluginServices.COMMANDS),
         )
-        return root
-
-    @apps.group(PluginServices.EVENTS.OPENING)
-    def _on_open(self) -> Iterator[apps.Executable]:
-        def run() -> None:
-            parent = self._app.get(PluginServices.MAIN_CLICK)
-            self._app.get(PluginServices.COMMANDS).attach(parent)
-
-        yield apps.App(run)
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:

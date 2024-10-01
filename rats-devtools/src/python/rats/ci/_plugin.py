@@ -35,12 +35,12 @@ class PluginContainer(apps.Container):
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
     def _on_open(self) -> Iterator[apps.Executable]:
-        def run() -> None:
-            parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
-            ci = self._app.get(PluginServices.MAIN_CLICK)
-            parent.add_command(ci)
-
-        yield apps.App(run)
+        yield apps.App(
+            lambda: cli.attach(
+                self._app.get(devtools.PluginServices.MAIN_CLICK),
+                self._app.get(PluginServices.MAIN_CLICK),
+            )
+        )
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
@@ -75,15 +75,9 @@ class PluginContainer(apps.Container):
         yield "ruff", "check", "--fix", "--unsafe-fixes"
 
     @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _ruff_format_check(self) -> Iterator[tuple[str, ...]]:
+    def _default_checks(self) -> Iterator[tuple[str, ...]]:
         yield "ruff", "format", "--check"
-
-    @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _ruff_check(self) -> Iterator[tuple[str, ...]]:
         yield "ruff", "check"
-
-    @apps.fallback_group(PluginServices.CONFIGS.CHECK)
-    def _pyright(self) -> Iterator[tuple[str, ...]]:
         yield ("pyright",)
 
     @apps.fallback_group(PluginServices.CONFIGS.TEST)
@@ -96,11 +90,11 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.MAIN_CLICK)
     def _main_click(self) -> click.Group:
-        command_container = self._app.get(PluginServices.COMMANDS)
-        ci = click.Group(
-            "ci",
-            help="commands used during ci/cd",
-            chain=True,  # allow us to run more than one ci subcommand at once
+        return cli.create_group(
+            click.Group(
+                "ci",
+                help="commands used during ci/cd",
+                chain=True,  # allow us to run more than one ci subcommand at once
+            ),
+            self._app.get(PluginServices.COMMANDS),
         )
-        command_container.attach(ci)
-        return ci

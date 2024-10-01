@@ -4,6 +4,23 @@ import click
 
 from rats import apps
 
+from ._container import CommandContainer
+
+
+def create_group(group: click.Group, container: CommandContainer) -> click.Group:
+    container.attach(group)
+    return group
+
+
+def attach(
+    group: click.Group,
+    command: click.Command | click.Group,
+    *commands: click.Command | click.Group,
+) -> None:
+    group.add_command(command)
+    for c in commands:
+        group.add_command(c)
+
 
 @apps.autoscope
 class _PluginEvents:

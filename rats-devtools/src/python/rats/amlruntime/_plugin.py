@@ -50,13 +50,13 @@ class PluginContainer(apps.Container):
         self._app = app
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _runtime_cli(self) -> Iterator[apps.Executable]:
-        def run() -> None:
-            amlruntime = self._app.get(PluginServices.MAIN_CLICK)
-            parent = self._app.get(devtools.PluginServices.MAIN_CLICK)
-            parent.add_command(cast(click.Command, amlruntime))
-
-        yield apps.App(run)
+    def _on_open(self) -> Iterator[apps.Executable]:
+        yield apps.App(
+            lambda: cli.attach(
+                self._app.get(PluginServices.MAIN_CLICK),
+                self._app.get(devtools.PluginServices.MAIN_CLICK),
+            )
+        )
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:
@@ -64,13 +64,13 @@ class PluginContainer(apps.Container):
 
     @apps.service(PluginServices.MAIN_CLICK)
     def _main_click(self) -> click.Group:
-        command_container = self._app.get(PluginServices.COMMANDS)
-        amlrunner = click.Group(
-            "aml-runtime",
-            help="run executables and groups on AzureML",
+        return cli.create_group(
+            click.Group(
+                "aml-runtime",
+                help="run executables and groups on AzureML",
+            ),
+            self._app.get(PluginServices.COMMANDS),
         )
-        command_container.attach(amlrunner)
-        return amlrunner
 
     @apps.service(PluginServices.COMMANDS)
     def _commands(self) -> cli.CommandContainer:
