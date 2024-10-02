@@ -10,7 +10,7 @@ from rats import apps, cli, projects
 logger = logging.getLogger(__name__)
 
 
-class PluginCommands(cli.CommandContainer):
+class PluginCommands(cli.Container):
     _project_tools: apps.Provider[projects.ProjectTools]
     _cwd_component_tools: apps.Provider[projects.ComponentTools]
     _worker_node_runtime: apps.Provider[apps.Runtime]

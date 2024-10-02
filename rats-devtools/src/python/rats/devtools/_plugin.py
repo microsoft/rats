@@ -22,7 +22,7 @@ class _PluginEvents:
 class PluginServices:
     MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
-    COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
+    COMMANDS = apps.ServiceId[cli.Container]("commands")
     EVENTS = _PluginEvents
 
 
@@ -64,5 +64,5 @@ class PluginContainer(apps.Container):
         )
 
     @apps.service(PluginServices.COMMANDS)
-    def _commands(self) -> cli.CommandContainer:
+    def _commands(self) -> cli.Container:
         return PluginCommands(lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS))

@@ -6,7 +6,7 @@ from rats import apps, cli, projects
 logger = logging.getLogger(__name__)
 
 
-class PluginCommands(cli.CommandContainer):
+class PluginCommands(cli.Container):
     """These are the base commands you get with devtools."""
 
     _project_tools: apps.Provider[projects.ProjectTools]

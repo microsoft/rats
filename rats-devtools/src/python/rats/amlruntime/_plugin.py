@@ -31,7 +31,7 @@ class PluginServices:
     AML_CLIENT = apps.ServiceId[MLClient]("aml-client")
     AML_ENVIRONMENT_OPS = apps.ServiceId[EnvironmentOperations]("aml-environment-ops")
     AML_JOB_OPS = apps.ServiceId[JobOperations]("aml-job-ops")
-    COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
+    COMMANDS = apps.ServiceId[cli.Container]("commands")
 
     MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
@@ -73,7 +73,7 @@ class PluginContainer(apps.Container):
         )
 
     @apps.service(PluginServices.COMMANDS)
-    def _commands(self) -> cli.CommandContainer:
+    def _commands(self) -> cli.Container:
         return PluginCommands(
             project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
             cwd_component_tools=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),

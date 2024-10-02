@@ -1,7 +1,7 @@
 import logging
 from collections.abc import Callable
 from functools import partial
-from typing import Any, Protocol
+from typing import Any, Protocol, final
 
 import click
 
@@ -10,7 +10,7 @@ from ._annotations import get_class_commands
 logger = logging.getLogger(__name__)
 
 
-class CommandContainer(Protocol):
+class Container(Protocol):
     """A container that can attach click commands to a click group."""
 
     def attach(self, group: click.Group) -> None:
@@ -46,3 +46,15 @@ class CommandContainer(Protocol):
                             params=params,
                         )
                     )
+
+
+@final
+class CompositeContainer(Container):
+    _containers: tuple[Container, ...]
+
+    def __init__(self, *containers: Container) -> None:
+        self._containers = containers
+
+    def attach(self, group: click.Group) -> None:
+        for container in self._containers:
+            container.attach(group)
