@@ -16,7 +16,7 @@ class CiCommandGroups(NamedTuple):
     test: tuple[tuple[str, ...], ...]
 
 
-class PluginCommands(cli.CommandContainer):
+class PluginCommands(cli.Container):
     _project_tools: apps.Provider[projects.ProjectTools]
     _selected_component: apps.Provider[projects.ComponentTools]
     _devtools_component: apps.Provider[projects.ComponentTools]

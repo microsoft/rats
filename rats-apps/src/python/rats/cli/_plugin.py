@@ -4,10 +4,10 @@ import click
 
 from rats import apps
 
-from ._container import CommandContainer
+from ._container import Container
 
 
-def create_group(group: click.Group, container: CommandContainer) -> click.Group:
+def create_group(group: click.Group, container: Container) -> click.Group:
     container.attach(group)
     return group
 

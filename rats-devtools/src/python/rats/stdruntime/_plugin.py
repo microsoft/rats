@@ -10,7 +10,7 @@ from ._commands import PluginCommands
 
 @apps.autoscope
 class PluginServices:
-    COMMANDS = apps.ServiceId[cli.CommandContainer]("commands")
+    COMMANDS = apps.ServiceId[cli.Container]("commands")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
 
 
@@ -40,7 +40,7 @@ class PluginContainer(apps.Container):
         )
 
     @apps.service(PluginServices.COMMANDS)
-    def _commands(self) -> cli.CommandContainer:
+    def _commands(self) -> cli.Container:
         return PluginCommands(
             standard_runtime=self._app.get(apps.AppServices.STANDARD_RUNTIME),
         )

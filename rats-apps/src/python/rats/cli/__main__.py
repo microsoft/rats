@@ -9,7 +9,7 @@ from rats import apps, cli
 logger = logging.getLogger(__name__)
 
 
-class ExampleCommands(cli.CommandContainer):
+class ExampleCommands(cli.Container):
     """An example collection of cli commands."""
 
     @cli.command()

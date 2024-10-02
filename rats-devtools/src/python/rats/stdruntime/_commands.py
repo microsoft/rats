@@ -7,7 +7,7 @@ from rats import apps, cli
 logger = logging.getLogger(__name__)
 
 
-class PluginCommands(cli.CommandContainer):
+class PluginCommands(cli.Container):
     _standard_runtime: apps.Runtime
 
     def __init__(self, standard_runtime: apps.Runtime) -> None:

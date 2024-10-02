@@ -4,7 +4,7 @@ import click
 
 from rats import apps
 
-from ._container import CommandContainer
+from ._container import Container
 
 
 @final
@@ -12,12 +12,12 @@ class ClickApp(apps.Executable):
     """..."""
 
     _group: click.Group
-    _commands: CommandContainer
+    _commands: Container
 
     def __init__(
         self,
         group: click.Group,
-        commands: CommandContainer,
+        commands: Container,
     ) -> None:
         """Not sure this is the right interface."""
         self._group = group
