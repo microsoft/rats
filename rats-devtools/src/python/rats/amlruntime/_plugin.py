@@ -3,10 +3,6 @@ from typing import cast
 
 import click
 
-# from azure.ai.ml import MLClient
-# from azure.ai.ml.operations import EnvironmentOperations, JobOperations
-# from azure.core.credentials import TokenCredential
-# from azure.identity import DefaultAzureCredential
 from rats import apps, cli
 from rats import devtools as devtools
 from rats import projects as projects
