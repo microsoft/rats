@@ -4,11 +4,6 @@ import time
 from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
-from azure.ai.ml import Input, MLClient, Output, command
-from azure.ai.ml.entities import Environment
-from azure.ai.ml.operations import EnvironmentOperations, JobOperations
-from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
-
 from rats import apps
 
 logger = logging.getLogger(__name__)
@@ -49,19 +44,16 @@ class RuntimeConfig(NamedTuple):
 class AmlRuntime(apps.Runtime):
     """An app runtime that submits jobs to AML for the execution of a set of exes or groups."""
 
-    _ml_client: apps.Provider[MLClient]
-    _environment_operations: apps.Provider[EnvironmentOperations]
-    _job_operations: apps.Provider[JobOperations]
+    _environment_operations: apps.Provider["EnvironmentOperations"]  # type: ignore[reportUndefinedVariable]  # noqa: F821
+    _job_operations: apps.Provider["JobOperations"]  # type: ignore[reportUndefinedVariable]  # noqa: F821
     _config: apps.Provider[RuntimeConfig]
 
     def __init__(
         self,
-        ml_client: apps.Provider[MLClient],
-        environment_operations: apps.Provider[EnvironmentOperations],
-        job_operations: apps.Provider[JobOperations],
+        environment_operations: apps.Provider["EnvironmentOperations"],  # type: ignore[reportUndefinedVariable]  # noqa: F821
+        job_operations: apps.Provider["JobOperations"],  # type: ignore[reportUndefinedVariable]  # noqa: F821
         config: apps.Provider[RuntimeConfig],
     ) -> None:
-        self._ml_client = ml_client
         self._environment_operations = environment_operations
         self._job_operations = job_operations
         self._config = config
@@ -80,6 +72,10 @@ class AmlRuntime(apps.Runtime):
         exe_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
         exe_group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
     ) -> None:
+        from azure.ai.ml import Input, Output, command
+        from azure.ai.ml.entities import Environment
+        from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
+
         config = self._config()
         logger.info(f"{config.environment._asdict()}")
 
