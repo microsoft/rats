@@ -24,7 +24,6 @@ class AmlRuntimePluginContainer(apps.Container):
 
     def _make_runtime(self, name: str) -> amlruntime.AmlRuntime:
         return amlruntime.AmlRuntime(
-            ml_client=lambda: self._app.get(amlruntime.PluginServices.AML_CLIENT),
             environment_operations=lambda: self._app.get(
                 amlruntime.PluginServices.AML_ENVIRONMENT_OPS,
             ),

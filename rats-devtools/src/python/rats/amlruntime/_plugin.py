@@ -2,11 +2,11 @@ from collections.abc import Iterator
 from typing import cast
 
 import click
-from azure.ai.ml import MLClient
-from azure.ai.ml.operations import EnvironmentOperations, JobOperations
-from azure.core.credentials import TokenCredential
-from azure.identity import DefaultAzureCredential
 
+# from azure.ai.ml import MLClient
+# from azure.ai.ml.operations import EnvironmentOperations, JobOperations
+# from azure.core.credentials import TokenCredential
+# from azure.identity import DefaultAzureCredential
 from rats import apps, cli
 from rats import devtools as devtools
 from rats import projects as projects
@@ -28,9 +28,9 @@ class _PluginConfigs:
 @apps.autoscope
 class PluginServices:
     AML_RUNTIME = apps.ServiceId[apps.Runtime]("aml-runtime")
-    AML_CLIENT = apps.ServiceId[MLClient]("aml-client")
-    AML_ENVIRONMENT_OPS = apps.ServiceId[EnvironmentOperations]("aml-environment-ops")
-    AML_JOB_OPS = apps.ServiceId[JobOperations]("aml-job-ops")
+    AML_CLIENT = apps.ServiceId["MLClient"]("aml-client")  # type: ignore[reportUndefinedVariable]
+    AML_ENVIRONMENT_OPS = apps.ServiceId["EnvironmentOperations"]("aml-environment-ops")  # type: ignore[reportUndefinedVariable]
+    AML_JOB_OPS = apps.ServiceId["JobOperations"]("aml-job-ops")  # type: ignore[reportUndefinedVariable]
     COMMANDS = apps.ServiceId[cli.Container]("commands")
 
     MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
@@ -91,18 +91,17 @@ class PluginContainer(apps.Container):
 
     def _aml_component_runtime(self, name: str) -> AmlRuntime:
         return AmlRuntime(
-            ml_client=lambda: self._app.get(PluginServices.AML_CLIENT),
             environment_operations=lambda: self._app.get(PluginServices.AML_ENVIRONMENT_OPS),
             job_operations=lambda: self._app.get(PluginServices.AML_JOB_OPS),
             config=lambda: self._app.get(PluginServices.CONFIGS.component_runtime(name)),
         )
 
     @apps.service(PluginServices.AML_ENVIRONMENT_OPS)
-    def _aml_env_ops(self) -> EnvironmentOperations:
+    def _aml_env_ops(self) -> "EnvironmentOperations":  # type: ignore[reportUndefinedVariable]  # noqa: F821
         return self._app.get(PluginServices.AML_CLIENT).environments
 
     @apps.service(PluginServices.AML_JOB_OPS)
-    def _aml_job_ops(self) -> JobOperations:
+    def _aml_job_ops(self) -> "JobOperations":  # type: ignore[reportUndefinedVariable]  # noqa: F821
         return self._app.get(PluginServices.AML_CLIENT).jobs
 
     @apps.service(PluginServices.CONFIGS.AML_RUNTIME)
@@ -113,7 +112,11 @@ class PluginContainer(apps.Container):
         )
 
     @apps.service(PluginServices.AML_CLIENT)
-    def _aml_client(self) -> MLClient:
+    def _aml_client(self) -> "MLClient":  # type: ignore[reportUndefinedVariable]  # noqa: F821
+        from azure.ai.ml import MLClient
+        from azure.core.credentials import TokenCredential
+        from azure.identity import DefaultAzureCredential
+
         workspace = self._app.get(PluginServices.CONFIGS.AML_RUNTIME).workspace
         return MLClient(
             credential=cast(TokenCredential, DefaultAzureCredential()),
