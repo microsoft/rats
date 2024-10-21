@@ -19,7 +19,7 @@ class orderedset(Hashable, Set[_T_co], Sequence[_T_co]):
     @overload
     def __init__(self, __iterable: Iterable[_T_co] = ()) -> None: ...
 
-    def __init__(self, __iterable: Iterable[_T_co] = ()) -> None:  # type: ignore[reportInconsistentOverload]
+    def __init__(self, __iterable: Iterable[_T_co] = ()) -> None:
         self._d = dict.fromkeys(__iterable, None)
 
     @overload
