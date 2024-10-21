@@ -55,7 +55,7 @@ repos:
         additional_dependencies: [cz-conventional-gitmoji]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
-    rev: v0.5.8
+    rev: v0.6.1
     hooks:
       - id: conventional-gitmoji
 # this seems to break python blocks created by embedding src files
