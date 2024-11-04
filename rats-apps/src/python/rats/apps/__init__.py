@@ -19,7 +19,6 @@ from ._composite_container import CompositeContainer
 from ._container import (
     Container,
     DuplicateServiceError,
-    GroupProvider,
     Provider,
     ServiceNotFoundError,
     ServiceProvider,
@@ -47,7 +46,6 @@ __all__ = [
     "ProviderNamespaces",
     "ServiceProvider",
     "Provider",
-    "GroupProvider",
     "ServiceId",
     "ServiceNotFoundError",
     "autoid_service",
