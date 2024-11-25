@@ -41,7 +41,7 @@ jobs:
           rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
           rats-devtools.pipx ci install check test
       - name: upload-coverage
-        uses: codecov/codecov-action@v4.6.0
+        uses: codecov/codecov-action@v5.0.7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: microsoft/rats
