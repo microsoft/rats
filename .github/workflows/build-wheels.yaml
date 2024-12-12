@@ -38,8 +38,9 @@ jobs:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd ${{ matrix.component }}
-          rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
-          rats-devtools.pipx ci install build-wheel
+          poetry version "$PACKAGE_VERSION"
+          rats-devtools.pipx ci install
+          poetry build -f build-wheel
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
