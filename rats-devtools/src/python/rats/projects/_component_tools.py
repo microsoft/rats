@@ -1,11 +1,11 @@
 import logging
 import subprocess
 import sys
-from collections.abc import Iterator
+from collections.abc import Mapping
 from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import toml
 
@@ -30,16 +30,10 @@ class ComponentTools:
         self._path = path
 
     def component_name(self) -> str:
-        # for now only supporting poetry components :(
-        return toml.loads((self.find_path("pyproject.toml")).read_text())["tool"]["poetry"]["name"]
-
-    def root_package_dirs(self) -> Iterator[str]:
-        # currently assuming packages have been specified in poetry pyproject.toml settings
-        pkgs = toml.loads(
-            (self.find_path("pyproject.toml")).read_text(),
-        )["tool"]["poetry"]["packages"]
-        for pkg in pkgs:
-            yield f"{pkg['from']}/{pkg['include']}"
+        if self.is_poetry_detected():
+            return self._load_pyproject()["tool"]["poetry"]["name"]
+        else:
+            return self._load_pyproject()["project"]["name"]
 
     def symlink(self, src: Path, dst: Path) -> None:
         """
@@ -110,10 +104,6 @@ class ComponentTools:
         if not path.is_relative_to(project):
             raise ValueError(f"component path must be relative to project: {path}")
 
-    def install(self) -> None:
-        """Install the dependencies of the component."""
-        self.poetry("install")
-
     def pytest(self) -> None:
         self.run("pytest")
 
@@ -124,9 +114,15 @@ class ComponentTools:
         self.run("pyright")
 
     def run(self, *args: str) -> None:
-        self.poetry("run", *args)
+        if self.is_poetry_detected():
+            self.poetry("run", *args)
+        else:
+            self.exe(*args)
 
     def poetry(self, *args: str) -> None:
+        if not self.is_poetry_detected():
+            raise RuntimeError(f"cannot run poetry commands in component: {self.component_name()}")
+
         # when running a poetry command, we want to ignore any env we might be in.
         # i'm not sure yet how reliable this is.
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
@@ -138,6 +134,20 @@ class ComponentTools:
         except subprocess.CalledProcessError as e:
             logger.error(f"failure detected: {' '.join(cmd)}")
             sys.exit(e.returncode)
+
+    def is_poetry_detected(self) -> bool:
+        """
+        Returns true if we think this component might be managed by poetry.
+
+        Since PEP 621 is gaining adoption, including by poetry, we should be able to remove most of
+        the complexity in trying to parse details out of pyproject.toml. This method is here until
+        we can fully delete any non PEP 621 code since we initially started as poetry-specific.
+        """
+        data = self._load_pyproject()
+        return "tool" in data and "poetry" in data["tool"]
+
+    def _load_pyproject(self) -> Mapping[str, Any]:
+        return toml.loads((self.find_path("pyproject.toml")).read_text())
 
 
 class UnsetComponentTools(ComponentTools):

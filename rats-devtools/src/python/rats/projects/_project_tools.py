@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess
-from collections.abc import Iterable
 from functools import cache
 from hashlib import sha256
 from pathlib import Path
@@ -147,7 +146,7 @@ class ProjectTools:
         raise ComponentNotFoundError("was not able to find a devtools component in the project")
 
     @cache  # noqa: B019
-    def discover_components(self) -> Iterable[ComponentId]:
+    def discover_components(self) -> tuple[ComponentId, ...]:
         valid_components = []
         if self._is_single_component_project():
             p = self.repo_root() / "pyproject.toml"
@@ -177,9 +176,13 @@ class ProjectTools:
                 logger.debug(f"detected unmanaged component: {p.name}")
                 continue
 
-            # how do we stop depending on poetry here?
+            poetry_name = component_info.get("tool", {}).get("poetry", {}).get("name")
+            # fall back to assuming PEP 621 compliance
+            name = poetry_name or component_info["project"]["name"]
+
+            # poetry code paths can be dropped once 2.x is released
             # looks like we wait: https://github.com/python-poetry/poetry/pull/9135
-            valid_components.append(ComponentId(component_info["tool"]["poetry"]["name"]))
+            valid_components.append(ComponentId(name))
 
         return tuple(valid_components)
 
@@ -195,7 +198,10 @@ class ProjectTools:
 
     def repo_root(self) -> Path:
         p = Path(self._config().path).resolve()
-        if not (p / ".git").exists():
+        # 99% of the time we just want the root of the repo
+        # but in tests we use sub-projects to create fake scenarios
+        # better test tooling can probably help us remove this later
+        if not (p / ".git").exists() and not (p / ".rats-root").exists():
             raise ProjectNotFoundError(
                 f"repo root not found: {p}. devtools must be used on a project in a git repo."
             )
@@ -203,7 +209,7 @@ class ProjectTools:
         return p
 
     def _extract_tool_info(self, pyproject: Path) -> dict[str, bool]:
-        config = toml.loads(pyproject.read_text())["tool"].get("rats-devtools", {})
+        config = toml.loads(pyproject.read_text()).get("tool", {}).get("rats-devtools", {})
 
         return {
             "enabled": config.get("enabled", False),

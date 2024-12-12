@@ -2,8 +2,6 @@
 import logging
 from typing import NamedTuple
 
-import click
-
 from rats import apps, cli, projects
 
 logger = logging.getLogger(__name__)
@@ -63,36 +61,6 @@ class PluginCommands(cli.Container):
         print(f"ran {len(self._command_groups().test)} test commands")
 
     @cli.command()
-    @click.argument("version")
-    def update_version(self, version: str) -> None:
-        """Update the version of the package found in pyproject.toml."""
-        self._selected_component().poetry("version", version)
-
-    @cli.command()
-    def build_wheel(self) -> None:
-        """Build a wheel for the package."""
-        self._selected_component().poetry("build", "-f", "wheel")
-
-    @cli.command()
     def build_image(self) -> None:
-        """Update the version of the package found in pyproject.toml."""
+        """Build a container image of the component."""
         self._project_tools().build_component_image(self._selected_component().find_path(".").name)
-
-    @cli.command()
-    @click.argument("repository_name")
-    def publish_wheel(self, repository_name: str) -> None:
-        """
-        Publish the wheel to the specified repository.
-
-        This command assumes the caller has the required permissions and the specified repository
-        has been configured with poetry.
-        """
-        self._selected_component().poetry(
-            "publish",
-            "--repository",
-            repository_name,
-            "--no-interaction",
-            # temporarily skip existing during testing
-            # not yet sure how to handle failures here
-            "--skip-existing",
-        )

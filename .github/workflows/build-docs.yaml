@@ -27,7 +27,7 @@ jobs:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd rats-devtools
-          rats-devtools.pipx ci update-version "$PACKAGE_VERSION"
+          poetry version "$PACKAGE_VERSION"
           rats-devtools.pipx ci install
           rats-devtools.pipx docs mkdocs-build
       - name: "upload-gh-pages"
