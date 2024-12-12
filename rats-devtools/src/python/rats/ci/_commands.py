@@ -75,7 +75,7 @@ class PluginCommands(cli.Container):
 
     @cli.command()
     def build_image(self) -> None:
-        """Update the version of the package found in pyproject.toml."""
+        """Build a container image of the component."""
         self._project_tools().build_component_image(self._selected_component().find_path(".").name)
 
     @cli.command()
