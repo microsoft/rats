@@ -198,7 +198,10 @@ class ProjectTools:
 
     def repo_root(self) -> Path:
         p = Path(self._config().path).resolve()
-        if not (p / ".git").exists():
+        # 99% of the time we just want the root of the repo
+        # but in tests we use sub-projects to create fake scenarios
+        # better test tooling can probably help us remove this later
+        if not (p / ".git").exists() and not (p / ".rats-root").exists():
             raise ProjectNotFoundError(
                 f"repo root not found: {p}. devtools must be used on a project in a git repo."
             )
