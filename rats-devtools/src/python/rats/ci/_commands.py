@@ -2,8 +2,6 @@
 import logging
 from typing import NamedTuple
 
-import click
-
 from rats import apps, cli, projects
 
 logger = logging.getLogger(__name__)

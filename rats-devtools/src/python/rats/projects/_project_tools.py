@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess
-from collections.abc import Iterable
 from functools import cache
 from hashlib import sha256
 from pathlib import Path
@@ -147,7 +146,7 @@ class ProjectTools:
         raise ComponentNotFoundError("was not able to find a devtools component in the project")
 
     @cache  # noqa: B019
-    def discover_components(self) -> Iterable[ComponentId]:
+    def discover_components(self) -> tuple[ComponentId, ...]:
         valid_components = []
         if self._is_single_component_project():
             p = self.repo_root() / "pyproject.toml"

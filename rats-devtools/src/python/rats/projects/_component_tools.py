@@ -1,7 +1,7 @@
 import logging
 import subprocess
 import sys
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
@@ -89,7 +89,7 @@ class ComponentTools:
     def _validate_component_path(self, path: Path) -> None:
         """Ensure a path is relative to the component this instance is tied to."""
         if not path.is_relative_to(self._path):
-            raise ValueError(f"component path ({self._path}) must be relative to component: {path}")
+            raise ValueError(f"component path must be relative to component: {path}")
 
     def _validate_project_path(self, path: Path) -> None:
         """
