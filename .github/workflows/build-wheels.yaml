@@ -40,7 +40,7 @@ jobs:
           cd ${{ matrix.component }}
           poetry version "$PACKAGE_VERSION"
           rats-devtools.pipx ci install
-          poetry build -f build-wheel
+          poetry build -f wheel
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:
