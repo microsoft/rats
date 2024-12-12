@@ -177,9 +177,13 @@ class ProjectTools:
                 logger.debug(f"detected unmanaged component: {p.name}")
                 continue
 
-            # how do we stop depending on poetry here?
+            poetry_name = component_info.get("tool", {}).get("poetry", {}).get("name")
+            # fall back to assuming PEP 621 compliance
+            name = poetry_name or component_info["project"]["name"]
+
+            # poetry code paths can be dropped once 2.x is released
             # looks like we wait: https://github.com/python-poetry/poetry/pull/9135
-            valid_components.append(ComponentId(component_info["tool"]["poetry"]["name"]))
+            valid_components.append(ComponentId(name))
 
         return tuple(valid_components)
 
@@ -203,7 +207,7 @@ class ProjectTools:
         return p
 
     def _extract_tool_info(self, pyproject: Path) -> dict[str, bool]:
-        config = toml.loads(pyproject.read_text())["tool"].get("rats-devtools", {})
+        config = toml.loads(pyproject.read_text()).get("tool", {}).get("rats-devtools", {})
 
         return {
             "enabled": config.get("enabled", False),
