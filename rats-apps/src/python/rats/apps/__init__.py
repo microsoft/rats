@@ -29,7 +29,6 @@ from ._executables import App, Executable
 from ._ids import ServiceId, T_ExecutableType, T_ServiceType
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
-from ._plugins import PluginRunner
 from ._runtimes import NullRuntime, Runtime
 from ._scoping import autoscope
 from ._simple_apps import AppServices, SimpleApplication, StandardRuntime
@@ -53,7 +52,6 @@ __all__ = [
     "autoid_service",
     "autoscope",
     "container",
-    "PluginRunner",
     "fallback_group",
     "fallback_service",
     "group",
