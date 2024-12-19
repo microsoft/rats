@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from abc import abstractmethod
 from collections.abc import Callable
@@ -22,7 +24,7 @@ EMPTY_PLUGIN = _empty_plugin
 class AppContainer(Container, Executable, Protocol):
     def execute(self) -> None:
         """The main application entry point."""
-        logger.warning(f"empty execute method in application {self.__class__}")
+        logger.warning(f"empty execute method in application: {self.__class__}")
 
 
 class _AppPluginType(Protocol):

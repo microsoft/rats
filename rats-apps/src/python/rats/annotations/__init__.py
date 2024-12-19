@@ -15,11 +15,11 @@ from ._functions import (
 )
 
 __all__ = [
-    "annotation",
-    "DecoratorType",
     "AnnotationsContainer",
-    "get_annotations",
-    "get_class_annotations",
+    "DecoratorType",
     "GroupAnnotations",
     "T_GroupType",
+    "annotation",
+    "get_annotations",
+    "get_class_annotations",
 ]

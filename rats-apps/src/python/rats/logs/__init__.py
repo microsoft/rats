@@ -1,8 +1,7 @@
 """Small package to help configure logging for rats applications."""
 
-from ._plugin import PluginContainer, PluginServices
+from ._app import ConfigureApplication
 
 __all__ = [
-    "PluginServices",
-    "PluginContainer",
+    "ConfigureApplication",
 ]

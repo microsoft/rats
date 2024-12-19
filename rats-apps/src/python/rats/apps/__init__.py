@@ -28,7 +28,7 @@ from ._container import (
 )
 from ._executables import App, Executable
 from ._ids import ServiceId, T_ExecutableType, T_ServiceType
-from ._mains import make_main, run_main
+from ._mains import make_main, run, run_main, run_plugin
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
 from ._runtimes import NullRuntime, Runtime
@@ -74,6 +74,8 @@ __all__ = [
     "fallback_service",
     "group",
     "make_main",
+    "run",
     "run_main",
+    "run_plugin",
     "service",
 ]

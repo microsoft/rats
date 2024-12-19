@@ -2,8 +2,19 @@ import logging
 from collections.abc import Callable
 
 from ._app_containers import AppBundle, AppPlugin
+from ._executables import Executable
 
 logger = logging.getLogger(__name__)
+
+
+def run(*apps: Executable) -> None:
+    """Shortcut for running a list of apps."""
+    for app in apps:
+        app.execute()
+
+
+def run_plugin(*app_plugins: AppPlugin) -> None:
+    run(*[AppBundle(app_plugin=plugin) for plugin in app_plugins])
 
 
 def run_main(app_plugin: AppPlugin) -> None:

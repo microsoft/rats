@@ -28,13 +28,6 @@ class PluginServices:
 
 class PluginContainer(apps.Container, apps.PluginMixin):
 
-    @apps.group(PluginServices.EVENTS.OPENING)
-    def _on_opening(self) -> Iterator[apps.Executable]:
-        runtime = self._app.get(apps.AppServices.RUNTIME)
-        yield apps.App(
-            lambda: runtime.execute_group(logs.PluginServices.EVENTS.CONFIGURE_LOGGING),
-        )
-
     @apps.group(PluginServices.EVENTS.RUNNING)
     def _on_running(self) -> Iterator[apps.Executable]:
         # our main app here runs a cli command, but it can also directly do something useful
