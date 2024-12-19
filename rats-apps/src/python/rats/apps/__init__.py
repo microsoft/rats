@@ -15,6 +15,7 @@ from ._annotations import (
     group,
     service,
 )
+from ._app_containers import AppContainer, AppPlugin, ContainerPlugin
 from ._composite_container import CompositeContainer
 from ._container import (
     Container,
@@ -27,6 +28,7 @@ from ._container import (
 )
 from ._executables import App, Executable
 from ._ids import ServiceId, T_ExecutableType, T_ServiceType
+from ._mains import make_main, run_main
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
 from ._runtimes import NullRuntime, Runtime
@@ -36,6 +38,11 @@ from ._static_container import StaticContainer, StaticProvider
 
 __all__ = [
     "App",
+    "AppContainer",
+    "AppPlugin",
+    "ContainerPlugin",
+    "run_main",
+    "make_main",
     "CompositeContainer",
     "Container",
     "StaticContainer",
