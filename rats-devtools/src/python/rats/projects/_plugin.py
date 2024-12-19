@@ -25,11 +25,7 @@ class PluginServices:
     CONFIGS = PluginConfigs
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class PluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.service(PluginServices.CWD_COMPONENT_TOOLS)
     def _active_component_tools(self) -> ComponentTools:

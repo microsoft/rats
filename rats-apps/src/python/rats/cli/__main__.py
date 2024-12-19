@@ -41,14 +41,8 @@ class ExampleServices:
     MAIN = apps.ServiceId[apps.Executable]("main")
 
 
-class ExampleContainer(apps.Container):
+class ExampleContainer(apps.Container, apps.PluginMixin):
     """An example container of services."""
-
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        """The root container allows us to access services in other plugins."""
-        self._app = app
 
     @apps.service(ExampleServices.MAIN)
     def _main(self) -> apps.Executable:

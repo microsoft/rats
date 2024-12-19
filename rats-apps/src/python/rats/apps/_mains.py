@@ -1,19 +1,17 @@
 import logging
 from collections.abc import Callable
 
-from rats import apps
-
-from ._app_containers import AppBundle, AppContainer
+from ._app_containers import AppBundle, AppPlugin
 
 logger = logging.getLogger(__name__)
 
 
-def run_main(app_plugin: Callable[[apps.Container], AppContainer]) -> None:
+def run_main(app_plugin: AppPlugin) -> None:
     """Shortcut to create and execute a script entry point."""
     make_main(app_plugin)()
 
 
-def make_main(app_plugin: Callable[[apps.Container], AppContainer]) -> Callable[[], None]:
+def make_main(app_plugin: AppPlugin) -> Callable[[], None]:
     """
     Factory function to create an entry point for a python script.
 
@@ -44,10 +42,7 @@ def make_main(app_plugin: Callable[[apps.Container], AppContainer]) -> Callable[
     """
 
     def main() -> None:
-        # TODO: with some work, we can make the starting context be our os.environ
-        empty = apps.CompositeContainer()
-
-        bundle = AppBundle(ctx=empty, app_plugin=app_plugin)
+        bundle = AppBundle(app_plugin=app_plugin)
         bundle.execute()
 
     return main

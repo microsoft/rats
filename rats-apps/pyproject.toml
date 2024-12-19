@@ -30,7 +30,6 @@ types-urllib3 = "*"
 
 [tool.poetry.plugins."rats.apps.plugins"]
 "rats.logs" = "rats.logs:PluginContainer"
-"rats.cli" = "rats.cli:PluginContainer"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

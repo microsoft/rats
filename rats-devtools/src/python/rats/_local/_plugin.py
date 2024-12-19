@@ -4,11 +4,7 @@ from ._amlruntimes import AmlRuntimePluginContainer
 from ._kuberuntimes import KubeRuntimePluginContainer
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class PluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.container()
     def _plugins(self) -> apps.Container:

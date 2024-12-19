@@ -1,4 +1,4 @@
-from typing import cast, final
+from typing import cast
 
 import click
 
@@ -41,11 +41,3 @@ class PluginServices:
     @staticmethod
     def click_command(cmd_id: apps.ServiceId[apps.Executable]) -> apps.ServiceId[click.Group]:
         return cast(apps.ServiceId[click.Group], cmd_id)
-
-
-@final
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app

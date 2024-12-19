@@ -1,11 +1,12 @@
 import logging
 from abc import abstractmethod
+from collections.abc import Callable
 from functools import cache
 from typing import Protocol, final
 
 from ._composite_container import CompositeContainer
-from ._executables import Executable
 from ._container import Container, container
+from ._executables import Executable
 
 logger = logging.getLogger(__name__)
 EMPTY_CONTEXT = CompositeContainer()
@@ -24,22 +25,53 @@ class AppContainer(Container, Executable, Protocol):
         logger.warning(f"empty execute method in application {self.__class__}")
 
 
-class AppPlugin(Protocol):
-    """Protocol representing Callable[[Container], AppContainer]."""
-
-    __name__: str
-
+class _AppPluginType(Protocol):
     @abstractmethod
     def __call__(self, app: Container) -> AppContainer:
         pass
 
 
-class ContainerPlugin(Protocol):
-    """Protocol representing Callable[[Container], Container]."""
-
+class _ContainerPluginType(Protocol):
     @abstractmethod
     def __call__(self, app: Container) -> Container:
         pass
+
+
+AppPlugin = _AppPluginType | Callable[[Container], AppContainer]
+ContainerPlugin = _ContainerPluginType | Callable[[Container], Container]
+
+
+class PluginMixin:
+    """
+    Mix into your `apps.Container` classes to add our default constructor.
+
+    This mixin adds a common constructor to a `Container` in order to quickly create types that
+    are compatible with functions asking for `AppPlugin` and `ContainerPlugin` arguments.
+
+    !!! warning
+        Avoid using mixins as an input type to your functions, because we don't want to restrict
+        others to containers with a private `_app` property. Instead, use this as a shortcut to
+        some commonly used implementation details.
+
+    Examples:
+         ```python
+         from rats import apps
+
+         class ExampleApplication(apps.AppContainer, apps.PluginMixin):
+
+            def execute() -> None:
+                print("hello, world!")
+
+
+        if __name__ == "__main__":
+            apps.run_main(ExampleApplication)
+         ```
+    """
+
+    _app: Container
+
+    def __init__(self, app: Container) -> None:
+        self._app = app
 
 
 class CompositePlugin:

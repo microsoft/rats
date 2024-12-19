@@ -16,12 +16,7 @@ class PluginServices:
     EVENTS = _PluginEvents
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
+class PluginContainer(apps.Container, apps.PluginMixin):
     @apps.group(PluginServices.EVENTS.CONFIGURE_LOGGING)
     def _configure_logging(self) -> Iterator[apps.Executable]:
         # in the future, we can use this plugin to make logging easily configurable

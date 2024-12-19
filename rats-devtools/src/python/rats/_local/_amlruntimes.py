@@ -4,11 +4,7 @@ from rats import amlruntime, projects
 from rats import apps as apps
 
 
-class AmlRuntimePluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class AmlRuntimePluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.service(amlruntime.PluginServices.component_runtime("rats-devtools"))
     def _devtools_runtime(self) -> amlruntime.AmlRuntime:

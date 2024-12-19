@@ -39,11 +39,7 @@ class PluginServices:
         return apps.ServiceId[apps.Runtime](f"{PluginServices.AML_RUNTIME.name}[{name}]")
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class PluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
     def _on_open(self) -> Iterator[apps.Executable]:
