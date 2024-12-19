@@ -14,12 +14,7 @@ class _PrivateIds:
     TAG_FACTORY_1 = apps.ServiceId[Callable[[str], ITag]]("tag-factory-1")
 
 
-class DummyContainer1(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
+class DummyContainer1(apps.Container, apps.PluginMixin):
     # Declaring a service without a service id.  The id will be automatically generated from the
     # fully qualified name of the method.
     @apps.autoid_service
@@ -59,12 +54,7 @@ class DummyContainer1(apps.Container):
         return Tag(ns)
 
 
-class DummyContainer2(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
+class DummyContainer2(apps.Container, apps.PluginMixin):
     # Declaring a service without a service id.  We are using a method name already used in
     # DummyContainer1, to test that they are not confused.
     @apps.autoid_service

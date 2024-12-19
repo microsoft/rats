@@ -18,11 +18,7 @@ class PluginServices:
     DATASETS = PluginDatasets
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class PluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:

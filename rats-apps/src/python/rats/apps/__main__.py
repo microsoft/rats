@@ -49,14 +49,8 @@ class PluginServices:
     EXAMPLE_DATA = apps.ServiceId[ExampleData]("example-data")
 
 
-class PluginContainer(apps.Container):
+class PluginContainer(apps.Container, apps.PluginMixin):
     """..."""
-
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        """..."""
-        self._app = app
 
     @apps.service(PluginServices.MAIN_EXE)
     def _main_exe(self) -> apps.Executable:

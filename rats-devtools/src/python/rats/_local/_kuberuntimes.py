@@ -4,11 +4,7 @@ from rats import apps as apps
 from rats import kuberuntime, projects
 
 
-class KubeRuntimePluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class KubeRuntimePluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.service(kuberuntime.PluginServices.component_runtime("rats-devtools"))
     def _devtools_runtime(self) -> kuberuntime.K8sRuntime:

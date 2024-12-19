@@ -26,18 +26,7 @@ class PluginServices:
     EVENTS = _PluginEvents
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
-    @apps.group(PluginServices.EVENTS.OPENING)
-    def _on_opening(self) -> Iterator[apps.Executable]:
-        runtime = self._app.get(apps.AppServices.RUNTIME)
-        yield apps.App(
-            lambda: runtime.execute_group(logs.PluginServices.EVENTS.CONFIGURE_LOGGING),
-        )
+class PluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.group(PluginServices.EVENTS.RUNNING)
     def _on_running(self) -> Iterator[apps.Executable]:

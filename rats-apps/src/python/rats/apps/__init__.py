@@ -15,6 +15,7 @@ from ._annotations import (
     group,
     service,
 )
+from ._app_containers import AppBundle, AppContainer, AppPlugin, ContainerPlugin, PluginMixin
 from ._composite_container import CompositeContainer
 from ._container import (
     Container,
@@ -27,9 +28,9 @@ from ._container import (
 )
 from ._executables import App, Executable
 from ._ids import ServiceId, T_ExecutableType, T_ServiceType
+from ._mains import make_main, run, run_main, run_plugin
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
-from ._plugins import PluginRunner
 from ._runtimes import NullRuntime, Runtime
 from ._scoping import autoscope
 from ._simple_apps import AppServices, SimpleApplication, StandardRuntime
@@ -37,36 +38,44 @@ from ._static_container import StaticContainer, StaticProvider
 
 __all__ = [
     "App",
+    "AppBundle",
+    "AppContainer",
+    "AppPlugin",
+    "AppServices",
     "CompositeContainer",
     "Container",
-    "StaticContainer",
-    "StaticProvider",
+    "ContainerPlugin",
     "DuplicateServiceError",
     "Executable",
-    "PluginContainers",
-    "ProviderNamespaces",
-    "ServiceProvider",
-    "Provider",
     "GroupProvider",
+    "NullRuntime",
+    "PluginContainers",
+    "PluginMixin",
+    "Provider",
+    "ProviderNamespaces",
+    "Runtime",
     "ServiceId",
     "ServiceNotFoundError",
+    "ServiceProvider",
+    "SimpleApplication",
+    "StandardRuntime",
+    "StandardRuntime",
+    "StaticContainer",
+    "StaticProvider",
+    "T_ExecutableType",
+    "T_ServiceType",
+    "autoid",
+    "autoid_factory_service",
     "autoid_service",
     "autoscope",
     "container",
-    "PluginRunner",
+    "factory_service",
     "fallback_group",
     "fallback_service",
     "group",
-    "autoid",
+    "make_main",
+    "run",
+    "run_main",
+    "run_plugin",
     "service",
-    "T_ExecutableType",
-    "T_ServiceType",
-    "Runtime",
-    "NullRuntime",
-    "AppServices",
-    "StandardRuntime",
-    "StandardRuntime",
-    "SimpleApplication",
-    "factory_service",
-    "autoid_factory_service",
 ]

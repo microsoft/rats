@@ -11,11 +11,7 @@ class PluginServices:
     PONG = apps.ServiceId[apps.Executable]("pong")
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class PluginContainer(apps.PluginMixin):
 
     @apps.fallback_group(amlruntime.PluginServices.CONFIGS.EXE_GROUP)  # type: ignore[reportArgumentType]
     def _aml_ping(self) -> Iterator[apps.Executable]:

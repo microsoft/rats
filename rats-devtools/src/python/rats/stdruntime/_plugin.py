@@ -14,11 +14,7 @@ class PluginServices:
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+class PluginContainer(apps.Container, apps.PluginMixin):
 
     @apps.group(devtools.PluginServices.EVENTS.OPENING)
     def _runtime_cli(self) -> Iterator[apps.Executable]:
