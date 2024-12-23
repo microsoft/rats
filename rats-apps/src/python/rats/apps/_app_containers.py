@@ -66,7 +66,7 @@ class PluginMixin:
 
 
         if __name__ == "__main__":
-            apps.run_main(ExampleApplication)
+            apps.run_plugin(ExampleApplication)
          ```
     """
 

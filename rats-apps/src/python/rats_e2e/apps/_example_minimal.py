@@ -11,7 +11,7 @@ class MinimalExampleApp(apps.AppContainer, apps.PluginMixin):
 
 
 def main() -> None:
-    apps.run_main(MinimalExampleApp)
+    apps.run_plugin(MinimalExampleApp)
 
 
 if __name__ == "__main__":

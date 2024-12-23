@@ -14,4 +14,4 @@ logger = logging.getLogger(__name__)
 
 
 if __name__ == "__main__":
-    apps.run_main(e2e.ExampleCliApp)
+    apps.run_plugin(e2e.ExampleCliApp)
