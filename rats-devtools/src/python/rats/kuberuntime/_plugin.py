@@ -2,7 +2,7 @@ from collections.abc import Iterator
 
 import click
 
-from rats import apps, cli
+from rats import apps, cli, stdruntime
 from rats import devtools as devtools
 from rats import projects as projects
 
@@ -29,12 +29,12 @@ class PluginServices:
 
 class PluginContainer(apps.Container, apps.PluginMixin):
 
-    @apps.group(devtools.PluginServices.EVENTS.OPENING)
+    @apps.group(devtools.AppServices.ON_REGISTER)
     def _on_open(self) -> Iterator[apps.Executable]:
         yield apps.App(
             lambda: cli.attach(
+                self._app.get(devtools.AppServices.MAIN_CLICK),
                 self._app.get(PluginServices.MAIN_CLICK),
-                self._app.get(devtools.PluginServices.MAIN_CLICK),
             )
         )
 
@@ -58,7 +58,7 @@ class PluginContainer(apps.Container, apps.PluginMixin):
             project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
             cwd_component_tools=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
-            worker_node_runtime=lambda: self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            worker_node_runtime=lambda: self._app.get(stdruntime.PluginServices.STANDARD_RUNTIME),
             k8s_runtime=lambda: self._app.get(PluginServices.K8S_RUNTIME),
         )
 
