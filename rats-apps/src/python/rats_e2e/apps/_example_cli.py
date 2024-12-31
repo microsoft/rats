@@ -1,13 +1,11 @@
+from random import randint
 from textwrap import dedent
-from uuid import uuid4
 
 import click
+import rats_e2e.apps.inputs as inputs
+import rats_e2e.apps.minimal as minimal
 
 from rats import apps, cli, logs
-
-from ._example_inputs import InputExampleApp
-from ._example_minimal import MinimalExampleApp
-from ._services import ExampleAppServices
 
 
 class ExampleContextContainer(apps.Container, apps.PluginMixin):
@@ -15,19 +13,19 @@ class ExampleContextContainer(apps.Container, apps.PluginMixin):
     Our test context container provides the input data to our applications.
 
     We'll pass this container into the different example applications, so the developer of a given
-    application can the services defined in here as being part of their parent container often
-    defined as `self._app`.
+    application can access the services defined here as being part of their parent container
+    defined in `self._app`.
     """
 
-    @apps.service(ExampleAppServices.INPUT)
-    def _input(self) -> str:
+    @apps.service(inputs.AppServices.INPUT)
+    def _input(self) -> inputs.AppInput:
         """
-        A random value we want to be made available to our example apps.
+        A random value we want to be made available to our example `inputs.Application`.
 
         Because the `apps.Container` service providers are cached, our `uuid` will be static for
         each instance of this container
         """
-        return str(uuid4())
+        return inputs.AppInput(randint(0, 5))
 
 
 class ExampleCliApp(apps.AppContainer, cli.Container, apps.PluginMixin):
@@ -42,8 +40,8 @@ class ExampleCliApp(apps.AppContainer, cli.Container, apps.PluginMixin):
     def _run_all(self) -> None:
         """Run examples using `apps.AppBundle()`."""
         app_plugins = [
-            MinimalExampleApp,
-            InputExampleApp,
+            minimal.Application,
+            inputs.Application,
         ]
 
         print("running the following applications using the `apps.AppBundle` class:")
