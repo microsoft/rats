@@ -53,6 +53,9 @@ extra_css:
 #extra_javascript:
 #  - js/mathjax.js
 #  - js/tex-mml-chtml.js
+watch:
+  - "../../rats-apps/src"
+  - "../../rats-devtools/src"
 plugins:
   - search
   - mkdocstrings:
@@ -72,17 +75,16 @@ plugins:
             - "../../rats-examples-minimal/src/python"
             - "../../rats-examples-sklearn/src/python"
           options:
-            show_inheritance_diagram: true
             show_if_no_docstring: true
             show_symbol_type_toc: true
             show_symbol_type_heading: true
-            show_signature_annotations: true
+            show_signature_annotations: false
             group_by_category: true
-            show_category_heading: true
-            docstring_options:
-              ignore_init_summary: false
-              merge_init_into_class: true
-              separate_signature: true
+            show_category_heading: false  # adds a lot of nesting in TOC navs
+            show_root_heading: true  # adds nice grouping on pages showing more than one element
+            signature_crossrefs: true
+            merge_init_into_class: true
+            annotations_path: source
   - awesome-pages
   - mkdocs-video:
       is_video: true
@@ -100,8 +102,16 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.snippets:
-      # we can embed any file in the repo as long as we refer to the path from repo root
-      base_path: [".."]
+      # add paths relative to the devtools component here if you want to include them using -8<-
+      # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#snippets-notation
+      base_path:
+        - "../"  # let us use full paths from the repo root
+        # or relative from each python directory
+        - "../rats-apps/src/python"
+        - "../rats-devtools/src/python"
+      # fail the mkdocs build if any snippets link to missing files
+      # this delays painful bugs being found when disabled
+      check_paths: true
   - pymdownx.magiclink
   - pymdownx.superfences
   - pymdownx.tabbed:
