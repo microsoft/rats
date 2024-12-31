@@ -1,10 +1,10 @@
 """Some utilities for developing the devtool cli commands."""
 
-from ._app import run
-from ._plugin import PluginContainer, PluginServices
+from ._app import AppServices, run
+from ._plugin import PluginServices
 
 __all__ = [
     "PluginServices",
-    "PluginContainer",
+    "AppServices",
     "run",
 ]

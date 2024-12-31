@@ -29,11 +29,11 @@ class PluginServices:
 
 class PluginContainer(apps.Container, apps.PluginMixin):
 
-    @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _on_open(self) -> Iterator[apps.Executable]:
+    @apps.group(devtools.AppServices.ON_REGISTER)
+    def _on_register(self) -> Iterator[apps.Executable]:
         yield apps.App(
             lambda: cli.attach(
-                self._app.get(devtools.PluginServices.MAIN_CLICK),
+                self._app.get(devtools.AppServices.MAIN_CLICK),
                 self._app.get(PluginServices.MAIN_CLICK),
             )
         )

@@ -54,7 +54,6 @@ rats-apps = { path = "../rats-apps", develop = true }
 [tool.poetry.plugins."rats.devtools.plugins"]
 "rats.amlruntime" = "rats.amlruntime:PluginContainer"
 "rats.ci" = "rats.ci:PluginContainer"
-"rats.devtools" = "rats.devtools:PluginContainer"
 "rats.docs" = "rats.docs:PluginContainer"
 "rats.kuberuntime" = "rats.kuberuntime:PluginContainer"
 "rats.projects" = "rats.projects:PluginContainer"
