@@ -44,15 +44,13 @@ class ExampleServices:
 class ExampleContainer(apps.Container, apps.PluginMixin):
     """An example container of services."""
 
-    @apps.service(ExampleServices.MAIN)
-    def _main(self) -> apps.Executable:
-        return cli.ClickApp(
+    def execute(self) -> None:
+        """Run our ExampleCommands click group."""
+        cli.create_group(
             group=click.Group("example", help="An example application."),
-            commands=ExampleCommands(),
-        )
+            container=ExampleCommands(),
+        )()
 
 
 if __name__ == "__main__":
-    apps.SimpleApplication(runtime_plugin=ExampleContainer).execute(
-        ExampleServices.MAIN,
-    )
+    apps.run_plugin(ExampleContainer)

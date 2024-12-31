@@ -23,7 +23,6 @@ from ._container import (
     GroupProvider,
     Provider,
     ServiceNotFoundError,
-    ServiceProvider,
     container,
 )
 from ._executables import App, Executable
@@ -31,17 +30,15 @@ from ._ids import ServiceId, T_ExecutableType, T_ServiceType
 from ._mains import run, run_plugin
 from ._namespaces import ProviderNamespaces
 from ._plugin_container import PluginContainers
-from ._runtimes import NullRuntime, Runtime
+from ._runtimes import NullRuntime, Runtime, StandardRuntime
 from ._scoping import autoscope
-from ._simple_apps import AppServices, SimpleApplication, StandardRuntime
-from ._static_container import StaticContainer, StaticProvider
+from ._static_container import StaticContainer, StaticProvider, static_group, static_service
 
 __all__ = [
     "App",
     "AppBundle",
     "AppContainer",
     "AppPlugin",
-    "AppServices",
     "CompositeContainer",
     "Container",
     "ContainerPlugin",
@@ -56,9 +53,6 @@ __all__ = [
     "Runtime",
     "ServiceId",
     "ServiceNotFoundError",
-    "ServiceProvider",
-    "SimpleApplication",
-    "StandardRuntime",
     "StandardRuntime",
     "StaticContainer",
     "StaticProvider",
@@ -76,4 +70,6 @@ __all__ = [
     "run",
     "run_plugin",
     "service",
+    "static_group",
+    "static_service",
 ]

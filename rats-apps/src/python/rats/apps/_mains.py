@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Callable
 
 from ._app_containers import AppBundle, AppPlugin
 from ._executables import Executable
@@ -17,7 +16,7 @@ def run_plugin(*app_plugins: AppPlugin) -> None:
     """
     Shortcut to create and execute instances of `apps.AppPlugin`.
 
-    This function is most commonly used in your code's `main()` entry point.
+    This function is most commonly used in a `console_script` function `main()` entry point.
 
     Example:
         ```python
@@ -25,7 +24,6 @@ def run_plugin(*app_plugins: AppPlugin) -> None:
 
 
         class Application(apps.AppContainer, apps.AppPlugin):
-
             def execute(self) -> None:
                 print("hello, world")
 

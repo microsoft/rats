@@ -3,6 +3,7 @@ from abc import abstractmethod
 from collections.abc import Callable
 from typing import Protocol, final
 
+from ._container import Container
 from ._ids import ServiceId, T_ExecutableType
 
 logger = logging.getLogger(__name__)
@@ -23,14 +24,6 @@ class Runtime(Protocol):
         parallel or in any order that is convenient.
         """
 
-    @abstractmethod
-    def execute_callable(self, *callables: Callable[[], None]) -> None:
-        """
-        Execute provided callables by automatically turning them into apps.Executable objects.
-
-        The used ServiceId is determined by the Runtime implementation.
-        """
-
 
 @final
 class NullRuntime(Runtime):
@@ -48,3 +41,22 @@ class NullRuntime(Runtime):
 
     def execute_callable(self, *callables: Callable[[], None]) -> None:
         raise NotImplementedError(f"NullRuntime cannot execute callables: {callables}")
+
+
+@final
+class StandardRuntime(Runtime):
+    """A simple runtime that executes sequentially and in a single thread."""
+
+    _app: Container
+
+    def __init__(self, app: Container) -> None:
+        self._app = app
+
+    def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
+        for exe_id in exe_ids:
+            self._app.get(exe_id).execute()
+
+    def execute_group(self, *exe_group_ids: ServiceId[T_ExecutableType]) -> None:
+        for exe_group_id in exe_group_ids:
+            for exe in self._app.get_group(exe_group_id):
+                exe.execute()

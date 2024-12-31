@@ -22,6 +22,8 @@ EMPTY_PLUGIN = _empty_plugin
 
 
 class AppContainer(Container, Executable, Protocol):
+    """The combination of a [rats.apps.Container][] an [rats.apps.Executable][]."""
+
     def execute(self) -> None:
         """The main application entry point."""
         logger.warning(f"empty execute method in application: {self.__class__}")
@@ -40,12 +42,28 @@ class _ContainerPluginType(Protocol):
 
 
 AppPlugin = _AppPluginType | Callable[[Container], AppContainer]
+"""
+Main interface for a function that returns an [rats.apps.AppContainer][] instance.
+
+Functions that act as runners or application factories often take this as their input type in
+order to manage the top most [rats.apps.Container][] instance, allowing most containers to use the
+[rats.apps.PluginMixin][] mixin and rely on the top most container being managed automatically.
+This is the companion type to [rats.apps.ContainerPlugin][].
+"""
+
 ContainerPlugin = _ContainerPluginType | Callable[[Container], Container]
+"""
+Main interface for a function that returns an [rats.apps.Container][] instance.
+
+Containers that implement this type—for example, by using the [rats.apps.PluginMixin][] mixin—can
+be used easily in functions that need to defer the construction of an application container. See
+[rats.apps.AppBundle][] for additional examples.
+"""
 
 
 class PluginMixin:
     """
-    Mix into your `apps.Container` classes to add our default constructor.
+    Mix into your [Container][] classes to add our default constructor.
 
     This mixin adds a common constructor to a `Container` in order to quickly create types that
     are compatible with functions asking for `AppPlugin` and `ContainerPlugin` arguments.
@@ -55,8 +73,8 @@ class PluginMixin:
         others to containers with a private `_app` property. Instead, use this as a shortcut to
         some commonly used implementation details.
 
-    Examples:
-         ```python
+    Example:
+        ```python
          from rats import apps
 
          class ExampleApplication(apps.AppContainer, apps.PluginMixin):
@@ -67,7 +85,7 @@ class PluginMixin:
 
         if __name__ == "__main__":
             apps.run_plugin(ExampleApplication)
-         ```
+        ```
     """
 
     _app: Container
@@ -88,7 +106,12 @@ class CompositePlugin:
 
 @final
 class AppBundle(AppContainer):
-    """Brings together different types of containers to construct an executable application."""
+    """
+    Brings together different types of containers to construct an executable application.
+
+    Use this class to defer the creation of an [rats.apps.AppContainer][] instance in order to
+    combine services with additional [rats.apps.ContainerPlugin][] classes.
+    """
 
     _app_plugin: AppPlugin
     _container_plugin: ContainerPlugin
@@ -101,11 +124,40 @@ class AppBundle(AppContainer):
         container_plugin: ContainerPlugin = EMPTY_PLUGIN,
         context: Container = EMPTY_CONTEXT,
     ):
+        """
+        Create an instance by providing the [rats.apps.AppPlugin] type and any additional context.
+
+        Example:
+            ```python
+            from rats import apps
+
+
+            class ExamplePlugin(apps.Container, apps.PluginMixin):
+                @apps.service(apps.ServiceId[str]("some-value"))
+                def _some_value() -> str:
+                    return "hello, world!"
+
+
+            class ExampleApplication(apps.AppContainer, apps.PluginMixin):
+                def execute() -> None:
+                    print(self._app.get(apps.ServiceId[str]("some-value")))
+
+
+            if __name__ == "__main__":
+                apps.run(apps.AppBundle(ExampleApplication, ExamplePlugin))
+            ```
+
+        Args:
+            app_plugin: the class reference to the application container.
+            container_plugin: the class reference to an additional plugin container.
+            context: an optional plugin container to make part of the container tree.
+        """
         self._app_plugin = app_plugin
         self._container_plugin = container_plugin
         self._context = context
 
     def execute(self) -> None:
+        """Initializes a new [rats.apps.AppContainer] with the provided nodes before executing it."""
         app, _ = self._get_or_create_containers()
         app.execute()
 
