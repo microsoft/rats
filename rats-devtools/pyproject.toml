@@ -64,10 +64,6 @@ rats-apps = { path = "../rats-apps", develop = true }
 # code in these plugins expects to be able to query for git commits and build artifacts
 "rats._local" = "rats._local:PluginContainer"
 
-[tool.poetry.plugins."rats.examples.plugins"]
-# all the plugins that are meant to show examples of rats capabilities are in this group
-"rats.examples" = "rats.examples:PluginContainer"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -5,7 +5,6 @@ from rats import kuberuntime, projects
 
 
 class KubeRuntimePluginContainer(apps.Container, apps.PluginMixin):
-
     @apps.service(kuberuntime.PluginServices.component_runtime("rats-devtools"))
     def _devtools_runtime(self) -> kuberuntime.K8sRuntime:
         return self._k8s_component_runtime("rats-devtools")

@@ -5,7 +5,6 @@ from ._kuberuntimes import KubeRuntimePluginContainer
 
 
 class PluginContainer(apps.Container, apps.PluginMixin):
-
     @apps.container()
     def _plugins(self) -> apps.Container:
         return apps.CompositeContainer(

@@ -1,6 +1,9 @@
 import click
 
-from rats import apps, cli, logs, projects
+from rats import apps as apps
+from rats import cli as cli
+from rats import logs as logs
+from rats import projects as projects
 
 
 @apps.autoscope
@@ -8,9 +11,10 @@ class AppServices:
     ON_REGISTER = apps.ServiceId[apps.Executable]("on-register")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
 
+    HELLO_WORLD_EXE = apps.ServiceId[apps.Executable]("hello-world-exe")
+
 
 class Application(apps.AppContainer, apps.PluginMixin, cli.Container):
-
     def execute(self) -> None:
         runtime = apps.StandardRuntime(self._app)
         runtime.execute_group(AppServices.ON_REGISTER)
@@ -55,7 +59,11 @@ class Application(apps.AppContainer, apps.PluginMixin, cli.Container):
             apps.PluginContainers(self, "rats.devtools.plugins"),
         )
 
+    @apps.service(AppServices.HELLO_WORLD_EXE)
+    def _hello_world(self) -> apps.Executable:
+        return apps.App(lambda: print("hello, world"))
 
-def run(*plugin_groups: str) -> None:
+
+def run() -> None:
     apps.run_plugin(logs.ConfigureApplication)
     apps.run_plugin(Application)

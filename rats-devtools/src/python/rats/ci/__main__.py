@@ -1,7 +1,8 @@
 """Run the ci commands."""
 
-from rats import apps
+from rats import apps as apps
 from rats import ci as ci
+from rats import devtools as devtools
 
-app = apps.SimpleApplication("rats.devtools.plugins")
-app.execute(ci.PluginServices.MAIN_EXE)
+app = apps.AppBundle(app_plugin=devtools.Application)
+app.get(ci.PluginServices.MAIN_CLICK)()

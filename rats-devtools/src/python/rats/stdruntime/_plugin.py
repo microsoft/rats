@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Iterator
 
 import click
@@ -5,9 +6,8 @@ import click
 from rats import apps, cli
 from rats import devtools as devtools
 
-import logging
-
 logger = logging.getLogger(__name__)
+
 
 @apps.autoscope
 class PluginServices:
@@ -15,7 +15,6 @@ class PluginServices:
 
 
 class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
-
     @cli.command()
     @click.option("--exe-id", multiple=True)
     @click.option("--group-id", multiple=True)

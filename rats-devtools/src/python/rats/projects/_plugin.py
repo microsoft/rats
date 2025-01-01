@@ -26,7 +26,6 @@ class PluginServices:
 
 
 class PluginContainer(apps.Container, apps.PluginMixin):
-
     @apps.service(PluginServices.CWD_COMPONENT_TOOLS)
     def _active_component_tools(self) -> ComponentTools:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)

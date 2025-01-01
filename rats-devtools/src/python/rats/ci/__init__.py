@@ -1,10 +1,9 @@
 """Commands for building and validating our components."""
 
-from ._commands import CiCommandGroups
-from ._plugin import PluginContainer, PluginServices
+from ._plugin import CiCommandGroups, PluginContainer, PluginServices
 
 __all__ = [
+    "CiCommandGroups",
     "PluginContainer",
     "PluginServices",
-    "CiCommandGroups",
 ]

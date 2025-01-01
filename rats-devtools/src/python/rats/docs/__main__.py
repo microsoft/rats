@@ -1,7 +1,8 @@
 """Run the docs commands."""
 
-from rats import apps
+from rats import apps as apps
+from rats import devtools as devtools
 from rats import docs as docs
 
-app = apps.SimpleApplication("rats.devtools.plugins")
-app.execute(docs.PluginServices.MAIN_EXE)
+app = apps.AppBundle(app_plugin=devtools.Application)
+app.get(docs.PluginServices.MAIN_CLICK)()

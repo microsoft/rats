@@ -15,12 +15,10 @@ logger = logging.getLogger(__name__)
 @apps.autoscope
 class PluginServices:
     COMMANDS = apps.ServiceId[cli.Container]("commands")
-    MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
 
 
 class PluginContainer(apps.Container, apps.PluginMixin):
-
     @apps.group(devtools.AppServices.ON_REGISTER)
     def _on_open(self) -> Iterator[apps.Executable]:
         yield apps.App(
@@ -39,10 +37,6 @@ class PluginContainer(apps.Container, apps.PluginMixin):
                 projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS
             ),
         )
-
-    @apps.service(PluginServices.MAIN_EXE)
-    def _main_exe(self) -> apps.Executable:
-        return apps.App(lambda: self._app.get(PluginServices.MAIN_CLICK)())
 
     @apps.service(PluginServices.MAIN_CLICK)
     def _main_click(self) -> click.Group:
