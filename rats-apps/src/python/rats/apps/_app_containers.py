@@ -1,5 +1,3 @@
-"""Handful of objects to help create top level application containers."""
-
 from __future__ import annotations
 
 import logging
