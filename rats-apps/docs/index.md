@@ -6,7 +6,7 @@ The `rats-apps` package helps create applications; a small set of modules that e
 common boilerplate code when creating applications of any kind. We do this mainly by providing a
 set of libraries to define service containers, and using the service containers to hide the
 complexity of creating services–like authentication, storage, or database clients–from other parts
-of the system, allowing developers to focus on the business logic of the application. Often refered
+of the system, allowing developers to focus on the business logic of the application. Often referred
 to as [Dependency Injection](https://en.wikipedia.org/wiki/Dependency_injection), we use our
 service containers to separate the concerns of constructing objects and using them.
 
