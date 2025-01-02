@@ -55,7 +55,6 @@ class Application(apps.AppContainer, apps.PluginMixin, cli.Container):
     @apps.container()
     def _plugins(self) -> apps.Container:
         return apps.CompositeContainer(
-            apps.PluginContainers(self, "rats.apps.plugins"),
             apps.PluginContainers(self, "rats.devtools.plugins"),
         )
 

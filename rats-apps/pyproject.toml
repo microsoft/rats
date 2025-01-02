@@ -28,8 +28,6 @@ pytest-nunit = "*"
 ruff = "*"
 types-urllib3 = "*"
 
-[tool.poetry.plugins."rats.apps.plugins"]
-
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

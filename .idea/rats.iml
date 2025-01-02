@@ -10,10 +10,8 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="rats-pipelines" />
     <orderEntry type="module" module-name="rats-processors" />
-    <orderEntry type="module" module-name="rats-examples-minimal" />
     <orderEntry type="module" module-name="rats-devtools" />
     <orderEntry type="module" module-name="rats-apps" />
-    <orderEntry type="module" module-name="rats-examples-datasets" />
     <orderEntry type="module" module-name="rats-examples-sklearn" />
   </component>
   <component name="PackageRequirementsSettings">

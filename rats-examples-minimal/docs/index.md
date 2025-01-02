@@ -1,1 +1,0 @@
-# rats-examples-spark
