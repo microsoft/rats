@@ -15,7 +15,14 @@ from ._annotations import (
     group,
     service,
 )
-from ._app_containers import AppBundle, AppContainer, AppPlugin, ContainerPlugin, PluginMixin
+from ._app_containers import (
+    AppBundle,
+    AppContainer,
+    AppPlugin,
+    CompositePlugin,
+    ContainerPlugin,
+    PluginMixin,
+)
 from ._composite_container import CompositeContainer
 from ._container import (
     Container,
@@ -40,6 +47,7 @@ __all__ = [
     "AppContainer",
     "AppPlugin",
     "CompositeContainer",
+    "CompositePlugin",
     "Container",
     "ContainerPlugin",
     "DuplicateServiceError",

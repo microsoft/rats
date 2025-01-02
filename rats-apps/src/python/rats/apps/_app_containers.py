@@ -1,3 +1,5 @@
+"""Handful of objects to help create top level application containers."""
+
 from __future__ import annotations
 
 import logging
@@ -95,6 +97,35 @@ class PluginMixin:
 
 
 class CompositePlugin:
+    """
+    Similar to [rats.apps.CompositeContainer][] but takes a list of plugin container types.
+
+    Example:
+        ```python
+        from rats import apps
+        from rats_e2e.apps import inputs
+
+
+        class ExamplePlugin1(apps.Container, apps.PluginMixin):
+            pass
+
+
+        class ExamplePlugin2(apps.Container, apps.PluginMixin):
+            pass
+
+
+        apps.run(
+            apps.AppBundle(
+                app_plugin=inputs.Application,
+                container_plugin=apps.CompositePlugin(
+                    ExamplePlugin1,
+                    ExamplePlugin2,
+                ),
+            )
+        )
+        ```
+    """
+
     _plugins: tuple[ContainerPlugin, ...]
 
     def __init__(self, *plugins: ContainerPlugin) -> None:
