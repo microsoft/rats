@@ -1,16 +1,30 @@
+---
 title: Introduction
 ---
-## rats-apps
 
 The `rats-apps` package helps create applications; a small set of modules that eliminate the most
-common boilerplate code when creating applications of any kind. Install it with `pip install
-rats-apps`!
+common boilerplate code when creating applications of any kind. We do this mainly by providing a
+set of libraries to define service containers, and using the service containers to hide the
+complexity of creating services–like authentication, storage, or database clients–from other parts
+of the system, allowing developers to focus on the business logic of the application. Often refered
+to as [Dependency Injection](https://en.wikipedia.org/wiki/Dependency_injection), we use our
+service containers to separate the concerns of constructing objects and using them.
 
-### What is an application?
-Creating a `__main__.py` file in a package makes it easily executable. After the common python
-boilerplate code is added, this is typically what we find in the wild:
+## Installation
 
-=== ":material-language-python: ~/code/src/python/foo/__main__.py"
+Use `pip` or your favorite packaging tool to install the package from PyPI.
+
+```bash
+pip install rats-apps
+```
+
+## What is an application?
+
+Let's start with a standard python script, and slowly migrate it to be a rats application in order
+to explain a few main details. Creating a `__main__.py` file in a package makes it executable.
+After the common python boilerplate code is added, this is typically what we find in the wild:
+
+=== ":material-language-python: ~/code/src/foo/\_\_main\_\_.py"
     ```python
     def main() -> None:
         print("hello, world")
@@ -25,9 +39,10 @@ boilerplate code is added, this is typically what we find in the wild:
     python -m foo
     ```
 
-Using this pattern, we can define our application with a small modification:
+Using this pattern, we can define our application with a small modification, turning our `main()`
+function into a runnable rats application, and then running it:
 
-=== ":material-language-python: ~/code/src/python/foo/__main__.py"
+=== ":material-language-python: ~/code/src/foo/\_\_main\_\_.py"
     ```python
     from rats import apps
 
@@ -37,15 +52,112 @@ Using this pattern, we can define our application with a small modification:
 
 
     if __name__ == "__main__":
-        app = apps.SimpleApplication()
-        app.execute_callable(main)
+        apps.run(apps.App(main))
     ```
 
-### Application Containers & Plugins
+!!! info
+    The [rats.apps.App][] class is used to quickly turn a script entry point–`Callable[[], None]`
+    –into an object with an `execute()` method, defined by our [rats.apps.Executable][]
+    interface.
 
-We can start to leverage `rats.apps` to make our application easy to extend. We use the
-standard [Entry  Points](https://packaging.python.org/en/latest/specifications/entry-points/)
-mechanism, pick a name for our group, and enable it in our `apps.SimpleApplication` instance.
+## Application Containers & Plugins
+
+We can start to leverage [rats.apps][] to make our application easy to extend. Let's replace our use
+of the [rats.apps.App][] wrapper and move our `main()` function into a class. Using the
+[rats.apps.AppContainer][] and [rats.apps.PluginMixin][] classes, we finish adapting our example
+to be a rats application.
+
+=== ":material-language-python: ~/code/src/foo/\_\_main\_\_.py"
+
+    ```python
+        from rats import apps
+
+
+        class Application(apps.AppContainer, apps.PluginMixin):
+            def execute() -> None:
+                print("hello, world")
+
+
+        if __name__ == "__main__":
+            apps.run_plugin(Application)
+    ```
+
+!!! info
+    If you're making these changes to an existing code base, you should be able to run things to
+    validate that everything still works as it did before. Your `main()` function is now in
+    the `execute()` method of your new `Application` class, but none of the behavior of your
+    application should have been affected.
+
+Now that we have a fully defined rats application; we can use [rats.apps.Container][] instances to
+make services available to our application while remaining decoupled from the details of how these
+services are initialized. A common use case for this is to give our team access to the azure
+storage clients without needing to specify the authentication details; allowing us to ensure our
+application is functional in many compute environments.
+
+=== ":material-language-python: ~/code/src/foo/\_\_init\_\_.py"
+
+    ```python
+        from ._plugin import PluginContainer
+
+        __all__ = ["PluginContainer"]
+    ```
+
+=== ":material-language-python: ~/code/src/foo/\_\_main\_\_.py"
+
+    ```python
+        from rats import apps
+        import foo
+
+
+        class Application(apps.AppContainer, apps.PluginMixin):
+
+            def execute() -> None:
+                blob_client = self._app.get(foo.BLOB_SERVICE_ID)
+                print(f"hello, world. loaded blob client: {blob_client}")
+
+            @apps.container()
+            def _plugins(self) -> apps.Container:
+                return foo.PluginContainer(self._app)
+
+
+        if __name__ == "__main__":
+            apps.run_plugin(Application)
+    ```
+
+=== ":material-language-python: ~/code/src/foo/_plugin.py"
+
+    ```python
+        from rats import apps
+        from azure.storage.blob import BlobServiceClient
+
+        BLOB_SERVICE_ID = apps.ServiceId[BlobServiceClient]("blob-client")
+
+
+        class PluginContainer(apps.Container, apps.PluginMixin):
+
+            @apps.service(BLOB_SERVICE_ID)
+            def _blob_client(self) -> BlobServiceClient:
+                credential = DefaultAzureCredential()
+                return BlobServiceClient(
+                    account_url=f"https://example.blob.core.windows.net/",
+                    credential=credential,
+                )
+    ```
+
+!!! success
+    Following these patterns, we can make services available to others with plugin containers; and
+    we can combine these containers to create applications. The [rats.apps][] module has additional
+    libraries to help define different types of applications, designed to help your solutions
+    evolve as ideas mature. Our first runnable example was a single instance of the
+    [apps.AppContainer][] interface with an `execute()` method; but a larger project might have
+    a few modules providing different aspects of the application's needs by sharing a set of
+    service ids and a plugin container.
+
+## Installable Plugins
+
+We use the standard [Entry Points](https://packaging.python.org/en/latest/specifications/entry-points/)
+mechanism to allow authors to make their application extensible. These plugins are instances of
+[apps.Container][] and loaded into applications like our previous examples.
 
 === ":material-file-settings: ~/code/pyproject.toml"
     ```toml
@@ -53,151 +165,49 @@ mechanism, pick a name for our group, and enable it in our `apps.SimpleApplicati
     "foo" = "foo:PluginContainer"
     ```
 
-=== ":material-language-python: ~/code/src/python/foo/__main__.py"
+=== ":material-language-python: ~/code/src/foo/\_\_main\_\_.py"
     ```python
-    from rats import apps
+        from rats import apps
+        import foo
 
 
-    def main() -> None:
-        print("hello, world")
+        class Application(apps.AppContainer, apps.PluginMixin):
+
+            def execute() -> None:
+                blob_client = self._app.get(foo.BLOB_SERVICE_ID)
+                print(f"hello, world. loaded blob client: {blob_client}")
+
+            @apps.container()
+            def _plugins(self) -> apps.Container:
+                return apps.PluginContainers("foo.plugins")
 
 
-    if __name__ == "__main__":
-        app = apps.SimpleApplication("foo.plugins")
-        app.execute_callable(main)
-    ```
-
-With our newly created plugin group, `foo.plugins`, we use `apps.Container` classes to extend
-the functionality of the application. We've already registered `foo.PluginContainer` in the
-`pyproject.toml` file, so let's create the class and refresh our virtual environment.
-
-=== ":material-language-python: ~/code/src/python/foo/_plugin.py"
-    ```python
-    from rats import apps
-
-
-    class PluginContainer(apps.Container):
-
-        _app: apps.Container
-
-        def __init__(self, app: apps.Container) -> None:
-            self._app = app
-    ```
-
-=== ":material-language-python: ~/code/src/python/foo/__init__.py"
-    ```python
-    from ._plugin import PluginContainer
-
-    __all__ = [
-        "PluginContainer",
-    ]
-    ```
-
-=== ":material-console: ~/code"
-    ```bash
-    poetry install
-    python -m foo
-    ```
-
-!!! tip
-    Any number of plugins can be registered this way. Extending the behavior of our
-    applications through plugins allows us to provide an opinionated, extensive default
-    experience, but allow advanced, unplanned uses to adjust most implementation details. The
-    `rats` project has a few built-in plugins for common application capabilities that we can
-    explore more later.
-
-Our plugin class is an implementation of the `apps.Container` protocol, which allows us to
-quickly make services available to other parts of the system. Let's finish moving our `main()`
-function into our plugin container and use `apps.SimpleApplication` to run it.
-
-=== ":material-language-python: ~/code/src/python/foo/_plugin.py"
-    ```python
-    from tempfile import mkdtemp
-    from rats import apps
-
-
-    @apps.autoscope
-    class PluginServices:
-        MAIN = ServiceId[apps.Executable]("main")
-        FOO_PATH = ServiceId[Path]("foo-path")
-
-
-    class PluginContainer(apps.Container):
-
-        _app: apps.Container
-
-        def __init__(self, app: apps.Container) -> None:
-            self._app = app
-
-        @apps.service(PluginServices.MAIN)
-        def _main(self) -> apps.Executable:
-            def main() -> None:
-                print("hello, world")
-                # we can access any service defined in a loaded plugin container.
-                print(f"foo path: {self._app.get(PluginServices.FOO_PATH)}")
-
-            return apps.App(main)
-
-        @apps.service(PluginServices.FOO_PATH)
-        def _foo_path(self) -> Path:
-            return Path(mkdtemp(dir=Path(".tmp")))
-    ```
-
-=== ":material-language-python: ~/code/src/python/foo/\_\_main\_\_.py"
-    ```python
-    from rats import apps
-    from ._plugin import PluginServices
-
-
-    def run() -> None:
-        app = apps.SimpleApplication("foo.plugins")
-        app.execute(PluginServices.MAIN)
-
-
-    if __name__ == "__main__":
-        run()
+        if __name__ == "__main__":
+            apps.run_plugin(Application)
     ```
 
 !!! success
-    We used `rats.app` to define a container with a couple services, and make a small
-    `__main__.py` file to allow us to run the service defined by `PluginServices.MAIN`.
+    We used [rats.app] to define an application, and used a service provided by a plugin container
+    that is loaded through a python entry point. You can create a script entry in your
+    `pyproject.toml` file to expose your application through a terminal command:
 
-    You can create a script entry in your `pyproject.toml` file to expose your application through
-    a terminal command:
+    === ":material-language-python: ~/code/src/foo/\_\_init\_\_.py"
+        ```python
+            from ._app import Application, main
+            from ._plugin import PluginContainer
 
-    ```toml
-    [tool.poetry.scripts]
-    foo = "foo.__main__:run"
-    ```
-## Examples
-Most of the examples below can be executed by running the related module's `__main__.py` file.
 
-### rats.apps
+            __all__ = [
+                "Application",
+                "main",
+                "PluginContainer",
+            ]
+        ```
+    === ":material-file-settings: ~/code/pyproject.toml"
+        ```toml
+            [tool.poetry.plugins."foo.plugins"]
+            "foo" = "foo:PluginContainer"
 
-```py linenums="1" title="src/python/rats/apps/__main__.py"
---8<-- "rats-apps/src/python/rats/apps/__main__.py"
-```
-
-### rats.annotations
-This package helps create decorators meant to attach annotations to functions or methods. The
-annotation functions in `rats.apps` are a good example of using this package to create a friendly
-developer experience in your own domains.
-
-```py linenums="1" title="src/python/rats/annotations/__main__.py"
---8<-- "rats-apps/src/python/rats/annotations/__main__.py"
-```
-
-### rats.cli
-
-```py linenums="1" title="src/python/rats/cli/__main__.py"
---8<-- "rats-apps/src/python/rats/cli/__main__.py"
-```
-
-### rats.logs
-
-!!! warning "under constructions"
-    COMING SOON
-
-```py linenums="1" title="src/python/rats/logs/__main__.py"
---8<-- "rats-apps/src/python/rats/logs/__main__.py"
-```
+            [tool.poetry.scripts]
+            foo = "foo:main"
+        ```

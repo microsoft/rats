@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 
 
 class AppInput(NamedTuple):
+    """A small data structure to provide the needed configuration for our application."""
     num_rows: int
+    """The number of values we want printed by the [rats_e2e.apps.inputs.Application][] class."""
 
 
 @apps.autoscope
@@ -21,8 +23,8 @@ class Application(apps.AppContainer, apps.PluginMixin):
     Prints a handful of random values to stdout.
 
     We can run this application with `apps.run_plugin(minimal.Application)` or directly in the
-    terminal with `python -m rats_e2e.apps.minimal`. Use the `RATS_E2E_NUM_VALUES` environment
-    variable to alter the number of values to print.
+    terminal with `python -m rats_e2e.apps.inputs`. However, the library api allows the addition
+    of a [rats.apps.Container][] with a service used as configuration.
     """
 
     def execute(self) -> None:

@@ -1,5 +1,8 @@
 """
-Minimal executable application example.
+A minimal executable application example.
+
+You can run this example by using the [rats_e2e.apps.minimal.Application][] class within python,
+or directly through a terminal.
 
 === ":material-language-python: python"
     ```python
