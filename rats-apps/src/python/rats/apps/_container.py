@@ -19,10 +19,6 @@ class Provider(Protocol[Tco_ServiceType]):
         """Return the service instance."""
 
 
-# temporary alias for backwards compatibility
-ServiceProvider = Provider
-
-
 class GroupProvider(Protocol[Tco_ServiceType]):
     @abstractmethod
     def __call__(self) -> Iterator[Tco_ServiceType]:

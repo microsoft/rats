@@ -41,24 +41,16 @@ class ExampleServices:
     MAIN = apps.ServiceId[apps.Executable]("main")
 
 
-class ExampleContainer(apps.Container):
+class ExampleContainer(apps.Container, apps.PluginMixin):
     """An example container of services."""
 
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        """The root container allows us to access services in other plugins."""
-        self._app = app
-
-    @apps.service(ExampleServices.MAIN)
-    def _main(self) -> apps.Executable:
-        return cli.ClickApp(
+    def execute(self) -> None:
+        """Run our ExampleCommands click group."""
+        cli.create_group(
             group=click.Group("example", help="An example application."),
-            commands=ExampleCommands(),
-        )
+            container=ExampleCommands(),
+        )()
 
 
 if __name__ == "__main__":
-    apps.SimpleApplication(runtime_plugin=ExampleContainer).execute(
-        ExampleServices.MAIN,
-    )
+    apps.run_plugin(ExampleContainer)

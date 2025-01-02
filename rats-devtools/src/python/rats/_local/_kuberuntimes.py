@@ -4,32 +4,14 @@ from rats import apps as apps
 from rats import kuberuntime, projects
 
 
-class KubeRuntimePluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
+class KubeRuntimePluginContainer(apps.Container, apps.PluginMixin):
     @apps.service(kuberuntime.PluginServices.component_runtime("rats-devtools"))
     def _devtools_runtime(self) -> kuberuntime.K8sRuntime:
         return self._k8s_component_runtime("rats-devtools")
 
-    @apps.service(kuberuntime.PluginServices.component_runtime("rats-examples-minimal"))
-    def _minimal_runtime(self) -> kuberuntime.K8sRuntime:
-        return self._k8s_component_runtime("rats-examples-minimal")
-
-    @apps.service(kuberuntime.PluginServices.component_runtime("rats-examples-datasets"))
-    def _datasets_runtime(self) -> kuberuntime.K8sRuntime:
-        return self._k8s_component_runtime("rats-examples-datasets")
-
     @apps.service(kuberuntime.PluginServices.component_command("rats-devtools"))
     def _devtools_command(self) -> tuple[str, ...]:
         return ("bin/rats-examples",)
-
-    @apps.service(kuberuntime.PluginServices.component_command("rats-examples-datasets"))
-    @apps.service(kuberuntime.PluginServices.component_command("rats-examples-minimal"))
-    def _examples_command(self) -> tuple[str, ...]:
-        return ".venv/bin/python", "-m", "rats.examples"
 
     def _k8s_component_runtime(self, name: str) -> kuberuntime.K8sRuntime:
         def _container_images() -> tuple[kuberuntime.KustomizeImage, ...]:
@@ -40,16 +22,6 @@ class KubeRuntimePluginContainer(apps.Container):
                 kuberuntime.KustomizeImage(
                     "rats-devtools",
                     f"{reg}/rats-devtools",
-                    context_hash,
-                ),
-                kuberuntime.KustomizeImage(
-                    "rats-examples-minimal",
-                    f"{reg}/rats-examples-minimal",
-                    context_hash,
-                ),
-                kuberuntime.KustomizeImage(
-                    "rats-examples-datasets",
-                    f"{reg}/rats-examples-datasets",
                     context_hash,
                 ),
             )

@@ -6,12 +6,7 @@ from ._ids import ExampleIds
 from ._storage import StorageClient, StorageSettings
 
 
-class ExampleStoragePlugin(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
+class ExampleStoragePlugin(apps.Container, apps.PluginMixin):
     @apps.service(ExampleIds.STORAGE)
     def default_storage(self) -> StorageClient:
         return StorageClient(self._app.get(ExampleIds.CONFIGS.STORAGE))

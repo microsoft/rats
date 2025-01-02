@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "rats-apps"
 description = "research analysis tools for building applications"
-version = "0.4.0"
+version = "0.5.0"
 readme = "README.md"
 authors = []
 packages = [
     { include = "rats", from = "src/python" },
+    { include = "rats_e2e", from = "src/python" },
 ]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
@@ -26,10 +27,6 @@ pytest-cov = "*"
 pytest-nunit = "*"
 ruff = "*"
 types-urllib3 = "*"
-
-[tool.poetry.plugins."rats.apps.plugins"]
-"rats.logs" = "rats.logs:PluginContainer"
-"rats.cli" = "rats.cli:PluginContainer"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -171,7 +168,9 @@ cache_dir = ".tmp/.pytest_cache"
 testpaths = ["test/python"]
 # Root namespace package folder here ensures coverage will include files with 0% coverage
 addopts = """
-    --cov=src/python/rats --cov=test/python/rats_test
+    --cov=src/python/rats
+    --cov=src/python/rats_e2e
+    --cov=test/python/rats_test
     --cov-report=term
     --cov-report=xml
     --junit-xml .tmp/report.pytest-junit.xml

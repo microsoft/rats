@@ -94,7 +94,7 @@ class PipelineLoaderGetter(IManageLoaders[T_DataType]):
         input_data_id: PipelineDataId[T_DataType],
         output_data_id: PipelineDataId[T_DataType],
         uri_formatter_id: ServiceId[IFormatUri[T_DataType]],
-        reader_id: ServiceId[IReadData[Tco_DataType]],
+        reader_id: ServiceId[IReadData[T_DataType]],
     ) -> None:
         self._loaders[input_data_id] = (output_data_id, uri_formatter_id, reader_id)
 

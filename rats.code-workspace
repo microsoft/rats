@@ -19,12 +19,6 @@
             "path": "rats-processors"
         },
         {
-            "path": "rats-examples-datasets"
-        },
-        {
-            "path": "rats-examples-minimal"
-        },
-        {
             "path": "rats-examples-sklearn"
         },
     ],
@@ -36,8 +30,6 @@
             "rats-devtools": true,
             "rats-pipelines": true,
             "rats-processors": true,
-            "rats-examples-datasets": true,
-            "rats-examples-minimal": true,
             "rats-examples-sklearn": true,
             // tool-generated dirs/files
             ".tox": true,

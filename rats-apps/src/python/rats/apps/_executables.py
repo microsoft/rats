@@ -19,16 +19,30 @@ class Executable(Protocol):
 
 class App(Executable):
     """
-    Wraps a plain callable objects as an executable.
+    Wraps a plain callable objects as a [rats.apps.Executable][].
 
     This simple object allows for turning any callable object into an executable that is recognized
     by the rest of the rats application.
+
+    Example:
+        ```python
+        from rats import apps
+
+        apps.App(lambda: print("hello, world")).execute()
+        ```
     """
 
     _callback: Callable[[], None]
 
     def __init__(self, callback: Callable[[], None]) -> None:
+        """
+        Created by providing a reference to a `Callable[[], None]` function.
+
+        Args:
+            callback: called when the application instance is executed.
+        """
         self._callback = callback
 
     def execute(self) -> None:
+        """Runs the provided callback."""
         self._callback()

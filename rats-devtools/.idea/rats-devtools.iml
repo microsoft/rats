@@ -12,7 +12,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="rats-pipelines" />
     <orderEntry type="module" module-name="rats-apps" />
-    <orderEntry type="module" module-name="rats-examples-datasets" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />

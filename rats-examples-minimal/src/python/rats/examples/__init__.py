@@ -1,1 +1,0 @@
-"""Some minimal examples."""

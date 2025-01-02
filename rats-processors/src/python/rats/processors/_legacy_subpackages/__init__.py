@@ -11,12 +11,12 @@ from .dag._viz import pipeline_to_dot
 from .ux import CombinedPipeline, Task
 
 __all__ = [
-    "Task",
     "CombinedPipeline",
-    "typing",
     "IPipelineRunner",
     "IPipelineRunnerFactory",
     "LegacyServicesWrapperContainer",
     "Services",
+    "Task",
     "pipeline_to_dot",
+    "typing",
 ]

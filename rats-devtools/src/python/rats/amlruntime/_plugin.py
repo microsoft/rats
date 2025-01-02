@@ -6,6 +6,7 @@ import click
 from rats import apps, cli
 from rats import devtools as devtools
 from rats import projects as projects
+from rats import stdruntime as stdruntime
 
 from ._commands import PluginCommands
 from ._runtime import AmlRuntime, RuntimeConfig
@@ -29,7 +30,6 @@ class PluginServices:
     AML_JOB_OPS = apps.ServiceId["JobOperations"]("aml-job-ops")  # type: ignore[reportUndefinedVariable]
     COMMANDS = apps.ServiceId[cli.Container]("commands")
 
-    MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
 
     CONFIGS = _PluginConfigs
@@ -39,24 +39,15 @@ class PluginServices:
         return apps.ServiceId[apps.Runtime](f"{PluginServices.AML_RUNTIME.name}[{name}]")
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
-    @apps.group(devtools.PluginServices.EVENTS.OPENING)
+class PluginContainer(apps.Container, apps.PluginMixin):
+    @apps.group(devtools.AppServices.ON_REGISTER)
     def _on_open(self) -> Iterator[apps.Executable]:
         yield apps.App(
             lambda: cli.attach(
+                self._app.get(devtools.AppServices.MAIN_CLICK),
                 self._app.get(PluginServices.MAIN_CLICK),
-                self._app.get(devtools.PluginServices.MAIN_CLICK),
             )
         )
-
-    @apps.service(PluginServices.MAIN_EXE)
-    def _main_exe(self) -> apps.Executable:
-        return apps.App(lambda: self._app.get(PluginServices.MAIN_CLICK)())
 
     @apps.service(PluginServices.MAIN_CLICK)
     def _main_click(self) -> click.Group:
@@ -74,7 +65,7 @@ class PluginContainer(apps.Container):
             project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
             cwd_component_tools=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
             # on worker nodes, we always want the simple local runtime, for now.
-            standard_runtime=lambda: self._app.get(apps.AppServices.STANDARD_RUNTIME),
+            standard_runtime=lambda: self._app.get(stdruntime.PluginServices.STANDARD_RUNTIME),
             aml_runtime=lambda: self._app.get(PluginServices.AML_RUNTIME),
             aml_exes=lambda: self._app.get_group(PluginServices.CONFIGS.EXE_GROUP),
         )
@@ -123,4 +114,4 @@ class PluginContainer(apps.Container):
 
     @apps.fallback_group(PluginServices.CONFIGS.EXE_GROUP)
     def _default_exes(self) -> Iterator[apps.ServiceId[apps.Executable]]:
-        yield PluginServices.MAIN_EXE
+        yield devtools.AppServices.HELLO_WORLD_EXE

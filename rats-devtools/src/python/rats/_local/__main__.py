@@ -3,6 +3,4 @@
 from rats import devtools
 
 if __name__ == "__main__":
-    devtools.run(
-        "rats.local.plugins",
-    )
+    devtools.run()

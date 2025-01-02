@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from typing import NamedTuple
 
 import click
 
@@ -6,7 +7,12 @@ from rats import apps as apps
 from rats import cli as cli
 from rats import devtools, projects
 
-from ._commands import CiCommandGroups, PluginCommands
+
+class CiCommandGroups(NamedTuple):
+    install: tuple[tuple[str, ...], ...]
+    fix: tuple[tuple[str, ...], ...]
+    check: tuple[tuple[str, ...], ...]
+    test: tuple[tuple[str, ...], ...]
 
 
 @apps.autoscope
@@ -20,37 +26,77 @@ class PluginConfigs:
 
 @apps.autoscope
 class PluginServices:
-    COMMANDS = apps.ServiceId[cli.Container]("commands")
-    MAIN_EXE = apps.ServiceId[apps.Executable]("main-exe")
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
-
     CONFIGS = PluginConfigs
 
 
-class PluginContainer(apps.Container):
-    _app: apps.Container
+class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
+    @cli.command()
+    def install(self) -> None:
+        """Install the development environment for the component."""
+        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
 
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
+        for cmd in command_groups.install:
+            selected_component.run(*cmd)
+            print(f"ran {len(command_groups.install)} installation commands")
 
-    @apps.group(devtools.PluginServices.EVENTS.OPENING)
-    def _on_open(self) -> Iterator[apps.Executable]:
+    @cli.command()
+    def fix(self) -> None:
+        """Run any configured auto-formatters for the component."""
+        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
+
+        for cmd in command_groups.fix:
+            selected_component.run(*cmd)
+            print(f"ran {len(command_groups.fix)} fix commands")
+
+    @cli.command()
+    def check(self) -> None:
+        """Run any configured linting & typing checks for the component."""
+        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
+
+        for cmd in command_groups.check:
+            selected_component.run(*cmd)
+            print(f"ran {len(command_groups.check)} check commands")
+
+    @cli.command()
+    def test(self) -> None:
+        """Run any configured tests for the component."""
+        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
+
+        for cmd in command_groups.test:
+            selected_component.run(*cmd)
+            print(f"ran {len(command_groups.test)} test commands")
+
+    @cli.command()
+    def build_image(self) -> None:
+        """Build a container image of the component."""
+        project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+
+        project_tools.build_component_image(selected_component.find_path(".").name)
+
+    @apps.group(devtools.AppServices.ON_REGISTER)
+    def _on_register(self) -> Iterator[apps.Executable]:
         yield apps.App(
             lambda: cli.attach(
-                self._app.get(devtools.PluginServices.MAIN_CLICK),
+                self._app.get(devtools.AppServices.MAIN_CLICK),
                 self._app.get(PluginServices.MAIN_CLICK),
             )
         )
 
-    @apps.service(PluginServices.COMMANDS)
-    def _commands(self) -> cli.Container:
-        return PluginCommands(
-            project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
-            selected_component=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
-            devtools_component=lambda: self._app.get(
-                projects.PluginServices.DEVTOOLS_COMPONENT_TOOLS
+    @apps.service(PluginServices.MAIN_CLICK)
+    def _main_click(self) -> click.Group:
+        return cli.create_group(
+            click.Group(
+                "ci",
+                help="commands used during ci/cd",
+                chain=True,  # allow us to run more than one ci subcommand at once
             ),
-            command_groups=lambda: self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS),
+            self,
         )
 
     @apps.fallback_service(PluginServices.CONFIGS.COMMAND_GROUPS)
@@ -83,18 +129,3 @@ class PluginContainer(apps.Container):
     @apps.fallback_group(PluginServices.CONFIGS.TEST)
     def _pytest(self) -> Iterator[tuple[str, ...]]:
         yield ("pytest",)
-
-    @apps.service(PluginServices.MAIN_EXE)
-    def _main_exe(self) -> apps.Executable:
-        return apps.App(lambda: self._app.get(PluginServices.MAIN_CLICK)())
-
-    @apps.service(PluginServices.MAIN_CLICK)
-    def _main_click(self) -> click.Group:
-        return cli.create_group(
-            click.Group(
-                "ci",
-                help="commands used during ci/cd",
-                chain=True,  # allow us to run more than one ci subcommand at once
-            ),
-            self._app.get(PluginServices.COMMANDS),
-        )

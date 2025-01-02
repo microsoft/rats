@@ -4,23 +4,10 @@ from rats import amlruntime, projects
 from rats import apps as apps
 
 
-class AmlRuntimePluginContainer(apps.Container):
-    _app: apps.Container
-
-    def __init__(self, app: apps.Container) -> None:
-        self._app = app
-
+class AmlRuntimePluginContainer(apps.Container, apps.PluginMixin):
     @apps.service(amlruntime.PluginServices.component_runtime("rats-devtools"))
     def _devtools_runtime(self) -> amlruntime.AmlRuntime:
         return self._make_runtime("rats-devtools")
-
-    @apps.service(amlruntime.PluginServices.component_runtime("rats-examples-minimal"))
-    def _minimal_runtime(self) -> amlruntime.AmlRuntime:
-        return self._make_runtime("rats-examples-minimal")
-
-    @apps.service(amlruntime.PluginServices.component_runtime("rats-examples-datasets"))
-    def _datasets_runtime(self) -> amlruntime.AmlRuntime:
-        return self._make_runtime("rats-examples-datasets")
 
     def _make_runtime(self, name: str) -> amlruntime.AmlRuntime:
         return amlruntime.AmlRuntime(
@@ -32,14 +19,6 @@ class AmlRuntimePluginContainer(apps.Container):
                 amlruntime.PluginServices.CONFIGS.component_runtime(name)
             ),
         )
-
-    @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-examples-datasets"))
-    def _datasets_runtime_config(self) -> amlruntime.RuntimeConfig:
-        return self._component_aml_runtime_config("rats-examples-datasets")
-
-    @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-examples-minimal"))
-    def _minimal_runtime_config(self) -> amlruntime.RuntimeConfig:
-        return self._component_aml_runtime_config("rats-examples-minimal")
 
     @apps.service(amlruntime.PluginServices.CONFIGS.component_runtime("rats-devtools"))
     def _devtools_runtime_config(self) -> amlruntime.RuntimeConfig:
@@ -57,18 +36,6 @@ class AmlRuntimePluginContainer(apps.Container):
                 [
                     "cd /opt/rats/rats-devtools",
                     "bin/rats-examples",
-                ]
-            ),
-            "rats-examples-minimal": " && ".join(
-                [
-                    "cd /opt/rats/rats-examples-minimal",
-                    ".venv/bin/python -m rats.examples",
-                ]
-            ),
-            "rats-examples-datasets": " && ".join(
-                [
-                    "cd /opt/rats/rats-examples-datasets",
-                    ".venv/bin/python -m rats.examples",
                 ]
             ),
         }
