@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 class AppInput(NamedTuple):
     """A small data structure to provide the needed configuration for our application."""
+
     num_rows: int
     """The number of values we want printed by the [rats_e2e.apps.inputs.Application][] class."""
 
