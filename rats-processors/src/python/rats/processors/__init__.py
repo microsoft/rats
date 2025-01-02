@@ -12,8 +12,8 @@ __all__ = [
     "IPipelineRegistry",
     "NotebookApp",
     "PipelineContainer",
-    "pipeline",
-    "typing",
     "Services",
+    "pipeline",
     "task",
+    "typing",
 ]

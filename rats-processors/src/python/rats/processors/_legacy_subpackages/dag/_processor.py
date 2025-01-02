@@ -33,7 +33,7 @@ ProcessorOutput = Union[Mapping[str, Any], NamedTuple, None]  # type: ignore[rep
 # However, any IProcess can be made generic and return a generic TypedDict.
 @runtime_checkable
 class IProcess(Protocol):
-    process: Callable[..., Mapping[str, Any] | NamedTuple | None] = NotImplemented
+    process: Callable[..., Mapping[str, Any] | NamedTuple | None] = NotImplemented  # type: ignore[reportAssignmentType]
 
 
 class _empty:

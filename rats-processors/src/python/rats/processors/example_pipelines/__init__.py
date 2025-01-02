@@ -4,7 +4,7 @@ from ._simple_typed_pipeline import Model, SubModel
 
 __all__ = [
     "ExamplePipelinesContainer",
-    "Services",
     "Model",
+    "Services",
     "SubModel",
 ]

@@ -4,13 +4,13 @@ from ._namedcollection import NamedCollection, SupportsAsDict, namedcollection, 
 from ._orderedset import orderedset, oset
 
 __all__ = [
-    "fdict",
-    "frozendict",
+    "ImmutableNoOverlapChainMap",
     "NamedCollection",
     "SupportsAsDict",
+    "fdict",
+    "frozendict",
     "namedcollection",
     "ncoll",
     "orderedset",
     "oset",
-    "ImmutableNoOverlapChainMap",
 ]

@@ -7,7 +7,6 @@ from ._services import Groups, Services
 
 
 class PipelineRegistryContainer(apps.Container, apps.PluginMixin):
-
     @apps.service(Services.EXECUTABLE_PIPELINES_REGISTRY)
     def executable_pipelines(self) -> PipelineRegistry:
         return PipelineRegistry(

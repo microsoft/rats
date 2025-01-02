@@ -71,8 +71,6 @@ plugins:
             - "../../rats-devtools/src/python"
             - "../../rats-pipelines/src/python"
             - "../../rats-processors/src/python"
-            - "../../rats-examples-datasets/src/python"
-            - "../../rats-examples-minimal/src/python"
             - "../../rats-examples-sklearn/src/python"
           options:
             show_if_no_docstring: true
