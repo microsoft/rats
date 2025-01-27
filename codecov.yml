@@ -22,8 +22,6 @@ component_management:
   individual_components:
     - component_id: rats-apps
     - component_id: rats-devtools
-    - component_id: rats-pipelines
-    - component_id: rats-processors
 
 comment:
   layout: header, components, condensed_files, condensed_footer

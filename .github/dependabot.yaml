@@ -22,7 +22,7 @@ updates:
         patterns:
           - "*"
     commit-message:
-      prefix: ":arrow_up: dep-bump"
+      prefix: ":arrow_up: rats dep-bump"
       include: scope
   - package-ecosystem: pip
     directory: /rats-apps/
@@ -34,7 +34,7 @@ updates:
         patterns:
           - "*"
     commit-message:
-      prefix: ":arrow_up: dep-bump"
+      prefix: ":arrow_up: rats-apps dep-bump"
       include: scope
   - package-ecosystem: pip
     directory: /rats-devtools/
@@ -46,41 +46,5 @@ updates:
         patterns:
           - "*"
     commit-message:
-      prefix: ":arrow_up: dep-bump"
-      include: scope
-  - package-ecosystem: pip
-    directory: /rats-pipelines/
-    schedule:
-      interval: weekly
-    target-branch: main
-    groups:
-      package-dependencies:
-        patterns:
-          - "*"
-    commit-message:
-      prefix: ":arrow_up: dep-bump"
-      include: scope
-  - package-ecosystem: pip
-    directory: /rats-processors/
-    schedule:
-      interval: weekly
-    target-branch: main
-    groups:
-      package-dependencies:
-        patterns:
-          - "*"
-    commit-message:
-      prefix: ":arrow_up: dep-bump"
-      include: scope
-  - package-ecosystem: pip
-    directory: /rats-examples-sklearn/
-    schedule:
-      interval: weekly
-    target-branch: main
-    groups:
-      package-dependencies:
-        patterns:
-          - "*"
-    commit-message:
-      prefix: ":arrow_up: dep-bump"
+      prefix: ":arrow_up: rats-devtools dep-bump"
       include: scope

@@ -32,23 +32,6 @@ It provides the mechanisms to define _services_ (a.k.a., general purpose objects
 These _containers_ are then added to a general app as plugins providing an entry point to a whole
 ecosystem of general _services_.
 
-### rats-pipelines
-
-A package to define and run pipelines of _nodes_ (computational tasks) and _edges_
-(node dependencies or data dependencies).
-It provides a low-level API to define pipeline execution, task execution and IO management.
-It also provides a high level API to orchestrate running a pipeline locally or in a distributed
-environment.
-
-
-### rats-processors
-
-A package to create and compose pipelines in a higher level API, where _processors_ (classes
-or unbound methods) are mapped into _pipeline nodes_, _node ports_ are inferred from the
-_processors_ signature, and _edges_ are created by connecting the _node ports_ inputs and outputs.
-Pipelines defined this way are immutable objects that can be reused and composed into larger
-pipelines.
-
 ### rats-devtools
 
 A light component to help with the development of the other components.

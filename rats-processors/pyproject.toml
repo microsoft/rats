@@ -4,7 +4,7 @@ description = "Rats Processors"
 version = "0.5.0"
 readme = "README.md"
 authors = []
-packages = [{ include = "rats", from = "src/python" }]
+packages = [{ include = "rats", from = "src" }]
 repository = "https://github.com/microsoft/rats/"
 documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]

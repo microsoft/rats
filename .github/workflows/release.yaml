@@ -24,9 +24,6 @@ jobs:
       matrix:
         component:
           - rats-apps
-          - rats-devtools
-          - rats-pipelines
-          - rats-processors
     environment:
       name: pypi
       url: https://pypi.org/p/${{ matrix.component }}
