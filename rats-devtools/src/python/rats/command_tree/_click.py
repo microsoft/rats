@@ -174,7 +174,7 @@ def dataclass_to_click_parameters(
                 parameters.extend(dataclass_to_click_parameters(base_field_type, option_name))  # type: ignore[reportArgumentType]
                 continue
 
-            field_type = CLICK_TYPE_MAPPING[base_field_type]  # type: ignore
+            field_type = CLICK_TYPE_MAPPING[base_field_type]
             if parent_nargs is not None:
                 nargs = parent_nargs
                 multiple = True
