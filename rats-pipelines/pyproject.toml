@@ -11,26 +11,9 @@ keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-dill = "*"
-furl = "^2.1.3"
-# we can move the k8s dependency to another package and use plugins
-kubernetes = { version = "*" }
 python = "^3.10"
-typing_extensions = "*"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "*"
-pyright = "*"
-pytest = "*"
-pytest-cov = "*"
-pytest-nunit = "*"
-ruff = "*"
-types-urllib3 = "*"
-
-[tool.poetry.scripts]
-
-[tool.poetry.plugins."rats.app_plugins"]
-"rats.examples.io2" = "rats.examples.io2._app_plugin:Io2ExamplePlugin"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
