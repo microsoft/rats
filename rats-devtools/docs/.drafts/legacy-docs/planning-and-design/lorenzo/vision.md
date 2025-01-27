@@ -7,7 +7,7 @@
 
 Providers are objects that return another object; they are callable and take no arguments from
 the user. Providers are valuable without input
-arguments because they allow authors to give users access to cababilities without exposing any
+arguments because they allow authors to give users access to capabilities without exposing any
 of the details of how to initialize any of the class instances. The DI Container is a registry
 to give users a simple way to access/call providers; and interact with the desired capabilities.
 DI
