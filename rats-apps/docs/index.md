@@ -179,7 +179,7 @@ mechanism to allow authors to make their application extensible. These plugins a
 
             @apps.container()
             def _plugins(self) -> apps.Container:
-                return apps.PluginContainers("foo.plugins")
+                return apps.PythonEntryPointContainer("foo.plugins")
 
 
         if __name__ == "__main__":

@@ -52,7 +52,7 @@ section.  Note that it can contain links to notebooks generated in other compone
 useful for notebooks that need external libraries, which should be generated under a
 rats-examples-* component.
 
-Currently enabled for rats-processors and rats-examples-sklearn.  To enable for other components,
-edit the components list in `rats.devtools._commands.build_tutorial_notebooks`. and add `jupytext`
+To enable for a component, edit the components list in
+`rats.devtools._commands.build_tutorial_notebooks`. and add `jupytext`
 and `nbconvert` to the component's `pyproject.toml` in section
 `tool.poetry.group.docs.dependencies`.

@@ -15,9 +15,6 @@ jobs:
         component:
           - rats-apps
           - rats-devtools
-          - rats-examples-sklearn
-          - rats-pipelines
-          - rats-processors
     name: "build-wheels: ${{ matrix.component }}"
     steps:
       - uses: actions/checkout@v4

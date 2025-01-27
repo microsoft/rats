@@ -7,14 +7,8 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[![PyPI - Version](https://img.shields.io/pypi/v/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
-[![PyPI - Wheel](https://img.shields.io/pypi/wheel/rats-pipelines)](https://pypi.org/project/rats-pipelines/)
-
-
 Rats is a collection of tools to help researchers define and run experiments.
-It is designed to be a modular and extensible framework currently supporting building and
-running pipelines, integrating configs and services.
+It is designed to be a modular and extensible framework.
 
 
 ## :notebook_with_decorative_cover: Documentation
@@ -32,23 +26,6 @@ It provides the mechanisms to define _services_ (a.k.a., general purpose objects
 These _containers_ are then added to a general app as plugins providing an entry point to a whole
 ecosystem of general _services_.
 
-### rats-pipelines
-
-A package to define and run pipelines of _nodes_ (computational tasks) and _edges_
-(node dependencies or data dependencies).
-It provides a low-level API to define pipeline execution, task execution and IO management.
-It also provides a high level API to orchestrate running a pipeline locally or in a distributed
-environment.
-
-
-### rats-processors
-
-A package to create and compose pipelines in a higher level API, where _processors_ (classes
-or unbound methods) are mapped into _pipeline nodes_, _node ports_ are inferred from the
-_processors_ signature, and _edges_ are created by connecting the _node ports_ inputs and outputs.
-Pipelines defined this way are immutable objects that can be reused and composed into larger
-pipelines.
-
 ### rats-devtools
 
 A light component to help with the development of the other components.
@@ -62,16 +39,16 @@ Install the latest version of rats from PyPI for any component you want:
 
 ```bash
 # With pip3.
-pip3 install rats-apps rats-apps rats-pipelines rats-processors
+pip3 install rats-apps rats-apps
 
 # With poetry.
-poetry add rats-apps rats-apps rats-pipelines rats-processors
+poetry add rats-apps rats-apps
 
 # With uv.
-uv pip install rats-apps rats-apps rats-pipelines rats-processors
+uv pip install rats-apps rats-apps
 
 # With pipenv.
-pipenv install rats-apps rats-apps rats-pipelines rats-processors
+pipenv install rats-apps rats-apps
 ```
 
 ## :woman_technologist: Development
@@ -100,8 +77,6 @@ For setting up the development environment:
 cd rats; poetry install; cd -
 cd rats-apps; poetry install; cd -
 cd rats-devtools; poetry install; cd -
-cd rats-pipelines; poetry install; cd -
-cd rats-processors; poetry install; cd -
 ```
 * Install `rats-devtools` command (optional):
 ```bash

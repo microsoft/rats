@@ -21,8 +21,6 @@ dirty = false
 metadata = false
 
 [tool.poetry.dependencies]
-rats-pipelines = "*"
-rats-processors = "*"
 python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
@@ -33,10 +31,6 @@ pytest-cov = "*"
 pytest-nunit = "*"
 setuptools = "*"   # pycharm requires setuptools :(
 ruff = "*"
-
-[tool.poetry.group.local.dependencies]
-rats-pipelines = { path = "../rats-pipelines", develop = true }
-rats-processors = { path = "../rats-processors", develop = true }
 
 [build-system]
 requires = ["poetry-core"]

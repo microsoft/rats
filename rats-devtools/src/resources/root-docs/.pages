@@ -1,6 +1,4 @@
 nav:
   - Home: index.md
   - rats-apps: rats-apps
-  - rats-pipelines: rats-pipelines
-  - rats-processors: rats-processors
   - rats-devtools: rats-devtools

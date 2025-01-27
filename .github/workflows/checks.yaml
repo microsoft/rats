@@ -14,9 +14,6 @@ jobs:
         component:
           - rats-devtools
           - rats-apps
-          - rats-pipelines
-          - rats-processors
-          - rats-examples-sklearn
     runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
     name: "check: ${{ matrix.component }}"
     steps:

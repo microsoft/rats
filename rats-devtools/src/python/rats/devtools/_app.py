@@ -55,7 +55,7 @@ class Application(apps.AppContainer, apps.PluginMixin, cli.Container):
     @apps.container()
     def _plugins(self) -> apps.Container:
         return apps.CompositeContainer(
-            apps.PluginContainers(self, "rats.devtools.plugins"),
+            apps.PythonEntryPointContainer(self, "rats.devtools.plugins"),
         )
 
     @apps.service(AppServices.HELLO_WORLD_EXE)

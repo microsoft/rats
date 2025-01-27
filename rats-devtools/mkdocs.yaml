@@ -69,9 +69,6 @@ plugins:
             - "../../rats/src/python"
             - "../../rats-apps/src/python"
             - "../../rats-devtools/src/python"
-            - "../../rats-pipelines/src/python"
-            - "../../rats-processors/src/python"
-            - "../../rats-examples-sklearn/src/python"
           options:
             show_if_no_docstring: true
             show_symbol_type_toc: true
@@ -83,6 +80,8 @@ plugins:
             signature_crossrefs: true
             merge_init_into_class: true
             annotations_path: source
+          import:
+            - "https://docs.python.org/3/objects.inv"
   - awesome-pages
   - mkdocs-video:
       is_video: true

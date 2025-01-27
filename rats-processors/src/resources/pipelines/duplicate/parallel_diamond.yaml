@@ -1,5 +1,0 @@
-defaults:
-  - base@_here_
-  - /combined@pipeline: diamond
-
-copy_names: [left, right]
