@@ -15,27 +15,9 @@ enable = true
 version-pinning-strategy = "semver"
 
 [tool.poetry.dependencies]
-rats-apps = { path = "../rats-apps/", develop = true }
-rats-pipelines = { path = "../rats-pipelines/", develop = true }
-rats-processors = { path = "../rats-processors/", develop = true }
-pandas = "*"
 python = "^3.10"
-scikit-learn = "*"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "*"
-ipykernel = "*"
-pyright = "*"
-pytest = "*"
-pytest-cov = "*"
-pytest-nunit = "*"
-ruff = "*"
-
-jupytext = "*"
-nbconvert = "*"
-
-[tool.poetry.plugins."rats.processors_app_plugins"]
-"rats.examples-sklearn" = "rats.examples_sklearn._plugin_container:PluginContainer"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
