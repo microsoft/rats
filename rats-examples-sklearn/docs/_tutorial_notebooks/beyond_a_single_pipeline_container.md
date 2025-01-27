@@ -608,7 +608,7 @@ The `@container` decorator allows a container to include other containers as sub
 `.get(service_id)` call on the container will search it and all the containers it includes via a
 `@container` decorator.
 
-For example, we could create antoher container class that includes `SplitDataPipelineContainer`
+For example, we could create another container class that includes `SplitDataPipelineContainer`
 and `TrainAndPredictPipelineContainer` as sub-containers, and register that other container class
 with the app.  Functionally, this is the same as what we did above:
 
