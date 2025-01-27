@@ -6,9 +6,9 @@ from ._container import Container
 from ._ids import ServiceId, T_ServiceType
 
 
-class PluginContainers(Container):
+class PythonEntryPointContainer(Container):
     """
-    A container that loads plugins using importlib.metadata.entry_points.
+    A container that loads plugins using [importlib.metadata.entry_points][].
 
     When looking for groups, the container loads the specified entry_points and defers the lookups
     to the plugins. Plugin containers are expected to be Callable[[Container], Container] objects,

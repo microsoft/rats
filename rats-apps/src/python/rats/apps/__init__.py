@@ -36,7 +36,7 @@ from ._executables import App, Executable
 from ._ids import ServiceId, T_ExecutableType, T_ServiceType
 from ._mains import run, run_plugin
 from ._namespaces import ProviderNamespaces
-from ._plugin_container import PluginContainers
+from ._plugin_container import PythonEntryPointContainer
 from ._runtimes import NullRuntime, Runtime, StandardRuntime
 from ._scoping import autoscope
 from ._static_container import StaticContainer, StaticProvider, static_group, static_service
@@ -54,7 +54,7 @@ __all__ = [
     "Executable",
     "GroupProvider",
     "NullRuntime",
-    "PluginContainers",
+    "PythonEntryPointContainer",
     "PluginMixin",
     "Provider",
     "ProviderNamespaces",

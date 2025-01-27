@@ -19,7 +19,7 @@ class NotebookApp(apps.Container):
 
     @apps.container()
     def processors_app_plugins(self) -> apps.Container:
-        return apps.PluginContainers(
+        return apps.PythonEntryPointContainer(
             app=self,
             group="rats.processors_app_plugins",
         )
