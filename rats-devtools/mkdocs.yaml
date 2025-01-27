@@ -69,9 +69,6 @@ plugins:
             - "../../rats/src/python"
             - "../../rats-apps/src/python"
             - "../../rats-devtools/src/python"
-            - "../../rats-pipelines/src/python"
-            - "../../rats-processors/src/python"
-            - "../../rats-examples-sklearn/src/python"
           options:
             show_if_no_docstring: true
             show_symbol_type_toc: true
