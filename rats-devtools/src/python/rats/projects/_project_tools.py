@@ -20,9 +20,10 @@ logger = logging.getLogger(__name__)
 class ProjectConfig(NamedTuple):
     name: str
     path: str
-    # this one doesn't seem to belong here
+    # these don't seem to belong here
     image_registry: str
     image_push_on_build: bool
+    image_tag: str | None = None
 
 
 class ProjectTools:
@@ -44,9 +45,10 @@ class ProjectTools:
         if not file.exists():
             raise RuntimeError(f"Containerfile not found in component {name}")
 
+        config = self._config()
         image = ContainerImage(
-            name=f"{self._config().image_registry}/{name}",
-            tag=self.image_context_hash(),
+            name=f"{config.image_registry}/{name}",
+            tag=config.image_tag or self.image_context_hash(),
         )
 
         print(f"building docker image: {image.full}")
@@ -65,7 +67,7 @@ class ProjectTools:
             if os.environ.get("DEVTOOLS_K8S_SKIP_LOGIN", "0") == "0":
                 component_tools.exe("az", "acr", "login", "--name", acr_registry)
 
-        if self._config().image_push_on_build:
+        if config.image_push_on_build:
             component_tools.exe("docker", "push", image.full)
 
     @cache  # noqa: B019
