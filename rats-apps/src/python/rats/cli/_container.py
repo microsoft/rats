@@ -11,10 +11,29 @@ logger = logging.getLogger(__name__)
 
 
 class Container(Protocol):
-    """A container that can attach click commands to a click group."""
+    """
+    A container that can attach click commands to a click group.
+
+    !!! example
+        The default protocol implementation detects any methods in the class decorated with the
+        [rats.cli.command][] annotation. Apart from marking the method as a cli command, you can
+        add [click.argument][] and [click.option][] decorators as defined by the click docs.
+
+        ```python
+        from rats import cli
+
+
+        class ExampleCli(cli.Container):
+            @cli.command()
+            @click.argument("something")
+            def my_cmd(self, something: str) -> None:
+                print("this command is automatically detected and attached as my-cmd")
+                print("add a docstring to the method to be used as the --help text")
+        ```
+    """
 
     def attach(self, group: click.Group) -> None:
-        """..."""
+        """Attach this container's provided cli commands to the provided [click.Group][]."""
 
         def cb(_method: Callable[..., None], *args: Any, **kwargs: Any) -> None:
             """
@@ -50,11 +69,14 @@ class Container(Protocol):
 
 @final
 class CompositeContainer(Container):
+    """Take any number of [rats.cli.Container][] instances and expose them as if they were one."""
+
     _containers: tuple[Container, ...]
 
     def __init__(self, *containers: Container) -> None:
         self._containers = containers
 
     def attach(self, group: click.Group) -> None:
+        """Attach the cli commands from all [rats.cli.Container][] instances to the [click.Group][]."""
         for container in self._containers:
             container.attach(group)
