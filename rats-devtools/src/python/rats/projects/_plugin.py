@@ -65,7 +65,7 @@ class PluginContainer(apps.Container, apps.PluginMixin):
             image_push_on_build=bool(os.environ.get("DEVTOOLS_IMAGE_PUSH_ON_BUILD", True)),
             # default tag gets calculated from the project hash
             # but this env can be provided by ci pipelines to control the output version
-            image_tag=os.environ.get("DEVTOOLS_IMAGE_TAG")
+            image_tag=os.environ.get("DEVTOOLS_IMAGE_TAG"),
         )
 
 
