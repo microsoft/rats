@@ -149,15 +149,15 @@ application is functional in many compute environments.
     we can combine these containers to create applications. The [rats.apps][] module has additional
     libraries to help define different types of applications, designed to help your solutions
     evolve as ideas mature. Our first runnable example was a single instance of the
-    [apps.AppContainer][] interface with an `execute()` method; but a larger project might have
-    a few modules providing different aspects of the application's needs by sharing a set of
+    [rats.apps.AppContainer][] interface with an `execute()` method; but a larger project might
+    have a few modules providing different aspects of the application's needs by sharing a set of
     service ids and a plugin container.
 
 ## Installable Plugins
 
 We use the standard [Entry Points](https://packaging.python.org/en/latest/specifications/entry-points/)
 mechanism to allow authors to make their application extensible. These plugins are instances of
-[apps.Container][] and loaded into applications like our previous examples.
+[rats.apps.Container][] and loaded into applications like our previous examples.
 
 === ":material-file-settings: ~/code/pyproject.toml"
     ```toml

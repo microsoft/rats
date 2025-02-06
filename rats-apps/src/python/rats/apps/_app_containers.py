@@ -63,10 +63,11 @@ be used easily in functions that need to defer the construction of an applicatio
 
 class PluginMixin:
     """
-    Mix into your [Container][] classes to add our default constructor.
+    Mix into your [rats.apps.Container][] classes to add our default constructor.
 
     This mixin adds a common constructor to a `Container` in order to quickly create types that
-    are compatible with functions asking for `AppPlugin` and `ContainerPlugin` arguments.
+    are compatible with functions asking for [rats.apps.AppPlugin][] and
+    [rats.apps.ContainerPlugin][] arguments.
 
     !!! warning
         Avoid using mixins as an input type to your functions, because we don't want to restrict
