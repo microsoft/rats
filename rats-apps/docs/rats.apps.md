@@ -2,6 +2,8 @@
 title: rats.apps
 ---
 ::: rats.apps
+    options:
+        heading_level: 1
 
 ## Examples
 
