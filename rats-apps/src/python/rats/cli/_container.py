@@ -33,7 +33,12 @@ class Container(Protocol):
     """
 
     def attach(self, group: click.Group) -> None:
-        """Attach this container's provided cli commands to the provided [click.Group][]."""
+        """
+        Attach this container's provided cli commands to the provided [click.Group][].
+
+        Args:
+            group: The [click.Group][] we are attaching our commands to.
+        """
 
         def cb(_method: Callable[..., None], *args: Any, **kwargs: Any) -> None:
             """
@@ -74,9 +79,20 @@ class CompositeContainer(Container):
     _containers: tuple[Container, ...]
 
     def __init__(self, *containers: Container) -> None:
+        """
+        Zero or more instances can be provided.
+
+        Args:
+            *containers: Any number of container instances wanting to be merged.
+        """
         self._containers = containers
 
     def attach(self, group: click.Group) -> None:
-        """Attach the cli commands from all [rats.cli.Container][] instances to the [click.Group][]."""
+        """
+        Attach the cli commands from all [rats.cli.Container][] instances to the [click.Group][].
+
+        Args:
+            group: The [click.Group][] we are attaching our commands to.
+        """
         for container in self._containers:
             container.attach(group)
