@@ -82,6 +82,7 @@ plugins:
             annotations_path: source
           import:
             - "https://docs.python.org/3/objects.inv"
+            - "https://click.palletsprojects.com/en/stable/objects.inv"
   - awesome-pages
   - mkdocs-video:
       is_video: true

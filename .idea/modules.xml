@@ -6,8 +6,6 @@
       <module fileurl="file://$PROJECT_DIR$/rats-apps/.idea/rats-apps.iml" filepath="$PROJECT_DIR$/rats-apps/.idea/rats-apps.iml" />
       <module fileurl="file://$PROJECT_DIR$/rats-devtools/.idea/rats-devtools.iml" filepath="$PROJECT_DIR$/rats-devtools/.idea/rats-devtools.iml" />
       <module fileurl="file://$PROJECT_DIR$/rats-examples-sklearn/.idea/rats-examples-sklearn.iml" filepath="$PROJECT_DIR$/rats-examples-sklearn/.idea/rats-examples-sklearn.iml" />
-      <module fileurl="file://$PROJECT_DIR$/rats-pipelines/.idea/rats-pipelines.iml" filepath="$PROJECT_DIR$/rats-pipelines/.idea/rats-pipelines.iml" />
-      <module fileurl="file://$PROJECT_DIR$/rats-processors/.idea/rats-processors.iml" filepath="$PROJECT_DIR$/rats-processors/.idea/rats-processors.iml" />
     </modules>
   </component>
 </project>

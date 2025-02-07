@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "rats-devtools"
 description = "Rats Development Tools"
-version = "0.5.1"
+version = "0.6.0"
 readme = "README.md"
 authors = []
 packages = [

@@ -63,6 +63,9 @@ class PluginContainer(apps.Container, apps.PluginMixin):
             path=repo_root,
             image_registry=os.environ.get("DEVTOOLS_IMAGE_REGISTRY", "default.local"),
             image_push_on_build=bool(os.environ.get("DEVTOOLS_IMAGE_PUSH_ON_BUILD", True)),
+            # default tag gets calculated from the project hash
+            # but this env can be provided by ci pipelines to control the output version
+            image_tag=os.environ.get("DEVTOOLS_IMAGE_TAG"),
         )
 
 
