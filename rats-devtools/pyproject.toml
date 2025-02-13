@@ -50,6 +50,7 @@ rats-apps = { path = "../rats-apps", develop = true }
 # temporarily removing the rats-devtools script entry
 # we don't want people that create devtools to need to use the rats-devtools cli (yet)
 # rats-devtools = "rats.devtools.__main__:run"
+rats-aml = "rats.aml:main"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
 "rats.amlruntime" = "rats.amlruntime:PluginContainer"
