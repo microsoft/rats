@@ -69,6 +69,6 @@ python3 -m venv .venv
 rm -rf /root/.cache
 HEREDOC
 COPY . /opt/rats
-
+ENV PATH="$PATH:/opt/rats/rats-devtools/.venv/bin"
 # nothing should be installed after this step
 USER nonroot
