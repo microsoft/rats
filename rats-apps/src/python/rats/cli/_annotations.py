@@ -25,7 +25,7 @@ Causes command names to be generated from the method names in [rats.cli.Containe
 This is the default option for [rats.cli.command][] and [rats.cli.group][] and typically does not
 need to be used directly.
 """
-T = TypeVar("T", bound=Callable[[Any], Any])
+T = TypeVar("T", bound=Callable[..., Any])
 
 
 def command(command_id: CommandId = AUTO_COMMAND) -> Callable[[T], T]:
