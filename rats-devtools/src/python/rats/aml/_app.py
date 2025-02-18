@@ -7,8 +7,11 @@ from typing import cast, final
 
 import click
 
-from rats import apps, cli, logs, projects, stdruntime
-from rats.aml._runtime import AmlEnvironment, AmlWorkspace, Runtime, RuntimeConfig
+from rats import apps, cli, logs
+from rats import projects as projects
+from rats import stdruntime as stdruntime
+
+from ._runtime import AmlEnvironment, AmlWorkspace, Runtime, RuntimeConfig
 
 logger = logging.getLogger(__name__)
 

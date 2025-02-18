@@ -1,5 +1,5 @@
 """Run the amlruntime commands."""
 
-from rats import amlruntime
+from rats import aml
 
-amlruntime.main()
+aml.main()
