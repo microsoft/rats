@@ -28,7 +28,7 @@ need to be used directly.
 T = TypeVar("T", bound=Callable[[Any], Any])
 
 
-def command(command_id: CommandId = AUTO_COMMAND) -> Callable[..., apps.Executable]:
+def command(command_id: CommandId = AUTO_COMMAND) -> Callable[[T], T]:
     """
     Mark a method in [rats.cli.Container][] instances as a [click.Command][].
 
@@ -55,7 +55,7 @@ def command(command_id: CommandId = AUTO_COMMAND) -> Callable[..., apps.Executab
             return anns.annotation("commands", CommandId(cmd_name))(fn)
         return anns.annotation("commands", command_id)(fn)
 
-    return decorator  # type: ignore[reportReturnType]
+    return decorator
 
 
 def group(command_id: CommandId = AUTO_COMMAND) -> Callable[..., apps.Executable]:
