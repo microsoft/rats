@@ -3,7 +3,7 @@
 from ._app import Application, AppServices, main
 
 __all__ = [
-    "Application",
     "AppServices",
+    "Application",
     "main",
 ]

@@ -1,10 +1,12 @@
 import json
 import logging
 import os
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator, cast, final
+from typing import cast, final
 
 import click
+
 from rats import apps, cli, logs, projects, stdruntime
 from rats.aml._runtime import AmlEnvironment, AmlWorkspace, Runtime, RuntimeConfig
 
@@ -85,7 +87,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @apps.fallback_service(AppServices.RUNTIME)
     def _aml_runtime(self) -> apps.Runtime:
         """The AML Runtime of the CWD component."""
-        component_tools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
         return Runtime(
             environment_operations=lambda: self._app.get(
                 AppServices.AML_ENVIRONMENT_OPS,
@@ -119,15 +120,17 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @apps.fallback_service(AppConfigs.RUNTIME)
     def _devtools_runtime_config(self) -> RuntimeConfig:
         # think of this as a worker node running our executables
-        project_config = self._app.get(projects.PluginServices.CONFIGS.PROJECT)
+        self._app.get(projects.PluginServices.CONFIGS.PROJECT)
         ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         component_name = Path.cwd().name
         image = ptools.container_image(component_name)
 
-        cmd = " && ".join([
-            "cd /opt/rats/rats-devtools",
-            "rats-aml",
-        ])
+        cmd = " && ".join(
+            [
+                "cd /opt/rats/rats-devtools",
+                "rats-aml",
+            ]
+        )
 
         # a lot more of this needs to be configurable
         return RuntimeConfig(
@@ -161,8 +164,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
 
 def main() -> None:
-    """
-    Main entry-point to the `rats-aml` cli command.
-    """
+    """Main entry-point to the `rats-aml` cli command."""
     apps.run_plugin(logs.ConfigureApplication)
     apps.run_plugin(Application)

@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import json
 import logging
 import time
-from collections.abc import Callable, Mapping
-from typing import NamedTuple
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, NamedTuple
 
 from rats import apps
+
+if TYPE_CHECKING:
+    from azure.ai.ml.operations import EnvironmentOperations, JobOperations
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +22,41 @@ class AmlWorkspace(NamedTuple):
 
 class AmlEnvironment(NamedTuple):
     name: str
+    """
+    The name of the built environment in AML.
+
+    Often, this is the name of the component since rats typically has a 1:1 relationship between
+    components and docker images. These environments are discoverable in the AML workspace and
+    each environment can have many versions.
+    """
     image: str
+    """
+    The full name, with registry and tag, of the container image for this environment.
+
+    In the AML workspace, this is shown as the "Docker image" and is sometimes used as the parent
+    image when asking AML to build the environment for us. However, in rats, we typically build
+    a full image using the standard tools like Docker, and have AML use the built images without
+    making any runtime modifications to it. This ensures the images we build in CI pipelines are
+    used without modifications after they have been tested (by you).
+    """
     version: str
+    """
+    The version of the environment being used for AML jobs.
+
+    Typically, this matches the tag portion of the built container images. You will find a version
+    drop-down when viewing the environment in your AML workspace.
+    """
 
     @property
     def full_name(self) -> str:
+        """
+        The AML environment and version.
+
+        Unlike the [AmlEnvironment.image][] property, this is the full name of the AML environment,
+        and not the container image. In most cases, this is the name of the component, and the
+        container tag, but does not contain the registry information. This is a unique identifier
+        within your AML workspace, but not globally, like container images.
+        """
         return f"{self.name}:{self.version}"
 
 
@@ -44,14 +79,14 @@ class RuntimeConfig(NamedTuple):
 class Runtime(apps.Runtime):
     """An app runtime that submits jobs to AML for the execution of a set of exes or groups."""
 
-    _environment_operations: apps.Provider["EnvironmentOperations"]  # type: ignore[reportUndefinedVariable]  # noqa: F821
-    _job_operations: apps.Provider["JobOperations"]  # type: ignore[reportUndefinedVariable]  # noqa: F821
+    _environment_operations: apps.Provider[EnvironmentOperations]
+    _job_operations: apps.Provider[JobOperations]
     _config: apps.Provider[RuntimeConfig]
 
     def __init__(
         self,
-        environment_operations: apps.Provider["EnvironmentOperations"],  # type: ignore[reportUndefinedVariable]  # noqa: F821
-        job_operations: apps.Provider["JobOperations"],  # type: ignore[reportUndefinedVariable]  # noqa: F821
+        environment_operations: apps.Provider[EnvironmentOperations],
+        job_operations: apps.Provider[JobOperations],
         config: apps.Provider[RuntimeConfig],
     ) -> None:
         self._environment_operations = environment_operations
@@ -63,9 +98,6 @@ class Runtime(apps.Runtime):
 
     def execute_group(self, *exe_group_ids: apps.ServiceId[apps.T_ExecutableType]) -> None:
         self._run((), exe_group_ids)
-
-    def execute_callable(self, *callables: Callable[[], None]) -> None:
-        raise NotImplementedError("not possible! go away!")
 
     def _run(
         self,
