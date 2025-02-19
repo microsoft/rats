@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import json
 import logging
 import os
+import shlex
 from collections.abc import Iterator
 from pathlib import Path
-from typing import cast, final
+from typing import TYPE_CHECKING, cast, final
 
 import click
 
@@ -11,7 +14,13 @@ from rats import apps, cli, logs
 from rats import projects as projects
 from rats import stdruntime as stdruntime
 
+from ._command import Command
 from ._runtime import AmlEnvironment, AmlWorkspace, Runtime, RuntimeConfig
+
+if TYPE_CHECKING:
+    from azure.ai.ml import MLClient
+    from azure.ai.ml.operations import EnvironmentOperations, JobOperations
+    from azure.core.credentials import TokenCredential
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +28,10 @@ logger = logging.getLogger(__name__)
 @apps.autoscope
 class AppConfigs:
     RUNTIME = apps.ServiceId[RuntimeConfig]("runtime.config")
+    COMMAND = apps.ServiceId[Command]("command.config")
+    COMPUTE = apps.ServiceId[str]("compute.config")
+    ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
+    WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
     EXE_GROUP = apps.ServiceId[apps.ServiceId[apps.Executable]]("exe-group.config")
 
 
@@ -27,9 +40,10 @@ class AppServices:
     RUNTIME = apps.ServiceId[apps.Runtime]("aml-runtime")
     HELLO_WORLD = apps.ServiceId[apps.Executable]("hello-world")
 
-    AML_CLIENT = apps.ServiceId["MLClient"]("aml-client")  # type: ignore[reportUndefinedVariable]
-    AML_ENVIRONMENT_OPS = apps.ServiceId["EnvironmentOperations"]("aml-environment-ops")  # type: ignore[reportUndefinedVariable]
-    AML_JOB_OPS = apps.ServiceId["JobOperations"]("aml-job-ops")  # type: ignore[reportUndefinedVariable]
+    AML_CLIENT = apps.ServiceId["MLClient"]("aml-client")
+    AML_ENVIRONMENT_OPS = apps.ServiceId["EnvironmentOperations"]("aml-environment-ops")
+    AML_JOB_OPS = apps.ServiceId["JobOperations"]("aml-job-ops")
+    AML_IDENTITY = apps.ServiceId["TokenCredential"]("identity")
 
 
 @final
@@ -98,65 +112,90 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             config=lambda: self._app.get(AppConfigs.RUNTIME),
         )
 
-    @apps.fallback_service(AppServices.AML_ENVIRONMENT_OPS)
-    def _aml_env_ops(self) -> "EnvironmentOperations":  # type: ignore[reportUndefinedVariable]  # noqa: F821
-        return self._app.get(AppServices.AML_CLIENT).environments
-
-    @apps.service(AppServices.AML_JOB_OPS)
-    def _aml_job_ops(self) -> "JobOperations":  # type: ignore[reportUndefinedVariable]  # noqa: F821
-        return self._app.get(AppServices.AML_CLIENT).jobs
-
-    @apps.fallback_service(AppServices.AML_CLIENT)
-    def _aml_client(self) -> "MLClient":  # type: ignore[reportUndefinedVariable]  # noqa: F821
-        from azure.ai.ml import MLClient
-        from azure.core.credentials import TokenCredential
-        from azure.identity import DefaultAzureCredential
-
-        workspace = self._app.get(AppConfigs.RUNTIME).workspace
-        return MLClient(
-            credential=cast(TokenCredential, DefaultAzureCredential()),
-            subscription_id=workspace.subscription_id,
-            resource_group_name=workspace.resource_group_name,
-            workspace_name=workspace.workspace_name,
-        )
-
     @apps.fallback_service(AppConfigs.RUNTIME)
-    def _devtools_runtime_config(self) -> RuntimeConfig:
+    def _runtime_config(self) -> RuntimeConfig:
         # think of this as a worker node running our executables
         self._app.get(projects.PluginServices.CONFIGS.PROJECT)
+
+        command = self._app.get(AppConfigs.COMMAND)
+        cmd = " && ".join(
+            [
+                shlex.join(["cd", command.cwd]),
+                shlex.join(command.args),
+            ]
+        )
+
+        return RuntimeConfig(
+            command=cmd,
+            env_variables=command.env,
+            compute=self._app.get(AppConfigs.COMPUTE),
+            outputs={},
+            inputs={},
+            workspace=self._app.get(AppConfigs.WORKSPACE),
+            environment=self._app.get(AppConfigs.ENVIRONMENT),
+        )
+
+    @apps.fallback_service(AppConfigs.COMMAND)
+    def _command_config(self) -> Command:
+        return Command(
+            cwd="/opt/rats/rats-devtools",
+            args=tuple(["rats-aml"]),
+            env=dict(),
+        )
+
+    @apps.fallback_service(AppConfigs.COMPUTE)
+    def _compute_config(self) -> str:
+        return os.environ["RATS_AML_COMPUTE"]
+
+    @apps.fallback_service(AppConfigs.WORKSPACE)
+    def _workspace_config(self) -> AmlWorkspace:
+        return AmlWorkspace(
+            subscription_id=os.environ["RATS_AML_SUBSCRIPTION_ID"],
+            resource_group_name=os.environ["RATS_AML_RESOURCE_GROUP"],
+            workspace_name=os.environ["RATS_AML_WORKSPACE"],
+        )
+
+    @apps.fallback_service(AppConfigs.ENVIRONMENT)
+    def _environment_config(self) -> AmlEnvironment:
         ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         component_name = Path.cwd().name
         image = ptools.container_image(component_name)
 
-        cmd = " && ".join(
-            [
-                "cd /opt/rats/rats-devtools",
-                "rats-aml",
-            ]
-        )
-
-        # a lot more of this needs to be configurable
-        return RuntimeConfig(
-            command=cmd,
-            env_variables=dict(),
-            compute=os.environ["DEVTOOLS_AMLRUNTIME_COMPUTE"],
-            outputs={},
-            inputs={},
-            workspace=AmlWorkspace(
-                subscription_id=os.environ["DEVTOOLS_AMLRUNTIME_SUBSCRIPTION_ID"],
-                resource_group_name=os.environ["DEVTOOLS_AMLRUNTIME_RESOURCE_GROUP"],
-                workspace_name=os.environ["DEVTOOLS_AMLRUNTIME_WORKSPACE"],
-            ),
-            environment=AmlEnvironment(
-                name=Path.cwd().name,
-                image=image.full,
-                version=image.tag,
-            ),
+        return AmlEnvironment(
+            name=Path.cwd().name,
+            image=image.full,
+            version=image.tag,
         )
 
     @apps.fallback_group(AppConfigs.EXE_GROUP)
     def _default_exes(self) -> Iterator[apps.ServiceId[apps.Executable]]:
         yield AppServices.HELLO_WORLD
+
+    @apps.fallback_service(AppServices.AML_ENVIRONMENT_OPS)
+    def _aml_env_ops(self) -> EnvironmentOperations:
+        return self._app.get(AppServices.AML_CLIENT).environments
+
+    @apps.service(AppServices.AML_JOB_OPS)
+    def _aml_job_ops(self) -> JobOperations:
+        return self._app.get(AppServices.AML_CLIENT).jobs
+
+    @apps.fallback_service(AppServices.AML_CLIENT)
+    def _aml_client(self) -> MLClient:
+        from azure.ai.ml import MLClient
+
+        workspace = self._app.get(AppConfigs.RUNTIME).workspace
+        return MLClient(
+            credential=self._app.get(AppServices.AML_IDENTITY),
+            subscription_id=workspace.subscription_id,
+            resource_group_name=workspace.resource_group_name,
+            workspace_name=workspace.workspace_name,
+        )
+
+    @apps.fallback_service(AppServices.AML_IDENTITY)
+    def _aml_identity(self) -> TokenCredential:
+        from azure.identity import DefaultAzureCredential
+
+        return cast(TokenCredential, DefaultAzureCredential())
 
     @apps.container()
     def _plugins(self) -> apps.Container:
