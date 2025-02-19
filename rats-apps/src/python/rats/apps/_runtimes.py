@@ -10,6 +10,16 @@ logger = logging.getLogger(__name__)
 
 
 class Runtime(Protocol):
+    """
+    Classes that run services that implement the [rats.apps.Executable][] interface.
+
+    Many of the lower level interfaces use [rats.apps.Executable][] to provide the user with a
+    class that has an [rats.apps.Executable.execute][] method; most notably, [rats.apps.App][] and
+    [rats.apps.AppContainer][]. These classes typically represent the main entry points to an
+    application, and runtime implementations provide a way to execute these applications in
+    threads, processes, and remote environments.
+    """
+
     @abstractmethod
     def execute(self, *exe_ids: ServiceId[T_ExecutableType]) -> None:
         """Execute a list of executables sequentially."""
