@@ -195,7 +195,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     def _aml_identity(self) -> TokenCredential:
         from azure.identity import DefaultAzureCredential
 
-        return cast(TokenCredential, DefaultAzureCredential())
+        return cast("TokenCredential", DefaultAzureCredential())
 
     @apps.container()
     def _plugins(self) -> apps.Container:
