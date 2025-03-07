@@ -20,6 +20,6 @@ class ExampleCliApp(apps.AppContainer, cli.Container, apps.PluginMixin):
             apps.run(
                 apps.AppBundle(
                     app_plugin=aml.Application,
-                    context=apps.StaticContainer,
+                    context=apps.CompositeContainer(),
                 ),
             )

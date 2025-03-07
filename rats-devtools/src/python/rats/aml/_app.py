@@ -3,14 +3,13 @@ from __future__ import annotations
 import logging
 import os
 import shlex
-from dataclasses import dataclass
-from uuid import uuid4
-
 import time
 from collections.abc import Iterator
+from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
-from typing import Any, TYPE_CHECKING, cast, final
+from typing import TYPE_CHECKING, Any, cast, final
+from uuid import uuid4
 
 import click
 
@@ -18,7 +17,7 @@ from rats import app_context, apps, cli, logs
 from rats import projects as projects
 
 from ._command import Command
-from ._runtime import AmlEnvironment, AmlWorkspace, Runtime, RuntimeConfig
+from ._runtime import AmlConfig, AmlEnvironment, AmlWorkspace
 
 if TYPE_CHECKING:
     from azure.ai.ml import MLClient
@@ -35,8 +34,7 @@ class _ExampleContext:
 
 @apps.autoscope
 class AppConfigs:
-    RUNTIME = apps.ServiceId[RuntimeConfig]("runtime.config")
-    COMMAND = apps.ServiceId[Command]("command.config")
+    RUNTIME = apps.ServiceId[AmlConfig]("runtime.config")
     COMPUTE = apps.ServiceId[str]("compute.config")
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
@@ -45,8 +43,6 @@ class AppConfigs:
 
 @apps.autoscope
 class AppServices:
-    RUNTIME = apps.ServiceId[apps.Runtime]("aml-runtime")
-
     AML_CLIENT = apps.ServiceId["MLClient"]("aml-client")
     AML_ENVIRONMENT_OPS = apps.ServiceId["EnvironmentOperations"]("aml-environment-ops")
     AML_JOB_OPS = apps.ServiceId["JobOperations"]("aml-job-ops")
@@ -68,7 +64,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @cli.command()
     @click.argument("app-ids", nargs=-1)
     @click.option("--context", default='{"items": []}')
-    def _submit(self, app_ids: tuple[str, ...], context: str) -> None:
+    @click.option("--wait", is_flag=True, default=False, help="wait for completion of aml job.")
+    def _submit(self, app_ids: tuple[str, ...], context: str, wait: bool) -> None:
         """Submit one or more apps to aml."""
         from azure.ai.ml import Input, Output, command
         from azure.ai.ml.entities import Environment
@@ -97,9 +94,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             ]
         )
 
-        config = RuntimeConfig(
-            command=cmd,
-            env_variables=cli_command.env,
+        config = AmlConfig(
             compute=self._app.get(AppConfigs.COMPUTE),
             outputs={},
             inputs={},
@@ -111,12 +106,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         env_ops = self._app.get(AppServices.AML_ENVIRONMENT_OPS)
         job_ops = self._app.get(AppServices.AML_JOB_OPS)
 
-        env_ops.create_or_update(
-            Environment(**config.environment._asdict())
-        )
+        env_ops.create_or_update(Environment(**config.environment._asdict()))
 
         job = command(
-            command=config.command,
+            command=cmd,
             compute=config.compute,
             environment=config.environment.full_name,
             outputs={
@@ -125,23 +118,23 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             inputs={
                 k: Input(type=v.type, path=v.path, mode=v.mode) for k, v in config.inputs.items()
             },
-            environment_variables={**config.env_variables},
+            environment_variables={},
         )
         returned_job = job_ops.create_or_update(job)
         logger.info(f"created job: {returned_job.name}")
-        job_ops.stream(str(returned_job.name))
-        logger.info(f"done streaming logs: {returned_job.name}")
-        while True:
+
+        while wait:
             job_details = job_ops.get(str(returned_job.name))
-            logger.info(f"status: {job_details.status}")
+            logger.info(f"job {returned_job.name} status: {job_details.status}")
+
             if job_details.status in RunHistoryConstants.TERMINAL_STATUSES:
+                if job_details.status != JobStatus.COMPLETED:
+                    raise RuntimeError(
+                        f"job {returned_job.name} failed with status {job_details.status}",
+                    )
                 break
 
-            logger.warning(f"job {returned_job.name} is not done yet: {job_details.status}")
             time.sleep(2)
-
-        if job_details.status != JobStatus.COMPLETED:
-            raise RuntimeError(f"job {returned_job.name} failed with status {job_details.status}")
 
     @cli.command()
     @click.argument("app-ids", nargs=-1)
@@ -153,13 +146,16 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             entries = metadata.entry_points(group="rats.aml")
             for e in entries:
                 if e.name == name:
-                    return apps.AppBundle(app_plugin=e.load(), context=apps.StaticContainer(
-                        apps.StaticProvider(
-                            namespace=apps.ProviderNamespaces.GROUPS,
-                            service_id=AppConfigs.APP_CONTEXT,
-                            call=lambda: iter([ctx]),
+                    return apps.AppBundle(
+                        app_plugin=e.load(),
+                        context=apps.StaticContainer(
+                            apps.StaticProvider(
+                                namespace=apps.ProviderNamespaces.GROUPS,
+                                service_id=AppConfigs.APP_CONTEXT,
+                                call=lambda: iter([ctx]),
+                            ),
                         ),
-                    ))
+                    )
 
             raise RuntimeError(f"Invalid app-id specified: {name}")
 
@@ -171,44 +167,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             app = _load_app(app_id, ctx_collection)
             app.execute()
 
-    @apps.fallback_service(AppServices.RUNTIME)
-    def _aml_runtime(self) -> apps.Runtime:
-        """The AML Runtime of the CWD component."""
-        return Runtime(
-            environment_operations=lambda: self._app.get(
-                AppServices.AML_ENVIRONMENT_OPS,
-            ),
-            job_operations=lambda: self._app.get(AppServices.AML_JOB_OPS),
-            config=lambda: self._app.get(AppConfigs.RUNTIME),
-        )
-
     @apps.fallback_service(AppConfigs.RUNTIME)
-    def _runtime_config(self) -> RuntimeConfig:
-        # think of this as a worker node running our executables
-        command = self._app.get(AppConfigs.COMMAND)
-        cmd = " && ".join(
-            [
-                shlex.join(["cd", command.cwd]),
-                shlex.join(command.args),
-            ]
-        )
-
-        return RuntimeConfig(
-            command=cmd,
-            env_variables=command.env,
+    def _runtime_config(self) -> AmlConfig:
+        return AmlConfig(
             compute=self._app.get(AppConfigs.COMPUTE),
             outputs={},
             inputs={},
             workspace=self._app.get(AppConfigs.WORKSPACE),
             environment=self._app.get(AppConfigs.ENVIRONMENT),
-        )
-
-    @apps.fallback_service(AppConfigs.COMMAND)
-    def _command_config(self) -> Command:
-        return Command(
-            cwd="/opt/rats/rats-devtools",
-            args=tuple(["rats-aml"]),
-            env=dict(),
         )
 
     @apps.fallback_service(AppConfigs.COMPUTE)
