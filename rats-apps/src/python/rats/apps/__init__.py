@@ -23,7 +23,7 @@ from ._app_containers import (
     ContainerPlugin,
     PluginMixin,
 )
-from ._composite_container import CompositeContainer
+from ._composite_container import CompositeContainer, EMPTY_CONTAINER
 from ._container import (
     Container,
     DuplicateServiceError,
@@ -47,6 +47,7 @@ __all__ = [
     "AppContainer",
     "AppPlugin",
     "CompositeContainer",
+    "EMPTY_CONTAINER",
     "CompositePlugin",
     "Container",
     "ContainerPlugin",

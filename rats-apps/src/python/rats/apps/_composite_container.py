@@ -19,3 +19,7 @@ class CompositeContainer(Container):
     ) -> Iterator[T_ServiceType]:
         for container in self._containers:
             yield from container.get_namespaced_group(namespace, group_id)
+
+
+EMPTY_CONTAINER = CompositeContainer()
+"""Convenience [rats.apps.Container][] instance with no services."""

@@ -1,4 +1,4 @@
-"""Application context package to help share apps.Container state across machines."""
+"""Application context package to help share [apps.Container][] state across machines."""
 
 from ._collection import (
     Collection,

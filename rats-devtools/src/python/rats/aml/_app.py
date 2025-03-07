@@ -4,7 +4,9 @@ import json
 import logging
 import os
 import shlex
+import time
 from collections.abc import Iterator
+from importlib import metadata
 from pathlib import Path
 from typing import TYPE_CHECKING, cast, final
 
@@ -56,6 +58,100 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         """List all the exes and groups that announce their availability to be submitted to aml."""
         for exe in self._app.get_group(AppConfigs.EXE_GROUP):
             click.echo(exe.name)
+
+    @cli.command()
+    @click.argument("app-ids", nargs=-1)
+    @click.option("--context", default="{}")
+    def _submit_app(self, app_ids: tuple[str, ...], context: str) -> None:
+        """Submit one or more apps to aml."""
+        from azure.ai.ml import Input, Output, command
+        from azure.ai.ml.entities import Environment
+        from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
+
+        if len(app_ids) == 0:
+            logging.warning("No applications were provided to the command")
+
+        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+        ptools.build_component_image(Path.cwd().name)
+
+        cli_command = Command(
+            cwd="/opt/rats/rats-devtools",
+            args=tuple(["rats-aml", "run-app", *app_ids, "--context", context]),
+            env=dict(),
+        )
+        cmd = " && ".join(
+            [
+                shlex.join(["cd", ]),
+                shlex.join(cli_command.args),
+            ]
+        )
+
+        config = RuntimeConfig(
+            command=cmd,
+            env_variables=cli_command.env,
+            compute=self._app.get(AppConfigs.COMPUTE),
+            outputs={},
+            inputs={},
+            workspace=self._app.get(AppConfigs.WORKSPACE),
+            environment=self._app.get(AppConfigs.ENVIRONMENT),
+        )
+        logger.info(f"{config.environment._asdict()}")
+
+        env_ops = self._app.get(AppServices.AML_ENVIRONMENT_OPS)
+        job_ops = self._app.get(AppServices.AML_JOB_OPS)
+
+        env_ops.create_or_update(
+            Environment(**config.environment._asdict())
+        )
+
+        job = command(
+            command=config.command,
+            compute=config.compute,
+            environment=config.environment.full_name,
+            outputs={
+                k: Output(type=v.type, path=v.path, mode=v.mode) for k, v in config.outputs.items()
+            },
+            inputs={
+                k: Input(type=v.type, path=v.path, mode=v.mode) for k, v in config.inputs.items()
+            },
+            environment_variables={**config.env_variables},
+        )
+        returned_job = job_ops.create_or_update(job)
+        logger.info(f"created job: {returned_job.name}")
+        job_ops.stream(str(returned_job.name))
+        logger.info(f"done streaming logs: {returned_job.name}")
+        while True:
+            job_details = job_ops.get(str(returned_job.name))
+            logger.info(f"status: {job_details.status}")
+            if job_details.status in RunHistoryConstants.TERMINAL_STATUSES:
+                break
+
+            logger.warning(f"job {returned_job.name} is not done yet: {job_details.status}")
+            time.sleep(2)
+
+        if job_details.status != JobStatus.COMPLETED:
+            raise RuntimeError(f"job {returned_job.name} failed with status {job_details.status}")
+
+    @cli.command()
+    @click.argument("app-ids", nargs=-1)
+    @click.option("--context", default="{}")
+    def _run_app(self, app_ids: tuple[str, ...], context: str) -> None:
+        """Run one or more apps, typically in an aml job."""
+
+        def _load_app(name: str, ctx: apps.Container) -> apps.AppContainer:
+            entries = metadata.entry_points(group="rats.aml")
+            for e in entries:
+                if e.name == name:
+                    return apps.AppBundle(app_plugin=e.load(), context=ctx)
+
+            raise RuntimeError(f"Invalid app-id specified: {name}")
+
+        if len(app_ids) == 0:
+            logging.warning("No applications were passed to the command")
+
+        for app_id in app_ids:
+            app = _load_app(app_id, apps.EMPTY_CONTAINER)
+            app.execute()
 
     @cli.command()
     @click.option("--exe-id", multiple=True)
@@ -115,8 +211,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @apps.fallback_service(AppConfigs.RUNTIME)
     def _runtime_config(self) -> RuntimeConfig:
         # think of this as a worker node running our executables
-        self._app.get(projects.PluginServices.CONFIGS.PROJECT)
-
         command = self._app.get(AppConfigs.COMMAND)
         cmd = " && ".join(
             [
