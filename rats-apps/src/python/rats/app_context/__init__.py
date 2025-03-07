@@ -5,13 +5,14 @@ from ._collection import (
     dumps,
     loads,
 )
-from ._container import ContextContainer
+from ._container import GroupContainer, ServiceContainer
 from ._context import Context, T_ContextType
 
 __all__ = [
     "Collection",
     "Context",
-    "ContextContainer",
+    "GroupContainer",
+    "ServiceContainer",
     "T_ContextType",
     "dumps",
     "loads",

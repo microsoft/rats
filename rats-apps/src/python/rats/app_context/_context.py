@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Generic, TypeVar, final
 
 import dataclass_wizard
+
 from rats import apps
 
 logger = logging.getLogger(__name__)
@@ -19,8 +20,8 @@ class Context(dataclass_wizard.JSONSerializable, Generic[T_ContextType]):
     An easily serializable class to hold one or more values tied to a service id.
 
     We can use these instances to share simple value types across a cluster of machines, and
-    integrate them with our di containers to make the business logic unaware of any complexity
-    in here.
+    integrate them with [rats.apps.Container][] to make the business logic unaware of any
+    complexity in here.
     """
 
     service_id: apps.ServiceId[T_ContextType]

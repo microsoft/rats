@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Generic, final
 
 import dataclass_wizard
+
 from rats import apps
 
 from ._context import Context, ContextValue, T_ContextType
@@ -27,7 +28,9 @@ class Collection(Generic[T_ContextType]):
 
     @staticmethod
     def merge(*collections: Collection[T_ContextType]) -> Collection[T_ContextType]:
-        return Collection[T_ContextType].make(*[ctx for collection in collections for ctx in collection.items])
+        return Collection[T_ContextType].make(
+            *[ctx for collection in collections for ctx in collection.items]
+        )
 
     @staticmethod
     def empty() -> Collection[T_ContextType]:
