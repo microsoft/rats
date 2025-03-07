@@ -1,20 +1,21 @@
 from __future__ import annotations
 
-import json
 import logging
 import os
 import shlex
+from dataclasses import dataclass
+from uuid import uuid4
+
 import time
 from collections.abc import Iterator
 from importlib import metadata
 from pathlib import Path
-from typing import TYPE_CHECKING, cast, final
+from typing import Any, TYPE_CHECKING, cast, final
 
 import click
 
-from rats import apps, cli, logs
+from rats import app_context, apps, cli, logs
 from rats import projects as projects
-from rats import stdruntime as stdruntime
 
 from ._command import Command
 from ._runtime import AmlEnvironment, AmlWorkspace, Runtime, RuntimeConfig
@@ -27,6 +28,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True)
+class _ExampleContext:
+    uuid: str
+
+
 @apps.autoscope
 class AppConfigs:
     RUNTIME = apps.ServiceId[RuntimeConfig]("runtime.config")
@@ -34,13 +40,12 @@ class AppConfigs:
     COMPUTE = apps.ServiceId[str]("compute.config")
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
-    EXE_GROUP = apps.ServiceId[apps.ServiceId[apps.Executable]]("exe-group.config")
+    APP_CONTEXT = apps.ServiceId[app_context.Context[Any]]("app-context.config")
 
 
 @apps.autoscope
 class AppServices:
     RUNTIME = apps.ServiceId[apps.Runtime]("aml-runtime")
-    HELLO_WORLD = apps.ServiceId[apps.Executable]("hello-world")
 
     AML_CLIENT = apps.ServiceId["MLClient"]("aml-client")
     AML_ENVIRONMENT_OPS = apps.ServiceId["EnvironmentOperations"]("aml-environment-ops")
@@ -56,13 +61,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @cli.command()
     def _list(self) -> None:
         """List all the exes and groups that announce their availability to be submitted to aml."""
-        for exe in self._app.get_group(AppConfigs.EXE_GROUP):
-            click.echo(exe.name)
+        entries = metadata.entry_points(group="rats.aml")
+        for entry in entries:
+            click.echo(entry.name)
 
     @cli.command()
     @click.argument("app-ids", nargs=-1)
-    @click.option("--context", default="{}")
-    def _submit_app(self, app_ids: tuple[str, ...], context: str) -> None:
+    @click.option("--context", default='{"items": []}')
+    def _submit(self, app_ids: tuple[str, ...], context: str) -> None:
         """Submit one or more apps to aml."""
         from azure.ai.ml import Input, Output, command
         from azure.ai.ml.entities import Environment
@@ -74,14 +80,19 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         ptools.build_component_image(Path.cwd().name)
 
+        ctx = app_context.loads(context).add(
+            *self._app.get_group(AppConfigs.APP_CONTEXT),
+        )
+
         cli_command = Command(
             cwd="/opt/rats/rats-devtools",
-            args=tuple(["rats-aml", "run-app", *app_ids, "--context", context]),
+            args=tuple(["rats-aml", "run", *app_ids, "--context", app_context.dumps(ctx)]),
             env=dict(),
         )
+
         cmd = " && ".join(
             [
-                shlex.join(["cd", ]),
+                shlex.join(["cd", cli_command.cwd]),
                 shlex.join(cli_command.args),
             ]
         )
@@ -135,67 +146,30 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @cli.command()
     @click.argument("app-ids", nargs=-1)
     @click.option("--context", default="{}")
-    def _run_app(self, app_ids: tuple[str, ...], context: str) -> None:
+    def _run(self, app_ids: tuple[str, ...], context: str) -> None:
         """Run one or more apps, typically in an aml job."""
 
-        def _load_app(name: str, ctx: apps.Container) -> apps.AppContainer:
+        def _load_app(name: str, ctx: app_context.Collection[Any]) -> apps.AppContainer:
             entries = metadata.entry_points(group="rats.aml")
             for e in entries:
                 if e.name == name:
-                    return apps.AppBundle(app_plugin=e.load(), context=ctx)
+                    return apps.AppBundle(app_plugin=e.load(), context=apps.StaticContainer(
+                        apps.StaticProvider(
+                            namespace=apps.ProviderNamespaces.GROUPS,
+                            service_id=AppConfigs.APP_CONTEXT,
+                            call=lambda: iter([ctx]),
+                        ),
+                    ))
 
             raise RuntimeError(f"Invalid app-id specified: {name}")
 
         if len(app_ids) == 0:
             logging.warning("No applications were passed to the command")
 
+        ctx_collection = app_context.loads(context)
         for app_id in app_ids:
-            app = _load_app(app_id, apps.EMPTY_CONTAINER)
+            app = _load_app(app_id, ctx_collection)
             app.execute()
-
-    @cli.command()
-    @click.option("--exe-id", multiple=True)
-    @click.option("--group-id", multiple=True)
-    def _submit(self, exe_id: tuple[str, ...], group_id: tuple[str, ...]) -> None:
-        """Submit one or more exes and groups to aml."""
-        if len(exe_id) == 0 and len(group_id) == 0:
-            raise ValueError("No executables or groups were passed to the command")
-
-        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
-        ptools.build_component_image(Path.cwd().name)
-
-        exes = [apps.ServiceId[apps.Executable](exe) for exe in exe_id]
-        groups = [apps.ServiceId[apps.Executable](group) for group in group_id]
-
-        runtime = self._app.get(AppServices.RUNTIME)
-
-        # we can join these into one job later if needed
-        if len(exes):
-            runtime.execute(*exes)
-
-        if len(groups):
-            runtime.execute_group(*groups)
-
-    @cli.command()
-    def _worker_node(self) -> None:
-        """
-        Run the worker node process.
-
-        This command is intended to be run in an aml job. It will execute any exes and groups
-        that are passed to it through environment variables.
-        """
-        runtime = self._app.get(stdruntime.PluginServices.STANDARD_RUNTIME)
-        exe_ids = json.loads(
-            os.environ.get("DEVTOOLS_AMLRUNTIME_EXE_IDS", "[]"),
-            object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
-        )
-        group_ids = json.loads(
-            os.environ.get("DEVTOOLS_AMLRUNTIME_EVENT_IDS", "[]"),
-            object_hook=lambda d: apps.ServiceId[apps.Executable](**d),
-        )
-
-        runtime.execute(*exe_ids)
-        runtime.execute_group(*group_ids)
 
     @apps.fallback_service(AppServices.RUNTIME)
     def _aml_runtime(self) -> apps.Runtime:
@@ -261,10 +235,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             version=image.tag,
         )
 
-    @apps.fallback_group(AppConfigs.EXE_GROUP)
-    def _default_exes(self) -> Iterator[apps.ServiceId[apps.Executable]]:
-        yield AppServices.HELLO_WORLD
-
     @apps.fallback_service(AppServices.AML_ENVIRONMENT_OPS)
     def _aml_env_ops(self) -> EnvironmentOperations:
         return self._app.get(AppServices.AML_CLIENT).environments
@@ -290,6 +260,11 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         from azure.identity import DefaultAzureCredential
 
         return cast("TokenCredential", DefaultAzureCredential())
+
+    @apps.fallback_group(AppConfigs.APP_CONTEXT)
+    def _default_context(self) -> Iterator[app_context.Context[_ExampleContext]]:
+        yield app_context.Context.make(apps.ServiceId("foo"), _ExampleContext(str(uuid4())))
+        yield app_context.Context.make(apps.ServiceId("foo"), _ExampleContext(str(uuid4())))
 
     @apps.container()
     def _plugins(self) -> apps.Container:
