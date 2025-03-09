@@ -70,9 +70,8 @@ class AmlConfig(NamedTuple):
 
 @dataclass(frozen=True)
 class AmlJobContext:
-    """
-    Context added by default to all aml jobs with values used by [rats.aml][].
-    """
+    """Context added by default to all aml jobs with values used by [rats.aml][]."""
+
     uuid: str
     runtime: AmlConfig
     compute: str
