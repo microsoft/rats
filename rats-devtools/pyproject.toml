@@ -53,7 +53,7 @@ rats-apps = { path = "../rats-apps", develop = true }
 rats-aml = "rats.aml:main"
 
 [tool.poetry.plugins."rats.aml"]
-hello-world = "rats_e2e.aml:Application"
+"rats_e2e.aml.hello-world" = "rats_e2e.aml:Application"
 
 [tool.poetry.plugins."rats.devtools.plugins"]
 "rats.amlruntime" = "rats.amlruntime:PluginContainer"

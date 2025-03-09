@@ -5,7 +5,6 @@ import os
 import shlex
 import time
 from collections.abc import Iterator
-from dataclasses import dataclass
 from importlib import metadata
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast, final
@@ -17,7 +16,7 @@ from rats import app_context, apps, cli, logs
 from rats import projects as projects
 
 from ._command import Command
-from ._runtime import AmlConfig, AmlEnvironment, AmlWorkspace
+from ._configs import AmlConfig, AmlEnvironment, AmlIO, AmlWorkspace, AmlJobContext
 
 if TYPE_CHECKING:
     from azure.ai.ml import MLClient
@@ -27,18 +26,20 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True)
-class _ExampleContext:
-    uuid: str
-
-
 @apps.autoscope
 class AppConfigs:
     RUNTIME = apps.ServiceId[AmlConfig]("runtime.config")
     COMPUTE = apps.ServiceId[str]("compute.config")
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
-    APP_CONTEXT = apps.ServiceId[app_context.Context[Any]]("app-context.config")
+    JOB_CONTEXT = apps.ServiceId[AmlJobContext]("job-context.config")
+    INPUTS = apps.ServiceId[AmlIO]("inputs.config-group")
+    OUTPUTS = apps.ServiceId[AmlIO]("outputs.config-group")
+
+    APP_CONTEXT = apps.ServiceId[app_context.Context[Any]]("app-context.config-group")
+    """
+    Service group containing context services to attach to the submitted aml job.
+    """
 
 
 @apps.autoscope
@@ -94,14 +95,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             ]
         )
 
-        config = AmlConfig(
-            compute=self._app.get(AppConfigs.COMPUTE),
-            outputs={},
-            inputs={},
-            workspace=self._app.get(AppConfigs.WORKSPACE),
-            environment=self._app.get(AppConfigs.ENVIRONMENT),
-        )
-        logger.info(f"{config.environment._asdict()}")
+        config = self._app.get(AppConfigs.RUNTIME)
 
         env_ops = self._app.get(AppServices.AML_ENVIRONMENT_OPS)
         job_ops = self._app.get(AppServices.AML_JOB_OPS)
@@ -126,6 +120,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         while wait:
             job_details = job_ops.get(str(returned_job.name))
             logger.info(f"job {returned_job.name} status: {job_details.status}")
+            job_ops.stream(str(returned_job.name))
 
             if job_details.status in RunHistoryConstants.TERMINAL_STATUSES:
                 if job_details.status != JobStatus.COMPLETED:
@@ -167,15 +162,58 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             app = _load_app(app_id, ctx_collection)
             app.execute()
 
+    @apps.group(AppConfigs.APP_CONTEXT)
+    def _job_context(self) -> Iterator[app_context.Context[AmlJobContext]]:
+        yield app_context.Context.make(AppConfigs.JOB_CONTEXT, AmlJobContext(
+            uuid=str(uuid4()),
+            runtime=self._app.get(AppConfigs.RUNTIME),
+            compute=self._app.get(AppConfigs.COMPUTE),
+            environment=self._app.get(AppConfigs.ENVIRONMENT),
+            workspace=self._app.get(AppConfigs.WORKSPACE),
+        ))
+
     @apps.fallback_service(AppConfigs.RUNTIME)
     def _runtime_config(self) -> AmlConfig:
+        inputs = {}
+        outputs = {}
+
+        for inp in self._app.get_group(AppConfigs.INPUTS):
+            inputs.update(inp)
+
+        for out in self._app.get_group(AppConfigs.OUTPUTS):
+            outputs.update(out)
+
         return AmlConfig(
             compute=self._app.get(AppConfigs.COMPUTE),
-            outputs={},
-            inputs={},
+            inputs=inputs,
+            outputs=outputs,
             workspace=self._app.get(AppConfigs.WORKSPACE),
             environment=self._app.get(AppConfigs.ENVIRONMENT),
         )
+
+    @apps.fallback_group(AppConfigs.INPUTS)
+    def _inputs(self) -> Iterator[dict[str, AmlIO]]:
+        from azure.ai.ml.constants import AssetTypes
+        from azure.ai.ml.constants import InputOutputModes
+
+        default_dataset = os.environ.get("RATS_AML_DEFAULT_INPUT_NAME")
+        default_storage_account = os.environ.get("RATS_AML_DEFAULT_INPUT_STORAGE_ACCOUNT")
+        default_container = os.environ.get("RATS_AML_DEFAULT_INPUT_CONTAINER")
+
+        if not default_dataset or not default_storage_account or not default_container:
+            yield {}
+
+        yield {
+            default_dataset: AmlIO(
+                type=AssetTypes.URI_FOLDER,
+                path=f"abfss://{default_container}@{default_storage_account}.dfs.core.windows.net/",
+                mode=InputOutputModes.RW_MOUNT,
+            ),
+        }
+
+    @apps.fallback_group(AppConfigs.OUTPUTS)
+    def _outputs(self) -> Iterator[dict[str, AmlIO]]:
+        yield {}
 
     @apps.fallback_service(AppConfigs.COMPUTE)
     def _compute_config(self) -> str:
@@ -226,11 +264,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         from azure.identity import DefaultAzureCredential
 
         return cast("TokenCredential", DefaultAzureCredential())
-
-    @apps.fallback_group(AppConfigs.APP_CONTEXT)
-    def _default_context(self) -> Iterator[app_context.Context[_ExampleContext]]:
-        yield app_context.Context.make(apps.ServiceId("foo"), _ExampleContext(str(uuid4())))
-        yield app_context.Context.make(apps.ServiceId("foo"), _ExampleContext(str(uuid4())))
 
     @apps.container()
     def _plugins(self) -> apps.Container:

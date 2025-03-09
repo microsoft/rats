@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Mapping
+from dataclasses import dataclass
 from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
@@ -61,7 +62,19 @@ class AmlIO(NamedTuple):
 
 class AmlConfig(NamedTuple):
     compute: str
-    outputs: Mapping[str, AmlIO]
     inputs: Mapping[str, AmlIO]
+    outputs: Mapping[str, AmlIO]
     workspace: AmlWorkspace
     environment: AmlEnvironment
+
+
+@dataclass(frozen=True)
+class AmlJobContext:
+    """
+    Context added by default to all aml jobs with values used by [rats.aml][].
+    """
+    uuid: str
+    runtime: AmlConfig
+    compute: str
+    environment: AmlEnvironment
+    workspace: AmlWorkspace
