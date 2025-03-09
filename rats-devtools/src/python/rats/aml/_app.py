@@ -56,7 +56,7 @@ class AppServices:
 @final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     def execute(self) -> None:
-        cli.create_group(click.Group("rats-aml"), self)()
+        cli.create_group(click.Group("rats-aml"), self)(auto_envvar_prefix="RATS_AML")
 
     @cli.command()
     def _list(self) -> None:
@@ -87,8 +87,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         cli_command = Command(
             cwd="/opt/rats/rats-devtools",
-            args=tuple(["rats-aml", "run", *app_ids, "--context", app_context.dumps(ctx)]),
-            env=dict(),
+            args=tuple(["rats-aml", "run", *app_ids]),
+            env=dict(
+                RATS_AML_RUN_CONTEXT=app_context.dumps(ctx),
+            ),
         )
 
         config = self._app.get(AppConfigs.RUNTIME)
@@ -121,7 +123,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             inputs={
                 k: Input(type=v.type, path=v.path, mode=v.mode) for k, v in config.inputs.items()
             },
-            environment_variables={},
+            environment_variables=dict(cli_command.env),
         )
         returned_job = job_ops.create_or_update(job)
         logger.info(f"created job: {returned_job.name}")
