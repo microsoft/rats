@@ -85,6 +85,8 @@ plugins:
           import:
             - "https://docs.python.org/3/objects.inv"
             - "https://click.palletsprojects.com/en/stable/objects.inv"
+            - "https://azuresdkdocs.z19.web.core.windows.net/python/azure-identity/latest/objects.inv"
+            - "https://azuresdkdocs.z19.web.core.windows.net/python/azure-ai-ml/latest/objects.inv"
   - awesome-pages
   - mkdocs-video:
       is_video: true
