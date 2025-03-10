@@ -9,12 +9,18 @@ logger = logging.getLogger(__name__)
 
 
 class AmlWorkspace(NamedTuple):
+    """The aml workspace used for submitted aml jobs."""
     subscription_id: str
+    """Azure subscription containing the desired workspace."""
     resource_group_name: str
+    """Azure resource group containing the desired workspace."""
     workspace_name: str
+    """Azure aml workspace name jobs should be submitted to."""
 
 
 class AmlEnvironment(NamedTuple):
+    """The details of the AML Environment being used by an aml job."""
+
     name: str
     """
     The name of the built environment in AML.
@@ -46,10 +52,11 @@ class AmlEnvironment(NamedTuple):
         """
         The AML environment and version.
 
-        Unlike the [AmlEnvironment.image][] property, this is the full name of the AML environment,
-        and not the container image. In most cases, this is the name of the component, and the
-        container tag, but does not contain the registry information. This is a unique identifier
-        within your AML workspace, but not globally, like container images.
+        Unlike the [AmlEnvironment.image][rats.aml.AmlEnvironment.image] property, this is the
+        full name of the AML environment, and not the container image. In most cases, this is the
+        name of the component, and the container tag, but does not contain the registry
+        information. This is a unique identifier within your AML workspace, but not globally,
+        like container images.
         """
         return f"{self.name}:{self.version}"
 
@@ -60,7 +67,7 @@ class AmlIO(NamedTuple):
     mode: str
 
 
-class AmlConfig(NamedTuple):
+class AmlJobDetails(NamedTuple):
     compute: str
     inputs: Mapping[str, AmlIO]
     outputs: Mapping[str, AmlIO]
@@ -73,7 +80,7 @@ class AmlJobContext:
     """Context added by default to all aml jobs with values used by [rats.aml][]."""
 
     uuid: str
-    runtime: AmlConfig
-    compute: str
-    environment: AmlEnvironment
-    workspace: AmlWorkspace
+    """A unique id tied to a given submission of an aml job."""
+
+    job_details: AmlJobDetails
+    """The compute, workspace, environment, and input/outputs for the aml job."""

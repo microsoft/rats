@@ -16,7 +16,7 @@ from rats import app_context, apps, cli, logs
 from rats import projects as projects
 
 from ._command import Command
-from ._configs import AmlConfig, AmlEnvironment, AmlIO, AmlJobContext, AmlWorkspace
+from ._configs import AmlJobDetails, AmlEnvironment, AmlIO, AmlJobContext, AmlWorkspace
 
 if TYPE_CHECKING:
     from azure.ai.ml import MLClient
@@ -28,17 +28,147 @@ logger = logging.getLogger(__name__)
 
 @apps.autoscope
 class AppConfigs:
-    RUNTIME = apps.ServiceId[AmlConfig]("runtime.config")
+    """
+    Configuration services and groups used by the [rats.aml.Application][].
+
+    Some of these config services and groups alter the construction of the services defined in
+    [AppServices][rats.aml.AppServices].
+    """
+
+    JOB_DETAILS = apps.ServiceId[AmlJobDetails]("job-details.config")
+    """
+    Aml job runtime information containing compute, input/output, workspace, and environment info.
+
+    This service defers to more specific configurations that can be defined individually if you
+    don't require providing the entire configuration.
+
+    ```python
+    class Plugin(apps.Container):
+
+        @apps.service(AppConfigs.JOB_DETAILS)
+        def _runtime(self) -> AmlConfig:
+            AmlConfig(
+                compute="[compute-cluster-name]",
+                inputs={},
+                outputs={},
+                workspace=self._app.get(AppConfigs.WORKSPACE),
+                environment=self._app.get(AppConfigs.ENVIRONMENT),
+            )
+    ```
+    """
+
     COMPUTE = apps.ServiceId[str]("compute.config")
+    """
+    The name of the compute cluster the aml job should be submitted to.
+
+    This can be a full resource id in cases where the cluster is part of a workspace other than the
+    one being submitted to.
+    """
+
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
+    """
+    The workspace environment that should be created and used for the aml job.
+
+    If the environment already exists, it will be updated before submitting the job. We recommend
+    using an environment that leverages a pre-built container image and not relying on aml to
+    upload your code and build a new container on each job submission. This allows you to rely on
+    images that you've ideally built and tested in CI pipelines without modification.
+    """
+
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
+    """The workspace information for submitting aml jobs into."""
+
     COMMAND_KWARGS = apps.ServiceId[Mapping[str, Any]]("command-kwargs.config")
+    """
+    Additional arguments to be added to the [azure.ai.ml.command][] call when submitting a job.
+
+    In cases where the [rats.aml][] module does not provide the desired configuration for a job,
+    this service can be used to add a dictionary of kwargs that will be added to the command
+    construction function without validation.
+
+    ```python
+    class Plugin(apps.Container):
+        @apps.service(AppConfigs.COMMAND_KWARGS)
+        def _ml_command_kwargs(self) -> Mapping[str, Any]:
+            return {
+                "resources": {"instance_count": 1},
+            }
+    ```
+    """
+
     JOB_CONTEXT = apps.ServiceId[AmlJobContext]("job-context.config")
+    """
+    Context element containing basic job information and always shared with the worker node.
+
+    This context object is always added to any registered [rats.aml.AppConfigs.ContextCollection][]
+    in order to provide a handful of details that might be useful for tracking larger pipelines.
+    """
+
     INPUTS = apps.ServiceId[Mapping[str, AmlIO]]("inputs.config-group")
+    """
+    Aml inputs used by the job and mounted on the worker nodes.
+
+    On the worker node, the path to the mounted input directory is exposed as an environment
+    variable prefixed with `RATS_AML_PATH_`, followed by the uppercase `[input-name]`. So an
+    input registered like below, and named `model_input` will have an environment variable
+    `RATS_AML_PATH_MODEL_INPUT` containing the local path to the mounted directory/file.
+
+    ```python
+    class Plugin(apps.Container):
+        @apps.fallback_group(AppConfigs.INPUTS)
+        def _inputs(self) -> Iterator[Mapping[str, AmlIO]]:
+            from azure.ai.ml.constants import AssetTypes, InputOutputModes
+
+            yield {
+                f"[input-name]": AmlIO(
+                    type=AssetTypes.URI_FOLDER,
+                    path=f"abfss://[container]@[storage-account].dfs.core.windows.net/[path]",
+                    mode=InputOutputModes.RW_MOUNT,
+                ),
+            }
+    ```
+    """
     OUTPUTS = apps.ServiceId[Mapping[str, AmlIO]]("outputs.config-group")
-    CONTEXT_COLLECTION = apps.ServiceId[app_context.Collection[Any]](
-        "app-context-collection.config",
-    )
+    """
+    Aml outputs used by the job and mounted on the worker nodes.
+
+    On the worker node, the path to the mounted output directory is exposed as an environment
+    variable prefixed with `RATS_AML_PATH_`, followed by the uppercase `[output-name]`. So an
+    output registered like below, and named `model_output` will have an environment variable
+    `RATS_AML_PATH_MODEL_OUTPUT` containing the local path to the mounted directory/file.
+
+    ```python
+    class Plugin(apps.Container):
+        @apps.fallback_group(AppConfigs.OUTPUTS)
+        def _outputs(self) -> Iterator[Mapping[str, AmlIO]]:
+            from azure.ai.ml.constants import AssetTypes, InputOutputModes
+
+            yield {
+                f"[output-name]": AmlIO(
+                    type=AssetTypes.URI_FOLDER,
+                    path=f"abfss://[container]@[storage-account].dfs.core.windows.net/[path]",
+                    mode=InputOutputModes.RW_MOUNT,
+                ),
+            }
+    ```
+    """
+    CONTEXT_COLLECTION = apps.ServiceId[app_context.Collection[Any]]("app-ctx-collection.config")
+    """
+    Collection containing the entire context being sent to the aml job.
+
+    You should not set this service config directly and instead register to the
+    [rats.aml.AppConfigs.APP_CONTEXT][] service group to add elements to this collection. You can
+    retrieve this service config on the aml job instance to retrieve the registered contexts.
+
+    ```python
+    class Application(apps.AppContainer):
+        def execute(self) -> None:
+            context_collection = self._app.get(aml.AppConfigs.CONTEXT_COLLECTION)
+            print("loaded context:")
+            for item in context_collection.items:
+                print(f"{item.service_id} -> {item.values}")
+    ```
+    """
 
     CLI_ENVS = apps.ServiceId[Mapping[str, str]]("cli-envs.config-group")
     """
@@ -77,15 +207,48 @@ class AppConfigs:
 
 @apps.autoscope
 class AppServices:
+    """
+    Service classes used and exposed by [rats.aml.Application][].
+
+    Many of the constructor arguments for these services are configurable by providing config
+    services and groups defined in [AppConfigs][rats.aml.AppConfigs]. Any service that isn't
+    configurable to the extent needed can typically be overwritten by the user in a plugin
+    container.
+    """
+
     AML_CLIENT = apps.ServiceId["MLClient"]("aml-client")
+    """Instance of the MLClient used to submit this application's aml jobs."""
+
     AML_ENVIRONMENT_OPS = apps.ServiceId["EnvironmentOperations"]("aml-environment-ops")
+    """
+    MLClient's EnvironmentOperations service used to create and update the aml environment.
+
+    This service is not overwritable because it comes directly from the aml client defined by
+    [AppServices.MLClient][rats.aml.AppServices.MLClient].
+    """
+
     AML_JOB_OPS = apps.ServiceId["JobOperations"]("aml-job-ops")
+    """
+    MLClient's JobOperations service used to submit and monitor the aml job for completion.
+
+    This service is not overwritable because it comes directly from the aml client defined by
+    [AppServices.MLClient][rats.aml.AppServices.MLClient].
+    """
     AML_IDENTITY = apps.ServiceId["TokenCredential"]("identity")
+    """
+    Azure authentication credential used by the MLClient.
+
+    By default, we use a DefaultAzureCredential, but a more specific one can be used in more
+    advanced projects.
+    """
 
 
 @final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
+    """CLI application for submitting rats applications to be run on aml."""
+
     def execute(self) -> None:
+        """Runs the `rats-aml` cli that provides methods for listing and submitting aml jobs."""
         cli.create_group(click.Group("rats-aml"), self)(auto_envvar_prefix="RATS_AML")
 
     @cli.command()
@@ -125,7 +288,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             env=env,
         )
 
-        config = self._app.get(AppConfigs.RUNTIME)
+        config = self._app.get(AppConfigs.JOB_DETAILS)
         env_ops = self._app.get(AppServices.AML_ENVIRONMENT_OPS)
         job_ops = self._app.get(AppServices.AML_JOB_OPS)
 
@@ -227,15 +390,12 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             AppConfigs.JOB_CONTEXT,
             AmlJobContext(
                 uuid=str(uuid4()),
-                runtime=self._app.get(AppConfigs.RUNTIME),
-                compute=self._app.get(AppConfigs.COMPUTE),
-                environment=self._app.get(AppConfigs.ENVIRONMENT),
-                workspace=self._app.get(AppConfigs.WORKSPACE),
+                job_details=self._app.get(AppConfigs.JOB_DETAILS),
             ),
         )
 
-    @apps.fallback_service(AppConfigs.RUNTIME)
-    def _runtime_config(self) -> AmlConfig:
+    @apps.fallback_service(AppConfigs.JOB_DETAILS)
+    def _runtime_config(self) -> AmlJobDetails:
         inputs: dict[str, AmlIO] = {}
         outputs: dict[str, AmlIO] = {}
 
@@ -245,7 +405,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         for out in self._app.get_group(AppConfigs.OUTPUTS):
             outputs.update(out)
 
-        return AmlConfig(
+        return AmlJobDetails(
             compute=self._app.get(AppConfigs.COMPUTE),
             inputs=inputs,
             outputs=outputs,
@@ -331,7 +491,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     def _aml_client(self) -> MLClient:
         from azure.ai.ml import MLClient
 
-        workspace = self._app.get(AppConfigs.RUNTIME).workspace
+        workspace = self._app.get(AppConfigs.JOB_DETAILS).workspace
         return MLClient(
             credential=self._app.get(AppServices.AML_IDENTITY),
             subscription_id=workspace.subscription_id,
