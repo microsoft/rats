@@ -56,6 +56,7 @@ extra_css:
 watch:
   - "../../rats-apps/src"
   - "../../rats-devtools/src"
+  - "../../rats-devtools/mkdocs.yaml"
 plugins:
   - search
   - mkdocstrings:
@@ -80,6 +81,7 @@ plugins:
             signature_crossrefs: true
             merge_init_into_class: true
             annotations_path: source
+            members_order: source
           import:
             - "https://docs.python.org/3/objects.inv"
             - "https://click.palletsprojects.com/en/stable/objects.inv"
