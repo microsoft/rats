@@ -33,11 +33,14 @@ class AppConfigs:
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
     JOB_CONTEXT = apps.ServiceId[AmlJobContext]("job-context.config")
-    INPUTS = apps.ServiceId[AmlIO]("inputs.config-group")
-    OUTPUTS = apps.ServiceId[AmlIO]("outputs.config-group")
+    INPUTS = apps.ServiceId[Mapping[str, AmlIO]]("inputs.config-group")
+    OUTPUTS = apps.ServiceId[Mapping[str, AmlIO]]("outputs.config-group")
     CONTEXT_COLLECTION = apps.ServiceId[app_context.Collection[Any]](
         "app-context-collection.config",
     )
+
+    CLI_ENVS = apps.ServiceId[Mapping[str, str]]("cli-envs.config-group")
+    CLI_CWD = apps.ServiceId[str]("cli-cwd.config")
 
     APP_CONTEXT = apps.ServiceId[app_context.Context[Any]]("app-context.config-group")
     """
@@ -85,12 +88,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             *self._app.get_group(AppConfigs.APP_CONTEXT),
         )
 
+        env = {}
+        for env_map in self._app.get_group(AppConfigs.CLI_ENVS):
+            env.update(env_map)
+
         cli_command = Command(
-            cwd="/opt/rats/rats-devtools",
+            cwd=self._app.get(AppConfigs.CLI_CWD),
             args=tuple(["rats-aml", "run", *app_ids]),
-            env=dict(
-                RATS_AML_RUN_CONTEXT=app_context.dumps(ctx),
-            ),
+            env=env,
         )
 
         config = self._app.get(AppConfigs.RUNTIME)
@@ -102,10 +107,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         cmd = " && ".join(
             [
-                # make sure we know the original directory
+                # make sure we know the original directory and any input/output paths
                 "export RATS_AML_ORIGINAL_PWD=${PWD}",
-                *[f"export RATS_AML_DATA_{k.upper()}=${{inputs.{k}}}" for k in input_keys],
-                *[f"export RATS_AML_DATA_{k.upper()}=${{outputs.{k}}}" for k in output_keys],
+                *[f"export RATS_AML_PATH_{k.upper()}=${{inputs.{k}}}" for k in input_keys],
+                *[f"export RATS_AML_PATH_{k.upper()}=${{outputs.{k}}}" for k in output_keys],
                 shlex.join(["cd", cli_command.cwd]),
                 shlex.join(cli_command.args),
             ]
@@ -123,7 +128,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             inputs={
                 k: Input(type=v.type, path=v.path, mode=v.mode) for k, v in config.inputs.items()
             },
-            environment_variables=dict(cli_command.env),
+            environment_variables={
+                **cli_command.env,
+                "RATS_AML_RUN_CONTEXT": app_context.dumps(ctx),
+            },
         )
         returned_job = job_ops.create_or_update(job)
         logger.info(f"created job: {returned_job.name}")
@@ -173,6 +181,16 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             app = _load_app(app_id, ctx_collection)
             app.execute()
 
+    @apps.fallback_service(AppConfigs.CLI_CWD)
+    def _cwd(self) -> str:
+        pconfig = self._app.get(projects.PluginServices.CONFIGS.PROJECT)
+        component_name = Path.cwd().name
+        return f"/opt/{pconfig.name}/{component_name}"
+
+    @apps.fallback_group(AppConfigs.CLI_ENVS)
+    def _default_envs(self) -> Iterator[Mapping[str, str]]:
+        yield {"RATS_AML_DEFAULT_ENV": "example"}
+
     @apps.group(AppConfigs.APP_CONTEXT)
     def _job_context(self) -> Iterator[app_context.Context[AmlJobContext]]:
         yield app_context.Context.make(
@@ -192,10 +210,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         outputs: dict[str, AmlIO] = {}
 
         for inp in self._app.get_group(AppConfigs.INPUTS):
-            inputs.update(inp)  # type: ignore
+            inputs.update(inp)
 
         for out in self._app.get_group(AppConfigs.OUTPUTS):
-            outputs.update(out)  # type: ignore
+            outputs.update(out)
 
         return AmlConfig(
             compute=self._app.get(AppConfigs.COMPUTE),
@@ -205,8 +223,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             environment=self._app.get(AppConfigs.ENVIRONMENT),
         )
 
-    @apps.fallback_group(AppConfigs.INPUTS)  # type: ignore
-    def _inputs(self) -> Iterator[dict[str, AmlIO]]:
+    @apps.fallback_group(AppConfigs.INPUTS)
+    def _inputs(self) -> Iterator[Mapping[str, AmlIO]]:
         from azure.ai.ml.constants import AssetTypes, InputOutputModes
 
         default_dataset = os.environ.get("RATS_AML_DEFAULT_INPUT_NAME")
@@ -224,7 +242,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             ),
         }
 
-    @apps.fallback_group(AppConfigs.OUTPUTS)  # type: ignore
+    @apps.fallback_group(AppConfigs.OUTPUTS)
     def _outputs(self) -> Iterator[Mapping[str, AmlIO]]:
         from azure.ai.ml.constants import AssetTypes, InputOutputModes
 
