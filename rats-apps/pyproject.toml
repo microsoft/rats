@@ -17,6 +17,7 @@ license = "MIT"
 python = "^3.10"
 typing_extensions = "*"
 click = "*"
+dataclass-wizard = "*"
 colorlog = "*"
 
 [tool.poetry.group.dev.dependencies]

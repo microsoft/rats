@@ -23,7 +23,7 @@ from ._app_containers import (
     ContainerPlugin,
     PluginMixin,
 )
-from ._composite_container import CompositeContainer
+from ._composite_container import EMPTY_CONTAINER, CompositeContainer
 from ._container import (
     Container,
     DuplicateServiceError,
@@ -42,6 +42,7 @@ from ._scoping import autoscope
 from ._static_container import StaticContainer, StaticProvider, static_group, static_service
 
 __all__ = [
+    "EMPTY_CONTAINER",
     "App",
     "AppBundle",
     "AppContainer",

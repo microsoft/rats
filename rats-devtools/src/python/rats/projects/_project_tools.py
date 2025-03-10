@@ -46,10 +46,7 @@ class ProjectTools:
             raise RuntimeError(f"Containerfile not found in component {name}")
 
         config = self._config()
-        image = ContainerImage(
-            name=f"{config.image_registry}/{name}",
-            tag=config.image_tag or self.image_context_hash(),
-        )
+        image = self.container_image(name)
 
         print(f"building docker image: {image.full}")
         component_tools.exe(
@@ -69,6 +66,13 @@ class ProjectTools:
 
         if config.image_push_on_build:
             component_tools.exe("docker", "push", image.full)
+
+    def container_image(self, name: str) -> ContainerImage:
+        config = self._config()
+        return ContainerImage(
+            name=f"{config.image_registry}/{name}",
+            tag=config.image_tag or self.image_context_hash(),
+        )
 
     @cache  # noqa: B019
     def image_context_hash(self) -> str:
