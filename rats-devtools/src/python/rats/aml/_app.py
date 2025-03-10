@@ -41,11 +41,37 @@ class AppConfigs:
     )
 
     CLI_ENVS = apps.ServiceId[Mapping[str, str]]("cli-envs.config-group")
+    """
+    Dictionaries to merge and attach as environment variables to the submitted aml job.
+
+    The special environment variables like `RATS_AML_RUN_CONTEXT` are not affected by the
+    definition of these service groups.
+
+    ```python
+    class Plugin(apps.Container):
+
+        @apps.service_group(AppConfigs.CLI_ENVS)
+        def _envs(self) -> Iterator[Mapping[str, str]]:
+            yield {"MY_JOB_ENV": "some-useful-information"}
+    ```
+    """
+
     CLI_CWD = apps.ServiceId[str]("cli-cwd.config")
+    """
+    The directory within the aml job container image from where to run the `rats-aml run` command.
+
+    This defaults to the directory of the component `rats-aml` is being run from, assuming the
+    container has been built with this component at `/opt/<project>/<component>`, as is done in
+    the `Containerfile`'s in this repository. Define this config service if this convention doesn't
+    match your project's.
+    """
 
     APP_CONTEXT = apps.ServiceId[app_context.Context[Any]]("app-context.config-group")
     """
     Service group containing context services to attach to the submitted aml job.
+
+    By default, [rats.aml.AppConfigs.JOB_CONTEXT][] is attached and provides some basic information
+    about the submitted job along with a unique id that can be used for tracking runs.
     """
 
 
