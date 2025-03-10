@@ -32,6 +32,7 @@ class AppConfigs:
     COMPUTE = apps.ServiceId[str]("compute.config")
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
+    COMMAND_KWARGS = apps.ServiceId[Mapping[str, Any]]("command-kwargs.config")
     JOB_CONTEXT = apps.ServiceId[AmlJobContext]("job-context.config")
     INPUTS = apps.ServiceId[Mapping[str, AmlIO]]("inputs.config-group")
     OUTPUTS = apps.ServiceId[Mapping[str, AmlIO]]("outputs.config-group")
@@ -118,6 +119,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         env_ops.create_or_update(Environment(**config.environment._asdict()))
 
+        extra_aml_command_args = self._app.get(AppConfigs.COMMAND_KWARGS)
+
         job = command(
             command=cmd,
             compute=config.compute,
@@ -132,6 +135,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
                 **cli_command.env,
                 "RATS_AML_RUN_CONTEXT": app_context.dumps(ctx),
             },
+            **extra_aml_command_args,
         )
         returned_job = job_ops.create_or_update(job)
         logger.info(f"created job: {returned_job.name}")
@@ -222,6 +226,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             workspace=self._app.get(AppConfigs.WORKSPACE),
             environment=self._app.get(AppConfigs.ENVIRONMENT),
         )
+
+    @apps.fallback_service(AppConfigs.COMMAND_KWARGS)
+    def _aml_cmd_kwargs(self) -> Mapping[str, Any]:
+        return {}
 
     @apps.fallback_group(AppConfigs.INPUTS)
     def _inputs(self) -> Iterator[Mapping[str, AmlIO]]:
