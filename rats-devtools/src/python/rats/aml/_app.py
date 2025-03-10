@@ -16,7 +16,7 @@ from rats import app_context, apps, cli, logs
 from rats import projects as projects
 
 from ._command import Command
-from ._configs import AmlJobDetails, AmlEnvironment, AmlIO, AmlJobContext, AmlWorkspace
+from ._configs import AmlEnvironment, AmlIO, AmlJobContext, AmlJobDetails, AmlWorkspace
 
 if TYPE_CHECKING:
     from azure.ai.ml import MLClient

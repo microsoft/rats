@@ -46,7 +46,7 @@ class ServiceContainer(apps.Container, Generic[T_ContextType]):
             containers.append(
                 apps.StaticContainer(
                     apps.StaticProvider[T_ContextType](
-                        namespace=self._namespace,
+                        namespace=apps.ProviderNamespaces.SERVICES,
                         service_id=service_id,
                         call=partial(_provider, service_id),
                     ),
@@ -82,7 +82,7 @@ class GroupContainer(apps.Container, Generic[T_ContextType]):
             containers.append(
                 apps.StaticContainer(
                     apps.StaticProvider[T_ContextType](
-                        namespace=self._namespace,
+                        namespace=apps.ProviderNamespaces.GROUPS,
                         service_id=service_id,
                         provider=partial(_group_provider, service_id),  # type: ignore
                     ),

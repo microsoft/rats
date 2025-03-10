@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class AmlWorkspace(NamedTuple):
     """The aml workspace used for submitted aml jobs."""
+
     subscription_id: str
     """Azure subscription containing the desired workspace."""
     resource_group_name: str
