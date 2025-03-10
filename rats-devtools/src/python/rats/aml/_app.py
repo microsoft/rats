@@ -217,26 +217,26 @@ class AppServices:
     """
 
     AML_CLIENT = apps.ServiceId["MLClient"]("aml-client")
-    """Instance of the MLClient used to submit this application's aml jobs."""
+    """Instance of the [azure.ai.ml.MLClient][] used to submit this application's aml jobs."""
 
     AML_ENVIRONMENT_OPS = apps.ServiceId["EnvironmentOperations"]("aml-environment-ops")
     """
-    MLClient's EnvironmentOperations service used to create and update the aml environment.
+    [azure.ai.ml.operations.EnvironmentOperations][] used to create and update the aml environment.
 
     This service is not overwritable because it comes directly from the aml client defined by
-    [AppServices.MLClient][rats.aml.AppServices.MLClient].
+    [AppServices.AML_CLIENT][rats.aml.AppServices.AML_CLIENT].
     """
 
     AML_JOB_OPS = apps.ServiceId["JobOperations"]("aml-job-ops")
     """
-    MLClient's JobOperations service used to submit and monitor the aml job for completion.
+    [azure.ai.ml.operations.JobOperations][] used to submit and monitor the aml job for completion.
 
     This service is not overwritable because it comes directly from the aml client defined by
-    [AppServices.MLClient][rats.aml.AppServices.MLClient].
+    [AppServices.AML_CLIENT][rats.aml.AppServices.AML_CLIENT].
     """
     AML_IDENTITY = apps.ServiceId["TokenCredential"]("identity")
     """
-    Azure authentication credential used by the MLClient.
+    [azure.core.TokenCredential][] credential used by the MLClient.
 
     By default, we use a DefaultAzureCredential, but a more specific one can be used in more
     advanced projects.
