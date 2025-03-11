@@ -30,10 +30,7 @@ class ComponentTools:
         self._path = path
 
     def component_name(self) -> str:
-        if self.is_poetry_detected():
-            return self._load_pyproject()["tool"]["poetry"]["name"]
-        else:
-            return self._load_pyproject()["project"]["name"]
+        return self._load_pyproject()["project"]["name"]
 
     def symlink(self, src: Path, dst: Path) -> None:
         """

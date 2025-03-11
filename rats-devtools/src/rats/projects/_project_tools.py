@@ -133,7 +133,7 @@ class ProjectTools:
         root = self.repo_root()
         if (root / "pyproject.toml").exists():
             # this is a single component project and the project name is the component name
-            return toml.loads((root / "pyproject.toml").read_text())["tool"]["poetry"]["name"]
+            return toml.loads((root / "pyproject.toml").read_text())["project"]["name"]
 
         # this is a monorepo so i'm not quite sure what to use to detect the project name
         return self.repo_root().name
@@ -153,7 +153,7 @@ class ProjectTools:
                 logger.info(f"detected unmanaged component: {p.name}")
                 raise RuntimeError("detected single component repo but not managed by rats")
 
-            return (ComponentId(component_info["tool"]["poetry"]["name"]),)
+            return (ComponentId(component_info["project"]["name"]),)
 
         # limited to 1 level of nesting for now (i think)
         for p in self.repo_root().iterdir():
