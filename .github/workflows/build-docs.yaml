@@ -27,8 +27,8 @@ jobs:
         run: |
           cd rats-devtools
           poetry version "$PACKAGE_VERSION"
-          rats-devtools.pipx ci install
-          rats-devtools.pipx docs mkdocs-build
+          rats-ci install
+          rats-docs mkdocs-build
       - name: "upload-gh-pages"
         uses: actions/upload-pages-artifact@v3
         with:
