@@ -10,7 +10,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="rats-devtools" />
     <orderEntry type="module" module-name="rats-apps" />
-    <orderEntry type="module" module-name="rats-examples-sklearn" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="requirementsPath" value="" />
