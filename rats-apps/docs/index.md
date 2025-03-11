@@ -1,5 +1,5 @@
 ---
-title: Introduction
+title: introduction
 ---
 
 The `rats-apps` package helps create applications; a small set of modules that eliminate the most

@@ -12,15 +12,6 @@
         {
             "path": "rats-devtools"
         },
-        {
-            "path": "rats-pipelines"
-        },
-        {
-            "path": "rats-processors"
-        },
-        {
-            "path": "rats-examples-sklearn"
-        },
     ],
     "settings": {
         "files.exclude": {
@@ -28,12 +19,7 @@
             "rats": true,
             "rats-apps": true,
             "rats-devtools": true,
-            "rats-pipelines": true,
-            "rats-processors": true,
-            "rats-examples-sklearn": true,
             // tool-generated dirs/files
-            ".tox": true,
-            ".tox.docker": true,
             ".mypy_cache": true,
             ".pytest_cache": true,
             ".coverage": true,
@@ -41,6 +27,7 @@
             "**/build": true,
             // other editor/ide settings
             "**/.idea": true,
+            "**/.tmp": true,
             "**/__pycache__": true,
             "**/.venv": true
         },

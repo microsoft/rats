@@ -1,3 +1,6 @@
+---
+title: home
+---
 # :rat: Research Analysis Tools (rats)
 
 [![Main](https://github.com/microsoft/rats/actions/workflows/main.yaml/badge.svg)](https://github.com/microsoft/rats/actions/workflows/main.yaml)

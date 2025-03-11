@@ -1,24 +1,33 @@
-[tool.poetry]
+[project]
 name = "rats-apps"
 description = "research analysis tools for building applications"
-version = "0.6.0"
+version = "0.7.0"
 readme = "README.md"
-authors = []
-packages = [
-    { include = "rats", from = "src/python" },
-    { include = "rats_e2e", from = "src/python" },
+requires-python = ">=3.10,<4.0"
+authors = [
+    {name = "Elon Portugaly", email = "elonp@microsoft.com"},
+    {name = "Javier Zazo", email = "javierzazo@microsoft.com"},
+    {name = "Lorenzo Pisani", email = "lopisani@microsoft.com"},
 ]
-repository = "https://github.com/microsoft/rats/"
-documentation = "https://microsoft.github.io/rats/"
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
+dependencies = [
+    "typing-extensions",
+    "click",
+    "dataclass-wizard",
+    "colorlog",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-typing_extensions = "*"
-click = "*"
-dataclass-wizard = "*"
-colorlog = "*"
+[project.urls]
+repository = "https://github.com/microsoft/rats"
+documentation = "https://microsoft.github.io/rats"
+
+[tool.poetry]
+packages = [
+    { include = "rats", from = "src" },
+    { include = "rats_e2e", from = "src" },
+]
+requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
@@ -38,8 +47,8 @@ enabled = true
 
 [tool.pyright]
 pythonVersion = "3.10"
-include = ["src/python", "test/python"]
-exclude = ["**/__pycache__"]
+include = ["src", "test"]
+exclude = ["**/__pycache__", "src/rats_resources", "src/rats_test_resources"]
 
 strictListInference = true
 strictDictionaryInference = true
@@ -92,7 +101,15 @@ reportIncompatibleMethodOverride = true
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"
-include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
+include = [
+    "src/**/*.py",
+    "test/**/*.py",
+    "pyproject.toml",
+]
+exclude = [
+    "src/rats_resources/**/*.py",
+    "test/rats_test_resources/**/*.py",
+]
 line-length = 99
 indent-width = 4
 target-version = "py310"
@@ -166,12 +183,12 @@ output = ".tmp/report.coverage.xml"
 
 [tool.pytest.ini_options]
 cache_dir = ".tmp/.pytest_cache"
-testpaths = ["test/python"]
+testpaths = ["test"]
 # Root namespace package folder here ensures coverage will include files with 0% coverage
 addopts = """
-    --cov=src/python/rats
-    --cov=src/python/rats_e2e
-    --cov=test/python/rats_test
+    --cov=src/rats
+    --cov=src/rats_e2e
+    --cov=test/rats_test
     --cov-report=term
     --cov-report=xml
     --junit-xml .tmp/report.pytest-junit.xml

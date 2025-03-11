@@ -35,7 +35,7 @@
 **/outputs
 
 # rats-devtools generates these files for us
-bin/*.pipx
+bin/rats-*
 
 # Aider tracks conversation history in-repo, so ignoring these files
 .aider*

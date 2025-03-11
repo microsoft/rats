@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -eu
+
+declare -a cmds=(
+  "rats-ci"
+  "rats-docs"
+  "rats-ez"
+)
+
+BIN_PATH=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+REPO_PATH=$(realpath "${BIN_PATH}/..")
+DEVTOOLS_PATH="${REPO_PATH}/rats-devtools"
+
+echo "rats-* commands are defined in the devtools component"
+echo "we're going to symlink commands into the repo root bin/ folder so they can be run globally"
+
+echo "Executables: ${BIN_PATH}"
+echo "Repo Path: ${REPO_PATH}"
+echo "Devtools Path: ${DEVTOOLS_PATH}"
+
+echo "running 'poetry install' in devtools to make sure commands are up to date"
+cd $DEVTOOLS_PATH
+poetry install
+cd -
+
+for i in "${cmds[@]}"
+do
+   echo "linking: /bin/$i → /rats-devtools/.venv/bin/$i"
+   ln -sf "$DEVTOOLS_PATH/.venv/bin/$i" "$BIN_PATH/$i"
+done
+
+echo "Installation complete!"
