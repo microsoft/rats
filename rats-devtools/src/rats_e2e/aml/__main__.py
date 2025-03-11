@@ -6,9 +6,8 @@ Run this module with coverage.py: `coverage run --branch -m rats_e2e.runtime`.
 
 import logging
 
-from rats_e2e import aml
-
 from rats import apps
+from rats_e2e import aml
 
 logger = logging.getLogger(__name__)
 

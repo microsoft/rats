@@ -2563,7 +2563,7 @@ name = "rats-apps"
 version = "0.6.0"
 description = "research analysis tools for building applications"
 optional = false
-python-versions = "^3.10"
+python-versions = ">=3.10,<4.0"
 groups = ["main", "local"]
 files = []
 develop = true
@@ -2572,7 +2572,7 @@ develop = true
 click = "*"
 colorlog = "*"
 dataclass-wizard = "*"
-typing_extensions = "*"
+typing-extensions = "*"
 
 [package.source]
 type = "directory"

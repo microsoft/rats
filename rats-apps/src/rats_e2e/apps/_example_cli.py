@@ -2,9 +2,9 @@ from random import randint
 from textwrap import dedent
 
 import click
+
 import rats_e2e.apps.inputs as inputs
 import rats_e2e.apps.minimal as minimal
-
 from rats import apps, cli, logs
 
 

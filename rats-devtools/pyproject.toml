@@ -36,7 +36,7 @@ documentation = "https://microsoft.github.io/rats"
 
 [tool.poetry]
 packages = [
-    { include = "rats", from = "src/python" },
+    { include = "rats", from = "src" },
 ]
 requires-poetry = ">=2.0"
 
@@ -88,8 +88,8 @@ devtools-component = true
 
 [tool.pyright]
 pythonVersion = "3.10"
-include = ["src/python", "test/python"]
-exclude = ["**/__pycache__"]
+include = ["src", "test"]
+exclude = ["**/__pycache__", "test/resources"]
 deprecateTypingAliases = true
 reportPropertyTypeMismatch = true
 reportUnusedImport = true
@@ -136,7 +136,7 @@ reportIncompatibleMethodOverride = false
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"
-include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
+include = ["src/**/*.py", "test/**/*.py", "pyproject.toml"]
 fix = true
 show-fixes = true
 output-format = "full"
@@ -204,7 +204,7 @@ docstring-code-format = true
 branch = true
 data_file = ".tmp/.coverage"
 # Root namespace package folder here ensures coverage will include files with 0% coverage
-source = ["src/python/rats"]
+source = ["src/rats"]
 relative_files = true
 
 [tool.coverage.report]
@@ -215,7 +215,7 @@ output = ".tmp/reports/coverage.xml"
 
 [tool.pytest.ini_options]
 cache_dir = ".tmp/.pytest_cache"
-testpaths = ["test/python"]
+testpaths = ["test"]
 addopts = """
     --cov --cov-report=term
     --cov-report=xml

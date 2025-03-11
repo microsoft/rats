@@ -24,8 +24,8 @@ documentation = "https://microsoft.github.io/rats"
 
 [tool.poetry]
 packages = [
-    { include = "rats", from = "src/python" },
-    { include = "rats_e2e", from = "src/python" },
+    { include = "rats", from = "src" },
+    { include = "rats_e2e", from = "src" },
 ]
 requires-poetry = ">=2.0"
 
@@ -47,7 +47,7 @@ enabled = true
 
 [tool.pyright]
 pythonVersion = "3.10"
-include = ["src/python", "test/python"]
+include = ["src", "test"]
 exclude = ["**/__pycache__"]
 
 strictListInference = true
@@ -101,7 +101,7 @@ reportIncompatibleMethodOverride = true
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"
-include = ["src/python/**/*.py", "test/python/**/*.py", "pyproject.toml"]
+include = ["src/**/*.py", "test/**/*.py", "pyproject.toml"]
 line-length = 99
 indent-width = 4
 target-version = "py310"
@@ -175,12 +175,12 @@ output = ".tmp/report.coverage.xml"
 
 [tool.pytest.ini_options]
 cache_dir = ".tmp/.pytest_cache"
-testpaths = ["test/python"]
+testpaths = ["test"]
 # Root namespace package folder here ensures coverage will include files with 0% coverage
 addopts = """
-    --cov=src/python/rats
-    --cov=src/python/rats_e2e
-    --cov=test/python/rats_test
+    --cov=src/rats
+    --cov=src/rats_e2e
+    --cov=test/rats_test
     --cov-report=term
     --cov-report=xml
     --junit-xml .tmp/report.pytest-junit.xml
