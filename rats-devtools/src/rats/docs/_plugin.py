@@ -1,9 +1,9 @@
 import logging
 from collections.abc import Iterator
+from importlib import resources
 from pathlib import Path
 
 import click
-from importlib import resources
 
 from rats import apps as apps
 from rats import cli as cli
@@ -43,7 +43,9 @@ class PluginContainer(apps.Container, apps.PluginMixin):
         return PluginCommands(
             project_tools=lambda: self._app.get(projects.PluginServices.PROJECT_TOOLS),
             selected_component=lambda: self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS),
-            docs_component=lambda: ptools.get_component(self._app.get(PluginConfigs.DOCS_COMPONENT)),
+            docs_component=lambda: ptools.get_component(
+                self._app.get(PluginConfigs.DOCS_COMPONENT),
+            ),
             root_docs_path=self._app.get(PluginServices.ROOT_DOCS_PATH),
         )
 
