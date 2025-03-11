@@ -10,10 +10,6 @@ inputs:
     description: install the devtools cli command
     required: true
     default: ""
-  devtools-component:
-    description: the component from the repo to treat as the devtools provider
-    required: true
-    default: "rats-devtools"
 outputs:
   package-version:
     description: "a generated version usable for publishing packages and containers"
@@ -28,7 +24,6 @@ runs:
         COMMIT_TIMESTAMP: ${{ github.event.head_commit.timestamp }}
         COMMIT_REF: "${{ github.head_ref || github.ref_name }}"
         RUN_ID: "${{ github.run_id }}"
-        DEVTOOLS_COMPONENT: ${{ inputs.devtools-component }}
       run: |
         # make sure people are able to use packages installed with pipx and into the devtools
         export PATH="${HOME}/.local/bin:$PATH"
@@ -36,7 +31,7 @@ runs:
         export PATH="${PWD}/bin:$PATH"
         echo "${PWD}/bin" >> $GITHUB_PATH
 
-        TOML_VERSION=$(grep -m 1 version ${DEVTOOLS_COMPONENT}/pyproject.toml | tr -s " " | tr -d '"' | tr -d "'" | cut -d" " -f3)
+        TOML_VERSION=$(grep -m 1 version rats-devtools/pyproject.toml | tr -s " " | tr -d '"' | tr -d "'" | cut -d" " -f3)
         echo "timestamp: $COMMIT_TIMESTAMP"
         echo "commit ref: $COMMIT_REF"
         echo "version found in devtools toml: $TOML_VERSION"
@@ -70,7 +65,5 @@ runs:
       if: ${{ inputs.install-devtools }}
       name: "install-devtools"
       shell: bash
-      env:
-        DEVTOOLS_COMPONENT: ${{ inputs.devtools-component }}
       run: |
-        bin/${DEVTOOLS_COMPONENT}.setup
+        bin/rats-devtools.setup

@@ -27,7 +27,6 @@ jobs:
         with:
           install-poetry: true
           install-devtools: true
-          devtools-component: "rats-devtools"
       - name: build-wheel
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"

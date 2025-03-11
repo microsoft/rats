@@ -82,9 +82,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.rats-devtools]
 enabled = true
-# elect a single component in your project to be used for devtools
-# this is usually the only component that has to install rats-devtools
-devtools-component = true
 
 [tool.pyright]
 pythonVersion = "3.10"

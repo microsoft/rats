@@ -37,15 +37,15 @@ class PluginContainer(apps.Container, apps.PluginMixin):
             # or we're not in a component and we should use the devtools component by default
             # i'm not sure this is the best and most expected behavior
             # but it lets us run things like the docs tools from the root of a big repo
-            return ptools.get_component(ptools.devtools_component().name)
+            return ptools.get_component(cwd.name)
 
         name = relative.split("/")[0]  # the component sits at the root of the project, for now
         return ptools.get_component(name)
 
-    @apps.service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
+    @apps.fallback_service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
     def _devtools_component_tools(self) -> ComponentTools:
         project = self._app.get(PluginServices.PROJECT_TOOLS)
-        return project.get_component(project.devtools_component().name)
+        return project.get_component("rats-devtools")
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:

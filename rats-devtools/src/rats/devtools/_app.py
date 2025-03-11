@@ -27,10 +27,7 @@ class Application(apps.AppContainer, apps.PluginMixin, cli.Container):
         print(f"repo root: {tools.repo_root().resolve()}")
         print("detected components:")
         for component in tools.discover_components():
-            if component == tools.devtools_component():
-                print(f"🛠 {component.name}")
-            else:
-                print(f"   {component.name}")
+            print(f"   {component.name}")
 
     @cli.command()
     def project_hash(self) -> None:

@@ -138,19 +138,6 @@ class ProjectTools:
         # this is a monorepo so i'm not quite sure what to use to detect the project name
         return self.repo_root().name
 
-    def devtools_component(self) -> ComponentId:
-        if self._is_single_component_project():
-            tool_info = self._extract_tool_info(self.repo_root() / "pyproject.toml")
-            if tool_info["devtools-component"]:
-                return next(iter(self.discover_components()))
-
-        for c in self.discover_components():
-            tool_info = self._extract_tool_info(self.repo_root() / c.name / "pyproject.toml")
-            if tool_info["devtools-component"]:
-                return c
-
-        raise ComponentNotFoundError("was not able to find a devtools component in the project")
-
     @cache  # noqa: B019
     def discover_components(self) -> tuple[ComponentId, ...]:
         valid_components = []
