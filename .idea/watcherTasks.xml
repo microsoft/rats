@@ -2,13 +2,13 @@
 <project version="4">
   <component name="ProjectTasksOptions">
     <TaskOptions isEnabled="true">
-      <option name="arguments" value="ci fix $FilePathRelativeToProjectRoot$" />
+      <option name="arguments" value="fix" />
       <option name="checkSyntaxErrors" value="true" />
       <option name="description" />
       <option name="exitCodeBehavior" value="NEVER" />
       <option name="fileExtension" value="py" />
       <option name="immediateSync" value="false" />
-      <option name="name" value="rats-devtools ci fix" />
+      <option name="name" value="rats-ci fix" />
       <option name="output" value="$FilePath$" />
       <option name="outputFilters">
         <array>
@@ -20,63 +20,7 @@
         </array>
       </option>
       <option name="outputFromStdout" value="false" />
-      <option name="program" value="$ProjectFileDir$/bin/rats-devtools.pipx" />
-      <option name="runOnExternalChanges" value="false" />
-      <option name="scopeName" value="Current File" />
-      <option name="trackOnlyRoot" value="false" />
-      <option name="workingDir" value="$ProjectFileDir$/$ModuleName$" />
-      <envs>
-        <env name="PATH" value="$HOME$/.local/bin:$PATH$" />
-      </envs>
-    </TaskOptions>
-    <TaskOptions isEnabled="true">
-      <option name="arguments" value="docs sphinx-apidoc" />
-      <option name="checkSyntaxErrors" value="true" />
-      <option name="description" />
-      <option name="exitCodeBehavior" value="NEVER" />
-      <option name="fileExtension" value="py" />
-      <option name="immediateSync" value="false" />
-      <option name="name" value="rats-devtools docs sphinx-apidoc" />
-      <option name="output" value="" />
-      <option name="outputFilters">
-        <array>
-          <FilterInfo>
-            <option name="description" value="" />
-            <option name="name" value="" />
-            <option name="regExp" value="$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$" />
-          </FilterInfo>
-        </array>
-      </option>
-      <option name="outputFromStdout" value="false" />
-      <option name="program" value="$ProjectFileDir$/bin/rats-devtools.pipx" />
-      <option name="runOnExternalChanges" value="false" />
-      <option name="scopeName" value="Current File" />
-      <option name="trackOnlyRoot" value="false" />
-      <option name="workingDir" value="$ProjectFileDir$/$ModuleName$" />
-      <envs>
-        <env name="PATH" value="$HOME$/.local/bin:$PATH$" />
-      </envs>
-    </TaskOptions>
-    <TaskOptions isEnabled="true">
-      <option name="arguments" value="docs sphinx-markdown" />
-      <option name="checkSyntaxErrors" value="true" />
-      <option name="description" />
-      <option name="exitCodeBehavior" value="NEVER" />
-      <option name="fileExtension" value="py" />
-      <option name="immediateSync" value="false" />
-      <option name="name" value="rats-devtools docs sphinx-markdown" />
-      <option name="output" value="" />
-      <option name="outputFilters">
-        <array>
-          <FilterInfo>
-            <option name="description" value="" />
-            <option name="name" value="" />
-            <option name="regExp" value="$FILE_PATH$:$LINE$:$COLUMN$: $MESSAGE$" />
-          </FilterInfo>
-        </array>
-      </option>
-      <option name="outputFromStdout" value="false" />
-      <option name="program" value="$ProjectFileDir$/bin/rats-devtools.pipx" />
+      <option name="program" value="$ProjectFileDir$/bin/rats-ci" />
       <option name="runOnExternalChanges" value="false" />
       <option name="scopeName" value="Current File" />
       <option name="trackOnlyRoot" value="false" />
