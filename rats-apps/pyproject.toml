@@ -1,24 +1,33 @@
-[tool.poetry]
+[project]
 name = "rats-apps"
 description = "research analysis tools for building applications"
 version = "0.6.0"
 readme = "README.md"
-authors = []
+requires-python = ">=3.10,<4.0"
+authors = [
+    {name = "Elon Portugaly", email = "elonp@microsoft.com"},
+    {name = "Javier Zazo", email = "javierzazo@microsoft.com"},
+    {name = "Lorenzo Pisani", email = "lopisani@microsoft.com"},
+]
+keywords = ["pipelines", "machine learning", "research"]
+license = "MIT"
+dependencies = [
+    "typing-extensions",
+    "click",
+    "dataclass-wizard",
+    "colorlog",
+]
+
+[project.urls]
+repository = "https://github.com/microsoft/rats"
+documentation = "https://microsoft.github.io/rats"
+
+[tool.poetry]
 packages = [
     { include = "rats", from = "src/python" },
     { include = "rats_e2e", from = "src/python" },
 ]
-repository = "https://github.com/microsoft/rats/"
-documentation = "https://microsoft.github.io/rats/"
-keywords = ["pipelines", "machine learning", "research"]
-license = "MIT"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-typing_extensions = "*"
-click = "*"
-dataclass-wizard = "*"
-colorlog = "*"
+requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"

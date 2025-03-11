@@ -1,27 +1,27 @@
-[tool.poetry]
-name = "rats"
-description = "Package for the bundled rats components."
+[project]
+name = "rats-apps"
+description = "bundled research analysis tools"
 version = "0.6.0"
 readme = "README.md"
-authors = []
-packages = [{ include = "rats", from = "src/python" }]
-repository = "https://github.com/microsoft/rats/"
-documentation = "https://microsoft.github.io/rats/"
+requires-python = ">=3.10,<4.0"
+authors = [
+    {name = "Elon Portugaly", email = "elonp@microsoft.com"},
+    {name = "Javier Zazo", email = "javierzazo@microsoft.com"},
+    {name = "Lorenzo Pisani", email = "lopisani@microsoft.com"},
+]
 keywords = ["pipelines", "machine learning", "research"]
 license = "MIT"
+dependencies = []
 
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "pep440"
-bump = true
-dirty = false
-# This would allow us to publish from PR builds but Azure Devops artifacts lack support:
-# https://developercommunity.visualstudio.com/t/local-version-segments-for-python-package-feeds/892057
-metadata = false
+[project.urls]
+repository = "https://github.com/microsoft/rats"
+documentation = "https://microsoft.github.io/rats"
 
-[tool.poetry.dependencies]
-python = "^3.10"
+[tool.poetry]
+packages = [
+    { include = "rats", from = "src/python" },
+]
+requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"

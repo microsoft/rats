@@ -1,36 +1,44 @@
-[tool.poetry]
+[project]
 name = "rats-devtools"
 description = "Rats Development Tools"
 version = "0.6.0"
 readme = "README.md"
-authors = []
+requires-python = ">=3.10,<4.0"
+authors = [
+    {name = "Elon Portugaly", email = "elonp@microsoft.com"},
+    {name = "Javier Zazo", email = "javierzazo@microsoft.com"},
+    {name = "Lorenzo Pisani", email = "lopisani@microsoft.com"},
+]
+keywords = ["pipelines", "machine learning", "research"]
+license = "MIT"
+dependencies = [
+    "rats-apps",
+    "click",
+    "toml",
+    "twine",
+    # workflowing
+    "kubernetes",
+    "azure-ai-ml",
+    "azure-identity",
+    # documentation tooling
+    "mkdocs",
+    "mkdocs-awesome-pages-plugin",
+    "mkdocs-material",
+    "mkdocs-video",
+    "mdx-truly-sane-lists",
+    "mkdocstrings",
+    "mkdocstrings-python",
+]
+
+[project.urls]
+repository = "https://github.com/microsoft/rats"
+documentation = "https://microsoft.github.io/rats"
+
+[tool.poetry]
 packages = [
     { include = "rats", from = "src/python" },
 ]
-repository = "https://github.com/microsoft/rats/"
-documentation = "https://microsoft.github.io/rats/"
-keywords = ["pipelines", "machine learning", "research"]
-license = "MIT"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-# app development
-rats-apps = "*"
-click = "*"
-toml = "*"
-twine = "*"
-# workflowing
-kubernetes = "*"
-azure-ai-ml = "*"
-azure-identity = "*"
-# documentation tooling
-mkdocs = "*"
-mkdocs-awesome-pages-plugin = "*"
-mkdocs-material = "*"
-mkdocs-video = "*"
-mdx-truly-sane-lists = "*"
-mkdocstrings = "*"
-mkdocstrings-python = "*"
+requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
