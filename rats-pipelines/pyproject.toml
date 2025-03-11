@@ -20,7 +20,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.rats-devtools]
-enabled = true
+enabled = false
 
 [tool.pyright]
 pythonVersion = "3.10"
