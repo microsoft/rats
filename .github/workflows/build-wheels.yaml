@@ -13,6 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         component:
+          - rats
           - rats-apps
           - rats-devtools
     name: "build-wheels: ${{ matrix.component }}"
