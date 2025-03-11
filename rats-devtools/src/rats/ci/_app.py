@@ -3,7 +3,7 @@ from typing import NamedTuple
 
 import click
 
-from rats import apps as apps
+from rats import apps as apps, logs
 from rats import cli as cli
 from rats import devtools, projects
 
@@ -16,7 +16,7 @@ class CiCommandGroups(NamedTuple):
 
 
 @apps.autoscope
-class PluginConfigs:
+class AppConfigs:
     COMMAND_GROUPS = apps.ServiceId[CiCommandGroups]("command-groups")
     INSTALL = apps.ServiceId[tuple[str, ...]]("install")
     FIX = apps.ServiceId[tuple[str, ...]]("fix")
@@ -25,17 +25,26 @@ class PluginConfigs:
 
 
 @apps.autoscope
-class PluginServices:
+class AppServices:
     MAIN_CLICK = apps.ServiceId[click.Group]("main-click")
-    CONFIGS = PluginConfigs
 
 
-class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
+class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
+    def execute(self) -> None:
+        cli.create_group(
+            click.Group(
+                "rats-ci",
+                help="commands used during ci/cd",
+                chain=True,  # allow us to run more than one ci subcommand at once
+            ),
+            self,
+        ).main()
+
     @cli.command()
     def install(self) -> None:
         """Install the development environment for the component."""
         selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
+        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
 
         for cmd in command_groups.install:
             selected_component.run(*cmd)
@@ -45,7 +54,7 @@ class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
     def fix(self) -> None:
         """Run any configured auto-formatters for the component."""
         selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
+        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
 
         for cmd in command_groups.fix:
             selected_component.run(*cmd)
@@ -55,7 +64,7 @@ class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
     def check(self) -> None:
         """Run any configured linting & typing checks for the component."""
         selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
+        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
 
         for cmd in command_groups.check:
             selected_component.run(*cmd)
@@ -65,7 +74,7 @@ class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
     def test(self) -> None:
         """Run any configured tests for the component."""
         selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(PluginServices.CONFIGS.COMMAND_GROUPS)
+        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
 
         for cmd in command_groups.test:
             selected_component.run(*cmd)
@@ -84,11 +93,11 @@ class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
         yield apps.App(
             lambda: cli.attach(
                 self._app.get(devtools.AppServices.MAIN_CLICK),
-                self._app.get(PluginServices.MAIN_CLICK),
+                self._app.get(AppServices.MAIN_CLICK),
             )
         )
 
-    @apps.service(PluginServices.MAIN_CLICK)
+    @apps.service(AppServices.MAIN_CLICK)
     def _main_click(self) -> click.Group:
         return cli.create_group(
             click.Group(
@@ -99,33 +108,42 @@ class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
             self,
         )
 
-    @apps.fallback_service(PluginServices.CONFIGS.COMMAND_GROUPS)
+    @apps.fallback_service(AppConfigs.COMMAND_GROUPS)
     def _default_commands_config(self) -> CiCommandGroups:
         return CiCommandGroups(
-            install=tuple(self._app.get_group(PluginConfigs.INSTALL)),
-            fix=tuple(self._app.get_group(PluginConfigs.FIX)),
-            check=tuple(self._app.get_group(PluginConfigs.CHECK)),
-            test=tuple(self._app.get_group(PluginConfigs.TEST)),
+            install=tuple(self._app.get_group(AppConfigs.INSTALL)),
+            fix=tuple(self._app.get_group(AppConfigs.FIX)),
+            check=tuple(self._app.get_group(AppConfigs.CHECK)),
+            test=tuple(self._app.get_group(AppConfigs.TEST)),
         )
 
-    @apps.fallback_group(PluginServices.CONFIGS.INSTALL)
+    @apps.fallback_group(AppConfigs.INSTALL)
     def _poetry_install(self) -> Iterator[tuple[str, ...]]:
         yield "poetry", "install"
 
-    @apps.fallback_group(PluginServices.CONFIGS.FIX)
+    @apps.fallback_group(AppConfigs.FIX)
     def _ruff_format(self) -> Iterator[tuple[str, ...]]:
         yield "ruff", "format"
 
-    @apps.fallback_group(PluginServices.CONFIGS.FIX)
+    @apps.fallback_group(AppConfigs.FIX)
     def _ruff_fix(self) -> Iterator[tuple[str, ...]]:
         yield "ruff", "check", "--fix", "--unsafe-fixes"
 
-    @apps.fallback_group(PluginServices.CONFIGS.CHECK)
+    @apps.fallback_group(AppConfigs.CHECK)
     def _default_checks(self) -> Iterator[tuple[str, ...]]:
         yield "ruff", "format", "--check"
         yield "ruff", "check"
         yield ("pyright",)
 
-    @apps.fallback_group(PluginServices.CONFIGS.TEST)
+    @apps.fallback_group(AppConfigs.TEST)
     def _pytest(self) -> Iterator[tuple[str, ...]]:
         yield ("pytest",)
+
+    @apps.container()
+    def _plugins(self) -> apps.Container:
+        return apps.CompositeContainer(projects.PluginContainer(self._app))
+
+
+def main() -> None:
+    apps.run_plugin(logs.ConfigureApplication)
+    apps.run_plugin(Application)
