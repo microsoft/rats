@@ -40,19 +40,3 @@ INFO    -  Building documentation...
 INFO    -  Cleaning site directory
 …
 ```
-
-## build-tutorial-notebooks
-
-Looks for *.py files under the components' docs/_tutorial_notebook_sources folders, and converts
-each one of them into a *.md notebook under the docs/_tutorial_notebooks.
-
-The generated notebooks are not automatically exposed by mkdocs.  A manually created and edited
-docs/tutorial_notebooks/.pages defines the contexts of the component's 'Tutorial Notebooks'
-section.  Note that it can contain links to notebooks generated in other components.  This is
-useful for notebooks that need external libraries, which should be generated under a
-rats-examples-* component.
-
-To enable for a component, edit the components list in
-`rats.devtools._commands.build_tutorial_notebooks`. and add `jupytext`
-and `nbconvert` to the component's `pyproject.toml` in section
-`tool.poetry.group.docs.dependencies`.
