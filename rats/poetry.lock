@@ -2343,7 +2343,7 @@ pyyaml = "*"
 
 [[package]]
 name = "rats-apps"
-version = "0.6.0"
+version = "0.7.0"
 description = "research analysis tools for building applications"
 optional = false
 python-versions = ">=3.10,<4.0"
@@ -2363,7 +2363,7 @@ url = "../rats-apps"
 
 [[package]]
 name = "rats-devtools"
-version = "0.6.0"
+version = "0.7.0"
 description = "Rats Development Tools"
 optional = false
 python-versions = ">=3.10,<4.0"
@@ -2972,4 +2972,4 @@ devtools = ["rats-devtools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "641a02195ad332796aaa9d98fc334fdafc918702bf629e79f9d4d8f20a04a664"
+content-hash = "73b8d9379c39e370007eec4e3c9249c49e4973cf5b7197723e9173d532836642"
