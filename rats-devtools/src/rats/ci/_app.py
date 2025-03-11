@@ -3,9 +3,10 @@ from typing import NamedTuple
 
 import click
 
-from rats import apps as apps, logs
+from rats import apps as apps
 from rats import cli as cli
-from rats import devtools, projects
+from rats import logs as logs
+from rats import projects
 
 
 class CiCommandGroups(NamedTuple):
@@ -87,26 +88,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
 
         project_tools.build_component_image(selected_component.find_path(".").name)
-
-    @apps.group(devtools.AppServices.ON_REGISTER)
-    def _on_register(self) -> Iterator[apps.Executable]:
-        yield apps.App(
-            lambda: cli.attach(
-                self._app.get(devtools.AppServices.MAIN_CLICK),
-                self._app.get(AppServices.MAIN_CLICK),
-            )
-        )
-
-    @apps.service(AppServices.MAIN_CLICK)
-    def _main_click(self) -> click.Group:
-        return cli.create_group(
-            click.Group(
-                "ci",
-                help="commands used during ci/cd",
-                chain=True,  # allow us to run more than one ci subcommand at once
-            ),
-            self,
-        )
 
     @apps.fallback_service(AppConfigs.COMMAND_GROUPS)
     def _default_commands_config(self) -> CiCommandGroups:

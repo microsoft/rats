@@ -1,12 +1,12 @@
 import logging
-from collections.abc import Iterator
 from importlib import resources
 from pathlib import Path
 
 import click
 
-from rats import apps as apps, logs
+from rats import apps as apps
 from rats import cli as cli
+from rats import logs as logs
 from rats import projects
 from rats_resources import docs as docs_resources
 
