@@ -37,6 +37,8 @@ documentation = "https://microsoft.github.io/rats"
 [tool.poetry]
 packages = [
     { include = "rats", from = "src" },
+    { include = "rats_e2e", from = "src" },
+    { include = "rats_resources", from = "src" },
 ]
 requires-poetry = ">=2.0"
 
@@ -86,7 +88,11 @@ enabled = true
 [tool.pyright]
 pythonVersion = "3.10"
 include = ["src", "test"]
-exclude = ["**/__pycache__", "test/resources"]
+exclude = [
+    "**/__pycache__",
+    "src/rats_resources",
+    "test/rats_test_resources",
+]
 deprecateTypingAliases = true
 reportPropertyTypeMismatch = true
 reportUnusedImport = true

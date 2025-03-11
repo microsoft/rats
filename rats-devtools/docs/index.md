@@ -1,4 +1,4 @@
-# rats-devtools
+# introduction
 
 The `rats-devtools` component is used to make convenient maintenance and development tooling
 specifically for this project. The expectation is that the commands in this component are executed

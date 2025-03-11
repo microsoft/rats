@@ -18,7 +18,6 @@ class PluginConfigs:
 @apps.autoscope
 class PluginServices:
     CWD_COMPONENT_TOOLS = apps.ServiceId[ComponentTools]("cwd-component-tools")
-    DEVTOOLS_COMPONENT_TOOLS = apps.ServiceId[ComponentTools]("devtools-component-tools")
     PROJECT_TOOLS = apps.ServiceId[ProjectTools]("project-tools")
 
     CONFIGS = PluginConfigs
@@ -41,11 +40,6 @@ class PluginContainer(apps.Container, apps.PluginMixin):
 
         name = relative.split("/")[0]  # the component sits at the root of the project, for now
         return ptools.get_component(name)
-
-    @apps.fallback_service(PluginServices.DEVTOOLS_COMPONENT_TOOLS)
-    def _devtools_component_tools(self) -> ComponentTools:
-        project = self._app.get(PluginServices.PROJECT_TOOLS)
-        return project.get_component("rats-devtools")
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:

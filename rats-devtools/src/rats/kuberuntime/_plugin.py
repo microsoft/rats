@@ -97,5 +97,5 @@ class PluginContainer(apps.Container, apps.PluginMixin, cli.Container):
 
     @apps.service(PluginServices.K8S_RUNTIME)
     def _k8s_runtime(self) -> apps.Runtime:
-        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+        self._app.get(projects.PluginServices.PROJECT_TOOLS)
         return self._app.get(PluginServices.component_runtime(Path.cwd().name))
