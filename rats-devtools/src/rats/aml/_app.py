@@ -100,8 +100,9 @@ class AppConfigs:
     """
     Context element containing basic job information and always shared with the worker node.
 
-    This context object is always added to any registered [rats.aml.AppConfigs.ContextCollection][]
-    in order to provide a handful of details that might be useful for tracking larger pipelines.
+    This context object is always added to any registered
+    [rats.aml.AppConfigs.CONTEXT_COLLECTION][] in order to provide a handful of details that might
+    be useful for tracking larger pipelines.
     """
 
     INPUTS = apps.ServiceId[Mapping[str, AmlIO]]("inputs.config-group")
@@ -236,7 +237,7 @@ class AppServices:
     """
     AML_IDENTITY = apps.ServiceId["TokenCredential"]("identity")
     """
-    [azure.core.TokenCredential][] credential used by the MLClient.
+    [azure.core.credentials.TokenCredential][] used by the MLClient.
 
     By default, we use a DefaultAzureCredential, but a more specific one can be used in more
     advanced projects.

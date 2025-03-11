@@ -82,9 +82,10 @@ plugins:
             merge_init_into_class: true
             annotations_path: source
             members_order: source
-          import:
+          inventories:
             - "https://docs.python.org/3/objects.inv"
             - "https://click.palletsprojects.com/en/stable/objects.inv"
+            - "https://azuresdkdocs.z19.web.core.windows.net/python/azure-core/latest/objects.inv"
             - "https://azuresdkdocs.z19.web.core.windows.net/python/azure-identity/latest/objects.inv"
             - "https://azuresdkdocs.z19.web.core.windows.net/python/azure-ai-ml/latest/objects.inv"
   - awesome-pages
