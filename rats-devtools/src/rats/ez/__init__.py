@@ -1,9 +1,8 @@
 """Some utilities for developing the devtool cli commands."""
 
-from ._app import Application, AppServices, run
+from ._app import Application, main
 
 __all__ = [
-    "AppServices",
     "Application",
-    "run",
+    "main",
 ]
