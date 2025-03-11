@@ -48,7 +48,7 @@ enabled = true
 [tool.pyright]
 pythonVersion = "3.10"
 include = ["src", "test"]
-exclude = ["**/__pycache__"]
+exclude = ["**/__pycache__", "src/rats_resources", "src/rats_test_resources"]
 
 strictListInference = true
 strictDictionaryInference = true
@@ -101,7 +101,15 @@ reportIncompatibleMethodOverride = true
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"
-include = ["src/**/*.py", "test/**/*.py", "pyproject.toml"]
+include = [
+    "src/**/*.py",
+    "test/**/*.py",
+    "pyproject.toml",
+]
+exclude = [
+    "src/rats_resources/**/*.py",
+    "test/rats_test_resources/**/*.py",
+]
 line-length = 99
 indent-width = 4
 target-version = "py310"
