@@ -1,6 +1,6 @@
 """We try to submit executables as AML jobs."""
 
-from ._plugin import PluginContainer, PluginServices
+from ._plugin import PluginServices
 from ._runtime import AmlEnvironment, AmlIO, AmlRuntime, AmlWorkspace, RuntimeConfig
 
 __all__ = [
@@ -8,7 +8,6 @@ __all__ = [
     "AmlIO",
     "AmlRuntime",
     "AmlWorkspace",
-    "PluginContainer",
     "PluginServices",
     "RuntimeConfig",
 ]
