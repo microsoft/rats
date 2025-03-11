@@ -1,8 +1,10 @@
 """Create the best documentation solution for your project."""
 
-from ._plugin import PluginContainer, PluginServices
+from ._app import Application, AppServices, AppConfigs, main
 
 __all__ = [
-    "PluginContainer",
-    "PluginServices",
+    "Application",
+    "AppServices",
+    "AppConfigs",
+    "main",
 ]
