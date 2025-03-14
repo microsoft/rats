@@ -64,14 +64,27 @@ jobs:
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_REF: "${{ github.head_ref || github.ref_name }}"
           TARGET: ${{ github.sha }}
         run: |
-          gh release create "v${PACKAGE_VERSION}" \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$TARGET" \
-            --title "$PACKAGE_VERSION" \
-            --draft \
-            --generate-notes
+          if  [[ $COMMIT_REF == "v${PACKAGE_VERSION}" ]] ;
+          then
+            echo "detected tag build: $COMMIT_REF"
+            gh release create "v${PACKAGE_VERSION}" \
+              --target "$TARGET" \
+              --title "$PACKAGE_VERSION" \
+              --draft \
+              --generate-notes
+          else
+            echo "detected main branch build"
+            echo "will generate a pre-release"
+            gh release create "v${PACKAGE_VERSION}" \
+              --target "$TARGET" \
+              --title "$PACKAGE_VERSION" \
+              --draft \
+              --prerelease \
+              --generate-notes
+          fi
   publish-docs:
     name: "deploy-docs"
     runs-on: "ubuntu-latest"
