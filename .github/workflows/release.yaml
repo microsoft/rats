@@ -50,6 +50,11 @@ jobs:
     runs-on: "ubuntu-latest"
     if: "${{ inputs.publish-to-github }}"
     steps:
+      - uses: ./.github/actions/setup-environment
+        id: runner-context
+        with:
+          install-poetry: false
+          install-devtools: false
       - name: "create-release"
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
