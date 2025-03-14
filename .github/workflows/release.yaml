@@ -56,7 +56,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TARGET: ${{ github.sha }}
         run: |
-          gh release create "$PACKAGE_VERSION" \
+          gh release create "v${PACKAGE_VERSION}" \
             --repo "$GITHUB_REPOSITORY" \
             --target "$TARGET" \
             --title "$PACKAGE_VERSION" \
