@@ -54,9 +54,11 @@ jobs:
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET: ${{ github.sha }}
         run: |
           gh release create "$tag" \
             --repo "$GITHUB_REPOSITORY" \
+            --target "$TARGET" \
             --title "$PACKAGE_VERSION" \
             --draft \
             --generate-notes
