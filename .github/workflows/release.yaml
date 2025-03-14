@@ -14,6 +14,10 @@ on:
         description: 'whether to publish wheels to the configured feed'
         required: true
         type: boolean
+      publish-to-github:
+        description: 'whether to create a github release'
+        required: true
+        type: boolean
 jobs:
   publish-wheels:
     name: "publish-wheels"
@@ -41,6 +45,21 @@ jobs:
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
+  publish-to-github:
+    name: "publish-to-github"
+    runs-on: "ubuntu-latest"
+    if: "${{ inputs.publish-to-github }}"
+    steps:
+      - name: "create-release"
+        env:
+          PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$tag" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$PACKAGE_VERSION" \
+            --draft \
+            --generate-notes
   publish-docs:
     name: "deploy-docs"
     runs-on: "ubuntu-latest"
