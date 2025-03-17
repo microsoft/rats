@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [ main ]
 permissions:
-  contents: write
+  contents: read
   actions: read
   id-token: write
   pages: write
