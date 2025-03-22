@@ -539,7 +539,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
 
 def submit(
-    *app_ids: tuple[str, ...],
+    *app_ids: str,
     context: app_context.Collection[Any] = app_context.EMPTY_COLLECTION,
     wait: bool = False,
 ) -> None:
