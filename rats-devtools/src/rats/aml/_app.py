@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import shlex
+import sys
 import time
 from collections.abc import Iterator, Mapping
 from importlib import metadata
@@ -245,12 +246,31 @@ class AppServices:
 
 
 @final
+class _CliContext(apps.Container):
+    SERVICE_ID = apps.ServiceId[tuple[str, ...]]("rats.aml:argv")
+
+    def __init__(self, argv: tuple[str, ...]) -> None:
+        self._argv = argv
+
+    @apps.service(SERVICE_ID)
+    def _provider(self) -> tuple[str, ...]:
+        return self._argv
+
+
+@final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     """CLI application for submitting rats applications to be run on aml."""
 
     def execute(self) -> None:
         """Runs the `rats-aml` cli that provides methods for listing and submitting aml jobs."""
-        cli.create_group(click.Group("rats-aml"), self)(auto_envvar_prefix="RATS_AML")
+        argv = self._app.get(_CliContext.SERVICE_ID)
+        cli.create_group(click.Group("rats-aml"), self).main(
+            args=argv[1:],
+            prog_name=Path(argv[0]).name,
+            auto_envvar_prefix="RATS_AML",
+            # don't end the process
+            standalone_mode=False,
+        )
 
     @cli.command()
     def _list(self) -> None:
@@ -272,8 +292,9 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         if len(app_ids) == 0:
             logging.warning("No applications were provided to the command")
 
-        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
-        ptools.build_component_image(Path.cwd().name)
+        for a in app_ids:
+            # make sure all these app ids are valid
+            self._find_app(a)
 
         ctx = app_context.loads(context).add(
             *self._app.get_group(AppConfigs.APP_CONTEXT),
@@ -351,21 +372,16 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         """Run one or more apps, typically in an aml job."""
 
         def _load_app(name: str, ctx: app_context.Collection[Any]) -> apps.AppContainer:
-            entries = metadata.entry_points(group="rats.aml")
-            for e in entries:
-                if e.name == name:
-                    return apps.AppBundle(
-                        app_plugin=e.load(),
-                        context=apps.StaticContainer(
-                            apps.StaticProvider(
-                                namespace=apps.ProviderNamespaces.SERVICES,
-                                service_id=AppConfigs.CONTEXT_COLLECTION,
-                                call=lambda: ctx,
-                            ),
-                        ),
-                    )
-
-            raise RuntimeError(f"Invalid app-id specified: {name}")
+            return apps.AppBundle(
+                app_plugin=self._find_app(name),
+                context=apps.StaticContainer(
+                    apps.StaticProvider(
+                        namespace=apps.ProviderNamespaces.SERVICES,
+                        service_id=AppConfigs.CONTEXT_COLLECTION,
+                        call=lambda: ctx,
+                    ),
+                ),
+            )
 
         if len(app_ids) == 0:
             logging.warning("No applications were passed to the command")
@@ -374,6 +390,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         for app_id in app_ids:
             app = _load_app(app_id, ctx_collection)
             app.execute()
+
+    def _find_app(self, name: str) -> type[apps.AppContainer]:
+        entries = metadata.entry_points(group="rats.aml.apps")
+        for e in entries:
+            if e.name == name:
+                return e.load()
+
+        raise RuntimeError(f"AML app-id not found: {name}")
 
     @apps.fallback_service(AppConfigs.CLI_CWD)
     def _cwd(self) -> str:
@@ -506,12 +530,45 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         return cast("TokenCredential", DefaultAzureCredential())
 
+    @apps.fallback_service(_CliContext.SERVICE_ID)
+    def _default_args(self) -> tuple[str, ...]:
+        return tuple(sys.argv)
+
     @apps.container()
     def _plugins(self) -> apps.Container:
         return apps.CompositeContainer(
             apps.PythonEntryPointContainer(self._app, "rats.aml"),
             projects.PluginContainer(self._app),
         )
+
+
+def submit(
+    *app_ids: str,
+    context: app_context.Collection[Any] = app_context.EMPTY_COLLECTION,
+    wait: bool = False,
+) -> None:
+    """
+    Submit an AML job programmatically instead of calling `rats-aml submit`.
+
+    Args:
+        app_ids: list of the application to run on the remote aml job as found in pyproject.toml
+        context: context to send to the remote aml job
+        wait: wait for the successful completion of the submitted aml job.
+    """
+    w = ["--wait"] if wait else []
+    cmd = (
+        "rats-aml",
+        "submit",
+        *app_ids,
+        "--context",
+        app_context.dumps(context),
+        *w,
+    )
+    submitter = apps.AppBundle(
+        app_plugin=Application,
+        context=_CliContext(cmd),
+    )
+    submitter.execute()
 
 
 def main() -> None:
