@@ -29,6 +29,30 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         """Show the project manifest."""
         print(self._tools().image_context_manifest())
 
+    @cli.command()
+    @click.argument("cmd")
+    @click.argument("args", nargs=-1)
+    @click.option(
+        "--component",
+        "-c",
+        multiple=True,
+        help="limit the commands to a set of provided component names",
+    )
+    def run(self, cmd: str, args: tuple[str, ...], component: tuple[str, ...]) -> None:
+        """Run a command in all of the components in your project."""
+        available = self._tools().discover_components()
+        selected = [projects.ComponentId(name) for name in component] if component else available
+        for s in selected:
+            if s not in available:
+                raise ValueError(f"invalid component specified: {s.name}")
+
+        names = [s.name for s in selected]
+
+        print(f"running command: ({cmd} {' '.join(args)}) on {names}")
+        for c in selected:
+            component_tools = self._tools().get_component(c.name)
+            component_tools.run(cmd, *args)
+
     def _tools(self) -> projects.ProjectTools:
         return self._app.get(projects.PluginServices.PROJECT_TOOLS)
 
