@@ -74,7 +74,7 @@ class Collection(Generic[T_ContextType]):
         )
 
 
-EMPTY_COLLECTION = Collection.empty()
+EMPTY_COLLECTION = Collection[Any].empty()
 """Empty collection constant usable as default method values."""
 
 
