@@ -292,6 +292,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         if len(app_ids) == 0:
             logging.warning("No applications were provided to the command")
 
+        for a in app_ids:
+            # make sure all these app ids are valid
+            self._find_app(a)
+
         ctx = app_context.loads(context).add(
             *self._app.get_group(AppConfigs.APP_CONTEXT),
         )
@@ -368,21 +372,16 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         """Run one or more apps, typically in an aml job."""
 
         def _load_app(name: str, ctx: app_context.Collection[Any]) -> apps.AppContainer:
-            entries = metadata.entry_points(group="rats.aml")
-            for e in entries:
-                if e.name == name:
-                    return apps.AppBundle(
-                        app_plugin=e.load(),
-                        context=apps.StaticContainer(
-                            apps.StaticProvider(
-                                namespace=apps.ProviderNamespaces.SERVICES,
-                                service_id=AppConfigs.CONTEXT_COLLECTION,
-                                call=lambda: ctx,
-                            ),
-                        ),
-                    )
-
-            raise RuntimeError(f"Invalid app-id specified: {name}")
+            return apps.AppBundle(
+                app_plugin=self._find_app(name),
+                context=apps.StaticContainer(
+                    apps.StaticProvider(
+                        namespace=apps.ProviderNamespaces.SERVICES,
+                        service_id=AppConfigs.CONTEXT_COLLECTION,
+                        call=lambda: ctx,
+                    ),
+                ),
+            )
 
         if len(app_ids) == 0:
             logging.warning("No applications were passed to the command")
@@ -391,6 +390,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         for app_id in app_ids:
             app = _load_app(app_id, ctx_collection)
             app.execute()
+
+    def _find_app(self, name: str) -> type[apps.AppContainer]:
+        entries = metadata.entry_points(group="rats.aml.apps")
+        for e in entries:
+            if e.name == name:
+                return e.load()
+
+        raise RuntimeError(f"AML app-id not found: {name}")
 
     @apps.fallback_service(AppConfigs.CLI_CWD)
     def _cwd(self) -> str:
