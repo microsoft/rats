@@ -36,25 +36,27 @@ COPY rats-apps /opt/rats/rats-apps
 RUN <<HEREDOC
 # create skeleton of python packages
 set -eux
-mkdir -p /opt/rats/rats-devtools/src/python/rats/amlruntime
-mkdir -p /opt/rats/rats-devtools/src/python/rats/ci
-mkdir -p /opt/rats/rats-devtools/src/python/rats/command_tree
-mkdir -p /opt/rats/rats-devtools/src/python/rats/devtools
-mkdir -p /opt/rats/rats-devtools/src/python/rats/docs
-mkdir -p /opt/rats/rats-devtools/src/python/rats/example
-mkdir -p /opt/rats/rats-devtools/src/python/rats/kuberuntime
-mkdir -p /opt/rats/rats-devtools/src/python/rats/stdruntime
-mkdir -p /opt/rats/rats-devtools/src/python/rats/projects
+mkdir -p /opt/rats/rats-devtools/src/rats/aml
+mkdir -p /opt/rats/rats-devtools/src/rats/amlruntime
+mkdir -p /opt/rats/rats-devtools/src/rats/ci
+mkdir -p /opt/rats/rats-devtools/src/rats/command_tree
+mkdir -p /opt/rats/rats-devtools/src/rats/docs
+mkdir -p /opt/rats/rats-devtools/src/rats/ez
+mkdir -p /opt/rats/rats-devtools/src/rats/projects
 
-touch /opt/rats/rats-devtools/src/python/rats/amlruntime/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/ci/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/command_tree/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/devtools/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/docs/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/example/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/kuberuntime/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/stdruntime/__init__.py
-touch /opt/rats/rats-devtools/src/python/rats/projects/__init__.py
+mkdir -p /opt/rats/rats-devtools/src/rats_e2e/aml
+mkdir -p /opt/rats/rats-devtools/src/rats_resources/docs
+
+touch /opt/rats/rats-devtools/src/rats/aml/__init__.py
+touch /opt/rats/rats-devtools/src/rats/amlruntime/__init__.py
+touch /opt/rats/rats-devtools/src/rats/ci/__init__.py
+touch /opt/rats/rats-devtools/src/rats/command_tree/__init__.py
+touch /opt/rats/rats-devtools/src/rats/docs/__init__.py
+touch /opt/rats/rats-devtools/src/rats/ez/__init__.py
+touch /opt/rats/rats-devtools/src/rats/projects/__init__.py
+
+touch /opt/rats/rats-devtools/src/rats_e2e/aml/__init__.py
+touch /opt/rats/rats-devtools/src/rats_resources/docs/__init__.py
 
 HEREDOC
 
