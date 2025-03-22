@@ -15,10 +15,10 @@ dependencies = []
 
 [project.optional-dependencies]
 apps = [
-    "rats-apps (==0.7.0)",
+    "rats-apps (==0.8.0)",
 ]
 devtools = [
-    "rats-devtools (==0.7.0)",
+    "rats-devtools (==0.8.0)",
 ]
 
 [project.urls]
