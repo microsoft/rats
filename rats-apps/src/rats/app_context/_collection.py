@@ -74,6 +74,10 @@ class Collection(Generic[T_ContextType]):
         )
 
 
+EMPTY_COLLECTION = Collection.empty()
+"""Empty collection constant usable as default method values."""
+
+
 def loads(context: str) -> Collection[Any]:
     """
     Transforms a json string into a [rats.app_context.Collection][] instance.
