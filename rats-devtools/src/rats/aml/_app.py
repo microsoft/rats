@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import shlex
+import sys
 import time
 from collections.abc import Iterator, Mapping
 from importlib import metadata
@@ -245,12 +246,31 @@ class AppServices:
 
 
 @final
+class _CliContext(apps.Container):
+    SERVICE_ID = apps.ServiceId[tuple[str, ...]]("rats.aml:argv")
+
+    def __init__(self, argv: tuple[str, ...]) -> None:
+        self._argv = argv
+
+    @apps.service(SERVICE_ID)
+    def _provider(self) -> tuple[str, ...]:
+        return self._argv
+
+
+@final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     """CLI application for submitting rats applications to be run on aml."""
 
     def execute(self) -> None:
         """Runs the `rats-aml` cli that provides methods for listing and submitting aml jobs."""
-        cli.create_group(click.Group("rats-aml"), self)(auto_envvar_prefix="RATS_AML")
+        argv = self._app.get(_CliContext.SERVICE_ID)
+        cli.create_group(click.Group("rats-aml"), self).main(
+            args=argv[1:],
+            prog_name=Path(argv[0]).name,
+            auto_envvar_prefix="RATS_AML",
+            # don't end the process
+            standalone_mode=False,
+        )
 
     @cli.command()
     def _list(self) -> None:
@@ -506,12 +526,45 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         return cast("TokenCredential", DefaultAzureCredential())
 
+    @apps.fallback_service(_CliContext.SERVICE_ID)
+    def _default_args(self) -> tuple[str, ...]:
+        return tuple(sys.argv)
+
     @apps.container()
     def _plugins(self) -> apps.Container:
         return apps.CompositeContainer(
             apps.PythonEntryPointContainer(self._app, "rats.aml"),
             projects.PluginContainer(self._app),
         )
+
+
+def submit(
+    *app_ids: tuple[str, ...],
+    context: app_context.Collection[Any] = app_context.EMPTY_COLLECTION,
+    wait: bool = False,
+) -> None:
+    """
+    Submit an AML job programmatically instead of calling `rats-aml submit`.
+
+    Args:
+        app_ids: list of the application to run on the remote aml job as found in pyproject.toml
+        context: context to send to the remote aml job
+        wait: wait for the successful completion of the submitted aml job.
+    """
+    w = ["--wait"] if wait else []
+    cmd = (
+        "rats-aml",
+        "submit",
+        *app_ids,
+        "--context",
+        app_context.dumps(context),
+        *w,
+    )
+    submitter = apps.AppBundle(
+        app_plugin=Application,
+        context=_CliContext(cmd),
+    )
+    submitter.execute()
 
 
 def main() -> None:
