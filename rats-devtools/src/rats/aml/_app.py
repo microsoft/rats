@@ -292,9 +292,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         if len(app_ids) == 0:
             logging.warning("No applications were provided to the command")
 
-        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
-        ptools.build_component_image(Path.cwd().name)
-
         ctx = app_context.loads(context).add(
             *self._app.get_group(AppConfigs.APP_CONTEXT),
         )
