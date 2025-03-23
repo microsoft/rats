@@ -44,4 +44,3 @@ jobs:
       sha: ${{ github.sha }}
       publish-docs: false
       publish-wheels: false
-      publish-to-github: false
