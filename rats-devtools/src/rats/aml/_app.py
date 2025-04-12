@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 import shlex
-import sys
 import time
 from collections.abc import Iterator, Mapping
 from importlib import metadata
@@ -16,7 +15,6 @@ import click
 from rats import app_context, apps, cli, logs
 from rats import projects as projects
 
-from ._command import Command
 from ._configs import AmlEnvironment, AmlIO, AmlJobContext, AmlJobDetails, AmlWorkspace
 
 if TYPE_CHECKING:
@@ -246,24 +244,12 @@ class AppServices:
 
 
 @final
-class _CliContext(apps.Container):
-    SERVICE_ID = apps.ServiceId[tuple[str, ...]]("rats.aml:argv")
-
-    def __init__(self, argv: tuple[str, ...]) -> None:
-        self._argv = argv
-
-    @apps.service(SERVICE_ID)
-    def _provider(self) -> tuple[str, ...]:
-        return self._argv
-
-
-@final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     """CLI application for submitting rats applications to be run on aml."""
 
     def execute(self) -> None:
         """Runs the `rats-aml` cli that provides methods for listing and submitting aml jobs."""
-        argv = self._app.get(_CliContext.SERVICE_ID)
+        argv = self._app.get(cli.PluginConfigs.ARGV)
         cli.create_group(click.Group("rats-aml"), self).main(
             args=argv[1:],
             prog_name=Path(argv[0]).name,
@@ -304,9 +290,9 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         for env_map in self._app.get_group(AppConfigs.CLI_ENVS):
             env.update(env_map)
 
-        cli_command = Command(
+        cli_command = cli.Command(
             cwd=self._app.get(AppConfigs.CLI_CWD),
-            args=tuple(["rats-aml", "run", *app_ids]),
+            argv=tuple(["rats-aml", "run", *app_ids]),
             env=env,
         )
 
@@ -324,7 +310,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
                 *[f"export RATS_AML_PATH_{k.upper()}=${{inputs.{k}}}" for k in input_keys],
                 *[f"export RATS_AML_PATH_{k.upper()}=${{outputs.{k}}}" for k in output_keys],
                 shlex.join(["cd", cli_command.cwd]),
-                shlex.join(cli_command.args),
+                shlex.join(cli_command.argv),
             ]
         )
 
@@ -530,45 +516,13 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         return cast("TokenCredential", DefaultAzureCredential())
 
-    @apps.fallback_service(_CliContext.SERVICE_ID)
-    def _default_args(self) -> tuple[str, ...]:
-        return tuple(sys.argv)
-
     @apps.container()
     def _plugins(self) -> apps.Container:
         return apps.CompositeContainer(
             apps.PythonEntryPointContainer(self._app, "rats.aml"),
             projects.PluginContainer(self._app),
+            cli.PluginContainer(self._app),
         )
-
-
-def submit(
-    *app_ids: str,
-    context: app_context.Collection[Any] = app_context.EMPTY_COLLECTION,
-    wait: bool = False,
-) -> None:
-    """
-    Submit an AML job programmatically instead of calling `rats-aml submit`.
-
-    Args:
-        app_ids: list of the application to run on the remote aml job as found in pyproject.toml
-        context: context to send to the remote aml job
-        wait: wait for the successful completion of the submitted aml job.
-    """
-    w = ["--wait"] if wait else []
-    cmd = (
-        "rats-aml",
-        "submit",
-        *app_ids,
-        "--context",
-        app_context.dumps(context),
-        *w,
-    )
-    submitter = apps.AppBundle(
-        app_plugin=Application,
-        context=_CliContext(cmd),
-    )
-    submitter.execute()
 
 
 def main() -> None:
