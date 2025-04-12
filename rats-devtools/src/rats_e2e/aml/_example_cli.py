@@ -14,12 +14,9 @@ class ExampleCliApp(apps.AppContainer, cli.Container, apps.PluginMixin):
         cli.create_group(click.Group("rats_e2e.apps"), self)()
 
     @cli.command()
-    def _run_all(self) -> None:
-        submit_args = ["rats-aml", "submit", "--exe-id", "rats.aml._app:AppServices[hello-world]"]
+    def _cli(self) -> None:
+        submit_args = ["rats-aml", "submit", "rats_e2e.aml.hello-world"]
         with patch.object(sys, "argv", submit_args):
             apps.run(
-                apps.AppBundle(
-                    app_plugin=aml.Application,
-                    context=apps.CompositeContainer(),
-                ),
+                apps.AppBundle(app_plugin=aml.Application),
             )
