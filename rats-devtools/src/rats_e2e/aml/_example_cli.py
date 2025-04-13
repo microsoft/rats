@@ -1,10 +1,16 @@
 import sys
+from dataclasses import dataclass
 from unittest.mock import patch
 
 import click
 
 from rats import aml as aml
-from rats import apps, cli, logs
+from rats import app_context, apps, cli, logs
+
+
+@dataclass(frozen=True)
+class ExampleContext:
+    value: str
 
 
 class ExampleCliApp(apps.AppContainer, cli.Container, apps.PluginMixin):
@@ -20,3 +26,16 @@ class ExampleCliApp(apps.AppContainer, cli.Container, apps.PluginMixin):
             apps.run(
                 apps.AppBundle(app_plugin=aml.Application),
             )
+
+    @cli.command()
+    def _py_api(self) -> None:
+        aml.submit(
+            "rats_e2e.aml.hello-world",
+            context=app_context.Collection.make(
+                app_context.Context.make(
+                    apps.ServiceId[ExampleContext]("e2e-test-group"),
+                    ExampleContext("this is an example value"),
+                ),
+            ),
+            wait=True,
+        )

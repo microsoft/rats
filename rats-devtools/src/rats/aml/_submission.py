@@ -1,6 +1,6 @@
 from typing import Any
 
-from rats import app_context, apps
+from rats import app_context, apps, cli
 from rats.aml import Application
 
 
@@ -28,6 +28,8 @@ def submit(
     )
     submitter = apps.AppBundle(
         app_plugin=Application,
-        context=_CliContext(cmd),
+        context=apps.StaticContainer(
+            apps.static_service(cli.PluginConfigs.ARGV, lambda: cmd),
+        ),
     )
     submitter.execute()

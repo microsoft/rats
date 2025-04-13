@@ -303,17 +303,25 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         input_keys = config.inputs.keys()
         output_keys = config.outputs.keys()
 
-        input_envs = [
-            # double escape double curly braces for aml to later replace with dataset values
-            f"export RATS_AML_PATH_{k.upper()}=${{{{inputs.{k}}}}}"
-            for k in input_keys
-        ] if len(input_keys) > 0 else []
+        input_envs = (
+            [
+                # double escape double curly braces for aml to later replace with dataset values
+                f"export RATS_AML_PATH_{k.upper()}=${{{{inputs.{k}}}}}"
+                for k in input_keys
+            ]
+            if len(input_keys) > 0
+            else []
+        )
 
-        output_keys = [
-            # double escape double curly braces for aml to later replace with dataset values
-            f"export RATS_AML_PATH_{k.upper()}=${{{{outputs.{k}}}}}"
-            for k in output_keys
-        ] if len(output_keys) > 0 else []
+        output_keys = (
+            [
+                # double escape double curly braces for aml to later replace with dataset values
+                f"export RATS_AML_PATH_{k.upper()}=${{{{outputs.{k}}}}}"
+                for k in output_keys
+            ]
+            if len(output_keys) > 0
+            else []
+        )
 
         cmd = " && ".join(
             [
