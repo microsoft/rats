@@ -62,7 +62,7 @@ rats-ez = "rats.ez:main"
 rats-aml = "rats.aml:main"
 
 [project.entry-points."rats.aml.apps"]
-"rats_e2e.aml.hello-world" = "rats_e2e.aml:Application"
+"rats_e2e.aml.hello-world" = "rats_e2e.aml:ExampleJob"
 
 [build-system]
 requires = ["poetry-core"]
