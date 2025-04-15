@@ -42,26 +42,57 @@ class AppConfigs:
     don't require providing the entire configuration.
 
     ```python
+    from rats import apps, aml
+
+
     class Plugin(apps.Container):
 
-        @apps.service(AppConfigs.JOB_DETAILS)
-        def _runtime(self) -> AmlConfig:
-            AmlConfig(
+        @apps.service(aml.AppConfigs.JOB_DETAILS)
+        def _job_details(self) -> aml.AmlConfig:
+            return aml.AmlConfig(
                 compute="[compute-cluster-name]",
                 inputs={},
                 outputs={},
-                workspace=self._app.get(AppConfigs.WORKSPACE),
-                environment=self._app.get(AppConfigs.ENVIRONMENT),
+                workspace=self._app.get(aml.AppConfigs.WORKSPACE),
+                environment=self._app.get(aml.AppConfigs.ENVIRONMENT),
             )
     ```
     """
 
     COMPUTE = apps.ServiceId[str]("compute.config")
     """
-    The name of the compute cluster the aml job should be submitted to.
+    The name of the compute cluster the aml job should be submitted to. The default provider for
+    this config uses the `RATS_AML_COMPUTE` environment variable.
+
+    ```python
+    from rats import apps, aml
+
+
+    class Plugin(apps.Container):
+
+        @apps.service(aml.AppConfigs.COMPUTE)
+        def _compute(self) -> str:
+            return "example-compute-cluster-name"
+    ```
 
     This can be a full resource id in cases where the cluster is part of a workspace other than the
-    one being submitted to.
+    one being submitted to:
+
+    ```python
+    from rats import apps, aml
+
+
+    class Plugin(apps.Container):
+
+        @apps.service(aml.AppConfigs.COMPUTE)
+        def _compute(self) -> str:
+            return "".join([
+                "/subscriptions/123123",
+                "/resourceGroups/example-aml-rg",
+                "/providers/Microsoft.MachineLearningServices",
+                "/virtualclusters/example-compute-cluster",
+            ]
+    ```
     """
 
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
@@ -75,7 +106,37 @@ class AppConfigs:
     """
 
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
-    """The workspace information for submitting aml jobs into."""
+    """
+    The workspace information for submitting aml jobs into.
+
+    The default provider populates these values from environment variables:
+    ```python
+    from rats import apps, aml
+
+
+    aml.AmlWorkspace(
+        subscription_id=os.environ["RATS_AML_SUBSCRIPTION_ID"],
+        resource_group_name=os.environ["RATS_AML_RESOURCE_GROUP"],
+        workspace_name=os.environ["RATS_AML_WORKSPACE"],
+    )
+    ```
+
+    This can be overridden by providing a different workspace configuration:
+    ```python
+    from rats import apps, aml
+
+
+    class Plugin(apps.Container):
+
+        @apps.service(aml.AppConfigs.WORKSPACE)
+        def _runtime(self) -> aml.AmlWorkspace:
+            return aml.AmlWorkspace(
+                subscription_id="123123",
+                resource_group_name="example-aml-resource-group",
+                workspace_name="example-aml-workspace",
+            )
+    ```
+    """
 
     COMMAND_KWARGS = apps.ServiceId[Mapping[str, Any]]("command-kwargs.config")
     """
@@ -86,8 +147,11 @@ class AppConfigs:
     construction function without validation.
 
     ```python
+    from rats import apps, aml
+
+
     class Plugin(apps.Container):
-        @apps.service(AppConfigs.COMMAND_KWARGS)
+        @apps.service(aml.AppConfigs.COMMAND_KWARGS)
         def _ml_command_kwargs(self) -> Mapping[str, Any]:
             return {
                 "resources": {"instance_count": 1},
