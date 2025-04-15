@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import os
 import shlex
-import sys
 import time
 from collections.abc import Iterator, Mapping
 from importlib import metadata
@@ -16,7 +15,6 @@ import click
 from rats import app_context, apps, cli, logs
 from rats import projects as projects
 
-from ._command import Command
 from ._configs import AmlEnvironment, AmlIO, AmlJobContext, AmlJobDetails, AmlWorkspace
 
 if TYPE_CHECKING:
@@ -44,26 +42,57 @@ class AppConfigs:
     don't require providing the entire configuration.
 
     ```python
+    from rats import apps, aml
+
+
     class Plugin(apps.Container):
 
-        @apps.service(AppConfigs.JOB_DETAILS)
-        def _runtime(self) -> AmlConfig:
-            AmlConfig(
+        @apps.service(aml.AppConfigs.JOB_DETAILS)
+        def _job_details(self) -> aml.AmlConfig:
+            return aml.AmlConfig(
                 compute="[compute-cluster-name]",
                 inputs={},
                 outputs={},
-                workspace=self._app.get(AppConfigs.WORKSPACE),
-                environment=self._app.get(AppConfigs.ENVIRONMENT),
+                workspace=self._app.get(aml.AppConfigs.WORKSPACE),
+                environment=self._app.get(aml.AppConfigs.ENVIRONMENT),
             )
     ```
     """
 
     COMPUTE = apps.ServiceId[str]("compute.config")
     """
-    The name of the compute cluster the aml job should be submitted to.
+    The name of the compute cluster the aml job should be submitted to. The default provider for
+    this config uses the `RATS_AML_COMPUTE` environment variable.
+
+    ```python
+    from rats import apps, aml
+
+
+    class Plugin(apps.Container):
+
+        @apps.service(aml.AppConfigs.COMPUTE)
+        def _compute(self) -> str:
+            return "example-compute-cluster-name"
+    ```
 
     This can be a full resource id in cases where the cluster is part of a workspace other than the
-    one being submitted to.
+    one being submitted to:
+
+    ```python
+    from rats import apps, aml
+
+
+    class Plugin(apps.Container):
+
+        @apps.service(aml.AppConfigs.COMPUTE)
+        def _compute(self) -> str:
+            return "".join([
+                "/subscriptions/123123",
+                "/resourceGroups/example-aml-rg",
+                "/providers/Microsoft.MachineLearningServices",
+                "/virtualclusters/example-compute-cluster",
+            ]
+    ```
     """
 
     ENVIRONMENT = apps.ServiceId[AmlEnvironment]("environment.config")
@@ -77,7 +106,37 @@ class AppConfigs:
     """
 
     WORKSPACE = apps.ServiceId[AmlWorkspace]("workspace.config")
-    """The workspace information for submitting aml jobs into."""
+    """
+    The workspace information for submitting aml jobs into.
+
+    The default provider populates these values from environment variables:
+    ```python
+    from rats import apps, aml
+
+
+    aml.AmlWorkspace(
+        subscription_id=os.environ["RATS_AML_SUBSCRIPTION_ID"],
+        resource_group_name=os.environ["RATS_AML_RESOURCE_GROUP"],
+        workspace_name=os.environ["RATS_AML_WORKSPACE"],
+    )
+    ```
+
+    This can be overridden by providing a different workspace configuration:
+    ```python
+    from rats import apps, aml
+
+
+    class Plugin(apps.Container):
+
+        @apps.service(aml.AppConfigs.WORKSPACE)
+        def _runtime(self) -> aml.AmlWorkspace:
+            return aml.AmlWorkspace(
+                subscription_id="123123",
+                resource_group_name="example-aml-resource-group",
+                workspace_name="example-aml-workspace",
+            )
+    ```
+    """
 
     COMMAND_KWARGS = apps.ServiceId[Mapping[str, Any]]("command-kwargs.config")
     """
@@ -88,8 +147,11 @@ class AppConfigs:
     construction function without validation.
 
     ```python
+    from rats import apps, aml
+
+
     class Plugin(apps.Container):
-        @apps.service(AppConfigs.COMMAND_KWARGS)
+        @apps.service(aml.AppConfigs.COMMAND_KWARGS)
         def _ml_command_kwargs(self) -> Mapping[str, Any]:
             return {
                 "resources": {"instance_count": 1},
@@ -246,24 +308,12 @@ class AppServices:
 
 
 @final
-class _CliContext(apps.Container):
-    SERVICE_ID = apps.ServiceId[tuple[str, ...]]("rats.aml:argv")
-
-    def __init__(self, argv: tuple[str, ...]) -> None:
-        self._argv = argv
-
-    @apps.service(SERVICE_ID)
-    def _provider(self) -> tuple[str, ...]:
-        return self._argv
-
-
-@final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     """CLI application for submitting rats applications to be run on aml."""
 
     def execute(self) -> None:
         """Runs the `rats-aml` cli that provides methods for listing and submitting aml jobs."""
-        argv = self._app.get(_CliContext.SERVICE_ID)
+        argv = self._app.get(cli.PluginConfigs.ARGV)
         cli.create_group(click.Group("rats-aml"), self).main(
             args=argv[1:],
             prog_name=Path(argv[0]).name,
@@ -304,9 +354,9 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         for env_map in self._app.get_group(AppConfigs.CLI_ENVS):
             env.update(env_map)
 
-        cli_command = Command(
+        cli_command = cli.Command(
             cwd=self._app.get(AppConfigs.CLI_CWD),
-            args=tuple(["rats-aml", "run", *app_ids]),
+            argv=tuple(["rats-aml", "run", *app_ids]),
             env=env,
         )
 
@@ -317,14 +367,35 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         input_keys = config.inputs.keys()
         output_keys = config.outputs.keys()
 
+        input_envs = (
+            [
+                # double escape double curly braces for aml to later replace with dataset values
+                f"export RATS_AML_PATH_{k.upper()}=${{{{inputs.{k}}}}}"
+                for k in input_keys
+            ]
+            if len(input_keys) > 0
+            else []
+        )
+
+        output_keys = (
+            [
+                # double escape double curly braces for aml to later replace with dataset values
+                f"export RATS_AML_PATH_{k.upper()}=${{{{outputs.{k}}}}}"
+                for k in output_keys
+            ]
+            if len(output_keys) > 0
+            else []
+        )
+
         cmd = " && ".join(
             [
                 # make sure we know the original directory and any input/output paths
                 "export RATS_AML_ORIGINAL_PWD=${PWD}",
-                *[f"export RATS_AML_PATH_{k.upper()}=${{inputs.{k}}}" for k in input_keys],
-                *[f"export RATS_AML_PATH_{k.upper()}=${{outputs.{k}}}" for k in output_keys],
+                *[f"export {k}={shlex.quote(v)}" for k, v in cli_command.env.items()],
+                *input_envs,
+                *output_keys,
                 shlex.join(["cd", cli_command.cwd]),
-                shlex.join(cli_command.args),
+                shlex.join(cli_command.argv),
             ]
         )
 
@@ -452,14 +523,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         if not default_dataset or not default_storage_account or not default_container:
             yield {}
-
-        yield {
-            f"{default_dataset}_input": AmlIO(
-                type=AssetTypes.URI_FOLDER,
-                path=f"abfss://{default_container}@{default_storage_account}.dfs.core.windows.net/",
-                mode=InputOutputModes.RW_MOUNT,
-            ),
-        }
+        else:
+            yield {
+                f"{default_dataset}_input": AmlIO(
+                    type=AssetTypes.URI_FOLDER,
+                    path=f"abfss://{default_container}@{default_storage_account}.dfs.core.windows.net/",
+                    mode=InputOutputModes.RW_MOUNT,
+                ),
+            }
 
     @apps.fallback_group(AppConfigs.OUTPUTS)
     def _outputs(self) -> Iterator[Mapping[str, AmlIO]]:
@@ -471,14 +542,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         if not default_dataset or not default_storage_account or not default_container:
             yield {}
-
-        yield {
-            f"{default_dataset}_output": AmlIO(
-                type=AssetTypes.URI_FOLDER,
-                path=f"abfss://{default_container}@{default_storage_account}.dfs.core.windows.net/",
-                mode=InputOutputModes.RW_MOUNT,
-            ),
-        }
+        else:
+            yield {
+                f"{default_dataset}_output": AmlIO(
+                    type=AssetTypes.URI_FOLDER,
+                    path=f"abfss://{default_container}@{default_storage_account}.dfs.core.windows.net/",
+                    mode=InputOutputModes.RW_MOUNT,
+                ),
+            }
 
     @apps.fallback_service(AppConfigs.COMPUTE)
     def _compute_config(self) -> str:
@@ -530,45 +601,13 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         return cast("TokenCredential", DefaultAzureCredential())
 
-    @apps.fallback_service(_CliContext.SERVICE_ID)
-    def _default_args(self) -> tuple[str, ...]:
-        return tuple(sys.argv)
-
     @apps.container()
     def _plugins(self) -> apps.Container:
         return apps.CompositeContainer(
             apps.PythonEntryPointContainer(self._app, "rats.aml"),
             projects.PluginContainer(self._app),
+            cli.PluginContainer(self._app),
         )
-
-
-def submit(
-    *app_ids: str,
-    context: app_context.Collection[Any] = app_context.EMPTY_COLLECTION,
-    wait: bool = False,
-) -> None:
-    """
-    Submit an AML job programmatically instead of calling `rats-aml submit`.
-
-    Args:
-        app_ids: list of the application to run on the remote aml job as found in pyproject.toml
-        context: context to send to the remote aml job
-        wait: wait for the successful completion of the submitted aml job.
-    """
-    w = ["--wait"] if wait else []
-    cmd = (
-        "rats-aml",
-        "submit",
-        *app_ids,
-        "--context",
-        app_context.dumps(context),
-        *w,
-    )
-    submitter = apps.AppBundle(
-        app_plugin=Application,
-        context=_CliContext(cmd),
-    )
-    submitter.execute()
 
 
 def main() -> None:

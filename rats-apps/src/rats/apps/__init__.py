@@ -16,6 +16,7 @@ from ._annotations import (
     service,
 )
 from ._app_containers import (
+    EMPTY_PLUGIN,
     AppBundle,
     AppContainer,
     AppPlugin,
@@ -43,6 +44,7 @@ from ._static_container import StaticContainer, StaticProvider, static_group, st
 
 __all__ = [
     "EMPTY_CONTAINER",
+    "EMPTY_PLUGIN",
     "App",
     "AppBundle",
     "AppContainer",
