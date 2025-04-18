@@ -21,9 +21,9 @@ class AmlWorkspace(NamedTuple):
 
 
 class BuildContext(NamedTuple):
-    path: str | PathLike[str] | None
+    path: str | PathLike[str]
     """The local or remote path to the the docker build context directory."""
-    dockerfile_path: str | None
+    dockerfile_path: str
     """The path to the dockerfile relative to root of docker build context directory."""
 
 
