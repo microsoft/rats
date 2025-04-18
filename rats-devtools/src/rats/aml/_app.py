@@ -573,6 +573,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             name=Path.cwd().name,
             image=image.full,
             version=image.tag,
+            build=None,
         )
 
     @apps.fallback_service(AppServices.AML_ENVIRONMENT_OPS)
