@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
+from os import PathLike
 from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,13 @@ class AmlWorkspace(NamedTuple):
     """Azure resource group containing the desired workspace."""
     workspace_name: str
     """Azure aml workspace name jobs should be submitted to."""
+
+
+class BuildContext(NamedTuple):
+    path: str | PathLike[str] | None
+    """The local or remote path to the the docker build context directory."""
+    dockerfile_path: str | None
+    """The path to the dockerfile relative to root of docker build context directory."""
 
 
 class AmlEnvironment(NamedTuple):
@@ -34,11 +42,12 @@ class AmlEnvironment(NamedTuple):
     """
     The full name, with registry and tag, of the container image for this environment.
 
-    In the AML workspace, this is shown as the "Docker image" and is sometimes used as the parent
-    image when asking AML to build the environment for us. However, in rats, we typically build
+    In the AML workspace, this is shown as the "Docker image". In rats, we typically build
     a full image using the standard tools like Docker, and have AML use the built images without
     making any runtime modifications to it. This ensures the images we build in CI pipelines are
     used without modifications after they have been tested (by you).
+
+    Mutually exclusive with "build".
     """
     version: str
     """
@@ -46,6 +55,11 @@ class AmlEnvironment(NamedTuple):
 
     Typically, this matches the tag portion of the built container images. You will find a version
     drop-down when viewing the environment in your AML workspace.
+    """
+    build: BuildContext | None
+    """
+    Docker build context for the environment.
+    This is used when the environment is built by AML. Mutually exclusive with "image".
     """
 
     @property
