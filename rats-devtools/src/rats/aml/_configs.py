@@ -38,7 +38,7 @@ class AmlEnvironment(NamedTuple):
     components and docker images. These environments are discoverable in the AML workspace and
     each environment can have many versions.
     """
-    image: str
+    image: str | None
     """
     The full name, with registry and tag, of the container image for this environment.
 
