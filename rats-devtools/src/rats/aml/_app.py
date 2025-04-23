@@ -336,7 +336,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     def _submit(self, app_ids: tuple[str, ...], context: str, wait: bool) -> None:
         """Submit one or more apps to aml."""
         from azure.ai.ml import Input, Output, command
-        from azure.ai.ml.entities import Environment, BuildContext
+        from azure.ai.ml.entities import Environment
         from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
 
         if len(app_ids) == 0:

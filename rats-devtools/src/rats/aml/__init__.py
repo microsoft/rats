@@ -7,7 +7,6 @@ from ._configs import (
     AmlJobContext,
     AmlJobDetails,
     AmlWorkspace,
-    BuildContext,
 )
 from ._submission import submit
 
@@ -20,7 +19,6 @@ __all__ = [
     "AppConfigs",
     "AppServices",
     "Application",
-    "BuildContext",
     "main",
     "submit",
 ]
