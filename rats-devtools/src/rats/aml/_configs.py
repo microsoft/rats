@@ -3,8 +3,10 @@ from __future__ import annotations
 import logging
 from collections.abc import Mapping
 from dataclasses import dataclass
-from os import PathLike
-from typing import NamedTuple
+from typing import TYPE_CHECKING, NamedTuple
+
+if TYPE_CHECKING:
+    from azure.ai.ml.entities import BuildContext
 
 logger = logging.getLogger(__name__)
 
@@ -18,13 +20,6 @@ class AmlWorkspace(NamedTuple):
     """Azure resource group containing the desired workspace."""
     workspace_name: str
     """Azure aml workspace name jobs should be submitted to."""
-
-
-class BuildContext(NamedTuple):
-    path: str | PathLike[str]
-    """The local or remote path to the the docker build context directory."""
-    dockerfile_path: str
-    """The path to the dockerfile relative to root of docker build context directory."""
 
 
 class AmlEnvironment(NamedTuple):

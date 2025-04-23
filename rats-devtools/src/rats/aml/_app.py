@@ -399,15 +399,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             ]
         )
 
-        build = (
-            BuildContext(**config.environment.build._asdict())
-            if config.environment.build
-            else None
-        )
-        env_config = config.environment._asdict()
-        env_config["build"] = build
-        env_ops.create_or_update(Environment(**env_config))
-
+        env_ops.create_or_update(Environment(**config.environment._asdict()))
         extra_aml_command_args = self._app.get(AppConfigs.COMMAND_KWARGS)
 
         job = command(
