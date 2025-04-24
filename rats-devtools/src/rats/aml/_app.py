@@ -178,13 +178,16 @@ class AppConfigs:
     `RATS_AML_PATH_MODEL_INPUT` containing the local path to the mounted directory/file.
 
     ```python
-    class Plugin(apps.Container):
-        @apps.fallback_group(AppConfigs.INPUTS)
+    from rats import apps, aml
+
+
+    class PluginContainer(apps.Container):
+        @apps.group(aml.AppConfigs.INPUTS)
         def _inputs(self) -> Iterator[Mapping[str, AmlIO]]:
             from azure.ai.ml.constants import AssetTypes, InputOutputModes
 
             yield {
-                f"[input-name]": AmlIO(
+                f"[input-name]": aml.AmlIO(
                     type=AssetTypes.URI_FOLDER,
                     path=f"abfss://[container]@[storage-account].dfs.core.windows.net/[path]",
                     mode=InputOutputModes.RW_MOUNT,
@@ -202,13 +205,16 @@ class AppConfigs:
     `RATS_AML_PATH_MODEL_OUTPUT` containing the local path to the mounted directory/file.
 
     ```python
-    class Plugin(apps.Container):
-        @apps.fallback_group(AppConfigs.OUTPUTS)
-        def _outputs(self) -> Iterator[Mapping[str, AmlIO]]:
+    from rats import apps, aml
+
+
+    class PluginContainer(apps.Container):
+        @apps.group(aml.AppConfigs.OUTPUTS)
+        def _outputs(self) -> Iterator[Mapping[str, aml.AmlIO]]:
             from azure.ai.ml.constants import AssetTypes, InputOutputModes
 
             yield {
-                f"[output-name]": AmlIO(
+                f"[output-name]": aml.AmlIO(
                     type=AssetTypes.URI_FOLDER,
                     path=f"abfss://[container]@[storage-account].dfs.core.windows.net/[path]",
                     mode=InputOutputModes.RW_MOUNT,
@@ -225,6 +231,9 @@ class AppConfigs:
     retrieve this service config on the aml job instance to retrieve the registered contexts.
 
     ```python
+    from rats import apps, aml
+
+
     class Application(apps.AppContainer):
         def execute(self) -> None:
             context_collection = self._app.get(aml.AppConfigs.CONTEXT_COLLECTION)
@@ -242,9 +251,12 @@ class AppConfigs:
     definition of these service groups.
 
     ```python
+    from rats import apps, aml
+
+
     class Plugin(apps.Container):
 
-        @apps.service_group(AppConfigs.CLI_ENVS)
+        @apps.service_group(aml.AppConfigs.CLI_ENVS)
         def _envs(self) -> Iterator[Mapping[str, str]]:
             yield {"MY_JOB_ENV": "some-useful-information"}
     ```
