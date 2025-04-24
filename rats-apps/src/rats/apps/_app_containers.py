@@ -198,3 +198,41 @@ class AppBundle(AppContainer):
     @cache  # noqa: B019
     def _get_or_create_containers(self) -> tuple[AppContainer, Container]:
         return self._app_plugin(self), self._container_plugin(self)
+
+
+class _EmptyAppContainer(AppContainer, PluginMixin):
+    pass
+
+
+EMPTY_APP_PLUGIN = _EmptyAppContainer
+
+
+def bundle(
+    *container_plugins: ContainerPlugin,
+    context: Container = EMPTY_CONTEXT,
+) -> Container:
+    """
+    Create an instance of a plugin container, without the need to create an application.
+
+    Example:
+        ```python
+        from rats import apps, projects
+
+
+        def main() -> None:
+            apps.bundle(projects.PluginContainer)
+
+
+        if __name__ == "__main__":
+            main()
+        ```
+
+    Args:
+        container_plugins: one or more plugins that will be initialized with an empty application.
+        context: additional context made available to the container plugins.
+    """
+    return AppBundle(
+        app_plugin=EMPTY_APP_PLUGIN,
+        container_plugin=CompositePlugin(*container_plugins),
+        context=context,
+    )

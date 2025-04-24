@@ -16,6 +16,7 @@ from ._annotations import (
     service,
 )
 from ._app_containers import (
+    EMPTY_APP_PLUGIN,
     EMPTY_PLUGIN,
     AppBundle,
     AppContainer,
@@ -23,6 +24,7 @@ from ._app_containers import (
     CompositePlugin,
     ContainerPlugin,
     PluginMixin,
+    bundle,
 )
 from ._composite_container import EMPTY_CONTAINER, CompositeContainer
 from ._container import (
@@ -43,6 +45,7 @@ from ._scoping import autoscope
 from ._static_container import StaticContainer, StaticProvider, static_group, static_service
 
 __all__ = [
+    "EMPTY_APP_PLUGIN",
     "EMPTY_CONTAINER",
     "EMPTY_PLUGIN",
     "App",
@@ -73,6 +76,7 @@ __all__ = [
     "autoid_factory_service",
     "autoid_service",
     "autoscope",
+    "bundle",
     "container",
     "factory_service",
     "fallback_group",
