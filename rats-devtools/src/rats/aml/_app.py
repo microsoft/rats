@@ -257,7 +257,7 @@ class AppConfigs:
     !!! info
         Unlike [rats.aml.AppConfigs.CLI_ENVS][], the environment variables in these cli commands
         are not exported globally and will only be available to the defined command. This helps
-        avoid conflicts between commands. If you want environemnt variables to be shared, define
+        avoid conflicts between commands. If you want environment variables to be shared, define
         them using [rats.aml.AppConfigs.CLI_ENVS][].
 
     ```python
