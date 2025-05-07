@@ -403,7 +403,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             [
                 # make sure we know the original directory and any input/output paths
                 "export RATS_AML_ORIGINAL_PWD=${PWD}",
-                *[f"export {k}={shlex.quote(v)}" for k, v in cli_command.env.items()],
                 *input_envs,
                 *output_keys,
                 shlex.join(["cd", cli_command.cwd]),
