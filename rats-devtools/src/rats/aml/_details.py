@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from rats import app_context
 
@@ -10,7 +10,7 @@ class RuntimeDetails(NamedTuple):
     app_ids: tuple[str, ...]
     """The app ids being run by the aml job."""
 
-    context: app_context.Collection
+    context: app_context.Collection[Any]
     """The context collection that was submitted to the remote aml job."""
 
     wait: bool

@@ -519,7 +519,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         details_client.set(
             RuntimeDetails(
-                job_name=returned_job.name,
+                job_name=str(returned_job.name),
                 app_ids=app_ids,
                 context=ctx,
                 wait=wait,
