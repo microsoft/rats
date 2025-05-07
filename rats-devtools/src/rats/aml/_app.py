@@ -276,7 +276,7 @@ class AppConfigs:
     Zero or more cli commands run after the successful execution of the main command.
 
     This config group can be used to run a set of clean up or reporting steps after a successful
-    run of the aml job. The execution of these commands stops if any preceeding commands fail.
+    run of the aml job. The execution of these commands stops if any preceding commands fail.
 
     !!! info
         Unlike [rats.aml.AppConfigs.CLI_ENVS][], the environment variables in these cli commands
