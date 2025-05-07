@@ -16,6 +16,7 @@ from rats import app_context, apps, cli, logs
 from rats import projects as projects
 
 from ._configs import AmlEnvironment, AmlIO, AmlJobContext, AmlJobDetails, AmlWorkspace
+from ._details import RuntimeDetails, RuntimeDetailsClient
 
 if TYPE_CHECKING:
     from azure.ai.ml import MLClient
@@ -243,6 +244,57 @@ class AppConfigs:
     ```
     """
 
+    CLI_PRE_CMD = apps.ServiceId[cli.Command]("cli-pre-cmd.config-group")
+    """
+    Zero or more cli commands run before the main command on the remote machine.
+
+    This config group can be used to provide any necessary setup commands before the execution of
+    the provided application ids. A common use case for this is to ensure any needed dependencies
+    are available in the remote environment. It's recommended that the remote execution environment
+    be a fully configured container image, not needing additional setup steps. However, this isn't
+    always possible.
+
+    !!! info
+        Unlike [rats.aml.AppConfigs.CLI_ENVS][], the environment variables in these cli commands
+        are not exported globally and will only be available to the defined command. This helps
+        avoid conflicts between commands. If you want environemnt variables to be shared, define
+        them using [rats.aml.AppConfigs.CLI_ENVS][].
+
+    ```python
+    @apps.group(AppConfigs.CLI_PRE_CMD)
+    def _pre_cmds(self) -> Iterator[cli.Command]:
+        yield cli.Command(
+            cwd="./",
+            argv=("printenv",),
+            env={"FOO": "123"},
+        )
+    ```
+    """
+
+    CLI_POST_CMD = apps.ServiceId[cli.Command]("cli-post-cmd.config-group")
+    """
+    Zero or more cli commands run after the successful execution of the main command.
+
+    This config group can be used to run a set of clean up or reporting steps after a successful
+    run of the aml job. The execution of these commands stops if any preceeding commands fail.
+
+    !!! info
+        Unlike [rats.aml.AppConfigs.CLI_ENVS][], the environment variables in these cli commands
+        are not exported globally and will only be available to the defined command. This helps
+        avoid conflicts between commands. If you want environemnt variables to be shared, define
+        them using [rats.aml.AppConfigs.CLI_ENVS][].
+
+    ```python
+    @apps.group(AppConfigs.CLI_POST_CMD)
+    def _post_cmds(self) -> Iterator[cli.Command]:
+        yield cli.Command(
+            cwd="./",
+            argv=("printenv",),
+            env={"FOO": "123"},
+        )
+    ```
+    """
+
     CLI_ENVS = apps.ServiceId[Mapping[str, str]]("cli-envs.config-group")
     """
     Dictionaries to merge and attach as environment variables to the submitted aml job.
@@ -318,6 +370,11 @@ class AppServices:
     advanced projects.
     """
 
+    RUNTIME_DETAILS_CLIENT = apps.ServiceId[RuntimeDetailsClient]("runtime-details-client")
+    """
+    Provides access to the [rats.aml.RuntimeDetails][] data structure once a job is submitted.
+    """
+
 
 @final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
@@ -354,6 +411,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         if len(app_ids) == 0:
             logging.warning("No applications were provided to the command")
 
+        details_client = self._app.get(AppServices.RUNTIME_DETAILS_CLIENT)
+
         for a in app_ids:
             # make sure all these app ids are valid
             self._find_app(a)
@@ -371,6 +430,30 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             argv=tuple(["rats-aml", "run", *app_ids]),
             env=env,
         )
+
+        pre_cmds = []
+        for pre_cmd in self._app.get_group(AppConfigs.CLI_PRE_CMD):
+            pre_cmds.append(shlex.join(["cd", pre_cmd.cwd]))
+            pre_cmds.append(
+                shlex.join(
+                    [
+                        *[f"{k}={shlex.quote(v)}" for k, v in pre_cmd.env.items()],
+                        *pre_cmd.argv,
+                    ]
+                )
+            )
+
+        post_cmds = []
+        for post_cmd in self._app.get_group(AppConfigs.CLI_POST_CMD):
+            post_cmds.append(shlex.join(["cd", post_cmd.cwd]))
+            post_cmds.append(
+                shlex.join(
+                    [
+                        *[f"{k}={shlex.quote(v)}" for k, v in post_cmd.env.items()],
+                        *post_cmd.argv,
+                    ]
+                )
+            )
 
         config = self._app.get(AppConfigs.JOB_DETAILS)
         env_ops = self._app.get(AppServices.AML_ENVIRONMENT_OPS)
@@ -405,8 +488,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
                 "export RATS_AML_ORIGINAL_PWD=${PWD}",
                 *input_envs,
                 *output_keys,
+                *pre_cmds,
                 shlex.join(["cd", cli_command.cwd]),
                 shlex.join(cli_command.argv),
+                *post_cmds,
             ]
         )
 
@@ -431,6 +516,15 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         )
         returned_job = job_ops.create_or_update(job)
         logger.info(f"created job: {returned_job.name}")
+
+        details_client.set(
+            RuntimeDetails(
+                job_name=returned_job.name,
+                app_ids=app_ids,
+                context=ctx,
+                wait=wait,
+            )
+        )
 
         while wait:
             job_details = job_ops.get(str(returned_job.name))
@@ -611,6 +705,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         from azure.identity import DefaultAzureCredential
 
         return cast("TokenCredential", DefaultAzureCredential())
+
+    @apps.service(AppServices.RUNTIME_DETAILS_CLIENT)
+    def _details_client(self) -> RuntimeDetailsClient:
+        return RuntimeDetailsClient()
 
     @apps.container()
     def _plugins(self) -> apps.Container:
