@@ -3,8 +3,7 @@
 import warnings
 from textwrap import dedent
 
-from ._plugin import PluginServices
-from ._runtime import AmlEnvironment, AmlIO, AmlRuntime, AmlWorkspace, RuntimeConfig
+import lazy_loader
 
 deprecation_msg = dedent("""
     the rats.amlruntime module is deprecated.
@@ -14,11 +13,5 @@ deprecation_msg = dedent("""
 
 warnings.warn(deprecation_msg, DeprecationWarning, stacklevel=2)
 
-__all__ = [
-    "AmlEnvironment",
-    "AmlIO",
-    "AmlRuntime",
-    "AmlWorkspace",
-    "PluginServices",
-    "RuntimeConfig",
-]
+
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)

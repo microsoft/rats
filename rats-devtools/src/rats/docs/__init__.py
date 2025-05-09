@@ -1,10 +1,5 @@
 """Create the best documentation solution for your project."""
 
-from ._app import AppConfigs, Application, AppServices, main
+import lazy_loader
 
-__all__ = [
-    "AppConfigs",
-    "AppServices",
-    "Application",
-    "main",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)

@@ -16,6 +16,7 @@ dependencies = [
     "click",
     "dataclass-wizard",
     "colorlog",
+    "lazy_loader",
 ]
 
 [project.urls]
