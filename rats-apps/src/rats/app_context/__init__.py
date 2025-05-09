@@ -1,21 +1,5 @@
 """Application context package to help share [apps.Container][] state across machines."""
 
-from ._collection import (
-    EMPTY_COLLECTION,
-    Collection,
-    dumps,
-    loads,
-)
-from ._container import GroupContainer, ServiceContainer
-from ._context import Context, T_ContextType
+import lazy_loader
 
-__all__ = [
-    "EMPTY_COLLECTION",
-    "Collection",
-    "Context",
-    "GroupContainer",
-    "ServiceContainer",
-    "T_ContextType",
-    "dumps",
-    "loads",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)  # type: ignore[reportUnknownVariableType]

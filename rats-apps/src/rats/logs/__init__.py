@@ -1,7 +1,5 @@
 """Small package to help configure logging for rats applications."""
 
-from ._app import ConfigureApplication
+import lazy_loader
 
-__all__ = [
-    "ConfigureApplication",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)  # type: ignore[reportUnknownVariableType]

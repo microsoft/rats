@@ -1,10 +1,5 @@
 """Examples and end-to-end tests for the `rats.aml` package."""
 
-from ._app import Application, main
-from ._example_job import ExampleJob
+import lazy_loader
 
-__all__ = [
-    "Application",
-    "ExampleJob",
-    "main",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)

@@ -1,8 +1,5 @@
 """Some utilities for developing the devtool cli commands."""
 
-from ._app import Application, main
+import lazy_loader
 
-__all__ = [
-    "Application",
-    "main",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)

@@ -9,24 +9,6 @@ The `CommandServiceTree` class is used to define the tree of command using Servi
 subcommands and handlers are resolved from the container, allowing lazy loading.
 """
 
-from ._click import (
-    ClickConversion,
-    CommandTreeClickExecutable,
-    dataclass_to_click_parameters,
-    to_click_commands,
-)
-from ._command_service_tree import CommandServiceTree
-from ._command_tree import CommandTree
-from ._docstring import get_attribute_docstring
-from ._ids import CommandTreeServices
+import lazy_loader
 
-__all__ = [
-    "ClickConversion",
-    "CommandServiceTree",
-    "CommandTree",
-    "CommandTreeClickExecutable",
-    "CommandTreeServices",
-    "dataclass_to_click_parameters",
-    "get_attribute_docstring",
-    "to_click_commands",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)

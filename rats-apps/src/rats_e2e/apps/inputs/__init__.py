@@ -21,11 +21,6 @@ apps.run(apps.AppBundle(app_plugin=inputs.Application, context=ctx))
 ```
 """
 
-from ._app import AppInput, Application, AppServices, main
+import lazy_loader
 
-__all__ = [
-    "AppInput",
-    "AppServices",
-    "Application",
-    "main",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)  # type: ignore[reportUnknownVariableType]

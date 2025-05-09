@@ -27,6 +27,7 @@ dependencies = [
     "mdx-truly-sane-lists",
     "mkdocstrings",
     "mkdocstrings-python",
+    "lazy_loader",
 ]
 
 [project.urls]

@@ -1,11 +1,5 @@
 """Commands for building and validating our components."""
 
-from ._app import AppConfigs, Application, AppServices, CiCommandGroups, main
+import lazy_loader
 
-__all__ = [
-    "AppConfigs",
-    "AppServices",
-    "Application",
-    "CiCommandGroups",
-    "main",
-]
+__getattr__, __dir__, __all__ = lazy_loader.attach_stub(__name__, __file__)
