@@ -39,7 +39,6 @@ set -eux
 mkdir -p /opt/rats/rats-devtools/src/rats/aml
 mkdir -p /opt/rats/rats-devtools/src/rats/amlruntime
 mkdir -p /opt/rats/rats-devtools/src/rats/ci
-mkdir -p /opt/rats/rats-devtools/src/rats/command_tree
 mkdir -p /opt/rats/rats-devtools/src/rats/docs
 mkdir -p /opt/rats/rats-devtools/src/rats/ez
 mkdir -p /opt/rats/rats-devtools/src/rats/projects
@@ -50,7 +49,6 @@ mkdir -p /opt/rats/rats-devtools/src/rats_resources/docs
 touch /opt/rats/rats-devtools/src/rats/aml/__init__.py
 touch /opt/rats/rats-devtools/src/rats/amlruntime/__init__.py
 touch /opt/rats/rats-devtools/src/rats/ci/__init__.py
-touch /opt/rats/rats-devtools/src/rats/command_tree/__init__.py
 touch /opt/rats/rats-devtools/src/rats/docs/__init__.py
 touch /opt/rats/rats-devtools/src/rats/ez/__init__.py
 touch /opt/rats/rats-devtools/src/rats/projects/__init__.py
