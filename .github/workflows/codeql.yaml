@@ -15,7 +15,7 @@ on:
 jobs:
   analyze:
     name: Analyze
-    runs-on: ["self-hosted", "1ES.Pool=oneml.github-runner-pool.dv5"]
+    runs-on: "ubuntu-24.04"
     permissions:
       security-events: write
       actions: read
