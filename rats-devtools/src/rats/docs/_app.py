@@ -78,8 +78,9 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @apps.fallback_service(AppServices.ROOT_DOCS_PATH)
     def _root_docs_path(self) -> Path:
         """By default, we use the root docs found in rats-devtools unless overwritten."""
-        logger.info(f"root docs path: {Path(str(resources.path(docs_resources, 'root-docs')))!s}")
-        return Path(str(resources.path(docs_resources, "root-docs")))
+        with resources.path(docs_resources, "root-docs") as p:
+            logger.info(f"root docs path: {p!s}")
+            return p
 
     @apps.fallback_service(AppConfigs.DOCS_COMPONENT_NAME)
     def _docs_component_name(self) -> str:
