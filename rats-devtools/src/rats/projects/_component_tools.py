@@ -36,10 +36,8 @@ class ComponentTools:
         """
         Create a symlink in the component directory.
 
-        The source path must be relative to the project directory. And the destination path must be
-        relative to the component directory.
+        The destination path must be relative to the component directory.
         """
-        self._validate_project_path(src)
         self._validate_component_path(dst)
 
         symlink(src, dst)
@@ -48,18 +46,14 @@ class ComponentTools:
         """
         Copy a file or directory into the component.
 
-        The source path must be relative to the project directory. And the destination path must be
-        relative to the component directory.
+        The destination path must be relative to the component directory.
         """
-        self._validate_project_path(src)
         # we expect this instance to create files in the matching component
         self._validate_component_path(dst)
 
         copy(src, dst)
 
     def copy_tree(self, src: Path, dst: Path) -> None:
-        # we want to allow copying files from anywhere in the project.
-        self._validate_project_path(src)
         # we expect this instance to create files in the matching component
         self._validate_component_path(dst)
 
@@ -87,19 +81,6 @@ class ComponentTools:
         """Ensure a path is relative to the component this instance is tied to."""
         if not path.is_relative_to(self._path):
             raise ValueError(f"component path must be relative to component: {path}")
-
-    def _validate_project_path(self, path: Path) -> None:
-        """
-        Ensure a path is relative to the project.
-
-        Mostly to prevent accidentally messing with external files. This library is specifically
-        designed to work with files in the repository.
-        """
-        # For now, we assume the project is one directory up from the component.
-        # We can move this to configs later if we need to.
-        project = self._path.parent
-        if not path.is_relative_to(project):
-            raise ValueError(f"component path must be relative to project: {path!s}")
 
     def pytest(self) -> None:
         self.run("pytest")
