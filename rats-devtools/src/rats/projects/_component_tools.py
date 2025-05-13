@@ -99,7 +99,7 @@ class ComponentTools:
         # We can move this to configs later if we need to.
         project = self._path.parent
         if not path.is_relative_to(project):
-            raise ValueError(f"component path must be relative to project: {path}")
+            raise ValueError(f"component path must be relative to project: {path!s}")
 
     def pytest(self) -> None:
         self.run("pytest")
