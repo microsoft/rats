@@ -394,7 +394,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @cli.command()
     def _list(self) -> None:
         """List all the exes and groups that announce their availability to be submitted to aml."""
-        entries = metadata.entry_points(group="rats.aml")
+        entries = metadata.entry_points(group="rats.aml.apps")
         for entry in entries:
             click.echo(entry.name)
 
