@@ -3,6 +3,7 @@
 set -eu
 
 declare -a cmds=(
+  "rats-aml"
   "rats-ci"
   "rats-docs"
   "rats-ez"
