@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import os
 import shlex
+import sys
 import time
 from collections.abc import Iterator, Mapping
 from importlib import metadata
@@ -721,5 +722,9 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
 def main() -> None:
     """Main entry-point to the `rats-aml` cli command."""
-    apps.run_plugin(logs.ConfigureApplication)
-    apps.run_plugin(Application)
+    try:
+        apps.run_plugin(logs.ConfigureApplication)
+        apps.run_plugin(Application)
+    except click.exceptions.ClickException as e:
+        e.show()
+        sys.exit(e.exit_code)
