@@ -114,4 +114,4 @@ def dumps(collection: Collection[Any]) -> str:
     Returns: a string that can easily be shared between machines.
 
     """
-    return json.dumps(dataclass_wizard.asdict(collection))  # type: ignore
+    return json.dumps(dataclass_wizard.asdict(collection), indent=4)  # type: ignore
