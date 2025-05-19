@@ -8,6 +8,7 @@ from ._configs import (
     AmlJobDetails,
     AmlWorkspace,
 )
+from ._request import Request
 from ._submission import submit
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "AppConfigs",
     "AppServices",
     "Application",
+    "Request",
     "main",
     "submit",
 ]

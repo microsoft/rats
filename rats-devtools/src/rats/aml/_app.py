@@ -1,23 +1,26 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 import shlex
+import subprocess
 import sys
 import time
 from collections.abc import Iterator, Mapping
-from importlib import metadata
+from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast, final
 from uuid import uuid4
 
 import click
+import yaml
 
-from rats import app_context, apps, cli, logs
+from rats import app_context, apps, cli, logs, runtime
 from rats import projects as projects
 
 from ._configs import AmlEnvironment, AmlIO, AmlJobContext, AmlJobDetails, AmlWorkspace
-from ._details import RuntimeDetails, RuntimeDetailsClient
+from ._request import Request
 
 if TYPE_CHECKING:
     from azure.ai.ml import MLClient
@@ -165,9 +168,8 @@ class AppConfigs:
     """
     Context element containing basic job information and always shared with the worker node.
 
-    This context object is always added to any registered
-    [rats.aml.AppConfigs.CONTEXT_COLLECTION][] in order to provide a handful of details that might
-    be useful for tracking larger pipelines.
+    This context object is always added to any registered [rats.runtime.AppServices.CONTEXT][] in
+    order to provide a handful of details that might be useful for tracking larger pipelines.
     """
 
     INPUTS = apps.ServiceId[Mapping[str, AmlIO]]("inputs.config-group")
@@ -222,26 +224,6 @@ class AppConfigs:
                     mode=InputOutputModes.RW_MOUNT,
                 ),
             }
-    ```
-    """
-    CONTEXT_COLLECTION = apps.ServiceId[app_context.Collection[Any]]("app-ctx-collection.config")
-    """
-    Collection containing the entire context being sent to the aml job.
-
-    You should not set this service config directly and instead register to the
-    [rats.aml.AppConfigs.APP_CONTEXT][] service group to add elements to this collection. You can
-    retrieve this service config on the aml job instance to retrieve the registered contexts.
-
-    ```python
-    from rats import apps, aml
-
-
-    class Application(apps.AppContainer):
-        def execute(self) -> None:
-            context_collection = self._app.get(aml.AppConfigs.CONTEXT_COLLECTION)
-            print("loaded context:")
-            for item in context_collection.items:
-                print(f"{item.service_id} -> {item.values}")
     ```
     """
 
@@ -371,15 +353,17 @@ class AppServices:
     advanced projects.
     """
 
-    RUNTIME_DETAILS_CLIENT = apps.ServiceId[RuntimeDetailsClient]("runtime-details-client")
+    REQUEST = apps.ServiceId[Request]("request")
     """
-    Provides access to the [rats.aml.RuntimeDetails][] data structure once a job is submitted.
+    Provides access to the [rats.aml.Request][] data structure once a job is submitted.
     """
 
 
 @final
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     """CLI application for submitting rats applications to be run on aml."""
+
+    _request: Request | None = None
 
     def execute(self) -> None:
         """Runs the `rats-aml` cli that provides methods for listing and submitting aml jobs."""
@@ -395,32 +379,47 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @cli.command()
     def _list(self) -> None:
         """List all the exes and groups that announce their availability to be submitted to aml."""
-        entries = metadata.entry_points(group="rats.aml.apps")
-        for entry in entries:
-            click.echo(entry.name)
+        print("\n".join(self._runtime_list()))
 
     @cli.command()
     @click.argument("app-ids", nargs=-1)
     @click.option("--context", default='{"items": []}')
+    @click.option("--context-file")
     @click.option("--wait", is_flag=True, default=False, help="wait for completion of aml job.")
-    def _submit(self, app_ids: tuple[str, ...], context: str, wait: bool) -> None:
+    def _submit(
+        self,
+        app_ids: tuple[str, ...],
+        context: str,
+        context_file: str | None,
+        wait: bool,
+    ) -> None:
         """Submit one or more apps to aml."""
         from azure.ai.ml import Input, Output, command
         from azure.ai.ml.entities import Environment
         from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
 
+        if self._request is not None:
+            print(self._request)
+            raise runtime.DuplicateRequestError()
+
+        ctx_collection = app_context.loads(context).add(
+            *self._app.get_group(AppConfigs.APP_CONTEXT),
+        )
+        if context_file:
+            p = Path(context_file)
+            if not p.is_file():
+                raise RuntimeError(f"context file not found: {context_file}")
+
+            data = yaml.safe_load(p.read_text())
+            ctx_collection = ctx_collection.merge(app_context.loads(json.dumps(data)))
+
         if len(app_ids) == 0:
             logging.warning("No applications were provided to the command")
 
-        details_client = self._app.get(AppServices.RUNTIME_DETAILS_CLIENT)
-
         for a in app_ids:
             # make sure all these app ids are valid
-            self._find_app(a)
-
-        ctx = app_context.loads(context).add(
-            *self._app.get_group(AppConfigs.APP_CONTEXT),
-        )
+            if a not in self._runtime_list():
+                raise RuntimeError(f"app id not found: {a}")
 
         env = {}
         for env_map in self._app.get_group(AppConfigs.CLI_ENVS):
@@ -428,7 +427,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         cli_command = cli.Command(
             cwd=self._app.get(AppConfigs.CLI_CWD),
-            argv=tuple(["rats-aml", "run", *app_ids]),
+            argv=tuple(["rats-runtime", "run", *app_ids]),
             env=env,
         )
 
@@ -511,20 +510,16 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             },
             environment_variables={
                 **cli_command.env,
-                "RATS_AML_RUN_CONTEXT": app_context.dumps(ctx),
+                "RATS_AML_RUN_CONTEXT": app_context.dumps(ctx_collection),
             },
             **extra_aml_command_args,
         )
         returned_job = job_ops.create_or_update(job)
         logger.info(f"created job: {returned_job.name}")
 
-        details_client.set(
-            RuntimeDetails(
-                job_name=str(returned_job.name),
-                app_ids=app_ids,
-                context=ctx,
-                wait=wait,
-            )
+        self._request = Request(
+            job_name=str(returned_job.name),
+            wait=wait,
         )
 
         while wait:
@@ -541,39 +536,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
             time.sleep(2)
 
-    @cli.command()
-    @click.argument("app-ids", nargs=-1)
-    @click.option("--context", default="{}")
-    def _run(self, app_ids: tuple[str, ...], context: str) -> None:
-        """Run one or more apps, typically in an aml job."""
-
-        def _load_app(name: str, ctx: app_context.Collection[Any]) -> apps.AppContainer:
-            return apps.AppBundle(
-                app_plugin=self._find_app(name),
-                context=apps.StaticContainer(
-                    apps.StaticProvider(
-                        namespace=apps.ProviderNamespaces.SERVICES,
-                        service_id=AppConfigs.CONTEXT_COLLECTION,
-                        call=lambda: ctx,
-                    ),
-                ),
-            )
-
-        if len(app_ids) == 0:
-            logging.warning("No applications were passed to the command")
-
-        ctx_collection = app_context.loads(context)
-        for app_id in app_ids:
-            app = _load_app(app_id, ctx_collection)
-            app.execute()
-
-    def _find_app(self, name: str) -> type[apps.AppContainer]:
-        entries = metadata.entry_points(group="rats.aml.apps")
-        for e in entries:
-            if e.name == name:
-                return e.load()
-
-        raise RuntimeError(f"AML app-id not found: {name}")
+    @cache  # noqa: B019
+    def _runtime_list(self) -> tuple[str, ...]:
+        response = subprocess.run(["rats-runtime", "list"], capture_output=True)
+        return tuple(response.stdout.decode("UTF-8").splitlines())
 
     @apps.fallback_service(AppConfigs.CLI_CWD)
     def _cwd(self) -> str:
@@ -707,9 +673,12 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         return cast("TokenCredential", DefaultAzureCredential())
 
-    @apps.service(AppServices.RUNTIME_DETAILS_CLIENT)
-    def _details_client(self) -> RuntimeDetailsClient:
-        return RuntimeDetailsClient()
+    @apps.service(AppServices.REQUEST)
+    def _request_provider(self) -> Request:
+        if self._request is None:
+            raise runtime.RequestNotFoundError()
+
+        return self._request
 
     @apps.container()
     def _plugins(self) -> apps.Container:
