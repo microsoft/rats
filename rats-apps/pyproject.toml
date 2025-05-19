@@ -33,6 +33,7 @@ documentation = "https://microsoft.github.io/rats"
 packages = [
     { include = "rats", from = "src" },
     { include = "rats_e2e", from = "src" },
+    { include = "rats_resources", from = "src" },
 ]
 requires-poetry = ">=2.0"
 

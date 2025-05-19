@@ -74,8 +74,9 @@ class Collection(Generic[T_ContextType]):
         )
 
 
-dataclass_wizard.DumpMeta(key_transform="NONE").bind_to(Collection)
-dataclass_wizard.LoadMeta(key_transform="NONE").bind_to(Collection)
+# disable key transformation for our collection class
+dataclass_wizard.DumpMeta(key_transform="NONE").bind_to(Collection)  # type: ignore[reportUnknownMemberType]
+dataclass_wizard.LoadMeta(key_transform="NONE").bind_to(Collection)  # type: ignore[reportUnknownMemberType]
 EMPTY_COLLECTION = Collection[Any].empty()
 """Empty collection constant usable as default method values."""
 
