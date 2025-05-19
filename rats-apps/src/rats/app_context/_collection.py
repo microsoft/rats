@@ -74,6 +74,8 @@ class Collection(Generic[T_ContextType]):
         )
 
 
+dataclass_wizard.DumpMeta(key_transform="NONE").bind_to(Collection)
+dataclass_wizard.LoadMeta(key_transform="NONE").bind_to(Collection)
 EMPTY_COLLECTION = Collection[Any].empty()
 """Empty collection constant usable as default method values."""
 
@@ -92,10 +94,10 @@ def loads(context: str) -> Collection[Any]:
         items=tuple(
             [
                 Context(
-                    service_id=apps.ServiceId(*x["serviceId"]),
+                    service_id=apps.ServiceId(*x["service_id"]),
                     values=tuple(x["values"]),
                 )
-                for x in data["items"]
+                for x in data.get("items", [])
             ]
         ),
     )
