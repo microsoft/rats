@@ -40,7 +40,7 @@ class ClickApp(apps.Executable):
         Attach any commands provided by the [rats.cli.Container][] and then execute the group.
 
         !!! note
-            Currently, this method runs [click.BaseCommand.main][] without arguments, causing Click
+            Currently, this method runs [click.Command.main][] without arguments, causing Click
             to pull the command arguments from [sys.argv][]. If you are needing to change this,
             skip using this class and implement the custom logic yourself.
         """

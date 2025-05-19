@@ -538,6 +538,12 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @cache  # noqa: B019
     def _runtime_list(self) -> tuple[str, ...]:
+        """
+        Uses the `rats-runtime list` command within the component `rats-aml list` is run from.
+
+        Making this a simple subprocess allows us to submit aml jobs from components that have
+        no aml libraries installed, even when the `rats-devtools` component is not installed.
+        """
         response = subprocess.run(["rats-runtime", "list"], capture_output=True)
         return tuple(response.stdout.decode("UTF-8").splitlines())
 

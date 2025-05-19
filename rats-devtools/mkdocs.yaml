@@ -67,9 +67,9 @@ plugins:
             # we don't need to install packages to generate docs any more
             # these paths should be relative from rats-devtools/dist
             # we can automate the detection of this list later
-            - "../../rats/src/python"
-            - "../../rats-apps/src/python"
-            - "../../rats-devtools/src/python"
+            - "../../rats/src"
+            - "../../rats-apps/src"
+            - "../../rats-devtools/src"
           options:
             show_if_no_docstring: true
             show_symbol_type_toc: true
