@@ -81,7 +81,7 @@ class Collection(Generic[T_ContextType]):
         Retrieves the raw data structures matching a service id.
 
         The values returned here have been encoded into simple dictionaries and are ready to be
-        serialized and transfered across machines. See the
+        serialized and transferred across machines. See the
         [rats.app_context.Collection.decoded_values][] method to retrieve context values that have
         been turned back into the desired dataclass objects.
 
