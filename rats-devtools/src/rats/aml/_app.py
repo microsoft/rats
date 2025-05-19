@@ -510,7 +510,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             },
             environment_variables={
                 **cli_command.env,
-                "RATS_AML_RUN_CONTEXT": app_context.dumps(ctx_collection),
+                "RATS_RUNTIME_RUN_CONTEXT": app_context.dumps(ctx_collection),
             },
             **extra_aml_command_args,
         )
