@@ -14,6 +14,7 @@ license = "MIT"
 dependencies = [
     "typing-extensions",
     "click",
+    "pyyaml",
     "dataclass-wizard",
     "colorlog",
 ]
@@ -21,6 +22,12 @@ dependencies = [
 [project.urls]
 repository = "https://github.com/microsoft/rats"
 documentation = "https://microsoft.github.io/rats"
+
+[project.scripts]
+"rats-runtime" = "rats.runtime:main"
+
+[project.entry-points."rats.runtime.apps"]
+"rats_e2e.runtime" = "rats_e2e.runtime:Application"
 
 [tool.poetry]
 packages = [
