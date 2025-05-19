@@ -109,9 +109,9 @@ markdown_extensions:
       # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#snippets-notation
       base_path:
         - "../"  # let us use full paths from the repo root
-        # or relative from each python directory
-        - "../rats-apps/src/python"
-        - "../rats-devtools/src/python"
+        # or relative from each src directory
+        - "../rats-apps/src"
+        - "../rats-devtools/src"
       # fail the mkdocs build if any snippets link to missing files
       # this delays painful bugs being found when disabled
       check_paths: true
