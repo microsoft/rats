@@ -1,4 +1,5 @@
 import logging
+import warnings
 from importlib import resources
 from pathlib import Path
 
@@ -29,11 +30,43 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @cli.command()
     def mkdocs_build(self) -> None:
+        """
+        Build the mkdocs site for every component in the project.
+
+        !!! warning
+            This command is deprecated and will be removed in a future release. Use the `build`
+            command instead.
+        """
+        warnings.warn(
+            "the `mkdocs-build` command is deprecated. use `build` instead.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        self.build()
+
+    @cli.command()
+    def build(self) -> None:
         """Build the mkdocs site for every component in the project."""
         self._do_mkdocs_things("build")
 
     @cli.command()
     def mkdocs_serve(self) -> None:
+        """
+        Serve the mkdocs site for the project and monitor files for changes.
+
+        !!! warning
+            This command is deprecated and will be removed in a future release. Use the `serve`
+            command instead.
+        """
+        warnings.warn(
+            "the `mkdocs-serve` command is deprecated. use `serve` instead.",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        self.serve()
+
+    @cli.command()
+    def serve(self) -> None:
         """Serve the mkdocs site for the project and monitor files for changes."""
         self._do_mkdocs_things("serve")
 
