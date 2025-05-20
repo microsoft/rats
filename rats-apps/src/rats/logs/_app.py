@@ -1,4 +1,5 @@
 import logging.config
+import warnings
 
 from rats import apps
 
@@ -42,4 +43,7 @@ class ConfigureApplication(apps.AppContainer, apps.PluginMixin):
                 },
             }
         )
+        # enable deprecation warnings by default
+        logging.captureWarnings(True)
+        warnings.simplefilter("default", DeprecationWarning)
         logger.debug("done configuring logging")
