@@ -26,7 +26,7 @@ class AppConfigs:
             yield "azure", {"level": "WARNING", "handlers": ["console"]}
 
 
-    # provide the new configuration when executing `logs.ConfigureApplcation`
+    # provide the new configuration when executing `logs.ConfigureAppilcation`
     apps.run(apps.AppBundle(
         app_plugin=logs.ConfigureApplication,
         container_plugin=PluginContainer,
