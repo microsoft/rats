@@ -121,7 +121,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             )
 
         if len(app_ids) == 0:
-            logging.warning("No applications were passed to the command")
+            logger.warning("No applications were passed to the command")
 
         for app_id in app_ids:
             app = _load_app(app_id, ctx_collection)
