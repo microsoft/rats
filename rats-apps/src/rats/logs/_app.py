@@ -50,7 +50,7 @@ class ConfigureApplication(apps.AppContainer, apps.PluginMixin):
     """
 
     def execute(self) -> None:
-        """Logging should be configured after the execution of this application."""
+        """Applies the logging configuration."""
         logger_configs = self._app.get_group(AppConfigs.LOGGERS)
         loggers_dict = {key: value for key, value in logger_configs}
         logging.config.dictConfig(
