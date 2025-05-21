@@ -378,7 +378,13 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @cli.command()
     def _list(self) -> None:
-        """List all the exes and groups that announce their availability to be submitted to aml."""
+        """
+        List all the exes and groups that announce their availability to be submitted to aml.
+
+        This command is currently an alias to the `rats-runtime list` command because [rats.aml][]
+        should be able to run anything `rats-runtime` can. Any application registered to the
+        `rats.runtime.apps` python entry-point.
+        """
         print("\n".join(self._runtime_list()))
 
     @cli.command()
@@ -393,7 +399,11 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         context_file: str | None,
         wait: bool,
     ) -> None:
-        """Submit one or more apps to aml."""
+        """
+        Submit one or more apps to aml.
+
+        Run `rats-aml list` to find the list of applications registered in this component.
+        """
         from azure.ai.ml import Input, Output, command
         from azure.ai.ml.entities import Environment
         from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
