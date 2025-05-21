@@ -1,4 +1,4 @@
-"""Run the amlruntime commands."""
+"""Run the rats-aml commands."""
 
 from rats import aml
 
