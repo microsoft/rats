@@ -1,11 +1,11 @@
 r"""
 A minimal example application that can be submitted as an aml job.
 
-We can run the examples with the cli commands in the [rats_e2e.aml][] module.
+We can run the examples with the cli commands in the [rats_e2e.aml.cli][] module.
 
 ```bash
-$ python -m rats_e2e.aml --help
-Usage: python -m rats_e2e.aml [OPTIONS] COMMAND [ARGS]...
+$ python -m rats_e2e.aml.cli --help
+Usage: python -m rats_e2e.aml.cli [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
@@ -59,7 +59,7 @@ python.
                     app_context.Context.make(
                         basic.AppServices.EXAMPLE_DATA,
                         basic.ExampleData("example data name", "example data value"),
-                        basic.ExampleData("another example data name", "another example data value"),
+                        basic.ExampleData("another example name", "another example value"),
                     ),
                 ),
                 wait=True,
@@ -85,6 +85,7 @@ python.
             value: another example data name
     ```
 """
+
 from ._app import Application, AppServices, ExampleData
 
 __all__ = [

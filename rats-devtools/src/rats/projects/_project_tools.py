@@ -140,7 +140,7 @@ class ProjectTools:
 
     @cache  # noqa: B019
     def discover_components(self) -> tuple[ComponentId, ...]:
-        valid_components = []
+        valid_components: list[ComponentId] = []
         if self._is_single_component_project():
             p = self.repo_root() / "pyproject.toml"
 

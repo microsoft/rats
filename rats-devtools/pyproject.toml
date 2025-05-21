@@ -79,6 +79,10 @@ exclude = [
     "src/rats_resources",
     "test/rats_test_resources",
 ]
+
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
 deprecateTypingAliases = true
 reportPropertyTypeMismatch = true
 reportUnusedImport = true
@@ -105,23 +109,23 @@ reportMatchNotExhaustive = true
 reportShadowedImports = true
 
 reportMissingTypeStubs = false
-reportImportCycles = false
+reportImportCycles = true
 reportUnusedFunction = false
 reportMissingSuperCall = false
-reportPrivateUsage = false
-reportUninitializedInstanceVariable = false
-reportUnknownArgumentType = false
-reportUnknownLambdaType = false
-reportUnknownVariableType = false
-reportUnknownMemberType = false
-reportCallInDefaultInitializer = false
-reportUnnecessaryIsInstance = false
-reportUnnecessaryComparison = false
+reportPrivateUsage = true
+reportUninitializedInstanceVariable = false  # disabled so we can check test directories
+reportUnknownArgumentType = true
+reportUnknownLambdaType = true
+reportUnknownVariableType = true
+reportUnknownMemberType = true
+reportCallInDefaultInitializer = true
+reportUnnecessaryIsInstance = true
+reportUnnecessaryComparison = true
 reportUnusedCallResult = false
-reportUnusedExpression = false
+reportUnusedExpression = true
 reportImplicitOverride = false
-reportIncompatibleVariableOverride = false
-reportIncompatibleMethodOverride = false
+reportIncompatibleVariableOverride = true
+reportIncompatibleMethodOverride = true
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"

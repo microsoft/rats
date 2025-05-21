@@ -16,6 +16,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     @cli.command()
     def _basic_job(self) -> None:
         """Submit the [rats_e2e.aml.basic][] application as an aml job."""
+
         def envs() -> Iterator[dict[str, str]]:
             yield {"RATS_AML_E2E_EXAMPLE": "this env is attached to the remote job"}
 
@@ -24,8 +25,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             container_plugin=lambda app: apps.StaticContainer(
                 apps.static_group(aml.AppConfigs.CLI_ENVS, envs)
             ),
-            context=app_context.Collection.make(
-                app_context.Context.make(
+            context=app_context.Collection[basic.ExampleData].make(
+                app_context.Context[basic.ExampleData].make(
                     basic.AppServices.EXAMPLE_DATA,
                     basic.ExampleData("example data name", "example data value"),
                     basic.ExampleData("another example data name", "another example data value"),

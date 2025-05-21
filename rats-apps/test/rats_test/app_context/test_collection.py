@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Any
 
 from rats import app_context, apps
 
@@ -16,12 +17,12 @@ class TestServices:
 
 class TestCollection:
     _context: ExampleConfig
-    _collection: app_context.Collection
+    _collection: app_context.Collection[Any]
 
     def setup_method(self) -> None:
         self._context = ExampleConfig("example1", {"a": "b"})
-        self._collection = app_context.Collection.make(
-            app_context.Context.make(TestServices.CONTEXT_1, self._context),
+        self._collection = app_context.Collection[ExampleConfig].make(
+            app_context.Context[ExampleConfig].make(TestServices.CONTEXT_1, self._context),
         )
 
     def test_basic_serialization(self) -> None:

@@ -1,5 +1,5 @@
 items:
-  - service_id: ["rats_e2e.aml._example_job:JobServices[example-data]"]
+  - service_id: ["rats_e2e.aml.basic._app:AppServices[example-data]"]
     values:
       - name: example data name
         value: example data name

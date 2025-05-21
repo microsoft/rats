@@ -2,7 +2,7 @@ import json
 import logging
 import time
 from collections.abc import Callable, Mapping
-from typing import NamedTuple
+from typing import NamedTuple, cast
 
 from rats import apps
 
@@ -72,14 +72,18 @@ class AmlRuntime(apps.Runtime):
         exe_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
         exe_group_ids: tuple[apps.ServiceId[apps.T_ExecutableType], ...],
     ) -> None:
-        from azure.ai.ml import Input, Output, command
-        from azure.ai.ml.entities import Environment
+        from azure.ai.ml import Input, Output, command  # type: ignore[reportUnknownVariableType]
+        from azure.ai.ml.entities import Environment, Job
+        from azure.ai.ml.operations import EnvironmentOperations, JobOperations
         from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
 
         config = self._config()
         logger.info(f"{config.environment._asdict()}")
 
-        self._environment_operations().create_or_update(
+        env_ops: EnvironmentOperations = self._environment_operations()  # type: ignore[reportUnknownVariableType]
+        job_ops: JobOperations = self._job_operations()  # type: ignore[reportUnknownVariableType]
+
+        env_ops.create_or_update(  # type: ignore[reportUnknownMemberType]
             Environment(**config.environment._asdict())
         )
 
@@ -103,18 +107,19 @@ class AmlRuntime(apps.Runtime):
                 "DEVTOOLS_EVENT_IDS": groups_json,
             },
         )
-        returned_job = self._job_operations().create_or_update(job)
-        logger.info(f"created job: {returned_job.name}")
-        self._job_operations().stream(str(returned_job.name))
+
+        returned_job: Job = cast(Job, job_ops.create_or_update(job))  # type: ignore[reportUnknownMemberType]
+        logger.info(f"created job: {returned_job.name!s}")
+        job_ops.stream(str(returned_job.name))  # type: ignore[reportUnknownMemberType]
         logger.info(f"done streaming logs: {returned_job.name}")
         while True:
-            job_details = self._job_operations().get(str(returned_job.name))
-            logger.info(f"status: {job_details.status}")
-            if job_details.status in RunHistoryConstants.TERMINAL_STATUSES:
+            job_details: Job = job_ops.get(str(returned_job.name))  # type: ignore[reportUnknownVariableType]
+            logger.info(f"status: {job_details.status!s}")  # type: ignore[reportUnknownMemberType]
+            if job_details.status in RunHistoryConstants.TERMINAL_STATUSES:  # type: ignore[reportUnknownMemberType]
                 break
 
-            logger.warning(f"job {returned_job.name} is not done yet: {job_details.status}")
+            logger.warning(f"job {returned_job.name} is not done yet: {job_details.status}")  # type: ignore[reportUnknownMemberType]
             time.sleep(2)
 
-        if job_details.status != JobStatus.COMPLETED:
-            raise RuntimeError(f"job {returned_job.name} failed with status {job_details.status}")
+        if job_details.status != JobStatus.COMPLETED:  # type: ignore[reportUnknownMemberType]
+            raise RuntimeError(f"job {returned_job.name} failed with status {job_details.status}")  # type: ignore[reportUnknownMemberType]

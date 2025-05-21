@@ -1,8 +1,8 @@
 import os
 from dataclasses import dataclass
 
-from rats import aml, runtime
-from rats import apps as apps
+from rats import aml as aml
+from rats import apps, runtime
 
 
 @dataclass(frozen=True)
@@ -18,6 +18,7 @@ class AppServices:
 
 class Application(apps.AppContainer, apps.PluginMixin):
     """Shows how to read information passed into the application by the aml job submitter."""
+
     def execute(self) -> None:
         """Print all the environment and context information in the aml job."""
         context_collection = self._app.get(runtime.AppServices.CONTEXT)
@@ -32,7 +33,7 @@ class Application(apps.AppContainer, apps.PluginMixin):
         print(f"aml job context that is always available: {job_context}")
 
         example_data = context_collection.decoded_values(ExampleData, AppServices.EXAMPLE_DATA)
-        print(f"found {len(example_data)} example data item(s) within the context: {AppServices.EXAMPLE_DATA}")
+        print(f"{len(example_data)} example data item(s) in context {AppServices.EXAMPLE_DATA}")
         for x in example_data:
             print(x)
 

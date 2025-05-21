@@ -404,7 +404,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         Run `rats-aml list` to find the list of applications registered in this component.
         """
-        from azure.ai.ml import Input, Output, command
+        from azure.ai.ml import Input, Output, command  # type: ignore[reportUnknownVariableType]
         from azure.ai.ml.entities import Environment
         from azure.ai.ml.operations._run_history_constants import JobStatus, RunHistoryConstants
 
@@ -431,7 +431,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             if a not in self._runtime_list():
                 raise RuntimeError(f"app id not found: {a}")
 
-        env = {}
+        env: dict[str, str] = {}
         for env_map in self._app.get_group(AppConfigs.CLI_ENVS):
             env.update(env_map)
 
@@ -441,7 +441,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             env=env,
         )
 
-        pre_cmds = []
+        pre_cmds: list[str] = []
         for pre_cmd in self._app.get_group(AppConfigs.CLI_PRE_CMD):
             pre_cmds.append(shlex.join(["cd", pre_cmd.cwd]))
             pre_cmds.append(
@@ -453,7 +453,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
                 )
             )
 
-        post_cmds = []
+        post_cmds: list[str] = []
         for post_cmd in self._app.get_group(AppConfigs.CLI_POST_CMD):
             post_cmds.append(shlex.join(["cd", post_cmd.cwd]))
             post_cmds.append(
@@ -524,7 +524,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             },
             **extra_aml_command_args,
         )
-        returned_job = job_ops.create_or_update(job)
+        returned_job = job_ops.create_or_update(job)  # type: ignore[reportUnknownMemberType]
         logger.info(f"created job: {returned_job.name}")
 
         self._request = Request(
@@ -569,7 +569,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @apps.group(AppConfigs.APP_CONTEXT)
     def _job_context(self) -> Iterator[app_context.Context[AmlJobContext]]:
-        yield app_context.Context.make(
+        yield app_context.Context[AmlJobContext].make(
             AppConfigs.JOB_CONTEXT,
             AmlJobContext(
                 uuid=str(uuid4()),

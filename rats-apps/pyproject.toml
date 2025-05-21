@@ -61,7 +61,6 @@ exclude = ["**/__pycache__", "src/rats_resources", "src/rats_test_resources"]
 strictListInference = true
 strictDictionaryInference = true
 strictSetInference = true
-
 deprecateTypingAliases = true
 reportPropertyTypeMismatch = true
 reportUnusedImport = true
@@ -92,7 +91,7 @@ reportImportCycles = true
 reportUnusedFunction = false
 reportMissingSuperCall = false
 reportPrivateUsage = true
-reportUninitializedInstanceVariable = true
+reportUninitializedInstanceVariable = false  # disabled so we can check test directories
 reportUnknownArgumentType = true
 reportUnknownLambdaType = true
 reportUnknownVariableType = true
@@ -105,7 +104,6 @@ reportUnusedExpression = true
 reportImplicitOverride = false
 reportIncompatibleVariableOverride = true
 reportIncompatibleMethodOverride = true
-
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"
