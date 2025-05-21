@@ -1,5 +1,0 @@
-kind: Kustomization
-namespace: workflows
-resources:
-- job.yaml
-- namespace.yaml

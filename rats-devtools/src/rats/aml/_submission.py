@@ -1,7 +1,8 @@
 from typing import Any
 
 from rats import app_context, apps, cli
-from rats.aml import Application
+
+from ._app import Application
 
 
 def submit(

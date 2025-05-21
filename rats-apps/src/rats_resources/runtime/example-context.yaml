@@ -1,0 +1,9 @@
+items:
+  - service_id: ["rats_e2e.runtime._app:AppServices[example-data]"]
+    values:
+      - id: "111"
+        thing_a: "111"
+        thing_b: "111"
+      - id: "222"
+        thing_a: "222"
+        thing_b: "222"

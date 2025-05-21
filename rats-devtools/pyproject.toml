@@ -1,7 +1,7 @@
 [project]
 name = "rats-devtools"
 description = "Rats Development Tools"
-version = "0.10.3"
+version = "0.11.0"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
@@ -61,8 +61,8 @@ rats-docs = "rats.docs:main"
 rats-ez = "rats.ez:main"
 rats-aml = "rats.aml:main"
 
-[project.entry-points."rats.aml.apps"]
-"rats_e2e.aml.hello-world" = "rats_e2e.aml:ExampleJob"
+[project.entry-points."rats.runtime.apps"]
+"rats_e2e.aml.basic" = "rats_e2e.aml.basic:Application"
 
 [build-system]
 requires = ["poetry-core"]
@@ -79,6 +79,10 @@ exclude = [
     "src/rats_resources",
     "test/rats_test_resources",
 ]
+
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
 deprecateTypingAliases = true
 reportPropertyTypeMismatch = true
 reportUnusedImport = true
@@ -105,23 +109,23 @@ reportMatchNotExhaustive = true
 reportShadowedImports = true
 
 reportMissingTypeStubs = false
-reportImportCycles = false
+reportImportCycles = true
 reportUnusedFunction = false
 reportMissingSuperCall = false
-reportPrivateUsage = false
-reportUninitializedInstanceVariable = false
-reportUnknownArgumentType = false
-reportUnknownLambdaType = false
-reportUnknownVariableType = false
-reportUnknownMemberType = false
-reportCallInDefaultInitializer = false
-reportUnnecessaryIsInstance = false
-reportUnnecessaryComparison = false
+reportPrivateUsage = true
+reportUninitializedInstanceVariable = false  # disabled so we can check test directories
+reportUnknownArgumentType = true
+reportUnknownLambdaType = true
+reportUnknownVariableType = true
+reportUnknownMemberType = true
+reportCallInDefaultInitializer = true
+reportUnnecessaryIsInstance = true
+reportUnnecessaryComparison = true
 reportUnusedCallResult = false
-reportUnusedExpression = false
+reportUnusedExpression = true
 reportImplicitOverride = false
-reportIncompatibleVariableOverride = false
-reportIncompatibleMethodOverride = false
+reportIncompatibleVariableOverride = true
+reportIncompatibleMethodOverride = true
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"

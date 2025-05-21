@@ -1,7 +1,7 @@
 [project]
 name = "rats-apps"
 description = "research analysis tools for building applications"
-version = "0.10.3"
+version = "0.11.0"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
@@ -14,6 +14,7 @@ license = "MIT"
 dependencies = [
     "typing-extensions",
     "click",
+    "pyyaml",
     "dataclass-wizard",
     "colorlog",
 ]
@@ -22,10 +23,17 @@ dependencies = [
 repository = "https://github.com/microsoft/rats"
 documentation = "https://microsoft.github.io/rats"
 
+[project.scripts]
+"rats-runtime" = "rats.runtime:main"
+
+[project.entry-points."rats.runtime.apps"]
+"rats_e2e.runtime" = "rats_e2e.runtime:Application"
+
 [tool.poetry]
 packages = [
     { include = "rats", from = "src" },
     { include = "rats_e2e", from = "src" },
+    { include = "rats_resources", from = "src" },
 ]
 requires-poetry = ">=2.0"
 
@@ -53,7 +61,6 @@ exclude = ["**/__pycache__", "src/rats_resources", "src/rats_test_resources"]
 strictListInference = true
 strictDictionaryInference = true
 strictSetInference = true
-
 deprecateTypingAliases = true
 reportPropertyTypeMismatch = true
 reportUnusedImport = true
@@ -84,7 +91,7 @@ reportImportCycles = true
 reportUnusedFunction = false
 reportMissingSuperCall = false
 reportPrivateUsage = true
-reportUninitializedInstanceVariable = true
+reportUninitializedInstanceVariable = false  # disabled so we can check test directories
 reportUnknownArgumentType = true
 reportUnknownLambdaType = true
 reportUnknownVariableType = true
@@ -97,7 +104,6 @@ reportUnusedExpression = true
 reportImplicitOverride = false
 reportIncompatibleVariableOverride = true
 reportIncompatibleMethodOverride = true
-
 
 [tool.ruff]
 cache-dir = ".tmp/.ruff_cache"

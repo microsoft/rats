@@ -1,0 +1,58 @@
+FROM mcr.microsoft.com/mirror/docker/library/ubuntu:24.04
+
+# pipx is going to install things here for us
+ENV PIPX_BIN_DIR="/usr/local/bin"
+ENV PIPX_HOME=/opt/pipx
+
+RUN <<HEREDOC
+# install package dependencies and create nonroot user
+set -eux
+
+useradd -u 1001 -m nonroot
+
+apt-get update
+
+apt-get install -yqq --no-install-recommends \
+    python3-minimal \
+    python3-pip \
+    pipx
+
+pipx install poetry
+poetry config virtualenvs.in-project true
+
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+rm -rf /tmp/*
+rm -rf /root/.cache
+HEREDOC
+
+COPY rats-apps/pyproject.toml /opt/rats/rats-apps/pyproject.toml
+COPY rats-apps/poetry.lock /opt/rats/rats-apps/poetry.lock
+COPY rats-apps/README.md /opt/rats/rats-apps/README.md
+RUN <<HEREDOC
+# create skeleton of python packages
+set -eux
+
+mkdir -p /opt/rats/rats-apps/src/rats/apps
+mkdir -p /opt/rats/rats-apps/src/rats_e2e/apps
+mkdir -p /opt/rats/rats-apps/src/rats_resources/runtime
+
+touch /opt/rats/rats-apps/src/rats/apps/__init__.py
+touch /opt/rats/rats-apps/src/rats_e2e/apps/__init__.py
+touch /opt/rats/rats-apps/src/rats_resources/runtime/__init__.py
+
+HEREDOC
+
+WORKDIR /opt/rats/rats-apps
+RUN <<HEREDOC
+# install python package dependencies!
+set -eux
+
+poetry install --only main
+
+rm -rf /root/.cache
+HEREDOC
+COPY . /opt/rats
+ENV PATH="$PATH:/opt/rats/rats-apps/.venv/bin"
+# nothing should be installed after this step
+USER nonroot
