@@ -33,14 +33,10 @@ python.
         --context-file src/rats_resources/aml/example-context.yaml
     ```
 === "rats.aml.submit"
-    Instead of relying on a static yaml file, we can submit aml jobs with much more control
-    using [rats.aml.submit][]. In addition to providing a [rats.app_context.Collection][]
-    instance to the remote job, we can specify additional configuration for the creation of
-    the aml job, like the aml job environment variables.
-
-    !!! note
-        For a complete list of options you can provide through the `container_plugin`
-        argument, they are specified in [rats.aml.AppConfigs][].
+    Instead of relying on a static yaml file, we can submit aml jobs with additional control
+    using [rats.aml.submit][]. Along with a [rats.app_context.Collection][] instance for the
+    remote job, we can specify additional configuration for the creation of the aml job, like the
+    aml job environment variables.
 
     ```python
     from collections.abc import Iterator
@@ -73,6 +69,9 @@ python.
     def main() -> None:
         apps.run_plugin(Application)
     ```
+    !!! note
+        The [rats.aml.AppConfigs][] class contains the complete list of options you can provide
+        through the `container_plugin` argument.
 === "src/rats_resources/aml/example-context.yaml"
     We can pass a yaml file to `rats-aml submit` to add [rats.app_context.Context] values
     to the remote aml job, using the `--context-file` argument.
