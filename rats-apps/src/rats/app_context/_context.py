@@ -72,6 +72,9 @@ class Context(dataclass_wizard.JSONSerializable, Generic[T_ContextType]):
             service_id: The service id the context values will be retrievable as.
             *contexts: Zero or more [rats.app_context.T_ContextType][] instances.
         """
+        if len(contexts) > 0:
+            cls = contexts[0].__class__
+            dataclass_wizard.DumpMeta(key_transform="NONE").bind_to(cls)  # type: ignore[reportUnknownMemberType]
         return Context(
             service_id,
             tuple([dataclass_wizard.asdict(ctx) for ctx in contexts]),  # type: ignore
