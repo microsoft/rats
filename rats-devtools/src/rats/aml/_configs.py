@@ -1,12 +1,8 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, NamedTuple
-
-if TYPE_CHECKING:
-    from azure.ai.ml.entities import BuildContext
+from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +16,11 @@ class AmlWorkspace(NamedTuple):
     """Azure resource group containing the desired workspace."""
     workspace_name: str
     """Azure aml workspace name jobs should be submitted to."""
+
+
+class AmlBuildContext(NamedTuple):
+    dockerfile_path: str | None
+    path: str | None
 
 
 class AmlEnvironment(NamedTuple):
@@ -51,7 +52,7 @@ class AmlEnvironment(NamedTuple):
     Typically, this matches the tag portion of the built container images. You will find a version
     drop-down when viewing the environment in your AML workspace.
     """
-    build: BuildContext | None
+    build: AmlBuildContext | None
     """
     Docker build context for the environment.
     This is used when the environment is built by AML. Mutually exclusive with "image".
@@ -79,8 +80,8 @@ class AmlIO(NamedTuple):
 
 class AmlJobDetails(NamedTuple):
     compute: str
-    inputs: Mapping[str, AmlIO]
-    outputs: Mapping[str, AmlIO]
+    inputs: dict[str, AmlIO]  # avoiding the more correct Mapping because of dataclass_wizard
+    outputs: dict[str, AmlIO]  # avoiding the more correct Mapping because of dataclass_wizard
     workspace: AmlWorkspace
     environment: AmlEnvironment
 
