@@ -122,7 +122,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @apps.container()
     def _plugins(self) -> apps.Container:
-        return apps.CompositeContainer(projects.PluginContainer(self._app))
+        return apps.CompositeContainer(
+            projects.PluginContainer(self._app),
+            apps.PythonEntryPointContainer(self._app, "rats.ci"),
+        )
 
 
 def main() -> None:
