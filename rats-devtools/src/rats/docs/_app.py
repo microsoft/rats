@@ -1,7 +1,5 @@
 import logging
 import warnings
-from importlib import resources
-from pathlib import Path
 
 import click
 
@@ -9,7 +7,6 @@ from rats import apps as apps
 from rats import cli as cli
 from rats import logs as logs
 from rats import projects
-from rats_resources import docs as docs_resources
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +14,13 @@ logger = logging.getLogger(__name__)
 @apps.autoscope
 class AppConfigs:
     DOCS_COMPONENT_NAME = apps.ServiceId[str]("docs-component-name.config")
+    """
+    The name of the component in the repo that contains `mkdocs.yaml` and dependencies.
 
-
-@apps.autoscope
-class AppServices:
-    ROOT_DOCS_PATH = apps.ServiceId[Path]("root-docs-path")
+    By default, we assume there is a component in the repo named `*devtools*`; but this behavior
+    can be replaced by registering a [rats.apps.ContainerPlugin][] to the `rats.docs` pythong
+    entry-point in `pyproject.toml`.
+    """
 
 
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
@@ -29,7 +28,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         cli.create_group(click.Group("rats-docs"), self).main()
 
     @cli.command()
-    def mkdocs_build(self) -> None:
+    def _mkdocs_build(self) -> None:
         """
         Build the mkdocs site for every component in the project.
 
@@ -50,7 +49,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         self._do_mkdocs_things("build")
 
     @cli.command()
-    def mkdocs_serve(self) -> None:
+    def _mkdocs_serve(self) -> None:
         """
         Serve the mkdocs site for the project and monitor files for changes.
 
@@ -73,7 +72,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     def _do_mkdocs_things(self, cmd: str) -> None:
         ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         docs_component = ptools.get_component(self._app.get(AppConfigs.DOCS_COMPONENT_NAME))
-        root_docs_path = self._app.get(AppServices.ROOT_DOCS_PATH)
+        root_docs_path = ptools.repo_root() / "docs"
 
         mkdocs_config = docs_component.find_path("mkdocs.yaml")
         mkdocs_staging_path = docs_component.find_path("dist/docs")
@@ -83,11 +82,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         docs_component.create_or_empty(mkdocs_staging_path)
         # start with the contents of our root-docs
         docs_component.copy_tree(root_docs_path, mkdocs_staging_path)
-        docs_component.symlink(
-            # use the README.md at the root as the homepage of the docs site
-            ptools.repo_root() / "README.md",
-            mkdocs_staging_path / "index.md",
-        )
         components = ptools.discover_components()
 
         for c in components:
@@ -108,13 +102,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         docs_component.run("mkdocs", cmd, *args)
 
-    @apps.fallback_service(AppServices.ROOT_DOCS_PATH)
-    def _root_docs_path(self) -> Path:
-        """By default, we use the root docs found in rats-devtools unless overwritten."""
-        with resources.path(docs_resources, "root-docs") as p:
-            logger.info(f"root docs path: {p!s}")
-            return p
-
     @apps.fallback_service(AppConfigs.DOCS_COMPONENT_NAME)
     def _docs_component_name(self) -> str:
         """By default, we make a best guess as to which component has the docs configs."""
@@ -130,7 +117,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @apps.container()
     def _plugins(self) -> apps.Container:
-        return projects.PluginContainer(self._app)
+        return apps.CompositeContainer(
+            projects.PluginContainer(self._app),
+            apps.PythonEntryPointContainer(self._app, "rats.docs"),
+        )
 
 
 def main() -> None:

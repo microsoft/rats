@@ -53,11 +53,7 @@ This is the companion type to [rats.apps.ContainerPlugin][].
 
 ContainerPlugin = _ContainerPluginType | Callable[[Container], Container]
 """
-Main interface for a function that returns an [rats.apps.Container][] instance.
-
-Containers that implement this type—for example, by using the [rats.apps.PluginMixin][] mixin—can
-be used easily in functions that need to defer the construction of an application container. See
-[rats.apps.AppBundle][] for additional examples.
+Factory function protocol that returns an [rats.apps.Container][] instance.
 """
 
 
