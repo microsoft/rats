@@ -18,7 +18,7 @@ class AppConfigs:
     The name of the component in the repo that contains `mkdocs.yaml` and dependencies.
 
     By default, we assume there is a component in the repo named `*devtools*`; but this behavior
-    can be replaced by registering a [rats.apps.ContainerPlugin][] to the `rats.docs` pythong
+    can be replaced by registering a [rats.apps.ContainerPlugin][] to the `rats.docs` python
     entry-point in `pyproject.toml`.
     """
 

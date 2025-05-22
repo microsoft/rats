@@ -1,7 +1,7 @@
 """
 Create the best documentation solution for your project.
 
-This module provices a `rats-docs` command that helps manage documentation in monorepos by
+This module provides a `rats-docs` command that helps manage documentation in monorepos by
 combining generated api docs with markdown files into a single site generated with
 [MkDocs](https://www.mkdocs.org/).
 
