@@ -98,7 +98,8 @@ $ rats-docs serve
 INFO    -  Building documentation...
 INFO    -  Cleaning site directory
 INFO    -  Documentation built in 1.92 seconds
-INFO    -  [22:58:02] Watching paths for changes: 'dist/docs', 'dist/mkdocs.yaml', '/…/rats/rats-apps/src', 'src', 'mkdocs.yaml'
+INFO    -  [22:58:02] Watching paths for changes: 'dist/docs', 'dist/mkdocs.yaml',
+            '/…/rats/rats-apps/src', 'src', 'mkdocs.yaml'
 INFO    -  [22:58:02] Serving on http://127.0.0.1:8000/
 INFO    -  [22:58:07] Browser connected: http://127.0.0.1:8000/
 INFO    -  [23:06:03] Detected file changes
@@ -127,10 +128,11 @@ the configuration values needing updates.
     ```python
     from rats import apps, docs
 
+
     class PluginContainer(apps.Container, apps.PluginMixin):
-        @apps.service(docs.AppConfigs.DOCS_COMPONENT_NAME) # (1)
+        @apps.service(docs.AppConfigs.DOCS_COMPONENT_NAME)  # (1)
         def _docs_component(self) -> str:
-            return "my-docs-component" # (2)
+            return "my-docs-component"  # (2)
     ```
 
     1.  By default, we assume your repo has a component with `devtools` in the name, and we assume
