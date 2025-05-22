@@ -42,16 +42,16 @@ Install the latest version of rats from PyPI for any component you want:
 
 ```bash
 # With pip3.
-pip3 install rats-apps rats-apps
+pip3 install rats-apps rats-devtools
 
 # With poetry.
-poetry add rats-apps rats-apps
+poetry add rats-apps rats-devtools
 
 # With uv.
-uv pip install rats-apps rats-apps
+uv pip install rats-apps rats-devtools
 
 # With pipenv.
-pipenv install rats-apps rats-apps
+pipenv install rats-apps rats-devtools
 ```
 
 ## :woman_technologist: Development
