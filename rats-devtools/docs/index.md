@@ -24,28 +24,8 @@ eval "$(_RATS_AML_COMPLETE=zsh_source rats-aml)"
 eval "$(_RATS_CI_COMPLETE=zsh_source rats-ci)"
 eval "$(_RATS_DOCS_COMPLETE=zsh_source rats-docs)"
 eval "$(_RATS_EZ_COMPLETE=zsh_source rats-ez)"
+eval "$(_RATS_RUNTIME_COMPLETE=zsh_source rats-runtime)"
 ```
 
 The commands in this component are also used by our CI pipelines, so will give you a good way
 to validate your changes before submitting a pull request.
-
-## rats-docs
-
-The [rats.docs][] module provides the `rats-docs` cli command, used to pull together documentation
-from across the code base, and compile it into a single static site. We use
-[MkDocs](https://www.mkdocs.org/) packages, along with a handful of plugins, to combine markdown
-files with generated API documentation into a single, easily searchable, documentation site.
-
-### rats-docs serve
-
-Use this command to develop the documentation across the project. It handles combining the markdown
-from each component and watching it for changes using `mkdocs serve`. Once running, the
-documentation should be available at http://localhost:8000/. Changes to any markdown file will be
-auto detected, and your local site will be updates with the latest build.
-
-```bash
-rats-docs mkdocs-serve
-INFO    -  Building documentation...
-INFO    -  Cleaning site directory
-…
-```
