@@ -43,7 +43,7 @@ class ProjectTools:
             file = component_tools.find_path("Dockerfile")
 
         if not file.exists():
-            raise RuntimeError(f"Containerfile not found in component {name}")
+            raise RuntimeError(f"Containerfile/Dockerfile not found in component {name}")
 
         config = self._config()
         image = self.container_image(name)
