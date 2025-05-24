@@ -11,6 +11,7 @@ from rats import projects
 
 class CiCommandGroups(NamedTuple):
     """Main configuration object for the `rats-ci` subcommands."""
+
     install: tuple[tuple[str, ...], ...]
     """Set of commands meant to be run as part of `rats-ci install`."""
 

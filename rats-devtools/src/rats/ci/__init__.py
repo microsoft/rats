@@ -39,7 +39,7 @@ Commands:
 ## Configuration
 
 !!! info
-    The default configuration reflects the tools and options we use when developing rats components.
+    The default configuration reflects the tools and options we use when developing rats.
     However, we want the entire development team to use a common set of commands, like
     `rats-ci check` to run linting and other type checking rules, regardless of any differences
     in language or configuration across components. Separating the implementation details from the
@@ -111,7 +111,7 @@ setting the `DEVTOOLS_IMAGE_PUSH_ON_BUILD=0` environment variable.
 ```
 $ cd rats-apps
 $ rats-ci build-image
-building docker image: example.azurecr.io/rats-apps:8b79a43443549d02658fb6afef6a79f08498b2b60e4cbb48fc50961e06caa69d
+building docker image: example.azurecr.io/rats-apps:8b79a4344354…
 [+] Building 2.5s (14/14) FINISHED
  => [internal] load build definition from Containerfile
  => => transferring dockerfile: 1.41kB
@@ -121,14 +121,14 @@ building docker image: example.azurecr.io/rats-apps:8b79a43443549d02658fb6afef6a
  => [9/9] COPY . /opt/rats
  => exporting to image
  => => exporting layers
- => => writing image sha256:2150f859e6dfce47a024513eb835602dc1cfb8c8c3f40393eb260337fa97a65b
- => => naming to example.azurecr.io/rats-apps:8b79a43443549d02658fb6afef6a79f08498b2b60e4cbb48fc50961e06caa69d
+ => => writing image sha256:2150f859e…
+ => => naming to example.azurecr.io/rats-apps:8b79a434…
 …
 5f70bf18a086: Layer already exists
 ef2fe6e1db4c: Pushed
 b02f35d52f65: Pushed
 …
-8b79a43443549d02658fb6afef6a79f08498b2b60e4cbb48fc50961e06caa69d: digest: sha256:a2c3356c57b7dc986f8439e221de565d2de2bb0bf4d7f3541b463d720784c9ca size: 2199
+8b79a4…aa69d: digest: sha256:a2c3356…4c9ca size: 2199
 ```
 
 !!! info
