@@ -83,7 +83,7 @@ class AppConfigs:
 
     class PluginContainer(apps.Container, apps.PluginMixin):
 
-        @apps.group(ci.AppConfigs.INSTALL)
+        @apps.group(ci.AppConfigs.FIX)
         def _fix_cmds(self) -> Iterator[tuple[str, ...]]:
             yield tuple(["ruff", "check", "--fix"])
     ```
@@ -98,7 +98,7 @@ class AppConfigs:
 
     class PluginContainer(apps.Container, apps.PluginMixin):
 
-        @apps.group(ci.AppConfigs.INSTALL)
+        @apps.group(ci.AppConfigs.CHECK)
         def _check_cmds(self) -> Iterator[tuple[str, ...]]:
             yield tuple(["ruff", "check")
     ```
@@ -113,7 +113,7 @@ class AppConfigs:
 
     class PluginContainer(apps.Container, apps.PluginMixin):
 
-        @apps.group(ci.AppConfigs.INSTALL)
+        @apps.group(ci.AppConfigs.TEST)
         def _test_cmds(self) -> Iterator[tuple[str, ...]]:
             yield tuple(["pytest")
     ```
