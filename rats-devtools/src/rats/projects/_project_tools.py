@@ -18,25 +18,51 @@ logger = logging.getLogger(__name__)
 
 
 class ProjectConfig(NamedTuple):
+    """Settings used by the [rats.projects.ProjectTools][] libraries."""
+
     name: str
+    """
+    The name of your project.
+
+    In monorepos, this is typically the name of the repository. In single-component repositories,
+    we generally expect the name of the repo to match the name of the component/package.
+    """
     path: str
-    # these don't seem to belong here
+    """The path to the root of the project."""
     image_registry: str
+    """The name of the container image registry built images will be tagged with."""
     image_push_on_build: bool
+    """When enabled, images are automatically pushed to the defined registry when built."""
     image_tag: str | None = None
+    """The version tag of the container image built images will be tagged with."""
 
 
 class ProjectTools:
+    """Small collection of methods to operate on the project and access component tools."""
+
     _config: apps.Provider[ProjectConfig]
 
     def __init__(self, config: apps.Provider[ProjectConfig]) -> None:
+        """
+        A config is required to specify the behavior of this instance.
+
+        Args:
+            config: the configuration of the project we are operating within.
+        """
         self._config = config
 
     def build_component_images(self) -> None:
+        """Sequentially builds container images for every component in the project."""
         for c in self.discover_components():
             self.build_component_image(c.name)
 
     def build_component_image(self, name: str) -> None:
+        """
+        Builds the container image for a given component in the project.
+
+        Args:
+            name: the name of the component to be built.
+        """
         component_tools = self.get_component(name)
         file = component_tools.find_path("Containerfile")
         if not file.exists():
@@ -68,6 +94,15 @@ class ProjectTools:
             component_tools.exe("docker", "push", image.full)
 
     def container_image(self, name: str) -> ContainerImage:
+        """
+        Get the calculated container image for the given component.
+
+        If a tag is not present in the [rats.projects.ProjectConfig][], one is calculated using
+        [rats.projects.ProjectTools.image_context_hash][].
+
+        Args:
+            name: the name of the component for which we want the image.
+        """
         config = self._config()
         return ContainerImage(
             name=f"{config.image_registry}/{name}",
@@ -76,16 +111,24 @@ class ProjectTools:
 
     @cache  # noqa: B019
     def image_context_hash(self) -> str:
+        """
+        Calculates a hash based on all the files available to the container build context.
+
+        The hash is calculated by ignoring all files selected by `.gitignore` configs, and hashing
+        all remaining files from the root of the project, giving us a unique hash of all possible
+        contents that can be copied into an image.
+        """
         manifest = self.image_context_manifest()
         return sha256(manifest.encode()).hexdigest()
 
     @cache  # noqa: B019
     def image_context_manifest(self) -> str:
         """
-        Use a container image to create a manifest of the files in the image context.
+        Calculates a manifest of the files in the image context.
 
         When building container images, this hash can be used to determine if any of the files in
-        the image might have changed.
+        the image might have changed. This manifest is used by methods like
+        [rats.projects.ProjectTools.image_context_hash][].
 
         Inspired by https://github.com/5monkeys/docker-image-context-hash-action
         """
@@ -130,6 +173,11 @@ class ProjectTools:
         return "\n".join(lines)
 
     def project_name(self) -> str:
+        """
+        The name of the package, or in monorepos, the name of the repository.
+
+        For simplicity, we assume the repository and root directory name match.
+        """
         root = self.repo_root()
         if (root / "pyproject.toml").exists():
             # this is a single component project and the project name is the component name
@@ -140,6 +188,7 @@ class ProjectTools:
 
     @cache  # noqa: B019
     def discover_components(self) -> tuple[ComponentId, ...]:
+        """Looks through the code base for any components containing a `pyproject.toml` file."""
         valid_components: list[ComponentId] = []
         if self._is_single_component_project():
             p = self.repo_root() / "pyproject.toml"
@@ -180,6 +229,12 @@ class ProjectTools:
         return tuple(valid_components)
 
     def get_component(self, name: str) -> ComponentTools:
+        """
+        Get the component tools for a given component.
+
+        Args:
+            name: the name of the component within the project.
+        """
         if self._is_single_component_project():
             return ComponentTools(self.repo_root())
 
@@ -190,6 +245,7 @@ class ProjectTools:
         return ComponentTools(p)
 
     def repo_root(self) -> Path:
+        """The path to the root of the repository."""
         p = Path(self._config().path).resolve()
         # 99% of the time we just want the root of the repo
         # but in tests we use sub-projects to create fake scenarios

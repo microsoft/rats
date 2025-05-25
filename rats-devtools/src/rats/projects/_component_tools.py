@@ -131,6 +131,7 @@ class ComponentTools:
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
 
     def exe(self, *cmd: str) -> None:
+        """Run a command from the root of a component."""
         logger.debug(f"executing in {self._path}/: {' '.join(cmd)}")
         try:
             subprocess.run(cmd, cwd=self._path, check=True)
@@ -154,6 +155,12 @@ class ComponentTools:
 
 
 class UnsetComponentTools(ComponentTools):
+    """
+    A stub component tools without any implemented operations.
+
+    All methods within this class raise a `NotImplementedError`.
+    """
+
     def copy_tree(self, src: Path, dst: Path) -> None:
         raise NotImplementedError("no component selected")
 
