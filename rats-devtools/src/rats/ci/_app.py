@@ -139,7 +139,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     ```
 
     !!! warning
-        Calling `ci_app.execute()` is unlikely to behave as expected, because the [sys.argv][] is
+        Calling `ci_app.execute()` is unlikely to behave as expected, because [sys.argv][] is
         parsed by the [click][] library.
     """
 
