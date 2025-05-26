@@ -160,17 +160,22 @@ class AppBundle(AppContainer):
 
             class ExamplePlugin(apps.Container, apps.PluginMixin):
                 @apps.service(apps.ServiceId[str]("some-value"))
-                def _some_value() -> str:
+                def _some_value(self) -> str:
                     return "hello, world!"
 
 
             class ExampleApplication(apps.AppContainer, apps.PluginMixin):
-                def execute() -> None:
+                def execute(self) -> None:
                     print(self._app.get(apps.ServiceId[str]("some-value")))
 
 
             if __name__ == "__main__":
-                apps.run(apps.AppBundle(ExampleApplication, ExamplePlugin))
+                apps.run(
+                    apps.AppBundle(
+                        app_plugin=ExampleApplication,
+                        container_plugin=ExamplePlugin,
+                    )
+                )
             ```
 
         Args:
