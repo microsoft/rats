@@ -44,7 +44,7 @@ Commands:
     `rats-ci check` to run linting and other type checking rules, regardless of any differences
     in language or configuration across components. Separating the implementation details from the
     CI/CD concepts allows the team to contribute across a growing code base without needing to
-    memorize a new set of development commands; and without needing to force all componentrs to
+    memorize a new set of development commands; and without needing to force all components to
     follow a very rigid set of commands.
 
     Apart from configuring each group with the settings below, we can configure all groups in one
