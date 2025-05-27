@@ -117,41 +117,15 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         r"""
         Run a command in all of the components in your project.
 
+        By default, the command runs in all components; but one or more `--component` options can
+        be provided to limit the commands to a set of components.
+
         ```
-        $ rats-ez run \
-            --component rats-apps \
-            --component rats-devtools \
-            poetry env info
-
-        running command: (poetry env info) on ['rats-devtools', 'rats-apps']
-
-        Virtualenv
-        Python:         3.10.6
-        Implementation: CPython
-        Path:           /…/rats/rats-devtools/.venv
-        Executable:     /…/rats/rats-devtools/.venv/bin/python
-        Valid:          True
-
-        Base
-        Platform:   linux
-        OS:         posix
-        Python:     3.10.6
-        Path:       /…/.pyenv/versions/3.10.6
-        Executable: /…/.pyenv/versions/3.10.6/bin/python3.10
-
-        Virtualenv
-        Python:         3.10.6
-        Implementation: CPython
-        Path:           /…/rats/rats-apps/.venv
-        Executable:     /…/rats/rats-apps/.venv/bin/python
-        Valid:          True
-
-        Base
-        Platform:   linux
-        OS:         posix
-        Python:     3.10.6
-        Path:       /…/.pyenv/versions/3.10.6
-        Executable: /…/.pyenv/versions/3.10.6/bin/python3.10
+        $ rats-ez run which python
+        running command: (which python) on ['rats-devtools', 'rats-apps', 'rats']
+        /…/rats/rats-devtools/.venv/bin/python
+        /…/rats/rats-apps/.venv/bin/python
+        /…/rats/rats/.venv/bin/python
         ```
 
         Args:
