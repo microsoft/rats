@@ -151,7 +151,7 @@ class AppBundle(AppContainer):
         context: Container = EMPTY_CONTEXT,
     ):
         """
-        Create an instance by providing the [rats.apps.AppPlugin] type and any additional context.
+        Create an instance by providing the [rats.apps.AppPlugin][] type and any additional context.
 
         Example:
             ```python
