@@ -1,3 +1,5 @@
+from rats import apps
+
 from .example import DummyContainerServiceIds, ExampleApp, ExampleIds
 
 
@@ -97,7 +99,12 @@ class TestServiceCaching:
     def test_caching_of_service_groups(self) -> None:
         clients1 = self._app.get_group(ExampleIds.GROUPS.STORAGE)
         clients2 = self._app.get_group(ExampleIds.GROUPS.STORAGE)
+        clients3 = self._app.get_namespaced_group(
+            apps.ProviderNamespaces.GROUPS,
+            ExampleIds.GROUPS.STORAGE,
+        )
 
         assert len(list(clients1)) == 2
+        assert len(list(clients3)) == 2
         assert len(list(clients2)) == 2
         assert list(clients1) == list(clients2)
