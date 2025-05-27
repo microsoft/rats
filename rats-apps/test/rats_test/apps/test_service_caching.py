@@ -99,10 +99,12 @@ class TestServiceCaching:
     def test_caching_of_service_groups(self) -> None:
         clients1 = list(self._app.get_group(ExampleIds.GROUPS.STORAGE))
         clients2 = list(self._app.get_group(ExampleIds.GROUPS.STORAGE))
-        clients3 = list(self._app.get_namespaced_group(
-            apps.ProviderNamespaces.FALLBACK_GROUPS,
-            ExampleIds.GROUPS.STORAGE,
-        ))
+        clients3 = list(
+            self._app.get_namespaced_group(
+                apps.ProviderNamespaces.FALLBACK_GROUPS,
+                ExampleIds.GROUPS.STORAGE,
+            )
+        )
 
         assert len(clients1) == 2
         assert len(clients3) == 2
