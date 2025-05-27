@@ -70,7 +70,7 @@ class AppConfigs:
 
         @apps.group(ci.AppConfigs.INSTALL)
         def _install_cmds(self) -> Iterator[tuple[str, ...]]:
-            yield tuple(["pipenv", "install"])
+            yield tuple(["uv", "sync"])
     ```
     """
     FIX = apps.ServiceId[tuple[str, ...]]("fix")
