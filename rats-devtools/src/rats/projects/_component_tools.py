@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import sys
+import warnings
 from collections.abc import Mapping
 from os import symlink
 from pathlib import Path
@@ -13,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class ComponentId(NamedTuple):
+    """A simple wrapper around the name of a component, for typing convenience."""
+
     name: str
 
 
@@ -30,6 +33,7 @@ class ComponentTools:
         self._path = path
 
     def component_name(self) -> str:
+        """The component's name, as defined by `[project.name]` in `pyproject.toml`."""
         return self._load_pyproject()["project"]["name"]
 
     def symlink(self, src: Path, dst: Path) -> None:
@@ -37,6 +41,10 @@ class ComponentTools:
         Create a symlink in the component directory.
 
         The destination path must be relative to the component directory.
+
+        Args:
+            src: the existing file or directory to link to
+            dst: the symlink path to be created
         """
         self._validate_component_path(dst)
 
@@ -44,9 +52,13 @@ class ComponentTools:
 
     def copy(self, src: Path, dst: Path) -> None:
         """
-        Copy a file or directory into the component.
+        Copy a file into the component.
 
         The destination path must be relative to the component directory.
+
+        Args:
+            src: the existing file to copy
+            dst: the destination of the copied file
         """
         # we expect this instance to create files in the matching component
         self._validate_component_path(dst)
@@ -54,7 +66,15 @@ class ComponentTools:
         copy(src, dst)
 
     def copy_tree(self, src: Path, dst: Path) -> None:
-        # we expect this instance to create files in the matching component
+        """
+        Copy a directory into the component.
+
+        The destination path must be relative to the component directory.
+
+        Args:
+            src: the existing directory to copy
+            dst: the destination of the copied directory
+        """
         self._validate_component_path(dst)
 
         copytree(src, dst, dirs_exist_ok=True)
@@ -69,9 +89,9 @@ class ComponentTools:
 
     def find_path(self, name: str) -> Path:
         """
-        Given a directory path, relative to the root of the component, return the full path.
+        Given a path, relative to the root of the component, return the full path.
 
-        All paths are expected to be within the directory of the repository.
+        All paths are expected to be within the directory of the component.
         """
         path = (self._path / name).resolve()
         self._validate_component_path(path)
@@ -98,6 +118,11 @@ class ComponentTools:
             self.exe(*args)
 
     def poetry(self, *args: str) -> None:
+        warnings.warn(
+            "this method is deprecated, use the more general `run()` method instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if not self.is_poetry_detected():
             raise RuntimeError(f"cannot run poetry commands in component: {self.component_name()}")
 
@@ -106,6 +131,7 @@ class ComponentTools:
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
 
     def exe(self, *cmd: str) -> None:
+        """Run a command from the root of a component."""
         logger.debug(f"executing in {self._path}/: {' '.join(cmd)}")
         try:
             subprocess.run(cmd, cwd=self._path, check=True)
@@ -129,6 +155,12 @@ class ComponentTools:
 
 
 class UnsetComponentTools(ComponentTools):
+    """
+    A stub component tools without any implemented operations.
+
+    All methods within this class raise a `NotImplementedError`.
+    """
+
     def copy_tree(self, src: Path, dst: Path) -> None:
         raise NotImplementedError("no component selected")
 
