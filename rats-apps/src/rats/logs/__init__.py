@@ -15,8 +15,10 @@ handle configuring the python logging libraries, with a few configuration option
 """
 
 from ._app import AppConfigs, ConfigureApplication
+from ._showwarning import showwarning
 
 __all__ = [
     "AppConfigs",
     "ConfigureApplication",
+    "showwarning",
 ]
