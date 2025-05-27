@@ -97,14 +97,14 @@ class TestServiceCaching:
         assert t2b.get_tag() == "f2"
 
     def test_caching_of_service_groups(self) -> None:
-        clients1 = self._app.get_group(ExampleIds.GROUPS.STORAGE)
-        clients2 = self._app.get_group(ExampleIds.GROUPS.STORAGE)
-        clients3 = self._app.get_namespaced_group(
-            apps.ProviderNamespaces.GROUPS,
+        clients1 = list(self._app.get_group(ExampleIds.GROUPS.STORAGE))
+        clients2 = list(self._app.get_group(ExampleIds.GROUPS.STORAGE))
+        clients3 = list(self._app.get_namespaced_group(
+            apps.ProviderNamespaces.FALLBACK_GROUPS,
             ExampleIds.GROUPS.STORAGE,
-        )
+        ))
 
-        assert len(list(clients1)) == 2
-        assert len(list(clients3)) == 2
-        assert len(list(clients2)) == 2
-        assert list(clients1) == list(clients2)
+        assert len(clients1) == 2
+        assert len(clients3) == 2
+        assert len(clients2) == 2
+        assert clients1 == clients2

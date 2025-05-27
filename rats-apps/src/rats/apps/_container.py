@@ -108,7 +108,6 @@ class Container(Protocol):
         """Retrieve a service group by its id."""
         if not self.has_namespace(ProviderNamespaces.GROUPS, group_id):
             # groups are expected to return iterable services
-            # TODO: we need to clean up the meaning of groups and services somehow
             for i in self.get_namespaced_group(ProviderNamespaces.FALLBACK_GROUPS, group_id):
                 yield from cast(Iterator[T_ServiceType], i)
 
@@ -151,7 +150,14 @@ def _get_cached_services_for_group(
 
     for provider in info_cache[(namespace, group_id)]:
         if provider not in provider_cache:
-            provider_cache[provider] = getattr(c, provider.attr)()
+            if namespace in [
+                ProviderNamespaces.CONTAINERS,
+                ProviderNamespaces.SERVICES,
+                ProviderNamespaces.FALLBACK_SERVICES,
+            ]:
+                provider_cache[provider] = getattr(c, provider.attr)()
+            else:
+                provider_cache[provider] = list(getattr(c, provider.attr)())
 
         yield provider_cache[provider]
 
