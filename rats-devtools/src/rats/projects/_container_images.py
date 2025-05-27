@@ -2,6 +2,8 @@ from typing import NamedTuple
 
 
 class ContainerImage(NamedTuple):
+    """Simple data object to represent a container image."""
+
     name: str
     tag: str
 

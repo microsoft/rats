@@ -2417,7 +2417,7 @@ pyyaml = "*"
 
 [[package]]
 name = "rats-apps"
-version = "0.11.0"
+version = "0.11.1"
 description = "research analysis tools for building applications"
 optional = false
 python-versions = ">=3.10,<4.0"

@@ -1,7 +1,7 @@
 [project]
 name = "rats-apps"
 description = "research analysis tools for building applications"
-version = "0.11.0"
+version = "0.11.1"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
@@ -39,7 +39,7 @@ requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
-pyright = "!=1.1.401"
+pyright = "!=1.1.401" # causing false positives from code in installed packages
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
