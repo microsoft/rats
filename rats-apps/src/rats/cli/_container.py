@@ -55,11 +55,11 @@ class Container(Protocol):
 
         commands = get_class_commands(type(self))
         tates = commands.annotations
+        logger.debug(f"[{type(self)}] commands: {tates}")
 
         for tate in tates:
             method = getattr(self, tate.name)
             params = list(reversed(getattr(method, "__click_params__", [])))
-            logger.debug(tate.namespace)
             for command in tate.groups:
                 if tate.namespace == "commands":
                     group.add_command(

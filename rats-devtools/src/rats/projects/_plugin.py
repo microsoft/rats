@@ -12,15 +12,23 @@ logger = logging.getLogger(__name__)
 
 @apps.autoscope
 class PluginConfigs:
+    """Configurable services within the [rats.projects][] module."""
+
     PROJECT = apps.ServiceId[ProjectConfig]("project")
+    """Main config object to change the behavior of [rats.projects][] libraries."""
 
 
 @apps.autoscope
 class PluginServices:
+    """Services made available from the [rats.projects] module."""
+
     CWD_COMPONENT_TOOLS = apps.ServiceId[ComponentTools]("cwd-component-tools")
+    """The component tools instance for the component the command was run within."""
     PROJECT_TOOLS = apps.ServiceId[ProjectTools]("project-tools")
+    """Main project library to interact with the repository and the contained components."""
 
     CONFIGS = PluginConfigs
+    """Alias to the [rats.projects.ProjectConfig][] class."""
 
 
 class PluginContainer(apps.Container, apps.PluginMixin):
@@ -63,6 +71,13 @@ class PluginContainer(apps.Container, apps.PluginMixin):
 
 
 def find_repo_root() -> Path:
+    """
+    Try to find the path to the root of the repo.
+
+    This method traverses up the directory tree, starting from the working directory, and looks for
+    the first directory that contains a `.git` directory. This behavior can be overwritten by
+    defining a `DEVTOOLS_PROJECT_ROOT` environment variable.
+    """
     env = os.environ.get("DEVTOOLS_PROJECT_ROOT")
     if env:
         return Path(env)
