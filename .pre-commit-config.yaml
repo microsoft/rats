@@ -2,7 +2,7 @@ exclude: ".idea/"
 
 ci:
   autofix_prs: false
-  autoupdate_commit_msg: ":arrow-up: dep-bump(pre-commit): update pre-commit hooks"
+  autoupdate_commit_msg: ":arrow_up: dep-bump(pre-commit): update pre-commit hooks"
 
 default_install_hook_types: [pre-commit, commit-msg]
 
@@ -15,7 +15,7 @@ repos:
         require_serial: true
         language: script
         pass_filenames: true
-        files: "src/python/|test/python/"
+        files: "src/|test/"
         types: [python]
       - id: ruff-check
         name: ruff-check
@@ -23,7 +23,7 @@ repos:
         require_serial: true
         language: script
         pass_filenames: true
-        files: "src/python/|test/python/"
+        files: "src/|test/"
         types: [python]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
