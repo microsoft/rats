@@ -39,7 +39,7 @@ requires-poetry = ">=2.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "*"
-pyright = "*"
+pyright = "!=1.1.401"
 pytest = "*"
 pytest-cov = "*"
 pytest-nunit = "*"
