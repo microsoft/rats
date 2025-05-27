@@ -24,6 +24,8 @@ class AppConfigs:
 
 
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
+    _dev_addr: str = "127.0.0.1:8000"
+
     def execute(self) -> None:
         cli.create_group(click.Group("rats-docs"), self).main()
 
@@ -65,8 +67,15 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         self.serve()
 
     @cli.command()
-    def serve(self) -> None:
+    @click.option(
+        "--dev-addr",
+        default="127.0.0.1:8000",
+        help="address to listen to when running local dev site",
+        show_default=True,
+    )
+    def serve(self, dev_addr: str) -> None:
         """Serve the mkdocs site for the project and monitor files for changes."""
+        self._dev_addr = dev_addr
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
@@ -100,6 +109,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         ]
         if cmd == "build":
             args.extend(["--site-dir", str(site_dir_path.resolve())])
+        if cmd == "serve":
+            args.extend(["--dev-addr", self._dev_addr])
 
         docs_component.run("mkdocs", cmd, *args)
 
