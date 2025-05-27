@@ -61,7 +61,7 @@ class ConfigureApplication(apps.AppContainer, apps.PluginMixin):
                     "colored": {
                         "()": "colorlog.ColoredFormatter",
                         "format": (
-                            "%(log_color)s%(asctime)s %(levelname)-8s [%(name)s][%(lineno)d]: "
+                            "%(log_color)s%(asctime)s %(levelname)-8s [%(name)s:%(lineno)d]: "
                             "%(message)s%(reset)s"
                         ),
                         "datefmt": "%Y-%m-%d %H:%M:%S",
