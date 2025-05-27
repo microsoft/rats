@@ -4,6 +4,7 @@ from rats import apps
 from rats.apps import CompositeContainer, Container
 
 from ._dummy_containers import DummyContainer
+from ._example_groups import ExampleGroupsPlugin1
 from ._storage_plugin import ExampleStoragePlugin
 
 
@@ -23,4 +24,7 @@ class ExampleApp(apps.Container):
 
     @apps.container()
     def package_plugins(self) -> Container:
-        return ExampleStoragePlugin(self)
+        return apps.CompositeContainer(
+            ExampleStoragePlugin(self),
+            ExampleGroupsPlugin1(self),
+        )

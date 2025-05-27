@@ -1,8 +1,11 @@
-from .example import DummyContainerServiceIds, ExampleApp
+from .example import DummyContainerServiceIds, ExampleApp, ExampleIds
 
 
 class TestServiceCaching:
-    _app: ExampleApp = ExampleApp()
+    _app: ExampleApp
+
+    def setup_method(self) -> None:
+        self._app = ExampleApp()
 
     def test_caching_of_multiple_service_calls(self) -> None:
         # service declared with autoid_service
@@ -90,3 +93,11 @@ class TestServiceCaching:
 
         assert t2a.get_tag() == "f2"
         assert t2b.get_tag() == "f2"
+
+    def test_caching_of_service_groups(self) -> None:
+        clients1 = self._app.get_group(ExampleIds.GROUPS.STORAGE)
+        clients2 = self._app.get_group(ExampleIds.GROUPS.STORAGE)
+
+        assert len(list(clients1)) == 2
+        assert len(list(clients2)) == 2
+        assert list(clients1) == list(clients2)
