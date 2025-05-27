@@ -1,2 +1,1 @@
-# rats
-...
+docs/index.md
