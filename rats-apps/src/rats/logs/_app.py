@@ -121,7 +121,6 @@ class ConfigureApplication(apps.AppContainer, apps.PluginMixin):
                 logger_mapping[logger_name] = "INFO"
 
         for name, default in logger_mapping.items():
-            print(f"logger {name} default {default}")
             yield self._build_logger_entry(name, default)
 
     def _build_logger_entry(self, name: str, default: str = "INFO") -> LoggerConfigEntry:
