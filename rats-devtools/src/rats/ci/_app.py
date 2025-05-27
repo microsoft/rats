@@ -49,17 +49,18 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         for cmd in command_groups.install:
             selected_component.run(*cmd)
-            print(f"ran {len(command_groups.install)} installation commands")
+
+        print(f"ran {len(command_groups.install)} installation commands")
 
     @cli.command()
     def fix(self) -> None:
         """Run any configured auto-formatters for the component."""
         selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
         command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
-
         for cmd in command_groups.fix:
             selected_component.run(*cmd)
-            print(f"ran {len(command_groups.fix)} fix commands")
+
+        print(f"ran {len(command_groups.fix)} fix commands")
 
     @cli.command()
     def check(self) -> None:
@@ -69,7 +70,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         for cmd in command_groups.check:
             selected_component.run(*cmd)
-            print(f"ran {len(command_groups.check)} check commands")
+
+        print(f"ran {len(command_groups.check)} check commands")
 
     @cli.command()
     def test(self) -> None:
@@ -79,7 +81,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         for cmd in command_groups.test:
             selected_component.run(*cmd)
-            print(f"ran {len(command_groups.test)} test commands")
+
+        print(f"ran {len(command_groups.test)} test commands")
 
     @cli.command()
     def build_image(self) -> None:
