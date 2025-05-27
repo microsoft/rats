@@ -44,7 +44,7 @@ class AppConfigs:
         def _cmd_groups(self) -> CiCommandGroups:
             return CiCommandGroups(
                 install=tuple(
-                    tuple(["pipenv", "install"]),
+                    tuple(["uv", "sync"]),
                 ),
                 fix=tuple(
                     tuple(["ruff", "check", "--fix"]),
