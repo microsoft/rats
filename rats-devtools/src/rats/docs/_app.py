@@ -24,6 +24,8 @@ class AppConfigs:
 
 
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
+    _dev_addr: str = "127.0.0.1:8000"
+
     def execute(self) -> None:
         cli.create_group(click.Group("rats-docs"), self).main()
 
@@ -62,11 +64,18 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             category=DeprecationWarning,
             stacklevel=2,
         )
-        self.serve()
+        self.serve("127.0.0.1:8000")
 
     @cli.command()
-    def serve(self) -> None:
+    @click.option(
+        "--dev-addr",
+        default="127.0.0.1:8000",
+        help="address to listen to when running local dev site",
+        show_default=True,
+    )
+    def serve(self, dev_addr: str) -> None:
         """Serve the mkdocs site for the project and monitor files for changes."""
+        self._dev_addr = dev_addr
         self._do_mkdocs_things("serve")
 
     def _do_mkdocs_things(self, cmd: str) -> None:
@@ -77,7 +86,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         mkdocs_config = docs_component.find_path("mkdocs.yaml")
         mkdocs_staging_path = docs_component.find_path("dist/docs")
         site_dir_path = docs_component.find_path("dist/site")
-        mkdocs_staging_config = docs_component.find_path("dist/mkdocs.yaml")
+        # we append the filename because symlinks get resolved by `find_path()`
+        mkdocs_staging_config = docs_component.find_path("dist") / "mkdocs.yaml"
         # clear any stale state
         docs_component.create_or_empty(mkdocs_staging_path)
         # start with the contents of our root-docs
@@ -91,7 +101,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         # replace the mkdocs config with a fresh version
         mkdocs_staging_config.unlink(missing_ok=True)
-        docs_component.copy(mkdocs_config, mkdocs_staging_config)
+        docs_component.symlink(mkdocs_config, mkdocs_staging_config)
 
         args = [
             "--config-file",
@@ -99,6 +109,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         ]
         if cmd == "build":
             args.extend(["--site-dir", str(site_dir_path.resolve())])
+        if cmd == "serve":
+            args.extend(["--dev-addr", self._dev_addr])
 
         docs_component.run("mkdocs", cmd, *args)
 

@@ -1,7 +1,6 @@
 import logging
 import subprocess
 import sys
-import warnings
 from collections.abc import Mapping
 from os import symlink
 from pathlib import Path
@@ -118,11 +117,6 @@ class ComponentTools:
             self.exe(*args)
 
     def poetry(self, *args: str) -> None:
-        warnings.warn(
-            "this method is deprecated, use the more general `run()` method instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         if not self.is_poetry_detected():
             raise RuntimeError(f"cannot run poetry commands in component: {self.component_name()}")
 
