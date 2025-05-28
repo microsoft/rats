@@ -1,2 +1,1 @@
-# rats-apps
-...
+docs/index.md

@@ -1,2 +1,1 @@
-# rats-devtools
-...
+docs/index.md
