@@ -64,7 +64,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             category=DeprecationWarning,
             stacklevel=2,
         )
-        self.serve()
+        self.serve("127.0.0.1:8000")
 
     @cli.command()
     @click.option(
