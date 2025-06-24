@@ -92,6 +92,7 @@ plugins:
   - mkdocs-video:
       is_video: true
       video_controls: true
+  - glightbox
 markdown_extensions:
   # Allows for nicely styled notes and warnings: !!! note
   - admonition
