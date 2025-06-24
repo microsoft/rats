@@ -38,13 +38,17 @@ def showwarning(
 
     formatted_message = warnings.formatwarning(message, category, filename, lineno, line)
 
-    for _module_name, module in sys.modules.items():
-        module_path = getattr(module, "__file__", None)
-        if module_path and Path(filename).is_file() and Path(module_path).samefile(filename):
-            module_name = _module_name
-            break
-    else:
-        # unsure what module to use, but we can default to "py.warnings" like the original handler
+    try:
+        for _module_name, module in sys.modules.items():
+            module_path = getattr(module, "__file__", None)
+            if module_path and Path(filename).is_file() and Path(module_path).samefile(filename):
+                module_name = _module_name
+                break
+        else:
+            # unsure what module to use, but we can default to "py.warnings" like the original handler
+            module_name = "py.warnings"
+    except Exception:
+        # fall back to the default behavior and avoid ever failing from within logging functions
         module_name = "py.warnings"
 
     source_logger = logging.getLogger(module_name)
