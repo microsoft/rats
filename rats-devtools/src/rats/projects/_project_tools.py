@@ -211,7 +211,7 @@ class ProjectTools:
     def _component_paths(self) -> dict[ComponentId, Path]:
         results: dict[ComponentId, Path] = {}
 
-        tomls = []
+        tomls: list[Path] = []
         # limit the search to 4 levels of directories
         for x in range(4):
             tomls.extend(self.repo_root().glob(f"{'*/' * x}pyproject.toml"))
