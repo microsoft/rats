@@ -6,7 +6,7 @@ class TestComponentTools:
         tools = projects.ProjectTools(
             lambda: projects.ProjectConfig(
                 name="example-project",
-                path="test/rats_test_resources/projects",
+                path="test/rats_test_resources/projects/example-1",
                 image_registry="none",
                 image_push_on_build=False,
             )
