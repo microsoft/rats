@@ -173,18 +173,8 @@ class ProjectTools:
         return "\n".join(lines)
 
     def project_name(self) -> str:
-        """
-        The name of the package, or in monorepos, the name of the repository.
-
-        For simplicity, we assume the repository and root directory name match.
-        """
-        root = self.repo_root()
-        if (root / "pyproject.toml").exists():
-            # this is a single component project and the project name is the component name
-            return toml.loads((root / "pyproject.toml").read_text())["project"]["name"]
-
-        # this is a monorepo so i'm not quite sure what to use to detect the project name
-        return self.repo_root().name
+        """The name of the project, as defined by the provided [rats.projects.ProjectConfig][]."""
+        return self._config().name
 
     @cache  # noqa: B019
     def discover_components(self) -> tuple[ComponentId, ...]:
@@ -221,8 +211,13 @@ class ProjectTools:
     def _component_paths(self) -> dict[ComponentId, Path]:
         results: dict[ComponentId, Path] = {}
 
-        for tomls in self.repo_root().glob("**/pyproject.toml"):
-            p = tomls.parent
+        tomls = []
+        # limit the search to 4 levels of directories
+        for x in range(4):
+            tomls.extend(self.repo_root().glob(f"{'*/' * x}pyproject.toml"))
+
+        for t in tomls:
+            p = t.parent
             if not p.is_dir() or not (p / "pyproject.toml").is_file():
                 continue
 
@@ -252,9 +247,6 @@ class ProjectTools:
             "enabled": config.get("enabled", False),
             "devtools-component": config.get("devtools-component", False),
         }
-
-    def _is_single_component_project(self) -> bool:
-        return (self.repo_root() / "pyproject.toml").exists()
 
 
 class ComponentNotFoundError(ValueError):
