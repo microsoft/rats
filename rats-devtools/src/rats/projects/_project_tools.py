@@ -173,39 +173,51 @@ class ProjectTools:
         return "\n".join(lines)
 
     def project_name(self) -> str:
-        """
-        The name of the package, or in monorepos, the name of the repository.
-
-        For simplicity, we assume the repository and root directory name match.
-        """
-        root = self.repo_root()
-        if (root / "pyproject.toml").exists():
-            # this is a single component project and the project name is the component name
-            return toml.loads((root / "pyproject.toml").read_text())["project"]["name"]
-
-        # this is a monorepo so i'm not quite sure what to use to detect the project name
-        return self.repo_root().name
+        """The name of the project, as defined by the provided [rats.projects.ProjectConfig][]."""
+        return self._config().name
 
     @cache  # noqa: B019
     def discover_components(self) -> tuple[ComponentId, ...]:
         """Looks through the code base for any components containing a `pyproject.toml` file."""
-        valid_components: list[ComponentId] = []
-        if self._is_single_component_project():
-            p = self.repo_root() / "pyproject.toml"
+        return tuple(self._component_paths().keys())
 
-            component_info = toml.loads(p.read_text())
-            tool_info = self._extract_tool_info(p)
+    def get_component(self, name: str) -> ComponentTools:
+        """
+        Get the component tools for a given component.
 
-            if not tool_info["enabled"]:
-                # we don't recognize components unless they enable rats-devtools
-                # play nice and don't surprise people
-                logger.info(f"detected unmanaged component: {p.name}")
-                raise RuntimeError("detected single component repo but not managed by rats")
+        Args:
+            name: the name of the component within the project.
+        """
+        cid = ComponentId(name)
+        if cid not in self._component_paths():
+            raise ComponentNotFoundError(f"component {name} is not a valid python component")
 
-            return (ComponentId(component_info["project"]["name"]),)
+        return ComponentTools(self._component_paths()[cid])
 
-        # limited to 1 level of nesting for now (i think)
-        for p in self.repo_root().iterdir():
+    def repo_root(self) -> Path:
+        """The path to the root of the repository."""
+        p = Path(self._config().path).resolve()
+        # 99% of the time we just want the root of the repo
+        # but in tests we use sub-projects to create fake scenarios
+        # better test tooling can probably help us remove this later
+        if not (p / ".git").exists() and not (p / ".rats-root").exists():
+            raise ProjectNotFoundError(
+                f"repo root not found: {p}. devtools must be used on a project in a git repo."
+            )
+
+        return p
+
+    @cache  # noqa: B019
+    def _component_paths(self) -> dict[ComponentId, Path]:
+        results: dict[ComponentId, Path] = {}
+
+        tomls: list[Path] = []
+        # limit the search to 4 levels of directories
+        for x in range(4):
+            tomls.extend(self.repo_root().glob(f"{'*/' * x}pyproject.toml"))
+
+        for t in tomls:
+            p = t.parent
             if not p.is_dir() or not (p / "pyproject.toml").is_file():
                 continue
 
@@ -224,38 +236,9 @@ class ProjectTools:
 
             # poetry code paths can be dropped once 2.x is released
             # looks like we wait: https://github.com/python-poetry/poetry/pull/9135
-            valid_components.append(ComponentId(name))
+            results[ComponentId(name)] = p
 
-        return tuple(valid_components)
-
-    def get_component(self, name: str) -> ComponentTools:
-        """
-        Get the component tools for a given component.
-
-        Args:
-            name: the name of the component within the project.
-        """
-        if self._is_single_component_project():
-            return ComponentTools(self.repo_root())
-
-        p = self.repo_root() / name
-        if not p.is_dir() or not (p / "pyproject.toml").is_file():
-            raise ComponentNotFoundError(f"component {name} is not a valid python component")
-
-        return ComponentTools(p)
-
-    def repo_root(self) -> Path:
-        """The path to the root of the repository."""
-        p = Path(self._config().path).resolve()
-        # 99% of the time we just want the root of the repo
-        # but in tests we use sub-projects to create fake scenarios
-        # better test tooling can probably help us remove this later
-        if not (p / ".git").exists() and not (p / ".rats-root").exists():
-            raise ProjectNotFoundError(
-                f"repo root not found: {p}. devtools must be used on a project in a git repo."
-            )
-
-        return p
+        return results
 
     def _extract_tool_info(self, pyproject: Path) -> dict[str, bool]:
         config = toml.loads(pyproject.read_text()).get("tool", {}).get("rats-devtools", {})
@@ -264,9 +247,6 @@ class ProjectTools:
             "enabled": config.get("enabled", False),
             "devtools-component": config.get("devtools-component", False),
         }
-
-    def _is_single_component_project(self) -> bool:
-        return (self.repo_root() / "pyproject.toml").exists()
 
 
 class ComponentNotFoundError(ValueError):

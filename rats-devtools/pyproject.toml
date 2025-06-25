@@ -203,10 +203,7 @@ line-ending = "auto"              # Like Black, automatically detect the appropr
 docstring-code-format = true
 
 [tool.coverage.run]
-branch = true
 data_file = ".tmp/.coverage"
-# Root namespace package folder here ensures coverage will include files with 0% coverage
-source = ["src/rats"]
 relative_files = true
 
 [tool.coverage.report]
@@ -219,9 +216,11 @@ output = ".tmp/reports/coverage.xml"
 cache_dir = ".tmp/.pytest_cache"
 testpaths = ["test"]
 addopts = """
-    --cov --cov-report=term
+    --cov=src/rats --cov=test/rats_test
+    --cov-report=term
     --cov-report=xml
     --junit-xml .tmp/reports/pytest-junit.xml
     --capture=no
+    --cov-branch
     --cache-clear
 """

@@ -1,0 +1,17 @@
+[project]
+name = "example-nested-uv"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+example-uv = "example_uv:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rats-devtools]
+enabled = true
