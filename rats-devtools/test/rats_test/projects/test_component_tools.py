@@ -12,7 +12,12 @@ class TestComponentTools:
             )
         )
 
-        examples = ["pdm", "poetry", "uv"]
+        examples = [
+            "pdm",
+            "poetry",
+            "uv",
+            "nested-uv",
+        ]
         for x in examples:
             component = tools.get_component(f"example-{x}")
             assert component.component_name() == f"example-{x}"

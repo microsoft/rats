@@ -12,7 +12,7 @@ class TestProjectTools:
             )
         )
 
-        assert len(tools.discover_components()) == 3
+        assert len(tools.discover_components()) == 4
 
     def test_single_component_projects(self) -> None:
         tools = projects.ProjectTools(
