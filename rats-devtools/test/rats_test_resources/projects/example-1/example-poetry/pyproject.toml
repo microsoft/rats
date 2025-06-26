@@ -6,6 +6,12 @@ authors = []
 readme = "README.md"
 requires-python = ">=3.10, <4.0"
 
+[tool.poetry]
+requires-poetry = ">=2.0"
+packages = [
+    {include = "example_poetry", from = "src"},
+]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
