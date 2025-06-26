@@ -165,12 +165,12 @@ class ComponentTools:
         tools,
         """
         data = self._load_pyproject()
-        if "tool" in data and "poetry" in data["tool"]:
-            # we found some poetry values in the toml file
+        if "tool" in data and "uv" in data["tool"]:
+            # we found some uv values in the toml file
             return True
 
         # make double sure by checking if we see a lockfile for poetry
-        return self.find_path("poetry.lock").is_file()
+        return self.find_path("uv.lock").is_file()
 
     def _load_pyproject(self) -> Mapping[str, Any]:
         return toml.loads((self.find_path("pyproject.toml")).read_text())
