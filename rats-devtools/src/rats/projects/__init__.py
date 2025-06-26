@@ -20,7 +20,13 @@ other component specific choices.
 """
 
 from ._component_tools import ComponentId, ComponentTools, UnsetComponentTools
-from ._plugin import PluginConfigs, PluginContainer, PluginServices, find_repo_root
+from ._plugin import (
+    PluginConfigs,
+    PluginContainer,
+    PluginServices,
+    find_nearest_component,
+    find_repo_root,
+)
 from ._project_tools import (
     ComponentNotFoundError,
     ProjectConfig,
@@ -39,5 +45,6 @@ __all__ = [
     "ProjectNotFoundError",
     "ProjectTools",
     "UnsetComponentTools",
+    "find_nearest_component",
     "find_repo_root",
 ]
