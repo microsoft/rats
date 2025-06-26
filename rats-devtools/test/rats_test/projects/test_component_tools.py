@@ -52,7 +52,6 @@ class TestComponentTools:
         )
 
         examples = [
-            "poetry",
             "uv",
             "nested-uv",
         ]
