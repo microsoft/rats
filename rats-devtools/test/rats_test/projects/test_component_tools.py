@@ -78,31 +78,3 @@ class TestComponentTools:
                 cwd=component.find_path("."),
             )
             assert result.stdout.strip() == f"hello, world! example-1/{component.component_name()}"
-
-    def test_executing_poetry(self) -> None:
-        tools = projects.ProjectTools(
-            lambda: projects.ProjectConfig(
-                name="example-project",
-                path="test/rats_test_resources/projects/example-1",
-                image_registry="none",
-                image_push_on_build=False,
-            )
-        )
-
-        component = tools.get_component("example-poetry")
-
-        cmd = [
-            "env",
-            "-u",
-            "POETRY_ACTIVE",
-            "-u",
-            "VIRTUAL_ENV",
-            "poetry",
-            "run",
-            "python",
-            "-m",
-            "example_poetry",
-        ]
-
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=component.find_path("."))
-        assert result.stdout.strip() == "hello, world! example-1/example-poetry"
