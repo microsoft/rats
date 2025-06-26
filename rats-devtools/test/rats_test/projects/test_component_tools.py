@@ -72,7 +72,12 @@ class TestComponentTools:
                 component.component_name().replace("-", "_"),
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=component.find_path("."))
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=component.find_path("."),
+            )
             assert result.stdout.strip() == f"hello, world! example-1/{component.component_name()}"
 
     def test_executing_poetry(self) -> None:
