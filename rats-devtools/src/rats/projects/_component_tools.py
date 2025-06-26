@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import sys
+import warnings
 from collections.abc import Mapping
 from os import symlink
 from pathlib import Path
@@ -110,19 +111,26 @@ class ComponentTools:
     def pyright(self) -> None:
         self.run("pyright")
 
-    def run(self, *args: str) -> None:
-        if self.is_poetry_detected():
-            self.poetry("run", *args)
-        else:
-            self.exe(*args)
-
     def poetry(self, *args: str) -> None:
+        warnings.warn(
+            "The ComponentTools.poetry() method is deprecated. Use ComponentTools.run() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if not self.is_poetry_detected():
             raise RuntimeError(f"cannot run poetry commands in component: {self.component_name()}")
 
-        # when running a poetry command, we want to ignore any env we might be in.
-        # i'm not sure yet how reliable this is.
         self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", *args)
+
+    def run(self, *args: str) -> None:
+        """Tries to run a command within the component's venv."""
+        # generally try to unset any package manager venv specific details
+        if self.is_poetry_detected():
+            self.exe("env", "-u", "POETRY_ACTIVE", "-u", "VIRTUAL_ENV", "poetry", "run", *args)
+        elif self._is_uv_detected():
+            self.exe("env", "-u", "UV_ACTIVE", "-u", "VIRTUAL_ENV", "uv", "run", *args)
+        else:
+            self.exe(*args)
 
     def exe(self, *cmd: str) -> None:
         """Run a command from the root of a component."""
@@ -142,7 +150,27 @@ class ComponentTools:
         we can fully delete any non PEP 621 code since we initially started as poetry-specific.
         """
         data = self._load_pyproject()
-        return "tool" in data and "poetry" in data["tool"]
+        if "tool" in data and "poetry" in data["tool"]:
+            # we found some poetry values in the toml file
+            return True
+
+        # make double sure by checking if we see a lockfile for poetry
+        return self.find_path("poetry.lock").is_file()
+
+    def _is_uv_detected(self) -> bool:
+        """
+        Returns true if we think this component might be managed by uv.
+
+        Keeping this private because the hope is to remove all coupling to specific packaging
+        tools,
+        """
+        data = self._load_pyproject()
+        if "tool" in data and "poetry" in data["tool"]:
+            # we found some poetry values in the toml file
+            return True
+
+        # make double sure by checking if we see a lockfile for poetry
+        return self.find_path("poetry.lock").is_file()
 
     def _load_pyproject(self) -> Mapping[str, Any]:
         return toml.loads((self.find_path("pyproject.toml")).read_text())
