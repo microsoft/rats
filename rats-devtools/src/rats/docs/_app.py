@@ -1,5 +1,4 @@
 import logging
-import warnings
 
 import click
 
@@ -15,104 +14,61 @@ logger = logging.getLogger(__name__)
 class AppConfigs:
     DOCS_COMPONENT_NAME = apps.ServiceId[str]("docs-component-name.config")
     """
-    The name of the component in the repo that contains `mkdocs.yaml` and dependencies.
+    The name of the component in the repo that contains the mkdocs packages.
 
     By default, we assume there is a component in the repo named `*devtools*`; but this behavior
     can be replaced by registering a [rats.apps.ContainerPlugin][] to the `rats.docs` python
     entry-point in `pyproject.toml`.
+
+    The final built documentation, created by `rats-docs build`, will be placed in the `dist/site`
+    directory within this component.
+    """
+    MKDOCS_YAML = apps.ServiceId[str]("mkdocs-yaml.config")
+    """
+    The path to the `mkdocs.yaml` config file, relative to the root of the repo.
+
+    By default, we assume the `mkdocs.yaml` file is in the root directory, but it's sometimes
+    preferred to keep it in the docs component, defined by
+    [rats.docs.AppConfigs.DOCS_COMPONENT_NAME][].
     """
 
 
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
-    _dev_addr: str = "127.0.0.1:8000"
-
     def execute(self) -> None:
         cli.create_group(click.Group("rats-docs"), self).main()
 
     @cli.command()
-    def _mkdocs_build(self) -> None:
-        """
-        Build the mkdocs site for every component in the project.
-
-        !!! warning
-            This command is deprecated and will be removed in a future release. Use the `build`
-            command instead.
-        """
-        warnings.warn(
-            "the `mkdocs-build` command is deprecated. use `build` instead.",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        self.build()
-
-    @cli.command()
-    def build(self) -> None:
+    @click.argument("mkdocs-args", nargs=-1)
+    def build(self, mkdocs_args: tuple[str, ...]) -> None:
         """Build the mkdocs site for every component in the project."""
-        self._do_mkdocs_things("build")
-
-    @cli.command()
-    def _mkdocs_serve(self) -> None:
-        """
-        Serve the mkdocs site for the project and monitor files for changes.
-
-        !!! warning
-            This command is deprecated and will be removed in a future release. Use the `serve`
-            command instead.
-        """
-        warnings.warn(
-            "the `mkdocs-serve` command is deprecated. use `serve` instead.",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        self.serve("127.0.0.1:8000")
-
-    @cli.command()
-    @click.option(
-        "--dev-addr",
-        default="127.0.0.1:8000",
-        help="address to listen to when running local dev site",
-        show_default=True,
-    )
-    def serve(self, dev_addr: str) -> None:
-        """Serve the mkdocs site for the project and monitor files for changes."""
-        self._dev_addr = dev_addr
-        self._do_mkdocs_things("serve")
-
-    def _do_mkdocs_things(self, cmd: str) -> None:
         ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         docs_component = ptools.get_component(self._app.get(AppConfigs.DOCS_COMPONENT_NAME))
-        root_docs_path = ptools.repo_root() / "docs"
-
-        mkdocs_config = docs_component.find_path("mkdocs.yaml")
-        mkdocs_staging_path = docs_component.find_path("dist/docs")
         site_dir_path = docs_component.find_path("dist/site")
-        # we append the filename because symlinks get resolved by `find_path()`
-        mkdocs_staging_config = docs_component.find_path("dist") / "mkdocs.yaml"
-        # clear any stale state
-        docs_component.create_or_empty(mkdocs_staging_path)
-        # start with the contents of our root-docs
-        docs_component.copy_tree(root_docs_path, mkdocs_staging_path)
-        components = ptools.discover_components()
-
-        for c in components:
-            comp_tools = ptools.get_component(c.name)
-            docs_path = comp_tools.find_path("docs")
-            docs_component.symlink(docs_path, mkdocs_staging_path / c.name)
-
-        # replace the mkdocs config with a fresh version
-        mkdocs_staging_config.unlink(missing_ok=True)
-        docs_component.symlink(mkdocs_config, mkdocs_staging_config)
-
-        args = [
+        config_path = ptools.repo_root() / self._app.get(AppConfigs.MKDOCS_YAML)
+        docs_component.run(
+            "mkdocs",
+            "build",
             "--config-file",
-            str(mkdocs_staging_config),
-        ]
-        if cmd == "build":
-            args.extend(["--site-dir", str(site_dir_path.resolve())])
-        if cmd == "serve":
-            args.extend(["--dev-addr", self._dev_addr])
+            config_path.as_posix(),
+            "--site-dir",
+            site_dir_path.as_posix(),
+            *mkdocs_args,
+        )
 
-        docs_component.run("mkdocs", cmd, *args)
+    @cli.command()
+    @click.argument("mkdocs-args", nargs=-1)
+    def serve(self, mkdocs_args: tuple[str, ...]) -> None:
+        """Serve the mkdocs site for the project and monitor files for changes."""
+        ptools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+        docs_component = ptools.get_component(self._app.get(AppConfigs.DOCS_COMPONENT_NAME))
+        config_path = ptools.repo_root() / self._app.get(AppConfigs.MKDOCS_YAML)
+        docs_component.run(
+            "mkdocs",
+            "serve",
+            "--config-file",
+            config_path.as_posix(),
+            *mkdocs_args,
+        )
 
     @apps.fallback_service(AppConfigs.DOCS_COMPONENT_NAME)
     def _docs_component_name(self) -> str:
@@ -126,6 +82,10 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         # otherwise, we might be a single component repo and the first component is a good guess
         return found[0].name
+
+    @apps.fallback_service(AppConfigs.MKDOCS_YAML)
+    def _mkdocs_yaml(self) -> str:
+        return "mkdocs.yaml"
 
     @apps.container()
     def _plugins(self) -> apps.Container:

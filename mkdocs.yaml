@@ -54,9 +54,8 @@ extra_css:
 #  - js/mathjax.js
 #  - js/tex-mml-chtml.js
 watch:
-  - "../../rats-apps/src"
-  - "../../rats-devtools/src"
-  - "../../rats-devtools/mkdocs.yaml"
+  - rats-apps/src
+  - rats-devtools/src
 plugins:
   - search
   - mkdocstrings:
@@ -64,12 +63,10 @@ plugins:
       handlers:
         python:
           paths:
-            # we don't need to install packages to generate docs any more
-            # these paths should be relative from rats-devtools/dist
-            # we can automate the detection of this list later
-            - "../../rats/src"
-            - "../../rats-apps/src"
-            - "../../rats-devtools/src"
+            # these paths should be relative from repo root
+            - rats/src
+            - rats-apps/src
+            - rats-devtools/src
           options:
             show_if_no_docstring: true
             show_symbol_type_toc: true
@@ -109,10 +106,14 @@ markdown_extensions:
       # add paths relative to the devtools component here if you want to include them using -8<-
       # https://facelessuser.github.io/pymdown-extensions/extensions/snippets/#snippets-notation
       base_path:
-        - "../"  # let us use full paths from the repo root
+        # always allow us to embed file paths from the root of the repo
+        - !relative $config_dir
         # or relative from each src directory
-        - "../rats-apps/src"
-        - "../rats-devtools/src"
+        - !relative $config_dir/rats-apps/src
+        - !relative $config_dir/rats-devtools/src
+        # or test directory
+        - !relative $config_dir/rats-apps/test
+        - !relative $config_dir/rats-devtools/test
       # fail the mkdocs build if any snippets link to missing files
       # this delays painful bugs being found when disabled
       check_paths: true
