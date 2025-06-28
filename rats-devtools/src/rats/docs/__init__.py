@@ -9,14 +9,23 @@ We don't plan on enhancing the features of the documentation tooling outside of 
 mkdocs plugins. Teams working in single-component repositories should be able to author
 documentation using the standard `mkdocs build` and `mkdocs serve` commands. In monorepos, our
 tools help enable cross-referencing and generate a single site that allows us to search across all
-components instead of publishing an isolated documentation site for each component.
+components instead of publishing an isolated documentation site for each component. We try to
+accomplish this as a small command proxy that inserts default arguments to the underlying `mkdocs`
+command.
+
+!!! note
+    Previously, this module would copy original markdown files, and symlink directories during the
+    build process to unify the docs across components. However, over time, we've found solutions
+    that eliminate these custom operations, making the `rats-docs` commands much simpler, and
+    making it easy to get the same output when using `mkdocs` commands directly.
 
 ## Structure
 
 We structure our documentation site such that each component is as self contained as possible, each
-containing a dedicated `docs` directories. These component docs are then merged with a `docs`
-folder found at the root of the repository, where authors can create tutorials and other types of
-content that might combine component features to build comprehensive examples.
+containing a dedicated `docs` directory. These component docs are then merged with a `docs` folder
+found at the root of the repository, where authors can create tutorials and other types of content
+that might combine component features to build comprehensive examples. The root docs directory uses
+symlinks to the individual component docs, and `mkdocs` is only made aware of the root docs.
 
 We can look at the structure of the `rats` repo as an example:
 
@@ -69,9 +78,8 @@ We can look at the structure of the `rats` repo as an example:
 
 1.  :man_raising_hand: The root documentation can contain an introduction to the project and
     provide links to component pages.
-2.  :man_raising_hand: Components contain their own `docs` directory. When built, the component
-    documentation gets placed in a directory within the root documentation. The `rats-apps`
-    documentation will be at `/rats-apps/`.
+2.  :man_raising_hand: Components contain their own `docs` directory. We symlink this directory
+    such that the `rats-apps` documentation will be at `/rats-apps/`.
 3.  :man_raising_hand: This page is part of `rats-devtools` and will be built as if it was found
     at `docs/rats-devtools/rats.docs.md`.
 
@@ -110,8 +118,19 @@ INFO    -  [23:06:24] Browser connected: http://127.0.0.1:8000/
 ```
 
 !!! note
-    `rats-docs serve` and `rats-docs build` are simply using the `mkdocs` cli after combining all
-    of the documentation files into a staging directory.
+    `rats-docs serve` and `rats-docs build` are simply using the `mkdocs` cli after, and you can
+    provide arguments to the underlying command separated by a double dash `--`. You can see the
+    entire list of options by running `rats-docs serve -- --help`, which should be equivalent to
+    running `mkdocs serve --help`.
+
+    ```
+    $ rats-docs serve -- --dev-addr "127.0.0.1:8181"
+    INFO    -  Building documentation...
+    INFO    -  Cleaning site directory
+    INFO    -  Documentation built in 2.73 seconds
+    …
+    INFO    -  [14:42:00] Serving on http://127.0.0.1:8181/
+    ```
 
 ## Configuration
 

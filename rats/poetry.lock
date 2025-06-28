@@ -186,14 +186,14 @@ opentelemetry-sdk = ">=1.28.0,<1.32"
 
 [[package]]
 name = "azure-monitor-opentelemetry-exporter"
-version = "1.0.0b38"
+version = "1.0.0b39"
 description = "Microsoft Azure Monitor Opentelemetry Exporter Client Library for Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "local"]
 files = [
-    {file = "azure_monitor_opentelemetry_exporter-1.0.0b38-py2.py3-none-any.whl", hash = "sha256:eda37c4f32a3b50d2946efda4e27fc17f216533e152cf1209b96fe9141f8ef0d"},
-    {file = "azure_monitor_opentelemetry_exporter-1.0.0b38.tar.gz", hash = "sha256:cabc0313a06067612a27ca852ff782aa34e726d32e1816cd0366981a8b29b926"},
+    {file = "azure_monitor_opentelemetry_exporter-1.0.0b39-py2.py3-none-any.whl", hash = "sha256:22419084272affeb117e47abd7420a4040ae370ee844c0167ccbc77c26490cc3"},
+    {file = "azure_monitor_opentelemetry_exporter-1.0.0b39.tar.gz", hash = "sha256:c28f5f56261ad40ab69eb00ba4e60d50417ec30e343afccc65c5c89ba4056087"},
 ]
 
 [package.dependencies]
@@ -2141,7 +2141,7 @@ pyyaml = "*"
 
 [[package]]
 name = "rats-apps"
-version = "0.12.0"
+version = "0.13.0"
 description = "research analysis tools for building applications"
 optional = false
 python-versions = ">=3.10,<4.0"
@@ -2162,7 +2162,7 @@ url = "../rats-apps"
 
 [[package]]
 name = "rats-devtools"
-version = "0.12.0"
+version = "0.13.0"
 description = "Rats Development Tools"
 optional = false
 python-versions = ">=3.10,<4.0"
@@ -2753,4 +2753,4 @@ devtools = ["rats-devtools"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "4a04e8b8f0e7359995ab82240b98080ebcd9b72ba1e153379a7e06e15fa5226e"
+content-hash = "aefe1d29d5a72839b79568ebaf7e679b83c5873b6ebd43124ed3b03c7577e464"
