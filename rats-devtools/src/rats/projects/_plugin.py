@@ -41,18 +41,8 @@ class PluginContainer(apps.Container, apps.PluginMixin):
     def _active_component_tools(self) -> ComponentTools:
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
         cwd = Path().resolve()
-        relative = cwd.relative_to(ptools.repo_root()).as_posix()
-
-        if cwd == ptools.repo_root():
-            # we're at the root of the repo
-            # either this is a single component project, and the devtools component is the only one
-            # or we're not in a component and we should use the devtools component by default
-            # i'm not sure this is the best and most expected behavior
-            # but it lets us run things like the docs tools from the root of a big repo
-            return ptools.get_component(ptools.project_name())
-
-        name = relative.split("/")[0]  # the component sits at the root of the project, for now
-        return ptools.get_component(name)
+        nearest = find_nearest_component(cwd)
+        return ptools.get_component(nearest.name)
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:
