@@ -1,7 +1,7 @@
 [project]
 name = "rats-devtools"
 description = "Rats Development Tools"
-version = "0.13.1"
+version = "0.13.2"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
