@@ -1,7 +1,7 @@
 [project]
 name = "rats"
 description = "bundled research analysis tools"
-version = "0.13.1"
+version = "0.13.2"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
@@ -15,10 +15,10 @@ dependencies = []
 
 [project.optional-dependencies]
 apps = [
-    "rats-apps (==0.13.1)",
+    "rats-apps (==0.13.2)",
 ]
 devtools = [
-    "rats-devtools (==0.13.1)",
+    "rats-devtools (==0.13.2)",
 ]
 
 [project.urls]
