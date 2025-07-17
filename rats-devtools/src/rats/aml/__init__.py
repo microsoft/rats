@@ -38,7 +38,7 @@ from ._configs import (
     AmlWorkspace,
 )
 from ._request import Request
-from ._submission import submit
+from ._submission import job, submit
 
 __all__ = [
     "AmlEnvironment",
@@ -50,6 +50,7 @@ __all__ = [
     "AppServices",
     "Application",
     "Request",
+    "job",
     "main",
     "submit",
 ]
