@@ -525,12 +525,15 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             **extra_aml_command_args,
         )
         returned_job = job_ops.create_or_update(job)  # type: ignore[reportUnknownMemberType]
-        logger.info(f"created job: {returned_job}")
 
         self._request = Request(
-            job_name=str(returned_job.name),
+            name=str(returned_job.name),
+            experiment_name=str(returned_job.experiment_name),
+            studio_url=str(returned_job.studio_url),
             wait=wait,
         )
+
+        print(f"created job: {self._request}")
 
         while wait:
             job_details = job_ops.get(str(returned_job.name))
