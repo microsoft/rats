@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from typing import NamedTuple
 
 import click
@@ -12,16 +12,16 @@ from rats import projects
 class CiCommandGroups(NamedTuple):
     """Main configuration object for the `rats-ci` subcommands."""
 
-    install: tuple[tuple[str, ...], ...]
+    install: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci install`."""
 
-    fix: tuple[tuple[str, ...], ...]
+    fix: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci fix`."""
 
-    check: tuple[tuple[str, ...], ...]
+    check: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci check`."""
 
-    test: tuple[tuple[str, ...], ...]
+    test: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci test`."""
 
 
@@ -58,7 +58,7 @@ class AppConfigs:
             )
     ```
     """
-    INSTALL = apps.ServiceId[tuple[str, ...]]("install")
+    INSTALL = apps.ServiceId[Collection[str]]("install")
     """
     Service group to define commands run with `rats-ci install`.
 
@@ -73,7 +73,7 @@ class AppConfigs:
             yield tuple(["uv", "sync"])
     ```
     """
-    FIX = apps.ServiceId[tuple[str, ...]]("fix")
+    FIX = apps.ServiceId[Collection[str]]("fix")
     """
     Service group to define commands run with `rats-ci fix`.
 
@@ -88,7 +88,7 @@ class AppConfigs:
             yield tuple(["ruff", "check", "--fix"])
     ```
     """
-    CHECK = apps.ServiceId[tuple[str, ...]]("check")
+    CHECK = apps.ServiceId[Collection[str]]("check")
     """
     Service group to define commands run with `rats-ci check`.
 
@@ -103,7 +103,7 @@ class AppConfigs:
             yield tuple(["ruff", "check")
     ```
     """
-    TEST = apps.ServiceId[tuple[str, ...]]("test")
+    TEST = apps.ServiceId[Collection[str]]("test")
     """
     Service group to define commands run with `rats-ci test`.
 
@@ -247,25 +247,25 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         )
 
     @apps.fallback_group(AppConfigs.INSTALL)
-    def _poetry_install(self) -> Iterator[tuple[str, ...]]:
+    def _poetry_install(self) -> Iterator[Collection[str]]:
         yield "poetry", "install"
 
     @apps.fallback_group(AppConfigs.FIX)
-    def _ruff_format(self) -> Iterator[tuple[str, ...]]:
+    def _ruff_format(self) -> Iterator[Collection[str]]:
         yield "ruff", "format"
 
     @apps.fallback_group(AppConfigs.FIX)
-    def _ruff_fix(self) -> Iterator[tuple[str, ...]]:
+    def _ruff_fix(self) -> Iterator[Collection[str]]:
         yield "ruff", "check", "--fix", "--unsafe-fixes"
 
     @apps.fallback_group(AppConfigs.CHECK)
-    def _default_checks(self) -> Iterator[tuple[str, ...]]:
+    def _default_checks(self) -> Iterator[Collection[str]]:
         yield "ruff", "format", "--check"
         yield "ruff", "check"
         yield ("pyright",)
 
     @apps.fallback_group(AppConfigs.TEST)
-    def _pytest(self) -> Iterator[tuple[str, ...]]:
+    def _pytest(self) -> Iterator[Collection[str]]:
         yield ("pytest",)
 
     @apps.container()
