@@ -120,6 +120,7 @@ class AppConfigs:
     """
 
 
+@apps.autoscope
 class AppServices:
     """
     Service IDs used by the [rats.ci.Application][] class.
