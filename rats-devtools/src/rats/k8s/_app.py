@@ -12,8 +12,11 @@ from uuid import uuid4
 
 import click
 import yaml
+from kubernetes import client, config
 
 from rats import app_context, apps, cli, logs, projects
+
+from ._workflow_jobs import CreateNamespace
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +55,31 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             # don't end the process
             standalone_mode=False,
         )
+
+    @cli.command()
+    @click.argument("app-ids", nargs=-1)
+    @click.option("--context", default='{"items": []}')
+    @click.option("--context-file")
+    @click.option("--wait", is_flag=True, default=False, help="wait for completion of aml job.")
+    def _test(
+        self,
+        app_ids: tuple[str, ...],
+        context: str,
+        context_file: str | None,
+        wait: bool,
+    ) -> None:
+        # Get the Kubernetes context from the app configuration
+        k8s_ctx_name = self._app.get(AppConfigs.K8S_CONFIG_CONTEXT)
+
+        # Load the Kubernetes configuration with the specified context
+        config.load_kube_config(context=k8s_ctx_name)
+
+        # Create the Kubernetes client
+        k8s_client = client.CoreV1Api()
+
+        # Create and execute the CreateNamespace instance
+        cn = CreateNamespace(k8s_client=k8s_client, namespace_name="workflows")
+        cn.execute()
 
     @cli.command()
     @click.argument("app-ids", nargs=-1)
@@ -97,12 +125,21 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         ctools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
         ctools.copy_tree(
-            Path("src/rats_resources/k8s/workflow"),
+            Path("src/rats_resources/k8s/workflow-jobs"),
             staging_path / "workflow",
         )
 
         self._create_kustomization()
         self._create_main_container_patch()
+
+        built = subprocess.run(
+            ["kubectl", "kustomize"],
+            check=True,
+            text=True,
+            cwd=staging_path,
+            capture_output=True,
+        ).stdout
+        logger.info(f"completed kustomize build\n{built}")
 
     def _create_kustomization(self) -> None:
         staging_path = self._app.get(AppServices.RUN_STAGING_PATH)
