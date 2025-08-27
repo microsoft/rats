@@ -23,6 +23,7 @@ from rats import projects
 from rats_resources import k8s
 
 from ._kustomize import KustomizeImage
+from ._utils import hash_value
 from ._workflow_jobs import CreateNamespace, KustomizeBuild
 
 logger = logging.getLogger(__name__)
@@ -103,9 +104,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         Run `rats-k8s list` to find the list of applications registered in this component.
         """
-        self._app.get(AppConfigs.K8S_CONFIG_CONTEXT)
-        # kubernetes.config.load_kube_config(context=k8s_ctx_name)
-
         ctx_collection = app_context.loads(context).add(
             *self._app.get_group(AppConfigs.APP_CONTEXT),
         )
@@ -142,6 +140,15 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             capture_output=True,
         ).stdout
         logger.info(f"completed kustomize build\n{built}")
+
+        subprocess.run(
+            ["kubectl", "apply", "-f-"],
+            check=True,
+            text=True,
+            cwd=staging_path,
+            input=built,
+        )
+        logger.info(f"kubectl describe pod -n workflows -l rats.k8s/run-id-hash={hash_value(self._app.get(AppConfigs.RUN_ID))}")
 
     @cache
     def _customize_build(self) -> apps.Executable:
