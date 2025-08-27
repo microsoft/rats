@@ -3,49 +3,54 @@ import logging
 import os
 import subprocess
 import sys
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from datetime import datetime
 from functools import cache
+from importlib import resources
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any
 from uuid import uuid4
 
 import click
 import yaml
 from kubernetes import client, config
 
-from rats import app_context, apps, cli, logs, projects
+from rats import app_context as app_context
+from rats import apps as apps
+from rats import cli as cli
+from rats import logs as logs
+from rats import projects
+from rats_resources import k8s
 
-from ._workflow_jobs import CreateNamespace
+from ._kustomize import KustomizeImage
+from ._workflow_jobs import CreateNamespace, KustomizeBuild
 
 logger = logging.getLogger(__name__)
 
 
-class KustomizeImage(NamedTuple):
-    name: str
-    newName: str
-    newTag: str
-
-    @property
-    def full_name(self) -> str:
-        return f"{self.newName}:{self.newTag}"
-
-
 @apps.autoscope
 class AppConfigs:
-    K8S_CONFIG_CONTEXT = apps.ServiceId[str]("k8s-config-context")
-    APP_CONTEXT = apps.ServiceId[app_context.Context[Any]]("app-context.config-group")
+    K8S_CONFIG_CONTEXT = apps.ServiceId[str]("k8s-config-context.config")
+    APP_CONTEXT = apps.ServiceId[app_context.Context[Any]]("app-context.config-group.config")
     """Service group containing context services to attach to the submitted k8s process."""
-    RUN_ID = apps.ServiceId[str]("run-id")
-    KUSTOMIZE_IMAGES = apps.ServiceId[KustomizeImage]("kustomize-images")
+    RUN_ID = apps.ServiceId[str]("run-id.config")
+    KUSTOMIZE_IMAGES = apps.ServiceId[KustomizeImage]("kustomize-images.config")
+    RUNNABLE_APP_IDS = apps.ServiceId[str]("runnable-app-ids.config")
+    APP_IDS = apps.ServiceId[Collection[str]]("app-ids.config")
 
 
 @apps.autoscope
 class AppServices:
+    RESOURCE_PATH = apps.ServiceId[Path]("resource-path")
     RUN_STAGING_PATH = apps.ServiceId[Path]("run-staging-path")
+    RUN_DATETIME = apps.ServiceId[datetime]("run-datetime")
+    CTX_COLLECTION = apps.ServiceId[app_context.Collection]("ctx-collection")
 
 
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
+    _app_ids: tuple[str, ...]
+    _ctx_collection: app_context.Collection
+
     def execute(self) -> None:
         argv = self._app.get(cli.PluginConfigs.ARGV)
         cli.create_group(click.Group("rats-k8s"), self).main(
@@ -115,22 +120,19 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         if len(app_ids) == 0:
             logging.warning("No applications were provided to the command")
 
+        runtime_apps = list(self._app.get_group(AppConfigs.RUNNABLE_APP_IDS))
         for a in app_ids:
             # make sure all these app ids are valid
-            if a not in self._runtime_list():
+            if a not in runtime_apps:
                 raise RuntimeError(f"app id not found: {a}")
+
+        self._ctx_collection = ctx_collection
+        self._app_ids = app_ids
 
         staging_path = self._app.get(AppServices.RUN_STAGING_PATH)
         staging_path.mkdir(parents=True, exist_ok=False)
 
-        ctools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        ctools.copy_tree(
-            Path("src/rats_resources/k8s/workflow-jobs"),
-            staging_path / "workflow",
-        )
-
-        self._create_kustomization()
-        self._create_main_container_patch()
+        self._customize_build().execute()
 
         built = subprocess.run(
             ["kubectl", "kustomize"],
@@ -141,100 +143,26 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         ).stdout
         logger.info(f"completed kustomize build\n{built}")
 
-    def _create_kustomization(self) -> None:
-        staging_path = self._app.get(AppServices.RUN_STAGING_PATH)
-        run_id = self._app.get(AppConfigs.RUN_ID)
-        kustomize_images = list(self._app.get_group(AppConfigs.KUSTOMIZE_IMAGES))
-        (staging_path / "kustomization.yaml").write_text(
-            yaml.safe_dump(
-                {
-                    "apiVersion": "kustomize.config.k8s.io/v1beta1",
-                    "kind": "Kustomization",
-                    "nameSuffix": f"-{run_id}",
-                    "labels": [
-                        {
-                            "includeSelectors": True,
-                            "pairs": {
-                                "rats.k8s/run-id": run_id,
-                            },
-                        }
-                    ],
-                    "commonAnnotations": {
-                        "rats.k8s/run-id": run_id,
-                    },
-                    "images": [image._asdict() for image in kustomize_images],
-                    "resources": ["workflow"],
-                    "patches": [{"path": "main-container.yaml"}],
-                },
-                sort_keys=False,
-            )
+    @cache
+    def _customize_build(self) -> apps.Executable:
+        ctools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        return KustomizeBuild(
+            ctools=ctools,
+            run_id=self._app.get(AppConfigs.RUN_ID),
+            resource_path=self._app.get(AppServices.RESOURCE_PATH),
+            staging_path=self._app.get(AppServices.RUN_STAGING_PATH),
+            images=list(self._app.get_group(AppConfigs.KUSTOMIZE_IMAGES)),
+            main_component=ctools.component_name(),
+            app_ids=self._app.get(AppConfigs.APP_IDS),
+            ctx_collection=self._app.get(AppServices.CTX_COLLECTION),
         )
 
-    def _create_main_container_patch(self) -> None:
-        staging_path = self._app.get(AppServices.RUN_STAGING_PATH)
-        (staging_path / "main-container.yaml").write_text(
-            yaml.safe_dump(
-                {
-                    "apiVersion": "batch/v1",
-                    "kind": "Job",
-                    "metadata": {"name": "workflow"},
-                    "spec": {
-                        "template": {
-                            "spec": {
-                                "containers": self._containers(),
-                                "volumes": self._volumes(),
-                            },
-                        },
-                    },
-                }
-            ),
-        )
-
-    def _containers(self) -> list[dict[str, Any]]:
-        return [
-            {
-                "name": "main",
-                "image": "rats-devtools",
-                "command": ["echo", "hello, world!"],
-                "env": [],
-                "volumeMounts": [
-                    {
-                        "name": "podinfo",
-                        "mountPath": "/etc/podinfo",
-                    }
-                ],
-            }
-        ]
-
-    def _volumes(self) -> list[dict[str, Any]]:
-        return [
-            {
-                "name": "podinfo",
-                "downwardAPI": {
-                    "items": [
-                        {
-                            "path": "annotations/rats.kuberuntime/run-id",
-                            "fieldRef": {
-                                "fieldPath": "metadata.annotations['rats.kuberuntime/run-id']",
-                            },
-                        },
-                    ],
-                },
-            }
-        ]
-
-    @cache  # noqa: B019
-    def _runtime_list(self) -> tuple[str, ...]:
-        """
-        Uses the `rats-runtime list` command within the component `rats-k8s list` is run from.
-
-        Making this a simple subprocess allows us to submit to k8s from components that have
-        no k8s libraries installed, even when the `rats-devtools` component is not installed.
-        """
+    @apps.fallback_group(AppConfigs.RUNNABLE_APP_IDS)
+    def _runtime_list(self) -> Iterator[str]:
         response = subprocess.run(["rats-runtime", "list"], capture_output=True)
-        return tuple(response.stdout.decode("UTF-8").splitlines())
+        yield from tuple(response.stdout.decode("UTF-8").splitlines())
 
-    @apps.service(AppServices.RUN_STAGING_PATH)
+    @apps.fallback_service(AppServices.RUN_STAGING_PATH)
     def _run_staging_path(self) -> Path:
         ctools = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
         run_id = self._app.get(AppConfigs.RUN_ID)
@@ -242,7 +170,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @apps.service(AppConfigs.RUN_ID)
     def _run_id(self) -> str:
-        d = self._instance_datetime()
+        d = self._app.get(AppServices.RUN_DATETIME)
         return f"{d.strftime('%Y%m%d.%H.%M.%S')}.{str(uuid4())[:8]}"
 
     @apps.service(AppConfigs.K8S_CONFIG_CONTEXT)
@@ -251,14 +179,33 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
     @apps.fallback_group(AppConfigs.KUSTOMIZE_IMAGES)
     def _kustomize_images(self) -> Iterator[KustomizeImage]:
+        """By default, we make available any discovered component to k8s."""
         reg = os.environ.get("DEVTOOLS_IMAGE_REGISTRY", "default.local")
-        project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+        project_tools: projects.ProjectTools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
         context_hash = project_tools.image_context_hash()
-        yield KustomizeImage(
-            "rats-devtools",
-            f"{reg}/rats-devtools",
-            context_hash,
-        )
+        for component in project_tools.discover_components():
+            yield KustomizeImage(
+                component.name,
+                f"{reg}/{component.name}",
+                context_hash,
+            )
+
+    @apps.service(AppConfigs.APP_IDS)
+    def _run_app_ids(self) -> Collection[str]:
+        return self._app_ids
+
+    @apps.service(AppServices.CTX_COLLECTION)
+    def _run_ctx_collection(self) -> app_context.Collection:
+        return self._ctx_collection
+
+    @apps.service(AppServices.RUN_DATETIME)
+    def _instance_datetime(self) -> datetime:
+        return datetime.now()
+
+    @apps.fallback_service(AppServices.RESOURCE_PATH)
+    def _resource_path(self) -> Path:
+        with resources.path(k8s, "workflow-jobs") as p:
+            return p.resolve()
 
     @apps.container()
     def _plugins(self) -> apps.Container:
@@ -267,10 +214,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             cli.PluginContainer(self._app),
             projects.PluginContainer(self._app),
         )
-
-    @cache  # noqa: B019
-    def _instance_datetime(self) -> datetime:
-        return datetime.now()
 
 
 def main() -> None:
