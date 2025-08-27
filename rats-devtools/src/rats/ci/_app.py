@@ -1,4 +1,4 @@
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from typing import NamedTuple
 
 import click
@@ -12,16 +12,16 @@ from rats import projects
 class CiCommandGroups(NamedTuple):
     """Main configuration object for the `rats-ci` subcommands."""
 
-    install: tuple[tuple[str, ...], ...]
+    install: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci install`."""
 
-    fix: tuple[tuple[str, ...], ...]
+    fix: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci fix`."""
 
-    check: tuple[tuple[str, ...], ...]
+    check: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci check`."""
 
-    test: tuple[tuple[str, ...], ...]
+    test: Collection[Collection[str]]
     """Set of commands meant to be run as part of `rats-ci test`."""
 
 
@@ -58,7 +58,7 @@ class AppConfigs:
             )
     ```
     """
-    INSTALL = apps.ServiceId[tuple[str, ...]]("install")
+    INSTALL = apps.ServiceId[Collection[str]]("install")
     """
     Service group to define commands run with `rats-ci install`.
 
@@ -73,7 +73,7 @@ class AppConfigs:
             yield tuple(["uv", "sync"])
     ```
     """
-    FIX = apps.ServiceId[tuple[str, ...]]("fix")
+    FIX = apps.ServiceId[Collection[str]]("fix")
     """
     Service group to define commands run with `rats-ci fix`.
 
@@ -88,7 +88,7 @@ class AppConfigs:
             yield tuple(["ruff", "check", "--fix"])
     ```
     """
-    CHECK = apps.ServiceId[tuple[str, ...]]("check")
+    CHECK = apps.ServiceId[Collection[str]]("check")
     """
     Service group to define commands run with `rats-ci check`.
 
@@ -103,7 +103,7 @@ class AppConfigs:
             yield tuple(["ruff", "check")
     ```
     """
-    TEST = apps.ServiceId[tuple[str, ...]]("test")
+    TEST = apps.ServiceId[Collection[str]]("test")
     """
     Service group to define commands run with `rats-ci test`.
 
@@ -118,6 +118,34 @@ class AppConfigs:
             yield tuple(["pytest")
     ```
     """
+
+
+@apps.autoscope
+class AppServices:
+    """
+    Service IDs used by the [rats.ci.Application][] class.
+
+    The `rats-ci` application will move to using [rats.apps.Executable][] classes to define
+    the behavior of the various commands. You can replace the default behavior of any of the given
+    commands by registering one or more executables to the appropriate service group. This approach
+    gives you more control over the logic of the commands, and works well when the exposed configs
+    in [rats.ci.AppConfigs][] are not enough.
+    """
+
+    INSTALL_EXES = apps.ServiceId[apps.Executable]("install-exes")
+    """Service group of executables to run with `rats-ci install`."""
+
+    FIX_EXES = apps.ServiceId[apps.Executable]("fix-exes")
+    """Service group of executables to run with `rats-ci fix`."""
+
+    CHECK_EXES = apps.ServiceId[apps.Executable]("check-exes")
+    """Service group of executables to run with `rats-ci check`."""
+
+    TEST_EXES = apps.ServiceId[apps.Executable]("test-exes")
+    """Service group of executables to run with `rats-ci test`."""
+
+    BUILD_IMAGE_EXES = apps.ServiceId[apps.Executable]("build-image-exes")
+    """Service group of executables to run with `rats-ci build-image`."""
 
 
 class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
@@ -177,13 +205,18 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         Refer to [rats.ci.AppConfigs.INSTALL][] for  details on how to update these values.
         """
-        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
+        group = list(self._app.get_group(AppServices.INSTALL_EXES))
+        for exe in group:
+            exe.execute()
 
-        for cmd in command_groups.install:
-            selected_component.run(*cmd)
+        if len(group) == 0:
+            selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+            command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
 
-        print(f"ran {len(command_groups.install)} installation commands")
+            for cmd in command_groups.install:
+                selected_component.run(*cmd)
+
+            print(f"ran {len(command_groups.install)} installation commands")
 
     @cli.command()
     def fix(self) -> None:
@@ -192,12 +225,17 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         Refer to [rats.ci.AppConfigs.FIX][] for  details on how to update these values.
         """
-        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
-        for cmd in command_groups.fix:
-            selected_component.run(*cmd)
+        group = list(self._app.get_group(AppServices.FIX_EXES))
+        for exe in group:
+            exe.execute()
 
-        print(f"ran {len(command_groups.fix)} fix commands")
+        if len(group) == 0:
+            selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+            command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
+            for cmd in command_groups.fix:
+                selected_component.run(*cmd)
+
+            print(f"ran {len(command_groups.fix)} fix commands")
 
     @cli.command()
     def check(self) -> None:
@@ -206,13 +244,18 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         Refer to [rats.ci.AppConfigs.CHECK][] for  details on how to update these values.
         """
-        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
+        group = list(self._app.get_group(AppServices.CHECK_EXES))
+        for exe in group:
+            exe.execute()
 
-        for cmd in command_groups.check:
-            selected_component.run(*cmd)
+        if len(group) == 0:
+            selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+            command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
 
-        print(f"ran {len(command_groups.check)} check commands")
+            for cmd in command_groups.check:
+                selected_component.run(*cmd)
+
+            print(f"ran {len(command_groups.check)} check commands")
 
     @cli.command()
     def test(self) -> None:
@@ -221,21 +264,31 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
 
         Refer to [rats.ci.AppConfigs.TEST][] for  details on how to update these values.
         """
-        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
-        command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
+        group = list(self._app.get_group(AppServices.TEST_EXES))
+        for exe in group:
+            exe.execute()
 
-        for cmd in command_groups.test:
-            selected_component.run(*cmd)
+        if len(group) == 0:
+            selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+            command_groups = self._app.get(AppConfigs.COMMAND_GROUPS)
 
-        print(f"ran {len(command_groups.test)} test commands")
+            for cmd in command_groups.test:
+                selected_component.run(*cmd)
+
+            print(f"ran {len(command_groups.test)} test commands")
 
     @cli.command()
     def build_image(self) -> None:
         """Build a container image of the component."""
-        project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
-        selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+        group = list(self._app.get_group(AppServices.BUILD_IMAGE_EXES))
+        for exe in group:
+            exe.execute()
 
-        project_tools.build_component_image(selected_component.find_path(".").name)
+        if len(group) == 0:
+            project_tools = self._app.get(projects.PluginServices.PROJECT_TOOLS)
+            selected_component = self._app.get(projects.PluginServices.CWD_COMPONENT_TOOLS)
+
+            project_tools.build_component_image(selected_component.find_path(".").name)
 
     @apps.fallback_service(AppConfigs.COMMAND_GROUPS)
     def _default_commands_config(self) -> CiCommandGroups:
@@ -247,25 +300,25 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         )
 
     @apps.fallback_group(AppConfigs.INSTALL)
-    def _poetry_install(self) -> Iterator[tuple[str, ...]]:
+    def _poetry_install(self) -> Iterator[Collection[str]]:
         yield "poetry", "install"
 
     @apps.fallback_group(AppConfigs.FIX)
-    def _ruff_format(self) -> Iterator[tuple[str, ...]]:
+    def _ruff_format(self) -> Iterator[Collection[str]]:
         yield "ruff", "format"
 
     @apps.fallback_group(AppConfigs.FIX)
-    def _ruff_fix(self) -> Iterator[tuple[str, ...]]:
+    def _ruff_fix(self) -> Iterator[Collection[str]]:
         yield "ruff", "check", "--fix", "--unsafe-fixes"
 
     @apps.fallback_group(AppConfigs.CHECK)
-    def _default_checks(self) -> Iterator[tuple[str, ...]]:
+    def _default_checks(self) -> Iterator[Collection[str]]:
         yield "ruff", "format", "--check"
         yield "ruff", "check"
         yield ("pyright",)
 
     @apps.fallback_group(AppConfigs.TEST)
-    def _pytest(self) -> Iterator[tuple[str, ...]]:
+    def _pytest(self) -> Iterator[Collection[str]]:
         yield ("pytest",)
 
     @apps.container()

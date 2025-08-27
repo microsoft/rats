@@ -136,10 +136,11 @@ b02f35d52f65: Pushed
     way the others are, but we hope to address this in a future release.
 """
 
-from ._app import AppConfigs, Application, CiCommandGroups, main
+from ._app import AppConfigs, Application, AppServices, CiCommandGroups, main
 
 __all__ = [
     "AppConfigs",
+    "AppServices",
     "Application",
     "CiCommandGroups",
     "main",
