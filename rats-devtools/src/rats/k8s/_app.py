@@ -13,7 +13,6 @@ from uuid import uuid4
 
 import click
 import yaml
-from kubernetes import client, config
 
 from rats import app_context as app_context
 from rats import apps as apps
@@ -24,7 +23,7 @@ from rats_resources import k8s
 
 from ._kustomize import KustomizeImage
 from ._utils import hash_value
-from ._workflow_jobs import CreateNamespace, KustomizeBuild
+from ._workflow_jobs import KustomizeBuild
 
 logger = logging.getLogger(__name__)
 
@@ -61,31 +60,6 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             # don't end the process
             standalone_mode=False,
         )
-
-    @cli.command()
-    @click.argument("app-ids", nargs=-1)
-    @click.option("--context", default='{"items": []}')
-    @click.option("--context-file")
-    @click.option("--wait", is_flag=True, default=False, help="wait for completion of aml job.")
-    def _test(
-        self,
-        app_ids: tuple[str, ...],
-        context: str,
-        context_file: str | None,
-        wait: bool,
-    ) -> None:
-        # Get the Kubernetes context from the app configuration
-        k8s_ctx_name = self._app.get(AppConfigs.K8S_CONFIG_CONTEXT)
-
-        # Load the Kubernetes configuration with the specified context
-        config.load_kube_config(context=k8s_ctx_name)
-
-        # Create the Kubernetes client
-        k8s_client = client.CoreV1Api()
-
-        # Create and execute the CreateNamespace instance
-        cn = CreateNamespace(k8s_client=k8s_client, namespace_name="workflows")
-        cn.execute()
 
     @cli.command()
     @click.argument("app-ids", nargs=-1)
