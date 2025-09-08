@@ -18,7 +18,7 @@ jobs:
           - rats-devtools
     name: "build-wheels: ${{ matrix.component }}"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
