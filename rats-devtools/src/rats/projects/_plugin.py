@@ -42,7 +42,9 @@ class PluginContainer(apps.Container, apps.PluginMixin):
         ptools = self._app.get(PluginServices.PROJECT_TOOLS)
         cwd = Path().resolve()
         nearest = find_nearest_component(cwd)
-        return ptools.get_component(nearest.name)
+        component_tools = ComponentTools(nearest)
+        actual_name = component_tools.component_name()
+        return ptools.get_component(actual_name)
 
     @apps.service(PluginServices.PROJECT_TOOLS)
     def _project_tools(self) -> ProjectTools:
