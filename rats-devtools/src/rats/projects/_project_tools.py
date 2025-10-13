@@ -230,9 +230,9 @@ class ProjectTools:
                 logger.debug(f"detected unmanaged component: {p.name}")
                 continue
 
-            uv_name = component_info.get("tool", {}).get("uv", {}).get("name")
+            poetry_name = component_info.get("tool", {}).get("poetry", {}).get("name")
             # fall back to assuming PEP 621 compliance
-            name = uv_name or component_info["project"]["name"]
+            name = poetry_name or component_info["project"]["name"]
 
             results[ComponentId(name)] = p
 
