@@ -46,16 +46,11 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = [
-    "rats.annotations",
-    "rats.app_context",
-    "rats.apps",
-    "rats.cli",
-    "rats.logs",
-    "rats.runtime",
-    "rats_e2e.apps",
-    "rats_e2e.runtime",
-    "rats_resources.runtime"
+    "rats",
+    "rats_e2e",
+    "rats_resources",
 ]
+namespace = true
 
 [tool.rats-devtools]
 enabled = true
