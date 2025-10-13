@@ -71,4 +71,4 @@ repos:
         name: Run codespell to check for common misspellings in files
         language: python
         types: [text]
-        exclude: "*.lock|CHANGELOG.md"
+        exclude: "uv.lock|CHANGELOG.md"
