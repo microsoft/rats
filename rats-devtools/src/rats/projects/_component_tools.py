@@ -3,7 +3,6 @@ import subprocess
 import sys
 import warnings
 from collections.abc import Mapping
-from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
 from typing import Any, NamedTuple
@@ -48,7 +47,7 @@ class ComponentTools:
         """
         self._validate_component_path(dst)
 
-        symlink(src, dst)
+        dst.symlink_to(src)
 
     def copy(self, src: Path, dst: Path) -> None:
         """

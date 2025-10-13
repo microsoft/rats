@@ -1662,21 +1662,16 @@ wheels = [
 name = "rats"
 version = "0.14.1"
 source = { editable = "." }
-
-[package.optional-dependencies]
-apps = [
+dependencies = [
     { name = "rats-apps" },
-]
-devtools = [
     { name = "rats-devtools" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "rats-apps", marker = "extra == 'apps'", directory = "../rats-apps" },
-    { name = "rats-devtools", marker = "extra == 'devtools'", directory = "../rats-devtools" },
+    { name = "rats-apps", directory = "../rats-apps" },
+    { name = "rats-devtools", directory = "../rats-devtools" },
 ]
-provides-extras = ["apps", "devtools"]
 
 [[package]]
 name = "rats-apps"
@@ -1697,6 +1692,17 @@ requires-dist = [
     { name = "dataclass-wizard" },
     { name = "pyyaml" },
     { name = "typing-extensions" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "coverage" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-nunit" },
+    { name = "ruff" },
+    { name = "types-urllib3" },
 ]
 
 [[package]]
@@ -1733,9 +1739,20 @@ requires-dist = [
     { name = "mkdocs-video" },
     { name = "mkdocstrings" },
     { name = "mkdocstrings-python" },
-    { name = "rats-apps" },
+    { name = "rats-apps", directory = "../rats-apps" },
     { name = "toml" },
     { name = "twine" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "coverage" },
+    { name = "pyright" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-nunit" },
+    { name = "ruff" },
+    { name = "setuptools" },
 ]
 
 [[package]]
