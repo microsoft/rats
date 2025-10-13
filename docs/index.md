@@ -69,17 +69,17 @@ We use the following optional dependencies for development:
 
 ### Required system dependencies
 
-* [poetry](https://python-poetry.org/): To manage package dependencies and virtual environments.
+* [uv](https://docs.astral.sh/uv/): To manage package dependencies and virtual environments.
 * [python >= 3.10](https://www.python.org/)
 
 For setting up the development environment:
 
 * Clone the repository and cd into it.
-* Install the dependencies with poetry:
+* Install the dependencies with uv:
 ```bash
-cd rats; poetry install; cd -
-cd rats-apps; poetry install; cd -
-cd rats-devtools; poetry install; cd -
+cd rats; uv sync; cd -
+cd rats-apps; uv sync; cd -
+cd rats-devtools; uv sync; cd -
 ```
 * Install `rats-devtools` command (optional):
 ```bash

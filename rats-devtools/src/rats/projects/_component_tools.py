@@ -23,7 +23,7 @@ class ComponentTools:
     """
     A small collection of operations commonly done on components.
 
-    This class might contain unrelated things like poetry and docker specific methods that we can
+    This class might contain unrelated things like uv and docker specific methods that we can
     hopefully move to better components in the future.
     """
 

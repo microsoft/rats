@@ -21,7 +21,7 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
     ez_app.project_hash()
     ez_app.project_info()
     ez_app.project_manifest()
-    ez_app.run(("poetry", "update"))
+    ez_app.run(("uv", "sync", "-U"))
     ```
 
     !!! warning
@@ -83,16 +83,14 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         99ee7…aa6661        .devcontainer/post-create.sh
         8ef70…387510        .dockerignore
         …
-        96928…93f240        rats-apps/poetry.lock
-        aa057…0deabb        rats-apps/poetry.toml
+        96928…93f240        rats-apps/uv.lock
         2c905…9c31b1        rats-apps/pyproject.toml
         626c9…fe8e75        rats-apps/src/rats/annotations/__init__.py
         be5cd…5c06f2        rats-apps/src/rats/annotations/__main__.py
         5241e…889437        rats-apps/src/rats/annotations/_functions.py
         …
         01a05…d1fc56        rats-devtools/mkdocs.yaml
-        8833e…890b76        rats-devtools/poetry.lock
-        aa057…0deabb        rats-devtools/poetry.toml
+        8833e…890b76        rats-devtools/uv.lock
         d346c…3ec564        rats-devtools/pyproject.toml
         cf568…47c48c        rats-devtools/src/rats/aml/__init__.py
         d22fa…b0f5bf        rats-devtools/src/rats/aml/__main__.py

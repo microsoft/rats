@@ -161,7 +161,7 @@ mechanism to allow authors to make their application extensible. These plugins a
 
 === ":material-file-settings: ~/code/pyproject.toml"
     ```toml
-    [tool.poetry.plugins."foo.plugins"]
+    [project.entry-points."foo.plugins"]
     "foo" = "foo:PluginContainer"
     ```
 
@@ -205,9 +205,9 @@ mechanism to allow authors to make their application extensible. These plugins a
         ```
     === ":material-file-settings: ~/code/pyproject.toml"
         ```toml
-            [tool.poetry.plugins."foo.plugins"]
+            [project.entry-points."foo.plugins"]
             "foo" = "foo:PluginContainer"
 
-            [tool.poetry.scripts]
+            [project.scripts]
             foo = "foo:main"
         ```

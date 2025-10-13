@@ -26,16 +26,16 @@ jobs:
       - uses: ./.github/actions/setup-environment
         id: runner-context
         with:
-          install-poetry: true
+          install-uv: true
           install-devtools: true
       - name: build-wheel
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd ${{ matrix.component }}
-          poetry version "$PACKAGE_VERSION"
+          uv version "$PACKAGE_VERSION"
           rats-ci install
-          poetry build -f wheel
+          uv build
       - name: "upload-artifacts"
         uses: actions/upload-artifact@v4
         with:

@@ -14,32 +14,23 @@ license = "MIT"
 dependencies = []
 
 [project.optional-dependencies]
-apps = [
-    "rats-apps (==0.14.1)",
-]
-devtools = [
-    "rats-devtools (==0.14.1)",
-]
+apps = ["rats-apps (==0.14.1)"]
+devtools = ["rats-devtools (==0.14.1)"]
+
+[tool.uv.sources]
+rats-apps = { path = "../rats-apps" }
+rats-devtools = { path = "../rats-devtools" }
 
 [project.urls]
 repository = "https://github.com/microsoft/rats"
 documentation = "https://microsoft.github.io/rats"
 
-[tool.poetry]
-requires-poetry = ">=2.0"
-packages = [
-    { include = "rats", from = "src" },
-]
-
-[tool.poetry.group.local.dependencies]
-# putting the local dependencies in a poetry group ensures pip never sees them
-# and we can tell poetry to skip this group to test what our end users experience
-rats-apps = { path = "../rats-apps", develop = true }
-rats-devtools = { path = "../rats-devtools", develop = true }
-
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.2,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = ["rats"]
 
 [tool.rats-devtools]
 enabled = true

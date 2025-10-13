@@ -19,14 +19,14 @@ jobs:
       - uses: ./.github/actions/setup-environment
         id: runner-context
         with:
-          install-poetry: true
+          install-uv: true
           install-devtools: true
       - name: mkdocs-build
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd rats-devtools
-          poetry version "$PACKAGE_VERSION"
+          uv version "$PACKAGE_VERSION"
           rats-ci install
           rats-docs build
       - name: "upload-gh-pages"

@@ -2,8 +2,8 @@ name: "Setup Environment"
 description: |
   Install development tools and define common variables.
 inputs:
-  install-poetry:
-    description: install the global poetry cli command
+  install-uv:
+    description: install the global uv cli command
     required: true
     default: ""
   install-devtools:
@@ -54,14 +54,10 @@ runs:
 
         echo "generating context for version: $PACKAGE_VERSION"
         echo "package-version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
-    - id: "install-poetry"
-      if: ${{ inputs.install-poetry }}
-      name: "install-poetry"
-      shell: bash
-      run: |
-        pipx install poetry
-        pipx install uv
-        poetry self add poetry-monorepo-dependency-plugin
+    - name: "install-uv"
+      uses: astral-sh/setup-uv@v6
+      with:
+        version: "0.9"
     - id: "install-devtools"
       if: ${{ inputs.install-devtools }}
       name: "install-devtools"

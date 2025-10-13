@@ -300,8 +300,8 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         )
 
     @apps.fallback_group(AppConfigs.INSTALL)
-    def _poetry_install(self) -> Iterator[Collection[str]]:
-        yield "poetry", "install"
+    def _uv_install(self) -> Iterator[Collection[str]]:
+        yield "uv", "sync"
 
     @apps.fallback_group(AppConfigs.FIX)
     def _ruff_format(self) -> Iterator[Collection[str]]:

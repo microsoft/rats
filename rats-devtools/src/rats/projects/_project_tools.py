@@ -230,12 +230,10 @@ class ProjectTools:
                 logger.debug(f"detected unmanaged component: {p.name}")
                 continue
 
-            poetry_name = component_info.get("tool", {}).get("poetry", {}).get("name")
+            uv_name = component_info.get("tool", {}).get("uv", {}).get("name")
             # fall back to assuming PEP 621 compliance
-            name = poetry_name or component_info["project"]["name"]
+            name = uv_name or component_info["project"]["name"]
 
-            # poetry code paths can be dropped once 2.x is released
-            # looks like we wait: https://github.com/python-poetry/poetry/pull/9135
             results[ComponentId(name)] = p
 
         return results

@@ -11,7 +11,7 @@
         "ghcr.io/devcontainers/features/docker-in-docker": {},
         "ghcr.io/devcontainers-contrib/features/fzf": {},
         "ghcr.io/devcontainers-contrib/features/pipx-package": {},
-        "ghcr.io/devcontainers-contrib/features/poetry": {},
+        "ghcr.io/devcontainers-contrib/features/uv": {},
         "ghcr.io/devcontainers-contrib/features/direnv": {},
         "ghcr.io/devcontainers-contrib/features/pre-commit": {},
         "ghcr.io/devcontainers-contrib/features/neovim-apt-get": {}

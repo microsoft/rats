@@ -1,4 +1,4 @@
-layout_poetry() {
+layout_uv() {
   if [[ ! -f pyproject.toml ]]; then
     log_status 'No pyproject.toml found. Will initialize poetry in no-interactive mode'
     poetry init -n -q
@@ -9,4 +9,17 @@ layout_poetry() {
   export VIRTUAL_ENV=$(echo "$VENV" | rev | cut -d'/' -f2- | rev)
   export POETRY_ACTIVE=1
   PATH_add "$VENV"
+}
+
+layout_uv() {
+  if [[ ! -f pyproject.toml ]]; then
+    log_status 'No pyproject.toml found. Will initialize uv'
+    uv init --quiet
+  fi
+
+  VIRTUAL_ENV=$(dirname $(dirname $(uv run which python)))
+
+  PATH_add "$VIRTUAL_ENV/bin"
+  export UV_ACTIVE=1  # or VENV_ACTIVE=1
+  export VIRTUAL_ENV
 }
