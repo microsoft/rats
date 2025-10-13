@@ -17,8 +17,7 @@ apt-get install -yqq --no-install-recommends \
     python3-pip \
     pipx
 
-pipx install poetry
-poetry config virtualenvs.in-project true
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
@@ -27,7 +26,7 @@ rm -rf /root/.cache
 HEREDOC
 
 COPY rats-apps/pyproject.toml /opt/rats/rats-apps/pyproject.toml
-COPY rats-apps/poetry.lock /opt/rats/rats-apps/poetry.lock
+COPY rats-apps/uv.lock /opt/rats/rats-apps/uv.lock
 COPY rats-apps/README.md /opt/rats/rats-apps/README.md
 RUN <<HEREDOC
 # create skeleton of python packages
@@ -48,7 +47,7 @@ RUN <<HEREDOC
 # install python package dependencies!
 set -eux
 
-poetry install --only main
+uv sync --no-default-groups
 
 rm -rf /root/.cache
 HEREDOC

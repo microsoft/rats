@@ -25,14 +25,14 @@ jobs:
       - uses: ./.github/actions/setup-environment
         id: runner-context
         with:
-          install-poetry: true
+          install-uv: true
           install-devtools: true
       - name: check
         env:
           PACKAGE_VERSION: "${{ steps.runner-context.outputs.package-version }}"
         run: |
           cd ${{ matrix.component }}
-          poetry version "$PACKAGE_VERSION"
+          uv version "$PACKAGE_VERSION"
           rats-ci install check test
       - name: upload-coverage
         uses: codecov/codecov-action@v5.5.1

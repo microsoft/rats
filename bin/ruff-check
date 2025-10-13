@@ -29,7 +29,7 @@ do
 
   if [ ! -z "$files" ]; then
     # Run the 'ruff' command
-    poetry run ruff format $files
+    uv run ruff format $files
 
     # If the command fails, save the error code
     if [ $? -ne 0 ]; then

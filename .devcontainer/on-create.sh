@@ -21,15 +21,14 @@ echo 'eval "$(register-python-argcomplete cz)"' >> ~/.zshrc
 echo 'eval "$(register-python-argcomplete cz)"' >> ~/.bashrc
 
 direnv allow .
-poetry config virtualenvs.in-project true
 
 directories=("rats-apps" "rats-devtools")
 # Loop through each directory
 for dir in "${directories[@]}"; do
-    echo "POETRY INSTALL in $dir..."
+    echo "UV INSTALL in $dir..."
     cd "$dir" || exit 1
     direnv allow .
-    poetry install
+    uv sync
     cd - || exit 1
 done
 

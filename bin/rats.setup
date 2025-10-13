@@ -20,9 +20,9 @@ echo "Executables: ${BIN_PATH}"
 echo "Repo Path: ${REPO_PATH}"
 echo "Devtools Path: ${DEVTOOLS_PATH}"
 
-echo "running 'poetry install' in devtools to make sure commands are up to date"
+echo "running 'uv sync' in devtools to make sure commands are up to date"
 cd $DEVTOOLS_PATH
-poetry install
+uv sync
 cd -
 
 for i in "${cmds[@]}"

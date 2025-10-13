@@ -1,7 +1,7 @@
 [project]
 name = "rats-apps"
 description = "research analysis tools for building applications"
-version = "0.14.1"
+version = "0.14.2"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
@@ -29,26 +29,28 @@ documentation = "https://microsoft.github.io/rats"
 [project.entry-points."rats.runtime.apps"]
 "rats_e2e.runtime" = "rats_e2e.runtime:Application"
 
-[tool.poetry]
-packages = [
-    { include = "rats", from = "src" },
-    { include = "rats_e2e", from = "src" },
-    { include = "rats_resources", from = "src" },
+[dependency-groups]
+dev = [
+    "coverage",
+    "pyright",
+    "pytest",
+    "pytest-cov",
+    "pytest-nunit",
+    "ruff",
+    "types-urllib3"
 ]
-requires-poetry = ">=2.0"
-
-[tool.poetry.group.dev.dependencies]
-coverage = "*"
-pyright = "!=1.1.401" # causing false positives from code in installed packages
-pytest = "*"
-pytest-cov = "*"
-pytest-nunit = "*"
-ruff = "*"
-types-urllib3 = "*"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.2,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = [
+    "rats",
+    "rats_e2e",
+    "rats_resources",
+]
+namespace = true
 
 [tool.rats-devtools]
 enabled = true

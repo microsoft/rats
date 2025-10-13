@@ -3,7 +3,6 @@ import subprocess
 import sys
 import warnings
 from collections.abc import Mapping
-from os import symlink
 from pathlib import Path
 from shutil import copy, copytree, rmtree
 from typing import Any, NamedTuple
@@ -23,7 +22,7 @@ class ComponentTools:
     """
     A small collection of operations commonly done on components.
 
-    This class might contain unrelated things like poetry and docker specific methods that we can
+    This class might contain unrelated things like uv and docker specific methods that we can
     hopefully move to better components in the future.
     """
 
@@ -48,7 +47,7 @@ class ComponentTools:
         """
         self._validate_component_path(dst)
 
-        symlink(src, dst)
+        dst.symlink_to(src)
 
     def copy(self, src: Path, dst: Path) -> None:
         """

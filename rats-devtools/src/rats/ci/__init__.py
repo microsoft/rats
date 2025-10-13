@@ -58,7 +58,7 @@ $ cd rats-apps
 $ rats-ci config
 component: rats-apps
   install
-    poetry install
+    uv sync
   fix
     ruff check --fix --unsafe-fixes
     ruff format
@@ -72,8 +72,8 @@ component: rats-apps
 
 ### install
 
-We're currently using [Poetry](https://python-poetry.org/) for dependency management, so the
-`rats-ci install` command maps simply to `poetry install` by default. In simple cases, this command
+We're currently using [uv](https://docs.astral.sh/uv/) for dependency management, so the
+`rats-ci install` command maps simply to `uv sync` by default. In simple cases, this command
 might not be immediately necessary on most projects; but if installing all the development
 dependencies in a component requires more than one command, or you have components other than
 python packages, you can update the [rats.ci.AppConfigs.INSTALL][] service to define your
