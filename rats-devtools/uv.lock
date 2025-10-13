@@ -1858,7 +1858,7 @@ wheels = [
 
 [[package]]
 name = "rats-apps"
-version = "0.14.1"
+version = "0.14.2"
 source = { directory = "../rats-apps" }
 dependencies = [
     { name = "click" },
@@ -1890,7 +1890,7 @@ dev = [
 
 [[package]]
 name = "rats-devtools"
-version = "0.14.1"
+version = "0.14.2"
 source = { editable = "." }
 dependencies = [
     { name = "azure-ai-ml" },
