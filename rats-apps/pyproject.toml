@@ -45,7 +45,17 @@ requires = ["uv_build>=0.9.2,<0.10.0"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = ["rats", "rats_e2e", "rats_resources"]
+module-name = [
+    "rats.annotations",
+    "rats.app_context",
+    "rats.apps",
+    "rats.cli",
+    "rats.logs",
+    "rats.runtime",
+    "rats_e2e.apps",
+    "rats_e2e.runtime",
+    "rats_resources.runtime"
+]
 
 [tool.rats-devtools]
 enabled = true
