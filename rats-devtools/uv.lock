@@ -1693,7 +1693,7 @@ wheels = [
 
 [[package]]
 name = "rats-apps"
-version = "0.14.2"
+version = "0.15.0"
 source = { directory = "../rats-apps" }
 dependencies = [
     { name = "click" },

@@ -2,6 +2,7 @@ site_name: rats
 repo_url: "https://github.com/microsoft/rats"
 repo_name: "rats"
 docs_dir: "docs"
+site_dir: "rats-devtools/dist/site"
 theme:
   name: material
   logo: images/logo.png
