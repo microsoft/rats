@@ -13,11 +13,26 @@ components instead of publishing an isolated documentation site for each compone
 accomplish this as a small command proxy that inserts default arguments to the underlying `mkdocs`
 command.
 
-!!! note
-    Previously, this module would copy original markdown files, and symlink directories during the
-    build process to unify the docs across components. However, over time, we've found solutions
-    that eliminate these custom operations, making the `rats-docs` commands much simpler, and
-    making it easy to get the same output when using `mkdocs` commands directly.
+## Dependencies
+
+We don't define the `mkdocs` dependencies as part of our library because we expect you to choose
+them based on your configured `mkdocs.yaml` file. This means that the `rats-docs` commands will
+fail until you've added the needed dependencies to your `pyproject.toml`. If using a tool like
+`uv`, they might look something like the ones below:
+
+```toml
+[dependency-groups]
+dev = [
+    "mkdocs",
+    "mkdocs-awesome-pages-plugin",
+    "mkdocs-material",
+    "mkdocs-video",
+    "mkdocs-glightbox",
+    "mdx-truly-sane-lists",
+    "mkdocstrings",
+    "mkdocstrings-python",
+]
+```
 
 ## Structure
 

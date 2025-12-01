@@ -1,7 +1,7 @@
 [project]
 name = "rats-devtools"
 description = "Rats Development Tools"
-version = "0.14.2"
+version = "0.15.0"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
@@ -15,19 +15,9 @@ dependencies = [
     "rats-apps",
     "click",
     "toml",
-    "twine",
     # workflowing
     "azure-ai-ml",
     "azure-identity",
-    # documentation tooling
-    "mkdocs",
-    "mkdocs-awesome-pages-plugin",
-    "mkdocs-material",
-    "mkdocs-video",
-    "mkdocs-glightbox",
-    "mdx-truly-sane-lists",
-    "mkdocstrings",
-    "mkdocstrings-python",
 ]
 
 [project.urls]
@@ -43,6 +33,15 @@ dev = [
     "pytest-nunit",
     "setuptools",
     "ruff",
+    # documentation tooling
+    "mkdocs",
+    "mkdocs-awesome-pages-plugin",
+    "mkdocs-material",
+    "mkdocs-video",
+    "mkdocs-glightbox",
+    "mdx-truly-sane-lists",
+    "mkdocstrings",
+    "mkdocstrings-python",
 ]
 
 [build-system]
