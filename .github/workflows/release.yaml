@@ -32,7 +32,7 @@ jobs:
       id-token: write
     steps:
       - name: download-wheels
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: "wheels.${{ matrix.component }}"
           path: dist/

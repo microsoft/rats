@@ -18,7 +18,7 @@ jobs:
           - rats-devtools
     name: "build-wheels: ${{ matrix.component }}"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ inputs.sha }}
           fetch-depth: 0
@@ -37,7 +37,7 @@ jobs:
           rats-ci install
           uv build
       - name: "upload-artifacts"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "wheels.${{ matrix.component }}"
           path: "${{ matrix.component }}/dist/*.whl"
