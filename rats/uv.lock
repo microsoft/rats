@@ -964,7 +964,7 @@ wheels = [
 
 [[package]]
 name = "rats"
-version = "0.15.0"
+version = "0.16.0"
 source = { editable = "." }
 dependencies = [
     { name = "rats-apps" },
@@ -973,14 +973,14 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "rats-apps", directory = "../rats-apps" },
-    { name = "rats-devtools", directory = "../rats-devtools" },
+    { name = "rats-apps", editable = "../rats-apps" },
+    { name = "rats-devtools", editable = "../rats-devtools" },
 ]
 
 [[package]]
 name = "rats-apps"
-version = "0.15.0"
-source = { directory = "../rats-apps" }
+version = "0.16.0"
+source = { editable = "../rats-apps" }
 dependencies = [
     { name = "click" },
     { name = "colorlog" },
@@ -1011,8 +1011,8 @@ dev = [
 
 [[package]]
 name = "rats-devtools"
-version = "0.15.0"
-source = { directory = "../rats-devtools" }
+version = "0.16.0"
+source = { editable = "../rats-devtools" }
 dependencies = [
     { name = "azure-ai-ml" },
     { name = "azure-identity" },
@@ -1026,7 +1026,7 @@ requires-dist = [
     { name = "azure-ai-ml" },
     { name = "azure-identity" },
     { name = "click" },
-    { name = "rats-apps", directory = "../rats-apps" },
+    { name = "rats-apps", editable = "../rats-apps" },
     { name = "toml" },
 ]
 
