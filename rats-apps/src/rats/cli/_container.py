@@ -66,7 +66,7 @@ class Container(Protocol):
                         click.Command(
                             name=command.name,
                             callback=partial(cb, method),
-                            short_help=method.__doc__,
+                            help=method.__doc__,
                             params=params,
                         )
                     )
