@@ -1694,7 +1694,7 @@ wheels = [
 [[package]]
 name = "rats-apps"
 version = "0.15.0"
-source = { directory = "../rats-apps" }
+source = { editable = "../rats-apps" }
 dependencies = [
     { name = "click" },
     { name = "colorlog" },
@@ -1759,7 +1759,7 @@ requires-dist = [
     { name = "azure-ai-ml" },
     { name = "azure-identity" },
     { name = "click" },
-    { name = "rats-apps", directory = "../rats-apps" },
+    { name = "rats-apps", editable = "../rats-apps" },
     { name = "toml" },
 ]
 

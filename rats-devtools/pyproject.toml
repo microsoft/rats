@@ -57,7 +57,7 @@ module-name = [
 namespace = true
 
 [tool.uv.sources]
-rats-apps = { path = "../rats-apps" }
+rats-apps = { path = "../rats-apps", editable = true }
 
 [project.scripts]
 rats-ci = "rats.ci:main"
