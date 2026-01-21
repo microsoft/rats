@@ -1,7 +1,7 @@
 [project]
 name = "rats"
 description = "bundled research analysis tools"
-version = "0.15.0"
+version = "0.16.0"
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 authors = [
@@ -14,8 +14,8 @@ license = "MIT"
 dependencies = ["rats-apps", "rats-devtools"]
 
 [tool.uv.sources]
-rats-apps = { path = "../rats-apps" }
-rats-devtools = { path = "../rats-devtools" }
+rats-apps = { path = "../rats-apps", editable = true }
+rats-devtools = { path = "../rats-devtools", editable = true }
 
 [project.urls]
 repository = "https://github.com/microsoft/rats"
