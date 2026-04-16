@@ -32,7 +32,7 @@ jobs:
       id-token: write
     steps:
       - name: download-wheels
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: "wheels.${{ matrix.component }}"
           path: dist/
@@ -49,4 +49,4 @@ jobs:
     steps:
       - name: "deploy-gh-pages"
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
