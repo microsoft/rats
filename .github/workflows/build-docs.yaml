@@ -6,6 +6,11 @@ on:
         description: 'the git sha to checkout'
         required: true
         type: string
+      publish-docs:
+        description: 'whether to deploy the generated docs to github pages'
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: read
 jobs:
@@ -36,3 +41,16 @@ jobs:
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: "rats-devtools/dist/site"
+  deploy-docs:
+    name: "deploy-docs"
+    if: "${{ inputs.publish-docs }}"
+    needs: generate-docs
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: "deploy-gh-pages"
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
