@@ -5,38 +5,47 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
 permissions:
-  contents: write
-  actions: read
-  id-token: write
-  pages: write
-  security-events: write
+  contents: read
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   checks:
     uses: ./.github/workflows/checks.yaml
-    secrets: inherit
+    permissions:
+      contents: read
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       sha: ${{ github.sha }}
   build-wheels:
     uses: ./.github/workflows/build-wheels.yaml
-    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     with:
       sha: ${{ github.sha }}
   build-docs:
     uses: ./.github/workflows/build-docs.yaml
-    secrets: inherit
+    permissions:
+      contents: read
     with:
       sha: ${{ github.sha }}
   codeql:
     uses: ./.github/workflows/codeql.yaml
-    secrets: inherit
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     with:
       sha: ${{ github.sha }}
   release:
     uses: ./.github/workflows/release.yaml
-    secrets: inherit
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     needs:
       - build-docs
       - build-wheels

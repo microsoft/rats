@@ -6,17 +6,20 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
-  checks: write
-  id-token: write
-  pages: write
-  security-events: write
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 jobs:
   ci-workflow:
-    uses: ./.github/workflows/ci.yaml
+    # ci.yaml is currently missing from this repo; its secret interface is
+    # unknown, so secrets are inherited until the workflow is restored.
+    uses: ./.github/workflows/ci.yaml # zizmor: ignore[secrets-inherit]
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      security-events: write
+      actions: read
     secrets: inherit
     with:
       publish-wheels: false
@@ -24,6 +27,9 @@ jobs:
       sha: main
   codeql-workflow:
     uses: ./.github/workflows/codeql.yaml
-    secrets: inherit
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
     with:
       sha: main

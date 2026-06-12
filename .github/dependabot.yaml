@@ -12,7 +12,10 @@ updates:
     commit-message:
       prefix: ":arrow_up: dep-bump"
       include: scope
-  - package-ecosystem: pip
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: uv
     directory: /rats/
     schedule:
       interval: weekly
@@ -24,7 +27,10 @@ updates:
     commit-message:
       prefix: ":arrow_up: rats dep-bump"
       include: scope
-  - package-ecosystem: pip
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: uv
     directory: /rats-apps/
     schedule:
       interval: weekly
@@ -36,7 +42,10 @@ updates:
     commit-message:
       prefix: ":arrow_up: rats-apps dep-bump"
       include: scope
-  - package-ecosystem: pip
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: uv
     directory: /rats-devtools/
     schedule:
       interval: weekly
@@ -48,3 +57,5 @@ updates:
     commit-message:
       prefix: ":arrow_up: rats-devtools dep-bump"
       include: scope
+    cooldown:
+      default-days: 7
