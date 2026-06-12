@@ -43,7 +43,7 @@ jobs:
           uv build
       - uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
         with:
-          subject-path: dist/*
+          subject-path: "${{ matrix.component }}/dist/*"
       - name: "upload-artifacts"
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
