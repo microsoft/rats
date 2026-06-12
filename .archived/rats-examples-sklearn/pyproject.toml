@@ -128,6 +128,7 @@ quote-style = "double"            # Like Black, use double quotes for strings.
 indent-style = "space"            # Like Black, indent with spaces, rather than tabs.
 skip-magic-trailing-comma = false # Like Black, respect magic trailing commas.
 line-ending = "auto"              # Like Black, automatically detect the appropriate line ending.
+preview = true
 
 # Enable auto-formatting of code examples in docstrings. Markdown,
 # reStructuredText code/literal blocks and doctests are all supported.

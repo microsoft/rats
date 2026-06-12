@@ -105,43 +105,41 @@ application is functional in many compute environments.
 === ":material-language-python: ~/code/src/foo/\_\_main\_\_.py"
 
     ```python
-        from rats import apps
-        import foo
+    from rats import apps
+    import foo
 
 
-        class Application(apps.AppContainer, apps.PluginMixin):
+    class Application(apps.AppContainer, apps.PluginMixin):
+        def execute() -> None:
+            blob_client = self._app.get(foo.BLOB_SERVICE_ID)
+            print(f"hello, world. loaded blob client: {blob_client}")
 
-            def execute() -> None:
-                blob_client = self._app.get(foo.BLOB_SERVICE_ID)
-                print(f"hello, world. loaded blob client: {blob_client}")
-
-            @apps.container()
-            def _plugins(self) -> apps.Container:
-                return foo.PluginContainer(self._app)
+        @apps.container()
+        def _plugins(self) -> apps.Container:
+            return foo.PluginContainer(self._app)
 
 
-        if __name__ == "__main__":
-            apps.run_plugin(Application)
+    if __name__ == "__main__":
+        apps.run_plugin(Application)
     ```
 
 === ":material-language-python: ~/code/src/foo/_plugin.py"
 
     ```python
-        from rats import apps
-        from azure.storage.blob import BlobServiceClient
+    from rats import apps
+    from azure.storage.blob import BlobServiceClient
 
-        BLOB_SERVICE_ID = apps.ServiceId[BlobServiceClient]("blob-client")
+    BLOB_SERVICE_ID = apps.ServiceId[BlobServiceClient]("blob-client")
 
 
-        class PluginContainer(apps.Container, apps.PluginMixin):
-
-            @apps.service(BLOB_SERVICE_ID)
-            def _blob_client(self) -> BlobServiceClient:
-                credential = DefaultAzureCredential()
-                return BlobServiceClient(
-                    account_url=f"https://example.blob.core.windows.net/",
-                    credential=credential,
-                )
+    class PluginContainer(apps.Container, apps.PluginMixin):
+        @apps.service(BLOB_SERVICE_ID)
+        def _blob_client(self) -> BlobServiceClient:
+            credential = DefaultAzureCredential()
+            return BlobServiceClient(
+                account_url=f"https://example.blob.core.windows.net/",
+                credential=credential,
+            )
     ```
 
 !!! success
@@ -167,23 +165,22 @@ mechanism to allow authors to make their application extensible. These plugins a
 
 === ":material-language-python: ~/code/src/foo/\_\_main\_\_.py"
     ```python
-        from rats import apps
-        import foo
+    from rats import apps
+    import foo
 
 
-        class Application(apps.AppContainer, apps.PluginMixin):
+    class Application(apps.AppContainer, apps.PluginMixin):
+        def execute() -> None:
+            blob_client = self._app.get(foo.BLOB_SERVICE_ID)
+            print(f"hello, world. loaded blob client: {blob_client}")
 
-            def execute() -> None:
-                blob_client = self._app.get(foo.BLOB_SERVICE_ID)
-                print(f"hello, world. loaded blob client: {blob_client}")
-
-            @apps.container()
-            def _plugins(self) -> apps.Container:
-                return apps.PythonEntryPointContainer("foo.plugins")
+        @apps.container()
+        def _plugins(self) -> apps.Container:
+            return apps.PythonEntryPointContainer("foo.plugins")
 
 
-        if __name__ == "__main__":
-            apps.run_plugin(Application)
+    if __name__ == "__main__":
+        apps.run_plugin(Application)
     ```
 
 !!! success

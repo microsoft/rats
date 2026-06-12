@@ -1,35 +1,44 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/python:3.10",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
     "features": {
-        "ghcr.io/devcontainers/features/git": {},
-        "ghcr.io/devcontainers/features/sshd": {},
-        "ghcr.io/devcontainers/features/github-cli": {},
-        "ghcr.io/devcontainers-contrib/features/tmux-apt-get": {},
         "ghcr.io/devcontainers/features/common-utils": {
             "configureZshAsDefaultShell": true
         },
-        "ghcr.io/devcontainers/features/docker-in-docker": {},
-        "ghcr.io/devcontainers-contrib/features/fzf": {},
-        "ghcr.io/devcontainers-contrib/features/pipx-package": {},
-        "ghcr.io/devcontainers-contrib/features/uv": {},
-        "ghcr.io/devcontainers-contrib/features/direnv": {},
-        "ghcr.io/devcontainers-contrib/features/pre-commit": {},
-        "ghcr.io/devcontainers-contrib/features/neovim-apt-get": {}
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
     },
     "onCreateCommand": ".devcontainer/on-create.sh",
     "postCreateCommand": ".devcontainer/post-create.sh",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+    "workspaceFolder": "/workspace/${localWorkspaceFolderBasename}",
+    "remoteEnv": {
+        "WANDB_API_KEY": "${localEnv:WANDB_API_KEY}",
+        "WANDB_BASE_URL": "${localEnv:WANDB_BASE_URL}"
+    },
+    "remoteUser": "vscode",
+    "hostRequirements": {
+        "gpu": "optional"
+    },
+    "runArgs": [
+        "--add-host=host.docker.internal:host-gateway"
+        // "--gpus=all"  // may need to add this if you want to use the host's GPU
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
                 "ms-python.python",
-                "ms-python.vscode-pylance",
                 "ms-python.debugpy",
+                "ms-python.vscode-pylance",
+                "ms-azuretools.vscode-containers",
                 "ms-toolsai.jupyter",
+                "ms-vscode.vscode-chat-customizations-evaluations",
                 "charliermarsh.ruff",
                 "eamodio.gitlens",
                 "redhat.vscode-yaml",
                 "bierner.github-markdown-preview",
-                "GitHub.copilot",
+                "GitHub.copilot-chat",
                 "GitHub.vscode-pull-request-github"
             ]
         }

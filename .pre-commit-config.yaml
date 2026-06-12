@@ -1,36 +1,17 @@
-exclude: ".idea/"
+exclude: '(^|/)\.idea/'
 
 ci:
   autofix_prs: false
-  autoupdate_commit_msg: ":arrow_up: dep-bump(pre-commit): update pre-commit hooks"
+  autoupdate_commit_msg: ":arrow-up: dep-bump(pre-commit): update pre-commit hooks"
 
 default_install_hook_types: [pre-commit, commit-msg]
 
 repos:
-  - repo: local
-    hooks:
-      - id: ruff-format
-        name: ruff-format
-        entry: "bin/ruff-format"
-        require_serial: true
-        language: script
-        pass_filenames: true
-        files: "src/|test/"
-        types: [python]
-      - id: ruff-check
-        name: ruff-check
-        entry: "bin/ruff-check"
-        require_serial: true
-        language: script
-        pass_filenames: true
-        files: "src/|test/"
-        types: [python]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: check-ast
       - id: check-added-large-files
-        args: ["--maxkb=1000"]
       - id: check-case-conflict
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
@@ -44,31 +25,45 @@ repos:
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: forbid-submodules
-      - id: name-tests-test
       - id: trailing-whitespace
 
+  - repo: https://gitlab.com/bmares/check-json5
+    rev: bd4737432a2175617a9eeaa510ab369cbc1cbd3d  # frozen: v1.0.1
+    hooks:
+      - id: check-json5
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 22f0422809455ec89ffdcf5a00170ba816e42ddb  # frozen: v0.15.16
+    hooks:
+      - id: ruff # linter
+        name: ruff-check
+        types_or: [python, pyi, jupyter]
+        args: [--fix]
+      - id: ruff-format # formatter
+        types_or: [python, pyi, jupyter, markdown]
+        args: [--preview]
+
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.12.0
+    rev: 2a4ac6555711923a159f74cd3a324c785ac8f145  # frozen: v4.16.3
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
 
   - repo: https://github.com/ljnsn/cz-conventional-gitmoji
-    rev: v0.7.0
+    rev: b5797218ddcf43975ae72e9674314acace7dd8a0  # frozen: v0.7.0
     hooks:
       - id: conventional-gitmoji
-# this seems to break python blocks created by embedding src files
-#  - repo: https://github.com/asottile/blacken-docs
-#    rev: 1.18.0
-#    hooks:
-#      - id: blacken-docs
-#        additional_dependencies: [black]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a  # frozen: v2.4.2
     hooks:
       - id: codespell
         name: Run codespell to check for common misspellings in files
         language: python
         types: [text]
         exclude: "uv.lock|CHANGELOG.md"
+
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: 9257c6050c0261b8c57e712f632dc4a8010109a9  # frozen: v1.25.2
+    hooks:
+      - id: zizmor

@@ -1,26 +1,25 @@
 #! /bin/bash
-# this runs ONCE at devcontainer creation time, and it runs during pre-build phase which
-# means it does not have access to user context
-# ===========================
-
-# finish config of direnv settings (would be nice to improve the devcontainer "feature")
 echo "CONFIGURING DIRENV..."
-echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
 echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
+echo 'eval "$(direnv hook zsh)"' >> ~/.zshrc
 eval "$(direnv hook bash)"
 mkdir -p ~/.config/direnv/
-cp /workspaces/rats/.devcontainer/direnvrc ~/.config/direnv/direnvrc
+cp /workspace/$(basename "$(pwd)")/.devcontainer/direnvrc ~/.config/direnv/direnvrc
 
-echo "UPDATE PIP"
-pip install --upgrade pip
+echo "UV INSTALL"
+curl -LsSf https://astral.sh/uv/install.sh | sh
+echo 'eval "$(uv generate-shell-completion bash)"' >> ~/.bashrc
+echo 'eval "$(uvx --generate-shell-completion bash)"' >> ~/.bashrc
+echo 'eval "$(uv generate-shell-completion zsh)"' >> ~/.zshrc
+echo 'eval "$(uvx --generate-shell-completion zsh)"' >> ~/.zshrc
 
-echo "INSTALLING COMMITIZEN"
-pipx install commitizen
-pipx inject commitizen cz-conventional-gitmoji
-echo 'eval "$(register-python-argcomplete cz)"' >> ~/.zshrc
-echo 'eval "$(register-python-argcomplete cz)"' >> ~/.bashrc
+echo "INSTALLING COPILOT CLI"
+curl -fsSL https://gh.io/copilot-install | bash
+mkdir -p ~/.copilot/
+cp /workspace/$(basename "$(pwd)")/.devcontainer/mcp-config.json ~/.copilot/mcp-config.json
 
-direnv allow .
+echo "export DISPLAY=:0" >> ~/.bashrc
+echo "export DISPLAY=:0" >> ~/.zshrc
 
 directories=("rats-apps" "rats-devtools")
 # Loop through each directory

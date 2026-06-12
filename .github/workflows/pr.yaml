@@ -4,43 +4,31 @@ on:
     branches: [ main ]
 permissions:
   contents: read
-  actions: read
   id-token: write
-  pages: write
-  security-events: write
+  attestations: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   checks:
     uses: ./.github/workflows/checks.yaml
-    secrets: inherit
+    permissions:
+      contents: read
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     with:
       sha: ${{ github.sha }}
   build-wheels:
     uses: ./.github/workflows/build-wheels.yaml
-    secrets: inherit
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
     with:
       sha: ${{ github.sha }}
   build-docs:
     uses: ./.github/workflows/build-docs.yaml
-    secrets: inherit
+    permissions:
+      contents: read
     with:
       sha: ${{ github.sha }}
-  codeql:
-    uses: ./.github/workflows/codeql.yaml
-    secrets: inherit
-    with:
-      sha: ${{ github.sha }}
-  release:
-    uses: ./.github/workflows/release.yaml
-    secrets: inherit
-    needs:
-      - build-docs
-      - build-wheels
-      - checks
-      - codeql
-    with:
-      sha: ${{ github.sha }}
-      publish-docs: false
-      publish-wheels: false

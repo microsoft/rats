@@ -35,9 +35,9 @@ class Collection(Generic[T_ContextType]):
         Args:
             *collections: zero or more collections to merge into one.
         """
-        return Collection[T_ContextType].make(
-            *[ctx for collection in collections for ctx in collection.items]
-        )
+        return Collection[T_ContextType].make(*[
+            ctx for collection in collections for ctx in collection.items
+        ])
 
     @staticmethod
     def empty() -> Collection[T_ContextType]:
@@ -137,15 +137,13 @@ def loads(context: str) -> Collection[Any]:
     """
     data = json.loads(context)
     return Collection[Any](
-        items=tuple(
-            [
-                Context(
-                    service_id=apps.ServiceId(*x["service_id"]),
-                    values=tuple(x["values"]),
-                )
-                for x in data.get("items", [])
-            ]
-        ),
+        items=tuple([
+            Context(
+                service_id=apps.ServiceId(*x["service_id"]),
+                values=tuple(x["values"]),
+            )
+            for x in data.get("items", [])
+        ]),
     )
 
 

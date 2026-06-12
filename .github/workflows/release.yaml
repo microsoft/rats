@@ -29,24 +29,32 @@ jobs:
       name: pypi
       url: https://pypi.org/p/${{ matrix.component }}
     permissions:
+      contents: write
       id-token: write
     steps:
       - name: download-wheels
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: "wheels.${{ matrix.component }}"
           path: dist/
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: gh release upload "$TAG_NAME" dist/* --clobber
       - name: publish-wheels
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
+
   publish-docs:
     name: "deploy-docs"
     runs-on: "ubuntu-latest"
     if: "${{ inputs.publish-docs }}"
     timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
     steps:
       - name: "deploy-gh-pages"
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
