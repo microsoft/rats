@@ -56,38 +56,36 @@ class ConfigureApplication(apps.AppContainer, apps.PluginMixin):
         """Applies the logging configuration."""
         logger_configs = self._app.get_group(AppConfigs.LOGGERS)
         loggers_dict = {key: value for key, value in logger_configs}
-        logging.config.dictConfig(
-            {
-                "version": 1,
-                "disable_existing_loggers": False,
-                "formatters": {
-                    "colored": {
-                        "()": "colorlog.ColoredFormatter",
-                        "format": (
-                            "%(log_color)s%(asctime)s %(levelname)-8s [%(name)s:%(lineno)d]: "
-                            "%(message)s%(reset)s"
-                        ),
-                        "datefmt": "%Y-%m-%d %H:%M:%S",
-                        "log_colors": {
-                            "DEBUG": "cyan",
-                            "INFO": "green",
-                            "WARNING": "yellow",
-                            "ERROR": "red,",
-                            "CRITICAL": "bold_red",
-                        },
-                    }
-                },
-                "handlers": {
-                    "console": {
-                        "class": "logging.StreamHandler",
-                        "level": "DEBUG",
-                        "formatter": "colored",
-                        "stream": "ext://sys.stderr",
-                    }
-                },
-                "loggers": loggers_dict,
-            }
-        )
+        logging.config.dictConfig({
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "colored": {
+                    "()": "colorlog.ColoredFormatter",
+                    "format": (
+                        "%(log_color)s%(asctime)s %(levelname)-8s [%(name)s:%(lineno)d]: "
+                        "%(message)s%(reset)s"
+                    ),
+                    "datefmt": "%Y-%m-%d %H:%M:%S",
+                    "log_colors": {
+                        "DEBUG": "cyan",
+                        "INFO": "green",
+                        "WARNING": "yellow",
+                        "ERROR": "red,",
+                        "CRITICAL": "bold_red",
+                    },
+                }
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "level": "DEBUG",
+                    "formatter": "colored",
+                    "stream": "ext://sys.stderr",
+                }
+            },
+            "loggers": loggers_dict,
+        })
         # enable deprecation warnings by default
         logging.captureWarnings(True)
         warnings.simplefilter("default", DeprecationWarning)

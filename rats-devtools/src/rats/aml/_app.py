@@ -445,24 +445,20 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
         for pre_cmd in self._app.get_group(AppConfigs.CLI_PRE_CMD):
             pre_cmds.append(shlex.join(["cd", pre_cmd.cwd]))
             pre_cmds.append(
-                shlex.join(
-                    [
-                        *[f"{k}={shlex.quote(v)}" for k, v in pre_cmd.env.items()],
-                        *pre_cmd.argv,
-                    ]
-                )
+                shlex.join([
+                    *[f"{k}={shlex.quote(v)}" for k, v in pre_cmd.env.items()],
+                    *pre_cmd.argv,
+                ])
             )
 
         post_cmds: list[str] = []
         for post_cmd in self._app.get_group(AppConfigs.CLI_POST_CMD):
             post_cmds.append(shlex.join(["cd", post_cmd.cwd]))
             post_cmds.append(
-                shlex.join(
-                    [
-                        *[f"{k}={shlex.quote(v)}" for k, v in post_cmd.env.items()],
-                        *post_cmd.argv,
-                    ]
-                )
+                shlex.join([
+                    *[f"{k}={shlex.quote(v)}" for k, v in post_cmd.env.items()],
+                    *post_cmd.argv,
+                ])
             )
 
         config = self._app.get(AppConfigs.JOB_DETAILS)
@@ -492,18 +488,16 @@ class Application(apps.AppContainer, cli.Container, apps.PluginMixin):
             else []
         )
 
-        cmd = " && ".join(
-            [
-                # make sure we know the original directory and any input/output paths
-                "export RATS_AML_ORIGINAL_PWD=${PWD}",
-                *input_envs,
-                *output_keys,
-                *pre_cmds,
-                shlex.join(["cd", cli_command.cwd]),
-                shlex.join(cli_command.argv),
-                *post_cmds,
-            ]
-        )
+        cmd = " && ".join([
+            # make sure we know the original directory and any input/output paths
+            "export RATS_AML_ORIGINAL_PWD=${PWD}",
+            *input_envs,
+            *output_keys,
+            *pre_cmds,
+            shlex.join(["cd", cli_command.cwd]),
+            shlex.join(cli_command.argv),
+            *post_cmds,
+        ])
 
         env_ops.create_or_update(Environment(**config.environment._asdict()))
         extra_aml_command_args = self._app.get(AppConfigs.COMMAND_KWARGS)

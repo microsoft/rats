@@ -37,14 +37,12 @@ class AnnotationsContainer(NamedTuple):
         group_id: NamedTuple,
     ) -> "AnnotationsContainer":
         return AnnotationsContainer(
-            annotations=tuple(
-                [
-                    annotation_group
-                    for x in self.with_namespace(namespace)
-                    for annotation_group in x
-                    if group_id in annotation_group.groups
-                ]
-            ),
+            annotations=tuple([
+                annotation_group
+                for x in self.with_namespace(namespace)
+                for annotation_group in x
+                if group_id in annotation_group.groups
+            ]),
         )
 
     def with_namespace(
@@ -67,12 +65,10 @@ class AnnotationsBuilder:
 
     def make(self, name: str) -> AnnotationsContainer:
         return AnnotationsContainer(
-            annotations=tuple(
-                [
-                    GroupAnnotations[Any](name=name, namespace=namespace, groups=tuple(groups))
-                    for namespace, groups in self._group_ids.items()
-                ]
-            ),
+            annotations=tuple([
+                GroupAnnotations[Any](name=name, namespace=namespace, groups=tuple(groups))
+                for namespace, groups in self._group_ids.items()
+            ]),
         )
 
 
