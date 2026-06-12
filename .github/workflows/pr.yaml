@@ -4,6 +4,10 @@ on:
     branches: [ main ]
 permissions:
   contents: read
+  actions: read
+  id-token: write
+  attestations: write
+  security-events: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
