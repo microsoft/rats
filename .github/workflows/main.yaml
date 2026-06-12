@@ -48,7 +48,7 @@ jobs:
   release:
     uses: ./.github/workflows/release.yaml
     permissions:
-      contents: write
+      contents: read
       pages: write
       id-token: write
     needs:

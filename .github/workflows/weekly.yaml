@@ -13,13 +13,9 @@ jobs:
   ci-workflow:
     # ci.yaml is currently missing from this repo; its secret interface is
     # unknown, so secrets are inherited until the workflow is restored.
-    uses: ./.github/workflows/ci.yaml # zizmor: ignore[secrets-inherit]
+    uses: ./.github/workflows/checks.yaml # zizmor: ignore[secrets-inherit]
     permissions:
       contents: read
-      id-token: write
-      attestations: write
-      security-events: write
-      actions: read
     secrets: inherit
     with:
       publish-wheels: false
