@@ -1,24 +1,28 @@
 name: Release
 on:
-  workflow_call:
-    inputs:
-      sha:
-        description: 'the git sha to checkout'
-        required: true
-        type: string
-      publish-docs:
-        description: 'whether to publish docs to the github pages'
-        required: true
-        type: boolean
-      publish-wheels:
-        description: 'whether to publish wheels to the configured feed'
-        required: true
-        type: boolean
+  push:
+    branches: [ "main" ]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
+  build-wheels:
+    uses: ./.github/workflows/build-wheels.yaml
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    with:
+      sha: ${{ github.sha }}
+
   publish-wheels:
-    name: "publish-wheels"
-    runs-on: "ubuntu-latest"
-    if: "${{ inputs.publish-wheels }}"
+    name: publish-wheels
+    runs-on: ubuntu-24.04
+    needs: build-wheels
     strategy:
       fail-fast: false
       matrix:
@@ -46,16 +50,3 @@ jobs:
         run: gh release upload "$TAG_NAME" dist/* --clobber
       - name: publish-wheels
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
-
-  publish-docs:
-    name: "deploy-docs"
-    runs-on: "ubuntu-latest"
-    if: "${{ inputs.publish-docs }}"
-    timeout-minutes: 10
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: "deploy-gh-pages"
-        id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
