@@ -33,7 +33,7 @@ repos:
       - id: check-json5
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 22f0422809455ec89ffdcf5a00170ba816e42ddb  # frozen: v0.15.16
+    rev: c59bba8fb259db0fec2bbb77ad8ba51ea7341b56  # frozen: v0.15.20
     hooks:
       - id: ruff # linter
         name: ruff-check
@@ -44,7 +44,7 @@ repos:
         args: [--preview]
 
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: 2a4ac6555711923a159f74cd3a324c785ac8f145  # frozen: v4.16.3
+    rev: a6859a7b8182086a5e013deab8fefc0597b502e9  # frozen: v4.16.4
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
@@ -64,6 +64,6 @@ repos:
         exclude: "uv.lock|CHANGELOG.md"
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: 9257c6050c0261b8c57e712f632dc4a8010109a9  # frozen: v1.25.2
+    rev: e3eebf65325ccc992422292cb7a4baee967cf815  # frozen: v1.26.1
     hooks:
       - id: zizmor
