@@ -33,7 +33,7 @@ repos:
       - id: check-json5
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 22f0422809455ec89ffdcf5a00170ba816e42ddb  # frozen: v0.15.16
+    rev: e8f7d69b957a30acb2c875078d5fd012de24b64c  # frozen: v0.16.7
     hooks:
       - id: ruff # linter
         name: ruff-check
@@ -44,7 +44,7 @@ repos:
         args: [--preview]
 
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: 2a4ac6555711923a159f74cd3a324c785ac8f145  # frozen: v4.16.3
+    rev: cd6c8a50525d5407c58a2aaac30a35befbf9b05e  # frozen: v4.18.1
     hooks:
       - id: commitizen
         additional_dependencies: [cz-conventional-gitmoji]
@@ -55,7 +55,7 @@ repos:
       - id: conventional-gitmoji
 
   - repo: https://github.com/codespell-project/codespell
-    rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a  # frozen: v2.4.2
+    rev: 57b21406f092110c18776e39b0bda50d37c945c8  # frozen: v2.4.3
     hooks:
       - id: codespell
         name: Run codespell to check for common misspellings in files
@@ -64,6 +64,6 @@ repos:
         exclude: "uv.lock|CHANGELOG.md"
 
   - repo: https://github.com/zizmorcore/zizmor-pre-commit
-    rev: 9257c6050c0261b8c57e712f632dc4a8010109a9  # frozen: v1.25.2
+    rev: fa412071e4f5d44d44f9e365f4676f9df92456a2  # frozen: v1.30.1
     hooks:
       - id: zizmor
